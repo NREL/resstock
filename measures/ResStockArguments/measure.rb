@@ -533,11 +533,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         end_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
 
         if args[:hvac_control_heating_season_period] == 'Unavailable 1 Day'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 1, begin_day_num, end_day_num)
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 1, begin_day_num, end_day_num, sim_calendar_year)
         elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Week'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 7, begin_day_num, end_day_num)
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 7, begin_day_num, end_day_num, sim_calendar_year)
         elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Month'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 30, begin_day_num, end_day_num)
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 30, begin_day_num, end_day_num, sim_calendar_year)
         end
         begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year)
         end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year)
@@ -557,11 +557,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         end_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
 
         if args[:hvac_control_cooling_season_period] == 'Unavailable 1 Day'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 1, begin_day_num, end_day_num)
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 1, begin_day_num, end_day_num, sim_calendar_year)
         elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Week'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 7, begin_day_num, end_day_num)
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 7, begin_day_num, end_day_num, sim_calendar_year)
         elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Month'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 30, begin_day_num, end_day_num)
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 30, begin_day_num, end_day_num, sim_calendar_year)
         end
         begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year)
         end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year)
@@ -845,16 +845,19 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     return heating_months, cooling_months, sim_calendar_year
   end
 
-  def get_subset_begin_end_day_num(building_id, n_days, begin_day_num, end_day_num)
-    # FIXME: if begin_day_num > end_day_num (i.e., heating season), we need:
-    # - begin_day_num < subset_begin_day_num < 365 or 0 < subset_begin_day_num < end_day_num
-    # - subset_begin_day_num < subset_end_day_num < 365 or 0 < subset_end_day_num < end_day_num
+  def get_subset_begin_end_day_num(building_id, n_days, begin_day_num, end_day_num, year)
+    if begin_day_num > end_day_num
+      num_days = Constants.NumDaysInYear(year)
+      day_nums = (begin_day_num..num_days).to_a + (1..end_day_num).to_a
+    else
+      day_nums = (begin_day_num..end_day_num).to_a
+    end
 
-    end_day_num -= n_days
-    begin_day_nums = (begin_day_num..end_day_num).to_a
+    begin_day_nums = day_nums[0..-n_days]
     subset_begin_day_num = begin_day_nums.sample(1, random: Random.new(building_id))
     subset_begin_day_num = subset_begin_day_num[0]
-    subset_end_day_num = subset_begin_day_num + n_days
+    subset_end_day_num = day_nums[day_nums.index(subset_begin_day_num) + n_days + 1]
+
     return subset_begin_day_num, subset_end_day_num
   end
 

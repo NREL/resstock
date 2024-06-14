@@ -88,7 +88,8 @@ class Constants
 
   def self.other_excludes
     # these are ResStockArguments that haven't made their way into options_lookup.tsv yet
-    return ['heating_system_actual_cfm_per_ton',
+    return ['building_id',
+            'heating_system_actual_cfm_per_ton',
             'heating_system_rated_cfm_per_ton']
   end
 
