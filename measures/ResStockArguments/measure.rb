@@ -76,7 +76,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Additional arguments
 
-    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('building_id', true)
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('building_id', false)
     arg.setDisplayName('Building Unit ID')
     arg.setDescription('The building unit number (between 1 and the number of samples).')
     args << arg

@@ -5113,7 +5113,7 @@ The building unit number (between 1 and the number of samples).
 - **Name:** ``building_id``
 - **Type:** ``Integer``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
