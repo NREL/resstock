@@ -830,10 +830,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if not File.exist? epw_path
       epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
     end
-    if not File.exist? epw_path
-      runner.registerError("Could not find EPW file at '#{epw_path}'.")
-      return false
-    end
+    # if not File.exist? epw_path
+      # runner.registerError("Could not find EPW file at '#{epw_path}'.")
+      # return false
+    # end
 
     epw_file = OpenStudio::EpwFile.new(epw_path)
     weather = WeatherProcess.new(epw_path: epw_path, runner: nil)
