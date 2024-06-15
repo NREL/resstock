@@ -94,7 +94,7 @@ jobs:
 
       - name: Run BuildExistingModel measure tests
         run: |
-          ruby workflow/run_analysis.rb -y project_testing/testing_baseline.yml -i 1
+          bundle exec rake workflow/run_analysis.rb -y project_testing/testing_baseline.yml -i 1
           bundle exec rake unit_tests:build_existing_model_tests
 
   analysis-tests:
