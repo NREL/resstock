@@ -530,15 +530,15 @@ puts "weather1 #{File.exist?(File.expand_path(File.join(File.dirname(__FILE__), 
       # Create EpwFile object
       epw_path = args[:weather_station_epw_filepath]
 puts "ResStockArguments 0"
-      if not File.exist? epw_path
+      # if not File.exist? epw_path
 puts "ResStockArguments 1"
         epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
-      end
+      # end
 puts "epw_path1 #{epw_path}"
 puts "epw_path1 #{File.expand_path(epw_path)}"
       if not File.exist? epw_path
-        runner.registerError("ResStockArguments: Could not find EPW file at '#{epw_path}'.")
-        return false
+        # runner.registerError("ResStockArguments: Could not find EPW file at '#{epw_path}'.")
+        # return false
       end
 
       epw_file = OpenStudio::EpwFile.new(epw_path)
