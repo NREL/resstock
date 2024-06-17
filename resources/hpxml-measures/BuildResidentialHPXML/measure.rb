@@ -3463,12 +3463,15 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     # Create EpwFile object
     epw_path = args[:weather_station_epw_filepath]
-puts "BuildResHPXML 0"    
+puts "BuildResHPXML 0"
+puts "path2 #{File.expand_path(File.dirname(__FILE__))}"
+puts "weather2 #{File.exist?(File.expand_path(File.join(File.dirname(__FILE__), '../../../weather')))}"
     if not File.exist? epw_path
 puts "BuildResHPXML 1"
       epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
     end
-puts "epw_path #{epw_path}"
+puts "epw_path2 #{epw_path}"
+puts "epw_path2 #{File.expand_path(epw_path)}"
     if not File.exist? epw_path
       runner.registerError("Could not find EPW file at '#{epw_path}'.")
       return false
