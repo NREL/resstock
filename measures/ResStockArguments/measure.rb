@@ -523,6 +523,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Seasons
 puts "ResStockArguments"
+runner.registerWarning("ResStockArguments")
 puts "path1 #{File.expand_path(File.dirname(__FILE__))}"
 puts "weather1 #{File.exist?(File.expand_path(File.join(File.dirname(__FILE__), '../../weather')))}"
     if (!args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].include?('Unavailable')) || (!args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].include?('Unavailable'))
@@ -536,7 +537,7 @@ puts "ResStockArguments 1"
 puts "epw_path1 #{epw_path}"
 puts "epw_path1 #{File.expand_path(epw_path)}"
       if not File.exist? epw_path
-        runner.registerError("Could not find EPW file at '#{epw_path}'.")
+        runner.registerError("ResStockArguments: Could not find EPW file at '#{epw_path}'.")
         return false
       end
 
