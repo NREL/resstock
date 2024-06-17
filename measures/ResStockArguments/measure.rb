@@ -522,6 +522,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:hvac_control_cooling_weekend_setpoint] = weekend_cooling_setpoints.join(', ')
 
     # Seasons
+puts "ResStockArguments"
+puts "path #{File.expand_path(File.dirname(__FILE__))}"
     if (!args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].include?('Unavailable')) || (!args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].include?('Unavailable'))
       # Create EpwFile object
       epw_path = args[:weather_station_epw_filepath]
