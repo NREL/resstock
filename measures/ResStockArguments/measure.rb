@@ -395,6 +395,39 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     args = runner.getArgumentValues(arguments(model), user_arguments)
 
+
+
+puts "ResStockArguments0"
+puts "#{Dir.entries('.')}"
+puts "#{Dir.entries('..')}"
+puts "#{Dir.entries('../..')}"
+puts "#{Dir.entries('../../..')}"
+puts "#{Dir.entries('../../../..')}"
+puts "#{Dir.entries('../../../../weather')}"
+
+epw_path = args[:weather_station_epw_filepath]
+puts "args[:weather_station_epw_filepath] #{File.expand_path(epw_path)}"
+
+    if (!args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].include?('Unavailable')) || (!args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].include?('Unavailable'))
+      # Create EpwFile object
+      # epw_path = args[:weather_station_epw_filepath]
+puts "ResStockArguments 0"
+      if not File.exist? epw_path
+puts "ResStockArguments 1"
+        epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
+      end
+puts "epw_path1 #{epw_path}"
+puts "epw_path1 #{File.expand_path(epw_path)}"
+      if not File.exist? epw_path
+        # runner.registerError("ResStockArguments: Could not find EPW file at '#{epw_path}'.")
+        # return false
+      end
+
+      epw_file = OpenStudio::EpwFile.new(epw_path)
+    end
+    
+
+
     measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     arg_names = []
     { 'BuildResidentialHPXML' => Constants.build_residential_hpxml_excludes,
@@ -523,17 +556,24 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Seasons
 puts "ResStockArguments"
-runner.registerWarning("ResStockArguments")
-puts "path1 #{File.expand_path(File.dirname(__FILE__))}"
-puts "weather1 #{File.exist?(File.expand_path(File.join(File.dirname(__FILE__), '../../weather')))}"
+puts "#{Dir.entries('.')}"
+puts "#{Dir.entries('..')}"
+puts "#{Dir.entries('../..')}"
+puts "#{Dir.entries('../../..')}"
+puts "#{Dir.entries('../../../..')}"
+puts "#{Dir.entries('../../../../weather')}"
+
+epw_path = args[:weather_station_epw_filepath]
+puts "args[:weather_station_epw_filepath] #{File.expand_path(epw_path)}"
+
     if (!args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].include?('Unavailable')) || (!args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].include?('Unavailable'))
       # Create EpwFile object
-      epw_path = args[:weather_station_epw_filepath]
+      # epw_path = args[:weather_station_epw_filepath]
 puts "ResStockArguments 0"
-      # if not File.exist? epw_path
+      if not File.exist? epw_path
 puts "ResStockArguments 1"
-        epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
-      # end
+        epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
+      end
 puts "epw_path1 #{epw_path}"
 puts "epw_path1 #{File.expand_path(epw_path)}"
       if not File.exist? epw_path
