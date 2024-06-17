@@ -395,8 +395,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     args = runner.getArgumentValues(arguments(model), user_arguments)
 
-    # Create EpwFile object
-    epw_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../weather', epw_path))
+    # create EpwFile object
+    epw_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../weather', File.basename(args[:weather_station_epw_filepath])))
     if not File.exist? epw_path
       runner.registerError("ResStockArguments: Could not find EPW file at '#{epw_path}'.")
       return false
