@@ -22,6 +22,13 @@ class BuildExistingModelTest < Minitest::Test
     @results_dir = File.join(File.dirname(__FILE__), 'results')
     FileUtils.rm_rf(@results_dir)
     Dir.mkdir(@results_dir)
+
+    weather_dir = File.join(File.dirname(__FILE__), '../../../weather')
+    if not File.exist? weather_dir
+      cli_path = OpenStudio.getOpenStudioCLI
+      command = "\"#{cli_path}\" tasks.rb download_weather"
+      system(command)
+    end
   end
 
   def teardown
