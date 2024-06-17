@@ -532,5 +532,21 @@ Development Changelog
         Removing the old HPWH options from options_lookup.tsv.
 
         Assignees: Jeff Maguire
+    
+    .. change::
+        :tags: characteristics
+        :pullreq: 1260
+
+        **Date**: 2024-06-17
+
+        Title:
+        Update threshold for weekday occupancy
+
+        Description:
+        RECS tsv_maker previously assumed that if people are home even for 1 day during the week, they are home every day of the week.
+        This resulted in people being less away (and hence fewer day time setbacks). This PR updates the threshold for weekday occupancy to be 3 days.
+        This makes the weekday occupancy more in line with RECS.
+
+        Assignees: Rajendra Adhikari
 
 
