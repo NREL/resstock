@@ -395,14 +395,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     args = runner.getArgumentValues(arguments(model), user_arguments)
 
-puts "ResStockArguments0"
-
-epw_path = File.basename(args[:weather_station_epw_filepath])
-
     # Create EpwFile object
-
     epw_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../weather', epw_path))
-puts "epw_path #{epw_path}"
     if not File.exist? epw_path
       runner.registerError("ResStockArguments: Could not find EPW file at '#{epw_path}'.")
       return false
@@ -410,9 +404,8 @@ puts "epw_path #{epw_path}"
 
     epw_file = OpenStudio::EpwFile.new(epw_path)
     weather = WeatherProcess.new(epw_path: epw_path, runner: nil)
-puts "epw_file #{epw_file}"
 
-
+    # collect arguments for deletion
     measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     arg_names = []
     { 'BuildResidentialHPXML' => Constants.build_residential_hpxml_excludes,
@@ -843,7 +836,9 @@ puts "epw_file #{epw_file}"
   end
 
   def get_heating_and_cooling_seasons(args, epw_file, weather)
-    latitude = HPXMLDefaults.get_default_latitude(args[:site_latitude], epw_file)
+    latitude = args[:site_latitude]
+    latitude = nil if latitude == Constants.Auto
+    latitude = HPXMLDefaults.get_default_latitude(latitude, epw_file)
 
     heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, latitude)
     sim_calendar_year = Location.get_sim_calendar_year(nil, epw_file)
