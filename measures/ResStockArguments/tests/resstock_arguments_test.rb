@@ -39,7 +39,7 @@ class ResStockArgumentsTest < Minitest::Test
     assert_equal(0, resstock_arguments_extras.size)
   end
 
-  def test_create_geometry
+  def test_create_geometry_envelope
     @lib_dir = File.join(File.dirname(__FILE__), '../../../lib')
     housing_characteristics_dir = File.join(File.dirname(__FILE__), '../../../project_national/housing_characteristics')
 
@@ -56,7 +56,7 @@ class ResStockArgumentsTest < Minitest::Test
     @parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(@lookup_csv_data, characteristics_dir)
 
     buildstock_csv_path = File.join(File.dirname(__FILE__), '../../../test/base_results/baseline/annual/buildstock.csv')
-    arg_name_prefix = 'geometry'
+    arg_name_prefixes = ['geometry', 'door', 'window', 'skylight']
 
     start_time = Time.now
 
@@ -64,7 +64,7 @@ class ResStockArgumentsTest < Minitest::Test
     completed = []
     in_threads = Parallel.processor_count
     Parallel.map(building_ids, in_threads: in_threads) do |building_id|
-      _test_measure(buildstock_csv_path, building_id, arg_name_prefix)
+      _test_measure(buildstock_csv_path, building_id, arg_name_prefixes)
       completed << building_id
 
       info = "[Parallel(n_jobs=#{in_threads})]: "
@@ -81,7 +81,7 @@ class ResStockArgumentsTest < Minitest::Test
 
   private
 
-  def _test_measure(buildstock_csv_path, building_id, arg_name_prefix)
+  def _test_measure(buildstock_csv_path, building_id, arg_name_prefixes)
     model = OpenStudio::Model::Model.new
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
@@ -90,7 +90,6 @@ class ResStockArgumentsTest < Minitest::Test
     measures = {}
     @parameters_ordered.each do |parameter_name|
       option_name = bldg_data[parameter_name]
-      print_option_assignment(parameter_name, option_name, runner)
       options_measure_args, _errors = get_measure_args_from_option_names(@lookup_csv_data, [option_name], parameter_name, @lookup_file, runner)
       options_measure_args[option_name].each do |measure_subdir, args_hash|
         update_args_hash(measures, measure_subdir, args_hash, false)
@@ -98,42 +97,17 @@ class ResStockArgumentsTest < Minitest::Test
     end
 
     resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    apply_measures(@measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
+    apply_measures(@measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model)
 
     args = {}
     resstock_arguments_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
-      next unless step_value.name.start_with?(arg_name_prefix)
+      next unless step_value.name.start_with?(*arg_name_prefixes)
 
       args[step_value.name.to_sym] = _to_float(value)
     end
 
-    args[:geometry_roof_pitch] = { '1:12' => 1.0 / 12.0,
-                                   '2:12' => 2.0 / 12.0,
-                                   '3:12' => 3.0 / 12.0,
-                                   '4:12' => 4.0 / 12.0,
-                                   '5:12' => 5.0 / 12.0,
-                                   '6:12' => 6.0 / 12.0,
-                                   '7:12' => 7.0 / 12.0,
-                                   '8:12' => 8.0 / 12.0,
-                                   '9:12' => 9.0 / 12.0,
-                                   '10:12' => 10.0 / 12.0,
-                                   '11:12' => 11.0 / 12.0,
-                                   '12:12' => 12.0 / 12.0 }[args[:geometry_roof_pitch]]
-
-    args[:geometry_rim_joist_height] = args[:geometry_rim_joist_height].to_f / 12.0
-
-    if args[:geometry_unit_type] == HPXML::ResidentialTypeSFD
-      success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
-    elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
-      success = Geometry.create_single_family_attached(model: model, **args)
-    elsif args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
-      args[:geometry_unit_num_floors_above_grade] = 1
-      success = Geometry.create_apartment(model: model, **args)
-    elsif args[:geometry_unit_type] == HPXML::ResidentialTypeManufactured
-      success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
-    end
-
+    success = HPXMLFile.create_geometry_envelope(runner, model, args)
     assert(success)
   end
 
