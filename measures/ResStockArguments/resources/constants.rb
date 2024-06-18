@@ -99,7 +99,8 @@ class Constants
 
   def self.arguments_to_register
     # list of resstock arguments; reported as build_existing_model.<argument_name>, ...
-    return ['hvac_control_heating_season_period',
-            'hvac_control_cooling_season_period']
+    # return ['hvac_control_heating_season_period',
+    # 'hvac_control_cooling_season_period']
+    return []
   end
 end
