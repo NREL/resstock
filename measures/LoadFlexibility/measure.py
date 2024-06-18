@@ -26,7 +26,7 @@ sys.path.insert(0, str(RESOURCES_DIR))
 from setpoint import modify_all_setpoints
 from input_helper import OffsetType, RelativeOffsetData, AbsoluteOffsetData, ALL_MEASURE_ARGS
 from xml_helper import HPXML
-from setpoint_helper import HVACSetpoints
+from setpoint_helper import HVACSetpoints, BuildingInfo
 sys.path.pop(0)
 
 
@@ -128,8 +128,8 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
         if result.returncode != 0:
             runner.registerError(f"Failed to run create_setpoint_schedules.rb : {result.stderr}")
             return False
-
-        modify_all_setpoints(runner, setpoints)
+        building_info = BuildingInfo()
+        modify_all_setpoints(runner, setpoints, building_info)
         hpxml = HPXML(hpxml_path)
         doc_buildings = hpxml.findall("Building")
         for (indx, building) in enumerate(doc_buildings):

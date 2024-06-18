@@ -6,3 +6,7 @@ from dataclasses import dataclass
 class HVACSetpoints:
     heating_setpoint: List[float]
     cooling_setpoint: List[float]
+
+@dataclass(frozen=True)
+class BuildingInfo:
+    state: str = "CO"

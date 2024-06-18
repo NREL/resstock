@@ -1,13 +1,13 @@
 from input_helper import OffsetTypeData, OffsetTimingData, RelativeOffsetData, AbsoluteOffsetData
 from typing import List
-from setpoint_helper import HVACSetpoints
+from setpoint_helper import HVACSetpoints, BuildingInfo
 
 
-def modify_setpoints(runner, setpoints: HVACSetpoints):
+def modify_setpoints(runner, setpoints: HVACSetpoints, building_info: BuildingInfo):
     pass
 
 
-def modify_all_setpoints(runner, multiple_setpoints: List[HVACSetpoints]):
+def modify_all_setpoints(runner, multiple_setpoints: List[HVACSetpoints], building_info: BuildingInfo):
     """Modify setpoints based on user arguments."""
     runner.registerInfo("Modifying setpoints ...")
     runner.registerInfo("Values got are")
@@ -36,9 +36,10 @@ def modify_all_setpoints(runner, multiple_setpoints: List[HVACSetpoints]):
                         f"{AbsoluteOffsetData.heating_on_peak_setpoint.val}")
     runner.registerInfo(f"{AbsoluteOffsetData.heating_pre_peak_setpoint.name}="
                         f"{AbsoluteOffsetData.heating_pre_peak_setpoint.val}")
+    runner.registerInfo(f"state={building_info.state}")
     # Modify the setpoint using above data
     modified_setpoints = []
     for setpoints in multiple_setpoints:
         # Modify the setpoints
-        modified_setpoints.append(modify_setpoints(runner, setpoints=setpoints))
+        modified_setpoints.append(modify_setpoints(runner, setpoints=setpoints, building_info=building_info))
     return True
