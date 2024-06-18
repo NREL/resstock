@@ -854,7 +854,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       day_nums = (begin_day_num..end_day_num).to_a
     end
 
-    begin_day_nums = day_nums[0..-n_days]
+    begin_day_nums = day_nums[0...(-n_days - 1)]
     subset_begin_day_num = begin_day_nums.sample(1, random: Random.new(building_id))
     subset_begin_day_num = subset_begin_day_num[0]
     subset_end_day_num = day_nums[day_nums.index(subset_begin_day_num) + n_days + 1]
