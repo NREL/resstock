@@ -3,8 +3,11 @@
 require 'parallel'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
+require_relative '../../../resources/hpxml-measures/BuildResidentialHPXML/resources/geometry'
+require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/hpxml'
+require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
-require_relative '../measure.rb'
+require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/unit_conversions'
 
 $start_time = Time.now
 
@@ -19,38 +22,51 @@ class BuildExistingModelTest < Minitest::Test
     FileUtils.cp_r(resources_dir, @lib_dir)
     FileUtils.cp_r(housing_characteristics_dir, @lib_dir)
 
-    @results_dir = File.join(File.dirname(__FILE__), 'results')
-    FileUtils.rm_rf(@results_dir)
-    Dir.mkdir(@results_dir)
-
-    weather_dir = File.join(File.dirname(__FILE__), '../../../weather')
-    if not File.exist? weather_dir
-      cli_path = OpenStudio.getOpenStudioCLI
-      command = "\"#{cli_path}\" tasks.rb download_weather"
-      system(command)
-    end
+    resources_dir = File.join(@lib_dir, 'resources')
+    characteristics_dir = File.join(@lib_dir, 'housing_characteristics')
+    buildstock_file = File.join(resources_dir, 'buildstock.rb')
+    @measures_dir = File.join(File.dirname(__FILE__), '../../../measures')
+    @lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+    require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
+    @lookup_csv_data = CSV.open(@lookup_file, col_sep: "\t").each.to_a
+    @parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(@lookup_csv_data, characteristics_dir)
   end
 
   def teardown
     FileUtils.rm_rf(@lib_dir)
-    FileUtils.rm_rf(@results_dir)
   end
 
-  def test_building
-    args_hash = {}
-    args_hash['buildstock_csv_path'] = File.join(File.dirname(__FILE__), '../../../test/base_results/baseline/annual/buildstock.csv')
+  def test_create_geometry
+    buildstock_csv_path = File.join(File.dirname(__FILE__), '../../../test/base_results/baseline/annual/buildstock.csv')
+    arg_names = ['geometry_unit_type',
+                 'geometry_unit_cfa',
+                 'geometry_average_ceiling_height',
+                 'geometry_unit_num_floors_above_grade',
+                 'geometry_unit_aspect_ratio',
+                 'geometry_garage_width',
+                 'geometry_garage_depth',
+                 'geometry_garage_protrusion',
+                 'geometry_garage_position',
+                 'geometry_foundation_type',
+                 'geometry_foundation_height',
+                 'geometry_rim_joist_height',
+                 'geometry_attic_type',
+                 'geometry_roof_type',
+                 'geometry_roof_pitch',
+                 'geometry_unit_left_wall_is_adiabatic',
+                 'geometry_unit_right_wall_is_adiabatic',
+                 'geometry_unit_front_wall_is_adiabatic',
+                 'geometry_unit_back_wall_is_adiabatic']
+
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+    model = OpenStudio::Model::Model.new
 
     building_ids = (1..10000).to_a
     in_threads = Parallel.processor_count
     completed = []
     Parallel.map(building_ids, in_threads: in_threads) do |building_id|
-      worker_dir = File.join(@results_dir, "#{Parallel.worker_number + 1}")
-      FileUtils.rm_rf(worker_dir)
-      Dir.mkdir(worker_dir)
-
-      args_hash['building_id'] = building_id
-      args_hash['hpxml_path'] = File.join(worker_dir, 'existing.xml')
-      _test_measure(args_hash)
+      bldg_data = get_data_for_sample(buildstock_csv_path, building_id, runner)
+      _test_measure(runner, model, arg_names, bldg_data)
       completed << building_id
 
       info = "[Parallel(n_jobs=#{in_threads})]: "
@@ -65,36 +81,63 @@ class BuildExistingModelTest < Minitest::Test
 
   private
 
-  def _test_measure(args_hash)
-    # create an instance of the measure
-    measure = BuildExistingModel.new
+  def _to_float(value)
+    begin
+      return Float(value)
+    rescue
+      return value
+    end
+  end
 
-    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    model = OpenStudio::Model::Model.new
-
-    # get arguments
-    args_hash['output_dir'] = File.dirname(__FILE__)
-    arguments = measure.arguments(model)
-    argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
-
-    # populate argument with specified hash value if specified
-    arguments.each do |arg|
-      temp_arg_var = arg.clone
-      if args_hash.has_key?(arg.name)
-        assert(temp_arg_var.setValue(args_hash[arg.name]))
+  def _test_measure(runner, model, arg_names, bldg_data)
+    measures = {}
+    @parameters_ordered.each do |parameter_name|
+      option_name = bldg_data[parameter_name]
+      print_option_assignment(parameter_name, option_name, runner)
+      options_measure_args, _errors = get_measure_args_from_option_names(@lookup_csv_data, [option_name], parameter_name, @lookup_file, runner)
+      options_measure_args[option_name].each do |measure_subdir, args_hash|
+        update_args_hash(measures, measure_subdir, args_hash, false)
       end
-      argument_map[arg.name] = temp_arg_var
     end
 
-    # run the measure
-    measure.run(model, runner, argument_map)
-    result = runner.result
+    resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
+    apply_measures(@measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
 
-    # show the output
-    show_output(result) unless result.value.valueName == 'Success'
+    args = {}
+    resstock_arguments_runner.result.stepValues.each do |step_value|
+      value = get_value_from_workflow_step_value(step_value)
+      next unless arg_names.include?(step_value.name)
 
-    # assert that it ran correctly
-    assert_equal('Success', result.value.valueName)
+      args[step_value.name.to_sym] = _to_float(value)
+    end
+
+    args[:geometry_roof_pitch] = { '1:12' => 1.0 / 12.0,
+                                   '2:12' => 2.0 / 12.0,
+                                   '3:12' => 3.0 / 12.0,
+                                   '4:12' => 4.0 / 12.0,
+                                   '5:12' => 5.0 / 12.0,
+                                   '6:12' => 6.0 / 12.0,
+                                   '7:12' => 7.0 / 12.0,
+                                   '8:12' => 8.0 / 12.0,
+                                   '9:12' => 9.0 / 12.0,
+                                   '10:12' => 10.0 / 12.0,
+                                   '11:12' => 11.0 / 12.0,
+                                   '12:12' => 12.0 / 12.0 }[args[:geometry_roof_pitch]]
+
+    args[:geometry_rim_joist_height] = args[:geometry_rim_joist_height].to_f / 12.0
+
+    if args[:geometry_unit_type] == HPXML::ResidentialTypeSFD
+      success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
+    elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
+      success = Geometry.create_single_family_attached(model: model, **args)
+    elsif args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
+      args[:geometry_unit_num_floors_above_grade] = 1
+      success = Geometry.create_apartment(model: model, **args)
+    elsif args[:geometry_unit_type] == HPXML::ResidentialTypeManufactured
+      success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
+    end
+
+    assert(success)
   end
 
   def _get_elapsed_time(t1, t0)
