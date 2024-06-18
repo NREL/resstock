@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 def download_epws
-  require 'uri'
-  require 'net/http'
   require_relative 'resources/hpxml-measures/HPXMLtoOpenStudio/resources/util'
 
   weather_dir = File.join(File.dirname(__FILE__), 'weather')

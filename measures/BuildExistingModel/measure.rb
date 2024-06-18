@@ -37,11 +37,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription("Absolute/relative path of the buildstock CSV file. Relative is compared to the 'lib/housing_characteristics' directory.")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_path', false)
-    arg.setDisplayName('HPXML File Path')
-    arg.setDescription('Absolute/relative path of the existing HPXML file.')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('building_id', true)
     arg.setDisplayName('Building Unit ID')
     arg.setDescription('The building unit number (between 1 and the number of samples).')
@@ -338,18 +333,15 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # Initialize measure keys with hpxml_path arguments
-    hpxml_path = args[:hpxml_path]
-    if hpxml_path.nil?
-      hpxml_path = File.expand_path('../existing.xml')
-    end
-
     # Run the ResStockArguments measure
     resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
     if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
       register_logs(runner, resstock_arguments_runner)
       return false
     end
+
+    # Initialize measure keys with hpxml_path arguments
+    hpxml_path = File.expand_path('../existing.xml')
 
     # Optional whole SFA/MF building simulation
     whole_sfa_or_mf_building_sim = false
@@ -752,7 +744,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path,
                                                     'hpxml_output_path' => hpxml_path,
                                                     'schedules_random_seed' => args[:building_id],
-                                                    'output_csv_path' => File.expand_path(File.join(File.dirname(hpxml_path), 'schedules.csv')),
+                                                    'output_csv_path' => File.expand_path('../schedules.csv'),
                                                     'building_id' => 'ALL' }]
 
       # Specify measures to run
@@ -765,7 +757,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Copy existing.xml to home.xml for downstream HPXMLtoOpenStudio
     # We need existing.xml (and not just home.xml) for UpgradeCosts
-    in_path = File.expand_path(File.join(File.dirname(hpxml_path), 'home.xml'))
+    in_path = File.expand_path('../home.xml')
     FileUtils.cp(hpxml_path, in_path)
 
     # Run HEScore Measures
