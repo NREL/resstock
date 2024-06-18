@@ -1,7 +1,10 @@
 """ Clean version for EUSS v1.0 dataset 
 updated: 05/22/24
+Predictive capacity models:
+5bins:
   - 133310: Elec only, standard bins
   - 231606: Non-elec only, standard bins
+7bins:
   - 134078: Elec only, seven bins
   - 238518: Non-elec only, seven bins
 """
@@ -158,22 +161,13 @@ def yield_input_options(hc_list=None):
 
 
 def create_input_tsv(
-    model_e, model_ne, dummy_file_e: Path, dummy_file_ne: Path, tsv_file: Path | None = None
+    model_e, model_ne, dummy_file_e: Path, dummy_file_ne: Path, tsv_file: Path
 ) -> pd.DataFrame:
     """Create input tsv from model,
     Missing fields are handled by duplicating predictions from fields that are similar to the missing fields
     E.g., fuel oil and other fuels is copied from the combined results of non-electric fuels
 
     model : XGBoost model
-
-    "Heating Fuel": [
-            "Electricity",
-            "Fuel Oil",
-            "Natural Gas",
-            "Other Fuel",
-            "Propane",
-            "None",
-        ],  # old
 
     """
     print("\nTransforming model into a ResStock input tsv file ...")
@@ -236,9 +230,6 @@ def create_input_tsv(
         breakpoint()
 
     ## -- save to tsv file --
-    if tsv_file is None:
-        tsv_file = data_dir / f"Electrical Panel Amp - Model {model.model_num}.tsv"
-
     df.to_csv(tsv_file, sep="\t", index=False, lineterminator="\r\n")
     print(f"** Electrical Panel Amp TSV exported to: {tsv_file}")
 
@@ -275,7 +266,6 @@ def create_input_tsv_electric(model, dummy_file):
 
     # special mapping for heating fuels:
     dfi = apply_special_mapping(dfi, "electric")
-    dfi.to_csv("electric.csv")
 
     dfi = pd.get_dummies(dfi, columns=categorical_columns, prefix_sep="__")
     delta = set(dfi.columns) - set(model.feature_names)
@@ -336,7 +326,7 @@ def create_input_tsv_electric(model, dummy_file):
     df[panel_labels] = df[panel_labels].div(df[panel_labels].sum(axis=1), axis=0).round(6)
 
     # save intermediate tsv    
-    tsv_file = data_dir / f"intermediate_amp_electric - Model {model.model_num}.tsv"
+    tsv_file = data_dir / f"intermediate_amp_electric - Model {model.model_num} - EUSS RR1.tsv"
     df.to_csv(tsv_file, sep="\t", index=False, lineterminator="\r\n")
 
     return df
@@ -368,8 +358,6 @@ def create_input_tsv_nonelectric(model, dummy_file):
 
     # special mapping for heating fuels:
     dfi = apply_special_mapping(dfi, "non_electric")
-    dfi.to_csv("non_electric.csv")
-    breakpoint()
 
     dfi = pd.get_dummies(dfi, columns=categorical_columns, prefix_sep="__")
     delta = set(dfi.columns) - set(model.feature_names)
@@ -430,7 +418,7 @@ def create_input_tsv_nonelectric(model, dummy_file):
     df[panel_labels] = df[panel_labels].div(df[panel_labels].sum(axis=1), axis=0).round(6)
 
     # save intermediate tsv    
-    tsv_file = data_dir / f"intermediate_amp_nonelectric - Model {model.model_num}.tsv"
+    tsv_file = data_dir / f"intermediate_amp_nonelectric - Model {model.model_num} - EUSS RR1.tsv"
     df.to_csv(tsv_file, sep="\t", index=False, lineterminator="\r\n")
 
     return df
@@ -542,7 +530,6 @@ def apply_special_mapping(dfi: pd.DataFrame, model_type: str) -> pd.DataFrame:
 
         dfi["clothes_dryer_simp"] = dfi["clothes_dryer_simp"].map(appliance_usage_map)
         dfi["cooking_range_simp"] = dfi["cooking_range_simp"].map(appliance_usage_map)
-    breakpoint()
     return dfi
 
 
@@ -581,7 +568,9 @@ def apply_tsv_to_results(
     cond = df["completed_status"] == "Success"
     if dff.loc[cond, panel_labels].isna().sum().sum() != 0:
         print(f"Prediction in apply_tsv_to_results has NA values {dff.loc[cond & (dff[panel_labels].isna().sum(axis=1)!=0)]}")
-        dff.to_csv('test.csv')
+        error_file = output_filedir / "error_panel_result.csv"
+        print(f"A copy of the data is exported for review to {error_file}")
+        dff.to_csv(error_file, index=False)
         breakpoint()
 
     if retain_proba:
@@ -596,9 +585,21 @@ def apply_tsv_to_results(
             for num, arr in zip(random_nums_uniform, panel_prob_cum)
         ]
     )
-    panel_amp = pd.Series(panel_amp, index=dff.index).rename("predicted_panel_amp")
-    return pd.concat([df, panel_amp], axis=1)
+    panel_amp = pd.Series(panel_amp, index=dff.index).rename("predicted_panel_amp_bin")
+    df_panel = pd.concat([df, panel_amp], axis=1)
+    df_panel = panel_amp_unbin(df_panel)
+    return df_panel
 
+def panel_amp_unbin(df_panel):
+    df_panel["predicted_panel_amp"] = df_panel["predicted_panel_amp_bin"]          
+    df_panel.loc[(df_panel['predicted_panel_amp_bin'] == '<100') & (df_panel['build_existing_model.heating_fuel'] == 'Electricity'), "predicted_panel_amp"] = 90
+    df_panel.loc[(df_panel['predicted_panel_amp_bin'] == '<100') & (df_panel['build_existing_model.heating_fuel'] != 'Electricity'), "predicted_panel_amp"] = 60
+    df_panel.loc[df_panel['predicted_panel_amp_bin'] == '101-124', "predicted_panel_amp"] = 120
+    df_panel.loc[df_panel['predicted_panel_amp_bin'] == '126-199', "predicted_panel_amp"] = 150
+    df_panel.loc[(df_panel['predicted_panel_amp_bin'] == '201+') & (df_panel['build_existing_model.geometry_floor_area'].isin(['0-499','500-749', '750-999', '1000-1499','1500-1999','2000-2499','2500-2999'])), "predicted_panel_amp"] = 250
+    df_panel.loc[(df_panel['predicted_panel_amp_bin'] == '201+') & (df_panel['build_existing_model.geometry_floor_area']== '3000-3999'), "predicted_panel_amp"] = 300
+    df_panel.loc[(df_panel['predicted_panel_amp_bin'] == '201+') & (df_panel['build_existing_model.geometry_floor_area'] == '4000+'), "predicted_panel_amp"] = 400
+    return df_panel
 
 def extract_left_edge(val):
     # for sorting things like AMI
@@ -670,7 +671,7 @@ def plot_output_saturation(
         "build_existing_model.geometry_building_type_recs",
         "build_existing_model.vintage",
     ]:
-        _plot_bar(df, [hc], panel_metrics, output_dir=output_dir)
+        _plot_bar(df, [hc], panel_metrics, output_dir=output_dir, sfd_only=sfd_only)
 
     for hc in [
         "build_existing_model.census_region",
@@ -689,14 +690,16 @@ def plot_output_saturation(
         "build_existing_model.water_heater_fuel",  # dep
         "build_existing_model.hvac_heating_type",
         "build_existing_model.hvac_cooling_type",  # dep
+        "build_existing_model.has_pv", # dep
     ]:
-        _plot_bar_stacked(df, [hc], panel_metrics, output_dir=output_dir)
+        _plot_bar_stacked(df, [hc], panel_metrics, output_dir=output_dir, sfd_only=sfd_only)
 
     _plot_bar_stacked(
         df,
         ["build_existing_model.vintage", "build_existing_model.geometry_floor_area"],
         panel_metrics,
         output_dir=output_dir,
+        sfd_only=sfd_only
     )
     _plot_bar_stacked(
         df,
@@ -706,6 +709,7 @@ def plot_output_saturation(
         ],
         panel_metrics,
         output_dir=output_dir,
+        sfd_only=sfd_only
     )
 
 
@@ -714,12 +718,19 @@ def _plot_bar(
     groupby_cols: list[str],
     metric_cols: list[str],
     output_dir: Path | None = None,
+    sfd_only: bool | None = None
 ):
-    if "predicted_panel_amp" in metric_cols:
-        dfi = df[groupby_cols + metric_cols + ["building_id"]]
+    if sfd_only:
+        dfi = df.loc[df["build_existing_model.geometry_building_type_recs"]=="Single-Family Detached"]
+    else:
+        dfi = df.copy()
+
+    if "predicted_panel_amp_bin" in metric_cols:
+        metric_cols = ["predicted_panel_amp_bin"]
+        dfi = dfi[groupby_cols + metric_cols + ["building_id"]]
         dfi = dfi.groupby(groupby_cols + metric_cols)["building_id"].count().unstack()
     else:
-        dfi = df.groupby(groupby_cols)[metric_cols].sum()
+        dfi = dfi.groupby(groupby_cols)[metric_cols].sum()
         metric_cols = ["predicted_panel_amp_expected_value"]
     dfi = sort_index(sort_index(dfi, axis=0), axis=1)
 
@@ -737,12 +748,19 @@ def _plot_bar_stacked(
     groupby_cols: list[str],
     metric_cols: list[str],
     output_dir: Path | None = None,
+    sfd_only: bool | None = None
 ):
-    if "predicted_panel_amp" in metric_cols:
-        dfi = df[groupby_cols + metric_cols + ["building_id"]]
+    if sfd_only:
+        dfi = df.loc[df["build_existing_model.geometry_building_type_recs"]=="Single-Family Detached"]
+    else:
+        dfi = df.copy()
+
+    if "predicted_panel_amp_bin" in metric_cols:
+        metric_cols = ["predicted_panel_amp_bin"]
+        dfi = dfi[groupby_cols + metric_cols + ["building_id"]]
         dfi = dfi.groupby(groupby_cols + metric_cols)["building_id"].count().unstack()
     else:
-        dfi = df.groupby(groupby_cols)[metric_cols].sum()
+        dfi = dfi.groupby(groupby_cols)[metric_cols].sum()
         metric_cols = ["predicted_panel_amp_expected_value"]
 
     dfi = dfi.divide(dfi.sum(axis=1), axis=0)
@@ -757,7 +775,7 @@ def _plot_bar_stacked(
         fig.savefig(
             output_dir / f"stacked_bar_{metric}.png", dpi=400, bbox_inches="tight"
         )
-        dfi.to_csv(output_dir / f"data__stacked_bar_{metric}.csv", index=True)
+        dfi.to_csv(output_dir / f"data__stacked_bar_{metric[0]}.csv", index=True)
     plt.close()
 
 
@@ -817,7 +835,7 @@ def main(
     sfd_only: bool = False,
     export_result_as_map: bool = False,
 ):
-    global local_dir, data_dir, output_mapping
+    global local_dir, data_dir, output_filedir, output_mapping
 
     local_dir = Path(__file__).resolve().parent
     data_dir = local_dir / "model_20240517"
@@ -835,7 +853,7 @@ def main(
     model_file_ne = data_dir / model_files[1]
     dummy_file_e = data_dir / dummy_files[0]
     dummy_file_ne = data_dir / dummy_files[1]
-    tsv_file = data_dir / f"Electrical Panel Amp - Model {model_num}.tsv"
+    tsv_file = data_dir / f"Electrical Panel Amp - Model {model_num} - EUSS RR1.tsv"
 
     msg = "Default: Probabilistic prediction based on distribution of labels"
     if retain_proba:
@@ -858,7 +876,7 @@ def main(
         """
     )
 
-    panel_metrics = ["predicted_panel_amp"]
+    panel_metrics = ["predicted_panel_amp_bin", "predicted_panel_amp"]
     if retain_proba:
         panel_metrics = list(output_mapping.values())
 
@@ -866,7 +884,9 @@ def main(
     if retain_proba:
         ext = f"model_{model_num}__{fp}__predicted_panels_in_probability"
 
-    output_filename = filename.parent / (filename.stem + "__" + ext + ".csv")
+    output_filedir = filename.parent / "panel_capacity"
+    output_filedir.mkdir(parents=True, exist_ok=True)
+    output_filename = output_filedir / (filename.stem + "__" + ext + ".csv")
     plot_dir_name = "plots_sfd" if sfd_only else "plots"
     output_dir = filename.parent / plot_dir_name / ext
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -895,7 +915,6 @@ def main(
         model_ne = load_model(model_file_ne, feature_names)
         model_e.model_num = model_num
         model_ne.model_num = model_num
-        # validate_model_with_dummy_data(model, raise_error=validate_model)
 
         create_input_tsv(model_e, model_ne, dummy_file_e, dummy_file_ne, tsv_file=tsv_file)
 
@@ -904,7 +923,7 @@ def main(
 
     ## -- export --
     if export_result_as_map:
-        output_filename = filename.parent / ("panel_result__" + ext + ".csv")
+        output_filename = output_filedir / ("panel_result__" + ext + ".csv")
         df[["building_id"]+panel_metrics].to_csv(output_filename, index=False)
     else:
         df.to_csv(output_filename, index=False)
