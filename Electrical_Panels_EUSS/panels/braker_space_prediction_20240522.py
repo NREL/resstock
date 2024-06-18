@@ -6,13 +6,13 @@ from numpy import random
 
 probability = False
 model = '7bins'
-resstock_baseline_file = f"test_data/euss1_2018_results_up00.csv"
-resstock_panel_size = f"test_data/euss1_2018_results_up00__model_{model}__tsv_based__predicted_panels_probablistically_assigned.csv"
+resstock_baseline_file = f"test_data/test_run_30k/results_up00.csv"
+resstock_panel_size = f"test_data/test_run_30k/panel_result__model_{model}__tsv_based__predicted_panels_probablistically_assigned.csv"
 df = pd.read_csv(resstock_baseline_file)
 df_panel_size = pd.read_csv(resstock_panel_size)
 model_file = 'breaker_space_update_20240522/breaker_space_model_breaker_min_ev_pv_no_outliers.pickle'
 
-df['predicted_panel_amp'] = df_panel_size['predicted_panel_amp']
+df['predicted_panel_amp_bin'] = df_panel_size['predicted_panel_amp_bin']
 
 df.loc[df["build_existing_model.heating_fuel"] != "Electricity", "has_elec_heating_primary"] = 0
 df.loc[df["build_existing_model.heating_fuel"] == "Electricity", "has_elec_heating_primary"] = 1 
@@ -42,14 +42,14 @@ for index, row in df.iterrows():
 df['const'] = 1
 df['major_elec_load_count_w_ev_pv'] = load_count_list
 if model == '7bins':
-    df.loc[df['predicted_panel_amp'].isin(['101-124', '125', '126-199']),"panel_amp_pre_bin__101_199"] = 1
-    df.loc[~df['predicted_panel_amp'].isin(['101-124', '125', '126-199']),"panel_amp_pre_bin__101_199"] = 0
-    df.loc[df['predicted_panel_amp'].isin(['200']),"panel_amp_pre_bin__200"] = 1
-    df.loc[~df['predicted_panel_amp'].isin(['200']),"panel_amp_pre_bin__200"] = 0
-    df.loc[df['predicted_panel_amp'].isin(['201+']),"panel_amp_pre_bin__201_plus"] = 1
-    df.loc[~df['predicted_panel_amp'].isin(['201+']),"panel_amp_pre_bin__201_plus"] = 0
-    df.loc[df['predicted_panel_amp'].isin(['<100', '100']),"panel_amp_pre_bin__lt_100"] = 1
-    df.loc[~df['predicted_panel_amp'].isin(['<100', '100']),"panel_amp_pre_bin__lt_100"] = 0
+    df.loc[df['predicted_panel_amp_bin'].isin(['101-124', '125', '126-199']),"panel_amp_pre_bin__101_199"] = 1
+    df.loc[~df['predicted_panel_amp_bin'].isin(['101-124', '125', '126-199']),"panel_amp_pre_bin__101_199"] = 0
+    df.loc[df['predicted_panel_amp_bin'].isin(['200']),"panel_amp_pre_bin__200"] = 1
+    df.loc[~df['predicted_panel_amp_bin'].isin(['200']),"panel_amp_pre_bin__200"] = 0
+    df.loc[df['predicted_panel_amp_bin'].isin(['201+']),"panel_amp_pre_bin__201_plus"] = 1
+    df.loc[~df['predicted_panel_amp_bin'].isin(['201+']),"panel_amp_pre_bin__201_plus"] = 0
+    df.loc[df['predicted_panel_amp_bin'].isin(['<100', '100']),"panel_amp_pre_bin__lt_100"] = 1
+    df.loc[~df['predicted_panel_amp_bin'].isin(['<100', '100']),"panel_amp_pre_bin__lt_100"] = 0
 
 zinb_data = df[['const',
                  'major_elec_load_count_w_ev_pv',
@@ -84,12 +84,12 @@ predictions["available_panel_slots"] = predictions.apply(lambda x: np.random.cho
 predictions.insert(0, 'building_id', df['building_id'])
 if probability:
     results = predictions.drop('available_panel_slots', axis=1)
-    results.to_csv(f"test_data/panel_result__model_{model}_breaker_space_in_probability.csv", na_rep='None', index=False)
+    results.to_csv(f"test_data/test_run_30k/panel_result__model_{model}_breaker_space_in_probability.csv", na_rep='None', index=False)
 else:
     results = predictions[['building_id', 'available_panel_slots']]
-    results.to_csv(f"test_data/panel_result__model_{model}_breaker_space_probablistically_assigned.csv", na_rep='None', index=False)
+    results.to_csv(f"test_data/test_run_30k/panel_result__model_{model}_breaker_space_probablistically_assigned.csv", na_rep='None', index=False)
     df['available_panel_slots']=predictions['available_panel_slots']
-    df.to_csv(f"test_data/euss1_2018_results_up00__model_{model}_breaker_space_probablistically_assigned.csv", na_rep='None', index=False)
+    df.to_csv(f"test_data/test_run_30k/results_up00__model_{model}_breaker_space_probablistically_assigned.csv", na_rep='None', index=False)
 
 
 
