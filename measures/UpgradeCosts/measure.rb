@@ -80,7 +80,6 @@ class UpgradeCosts < OpenStudio::Measure::ModelMeasure
     bldg_outputs[BO::EnclosureDuctAreaUnconditioned] = BaseOutput.new
     bldg_outputs[BO::EnclosureRimJoistAreaExterior] = BaseOutput.new
     bldg_outputs[BO::EnclosureSlabExposedPerimeterThermalBoundary] = BaseOutput.new
-    bldg_outputs[BO::EnclosureAirInfiltration] = BaseOutput.new
     bldg_outputs[BO::SystemsCoolingCapacity] = BaseOutput.new
     bldg_outputs[BO::SystemsHeatingCapacity] = BaseOutput.new
     bldg_outputs[BO::SystemsHeatPumpBackupCapacity] = BaseOutput.new
@@ -300,8 +299,6 @@ class UpgradeCosts < OpenStudio::Measure::ModelMeasure
       cost_mult += hpxml['enclosure_rim_joist_area_ft_2']
     elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
       cost_mult += hpxml['enclosure_slab_exposed_perimeter_thermal_boundary_ft']
-    elsif cost_mult_type == 'Air Infiltration (ACH50)'
-      cost_mult += hpxml['enclosure_air_infiltration_ach_50']
     elsif cost_mult_type == 'Size, Heating System Primary (kBtu/h)'
       if hpxml.keys.include?('primary_systems_heating_capacity_btu_h')
         cost_mult += UnitConversions.convert(hpxml['primary_systems_heating_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
@@ -413,13 +410,6 @@ class UpgradeCosts < OpenStudio::Measure::ModelMeasure
         next unless slab.is_exterior_thermal_boundary
 
         bldg_output += slab.exposed_perimeter
-      end
-    elsif bldg_type == BO::EnclosureAirInfiltration
-      hpxml_bldg.air_infiltration_measurements.each do |air_infiltration_measurement|
-        a_ext = 1.0
-        a_ext = air_infiltration_measurement.a_ext if !air_infiltration_measurement.a_ext.nil?
-
-        bldg_output += air_infiltration_measurement.air_leakage * a_ext
       end
     elsif bldg_type == BO::SystemsHeatingCapacity
       hpxml_bldg.heating_systems.each do |heating_system|

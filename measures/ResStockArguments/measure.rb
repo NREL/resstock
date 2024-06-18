@@ -602,7 +602,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args[:geometry_unit_type]
       n_units = Float(args[:geometry_building_num_units].to_s)
       horiz_location = args[:geometry_unit_horizontal_location].to_s
-      aspect_ratio = Float(args[:geometry_unit_aspect_ratio].to_s)
 
       if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
@@ -639,7 +638,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         end
 
       elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
-        n_floors = 1.0
         n_units_per_floor = n_units
         has_rear_units = false
       end
@@ -661,37 +659,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         runner.registerError('ResStockArguments: Invalid horizontal location entered, no middle location exists.')
         return false
       end
-
-      # Infiltration adjustment for SFA/MF units
-      # Calculate exposed wall area ratio for the unit (unit exposed wall area divided by average unit exposed wall area)
-      # if (n_units_per_floor <= 2) || (n_units_per_floor == 4 && has_rear_units) # No middle unit(s)
-        # exposed_wall_area_ratio = 1.0 # all units have same exterior wall area
-      # else # Has middle unit(s)
-        # if has_rear_units
-          # n_end_units = 4 * n_floors
-          # n_mid_units = n_units - n_end_units
-          # n_bldg_fronts_backs = n_end_units + n_mid_units
-          # n_unit_fronts_backs = 1
-        # else
-          # n_end_units = 2 * n_floors
-          # n_mid_units = n_units - n_end_units
-          # n_bldg_fronts_backs = n_end_units * 2 + n_mid_units * 2
-          # n_unit_fronts_backs = 2
-        # end
-        # n_bldg_sides = n_end_units
-        # if ['Middle'].include? horiz_location
-          # n_unit_sides = 0
-        # elsif ['Left', 'Right'].include? horiz_location
-          # n_unit_sides = 1
-        # end
-        # n_bldg_sides_equivalent = n_bldg_sides + n_bldg_fronts_backs * aspect_ratio
-        # n_unit_sides_equivalent = n_unit_sides + n_unit_fronts_backs * aspect_ratio
-        # exposed_wall_area_ratio = n_unit_sides_equivalent / (n_bldg_sides_equivalent / n_units)
-      # end
-
-      # # Apply adjustment to infiltration value
-      # args[:air_leakage_value] *= exposed_wall_area_ratio
-      args[:air_leakage_type] = 'unit total'
 
       if horiz_location == 'Left'
         args[:geometry_unit_right_wall_is_adiabatic] = true

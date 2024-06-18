@@ -28,7 +28,6 @@ class Constants
       'Duct Unconditioned Surface Area (ft^2)',
       'Rim Joist Area, Above-Grade, Exterior (ft^2)',
       'Slab Perimeter, Exposed, Conditioned (ft)',
-      'Air Infiltration (ACH50)',
       'Size, Heating System Primary (kBtu/h)',
       'Size, Heating System Secondary (kBtu/h)',
       'Size, Cooling System Primary (kBtu/h)',
