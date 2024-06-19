@@ -49,11 +49,14 @@ class ResStockArgumentsTest < Minitest::Test
     buildstock_csv_path = File.join(File.dirname(__FILE__), '../../../test/base_results/baseline/annual/buildstock.csv')
     building_ids = (1..(CSV.read(buildstock_csv_path).size - 1)).to_a
 
+    failures = []
     completed = []
     in_threads = Parallel.processor_count
     start_time = Time.now
     Parallel.map(building_ids, in_threads: in_threads) do |building_id|
-      _test_measure(parameters_ordered, measures_dir, parameter_options_measure_args, arg_name_prefixes, buildstock_csv_path, building_id)
+      success = _test_measure(parameters_ordered, measures_dir, parameter_options_measure_args, arg_name_prefixes, buildstock_csv_path, building_id)
+
+      failures << building_id unless success
       completed << building_id
 
       info = "[Parallel(n_jobs=#{in_threads})]: "
@@ -63,6 +66,11 @@ class ResStockArgumentsTest < Minitest::Test
       info += ' | elapsed: '
       info += '%8s' % "#{_get_elapsed_time(Time.now, start_time)}"
       puts info
+    end
+
+    if not failures.empty?
+      puts "\nFailures detected for: #{failures.join(', ')}."
+      assert(false)
     end
   end
 
@@ -130,7 +138,7 @@ class ResStockArgumentsTest < Minitest::Test
     end
 
     success = HPXMLFile.create_geometry_envelope(runner, model, args)
-    assert(success)
+    return success
   end
 
   def _to_float(value)
