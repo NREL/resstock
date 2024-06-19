@@ -95,9 +95,4 @@ class Constants
   def self.Auto
     return 'auto'
   end
-
-  def self.arguments_to_register
-    # list of resstock arguments; reported as build_existing_model.<argument_name>, ...
-    return []
-  end
 end

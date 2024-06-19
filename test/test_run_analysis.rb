@@ -432,9 +432,10 @@ class TestRunAnalysis < Minitest::Test
     expected_order = ['BuildExistingModel',
                       'ApplyUpgrade',
                       'HPXMLtoOpenStudio',
-                      'UpgradeCosts',
                       'ReportSimulationOutput',
+                      'ReportHPXMLOutput',
                       'ReportUtilityBills',
+                      'UpgradeCosts',
                       'QOIReport',
                       'ServerDirectoryCleanup']
     json = JSON.parse(File.read(osw), symbolize_names: true)

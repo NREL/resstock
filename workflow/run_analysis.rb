@@ -285,10 +285,6 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
           'add_component_loads' => add_component_loads,
           'skip_validation' => true
         }
-      },
-      {
-        'measure_dir_name' => 'UpgradeCosts',
-        'arguments' => { 'debug' => debug }
       }
     ]
 
@@ -300,10 +296,18 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
         'arguments' => sim_out_rep_args
       },
       {
+        'measure_dir_name' => 'ReportHPXMLOutput',
+        'arguments' => { 'output_format' => 'csv' }
+      },
+      {
         'measure_dir_name' => 'ReportUtilityBills',
         'arguments' => { 'output_format' => 'csv',
                          'include_annual_bills' => true,
                          'include_monthly_bills' => false }
+      },
+      {
+        'measure_dir_name' => 'UpgradeCosts',
+        'arguments' => { 'debug' => debug }
       },
       {
         'measure_dir_name' => 'ServerDirectoryCleanup',
