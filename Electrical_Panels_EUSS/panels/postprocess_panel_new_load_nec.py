@@ -639,26 +639,40 @@ def _get_cooling_has_ducts(row) -> bool:
     return True if row["build_existing_model.hvac_cooling_type"] in ["Central AC", "Ducted Heat Pump"] else False
 
 def _get_air_handlers(row, heating_type, secondary_heating_type) -> (float, float):
+    """Typically you need more volume of air to cool the house than to heat it. 
+    So the cooling requirements determine the size of the air handler. 
+    However the air handler comes with the furnace. 
+    So the air handler size determines the furnace size.
+
+    Current logic: 
+    - if gas furnace with CAC, use gas furnace (based on heat cap only, 120V)
+    - if electric furnace with CAC, take max of heat/cool to determine AHU
+    - if no ducted heating, use CAC (based on cool cap only)
+    """
     heating_has_ducts = _get_heating_has_ducts(row)
     cooling_has_ducts = _get_cooling_has_ducts(row)
 
     heat_ahu, cool_ahu = 0, 0
+
     if heating_has_ducts:
-        if cooling_has_ducts:
-            if heating_type == "fuel":
-                heat_ahu = hvac_240V_air_handler(row["upgrade_costs.size_cooling_system_primary_k_btu_h"])
-            else:
-                heat_ahu = hvac_240V_air_handler(max(
-                    row["upgrade_costs.size_heating_system_primary_k_btu_h"],
-                    row["upgrade_costs.size_cooling_system_primary_k_btu_h"]
-                    ))
-            cool_ahu = heat_ahu
+        if heating_type == "fuel" or secondary_heating_type == "fuel":
+            # if dual fuel, retain old 120V AHU
+            heat_ahu = hvac_120V_air_handler(row["upgrade_costs.size_heating_system_primary_k_btu_h"])
         else:
+            heat_ahu = hvac_240V_air_handler(row["upgrade_costs.size_heating_system_primary_k_btu_h"])
+
+    if cooling_has_ducts:
+        if heating_has_ducts:
             if heating_type == "fuel" or secondary_heating_type == "fuel":
-                # if dual fuel, retain old 120V AHU
-                heat_ahu = hvac_120V_air_handler(row["upgrade_costs.size_heating_system_primary_k_btu_h"])
+                # gas furnace with CAC, use gas furnace
+                cool_ahu = heat_ahu
             else:
-                heat_ahu = hvac_240V_air_handler(row["upgrade_costs.size_heating_system_primary_k_btu_h"])
+                cool_ahu = heat_ahu = max(
+                    heat_ahu, 
+                    hvac_240V_air_handler(row["upgrade_costs.size_cooling_system_primary_k_btu_h"])
+                    )
+        else:
+            cool_ahu = hvac_240V_air_handler(row["upgrade_costs.size_cooling_system_primary_k_btu_h"])
 
     return (heat_ahu, cool_ahu)
 
