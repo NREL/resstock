@@ -790,7 +790,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     air_infiltration_measurement = hpxml_bldg.air_infiltration_measurements[0]
     a_ext = 1.0
     a_ext = air_infiltration_measurement.a_ext if !air_infiltration_measurement.a_ext.nil?
-    register_value(runner, 'air_leakage_to_outside_ach50', air_infiltration_measurement.air_leakage * a_ext)
+    register_value(runner, 'air_leakage_to_outside_ach_50', air_infiltration_measurement.air_leakage * a_ext)
 
     # weather file
     epw_path = Location.get_epw_path(hpxml_bldg, hpxml_path)
