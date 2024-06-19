@@ -305,7 +305,7 @@ def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_
 
   errors = []
   option_names.each do |option_name|
-    next if found_options[option_name]
+    next unless not found_options[option_name]
 
     msg = "Could not find parameter '#{parameter_name}' and option '#{option_name}' in #{lookup_file}."
     if runner.nil?
