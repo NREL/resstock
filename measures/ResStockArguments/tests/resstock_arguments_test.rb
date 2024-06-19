@@ -3,14 +3,15 @@
 require 'csv'
 require 'parallel'
 require 'openstudio'
+require_relative '../../../resources/buildstock'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/hpxml'
 require_relative '../measure.rb'
 
 class ResStockArgumentsTest < Minitest::Test
   def setup
-    @resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../../resources'))
-    lookup_file = File.join(@resources_dir, 'options_lookup.tsv')
+    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../../resources'))
+    lookup_file = File.join(resources_dir, 'options_lookup.tsv')
     @lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
   end
 
@@ -40,31 +41,19 @@ class ResStockArgumentsTest < Minitest::Test
   end
 
   def test_create_geometry_envelope
-    @lib_dir = File.join(File.dirname(__FILE__), '../../../lib')
-    housing_characteristics_dir = File.join(File.dirname(__FILE__), '../../../project_national/housing_characteristics')
-
-    FileUtils.rm_rf(@lib_dir)
-    Dir.mkdir(@lib_dir)
-    FileUtils.cp_r(@resources_dir, @lib_dir)
-    FileUtils.cp_r(housing_characteristics_dir, @lib_dir)
-
-    resources_dir = File.join(@lib_dir, 'resources')
-    characteristics_dir = File.join(@lib_dir, 'housing_characteristics')
-    buildstock_file = File.join(resources_dir, 'buildstock.rb')
-    @measures_dir = File.join(File.dirname(__FILE__), '../../../measures')
-    require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
-    @parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(@lookup_csv_data, characteristics_dir)
-
-    buildstock_csv_path = File.join(File.dirname(__FILE__), '../../../test/base_results/baseline/annual/buildstock.csv')
+    characteristics_dir = File.join(File.dirname(__FILE__), '../../../project_national/housing_characteristics')
+    parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(@lookup_csv_data, characteristics_dir)
+    measures_dir = File.join(File.dirname(__FILE__), '../../../measures')
+    parameter_options_measure_args = _get_parameter_options_measure_args(@lookup_csv_data)
     arg_name_prefixes = ['geometry', 'door', 'window', 'skylight']
-
-    start_time = Time.now
-
+    buildstock_csv_path = File.join(File.dirname(__FILE__), '../../../test/base_results/baseline/annual/buildstock.csv')
     building_ids = (1..(CSV.read(buildstock_csv_path).size - 1)).to_a
+
     completed = []
     in_threads = Parallel.processor_count
+    start_time = Time.now
     Parallel.map(building_ids, in_threads: in_threads) do |building_id|
-      _test_measure(buildstock_csv_path, building_id, arg_name_prefixes)
+      _test_measure(parameters_ordered, measures_dir, parameter_options_measure_args, arg_name_prefixes, buildstock_csv_path, building_id)
       completed << building_id
 
       info = "[Parallel(n_jobs=#{in_threads})]: "
@@ -75,29 +64,62 @@ class ResStockArgumentsTest < Minitest::Test
       info += '%8s' % "#{_get_elapsed_time(Time.now, start_time)}"
       puts info
     end
-
-    FileUtils.rm_rf(@lib_dir)
   end
 
   private
 
-  def _test_measure(buildstock_csv_path, building_id, arg_name_prefixes)
+  def _get_parameter_options_measure_args(lookup_csv_data)
+    # {'Parameter 1' => {'Option 1' => {'ResStockArguments' => {'argument_1' => 1, 'argument_2' => 2, ...}}, {'Option 2' => {...}}}}
+
+    parameter_options_measure_args = {}
+    lookup_csv_data.each do |row|
+      next if row.size < 2
+
+      parameter = row[0]
+      option_name = row[1]
+      measure_dir = row[2]
+      args = {}
+      for col in 3..(row.size - 1)
+        next unless row[col].include?('=')
+
+        data = row[col].split('=')
+        arg_name = data[0]
+        arg_val = data[1]
+        args[arg_name] = arg_val
+      end
+      next if args.empty?
+
+      if !parameter_options_measure_args.key?(parameter)
+        parameter_options_measure_args[parameter] = {}
+      end
+      parameter_options_measure_args[parameter][option_name] = { measure_dir => args }
+    end
+
+    return parameter_options_measure_args
+  end
+
+  def _test_measure(parameters_ordered, measures_dir, parameter_options_measure_args, arg_name_prefixes, buildstock_csv_path, building_id)
     model = OpenStudio::Model::Model.new
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
     bldg_data = get_data_for_sample(buildstock_csv_path, building_id, runner)
 
     measures = {}
-    @parameters_ordered.each do |parameter_name|
+    parameters_ordered.each do |parameter_name|
       option_name = bldg_data[parameter_name]
-      options_measure_args, _errors = get_measure_args_from_option_names(@lookup_csv_data, [option_name], parameter_name, @lookup_file, runner)
-      options_measure_args[option_name].each do |measure_subdir, args_hash|
+      options_measure_args = Marshal.load(Marshal.dump(parameter_options_measure_args[parameter_name]))
+      next if options_measure_args.nil?
+
+      options_measure_args = options_measure_args[option_name]
+      next if options_measure_args.nil?
+
+      options_measure_args.each do |measure_subdir, args_hash|
         update_args_hash(measures, measure_subdir, args_hash, false)
       end
     end
 
     resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    apply_measures(@measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model)
+    apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model)
 
     args = {}
     resstock_arguments_runner.result.stepValues.each do |step_value|
