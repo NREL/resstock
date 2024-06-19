@@ -36482,7 +36482,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - 0-499
      - 3.2%
-     - 0.72
+     - 0.75
      - 0-499
      - auto
    * - 500-749
