@@ -12,6 +12,9 @@ Development Changelog
 
         **Date**: 2024-06-20
 
+        Title:
+        Reduce garage protrusion slightly for 0-499 Geometry Floor Area
+
         Description:
         For the "0-499" Geometry Floor Area option, change the garage protrusion from 0.75 to 0.72.
         This avoids the "Garage is as wide as the single-family detached unit." error.
