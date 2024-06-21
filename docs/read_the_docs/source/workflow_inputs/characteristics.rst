@@ -5569,6 +5569,63 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 25%
      - 1.2
 
+.. _cooling_season:
+
+Cooling Season
+--------------
+
+Created by
+**********
+
+manually created
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``hvac_control_cooling_season_period``
+     - false
+     - 
+     - String
+     - auto
+     - Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
+
+Options
+*******
+
+From ``project_national`` the list of options, option stock sturation, and option arguments for the **Cooling Season** characteristic.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: auto
+
+   * - Option name
+     - Stock saturation
+     - ``hvac_control_cooling_season_period``
+
+   * - Year Round
+     - 70%
+     - Jan 1 - Dec 31
+   * - Unavailable 1 Day
+     - 10%
+     - Unavailable 1 Day
+   * - Unavailable 1 Week
+     - 10%
+     - Unavailable 1 Week
+   * - Unavailable 1 Month
+     - 10%
+     - Unavailable 1 Month
+
 .. _cooling_setpoint:
 
 Cooling Setpoint
@@ -5611,12 +5668,6 @@ Arguments
      - Type
      - Choices
      - Description
-   * - ``hvac_control_cooling_season_period``
-     - false
-     - 
-     - String
-     - auto
-     - Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
    * - ``hvac_control_cooling_weekday_setpoint_temp``
      - true
      - deg-F
@@ -5648,80 +5699,67 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - Option name
      - Stock saturation
-     - ``hvac_control_cooling_season_period``
      - ``hvac_control_cooling_weekday_setpoint_temp``
      - ``hvac_control_cooling_weekend_setpoint_temp``
      - ``use_auto_cooling_season``
 
    * - 60F
      - 3.2%
-     - auto
      - 60
      - 60
      - false
    * - 62F
      - 0.98%
-     - auto
      - 62
      - 62
      - false
    * - 65F
      - 4.1%
-     - auto
      - 65
      - 65
      - false
    * - 67F
      - 2%
-     - auto
      - 67
      - 67
      - false
    * - 68F
      - 12%
-     - auto
      - 68
      - 68
      - false
    * - 70F
      - 19%
-     - auto
      - 70
      - 70
      - false
    * - 72F
      - 20%
-     - auto
      - 72
      - 72
      - false
    * - 75F
      - 19%
-     - auto
      - 75
      - 75
      - false
    * - 76F
      - 8%
-     - auto
      - 76
      - 76
      - false
    * - 78F
      - 7.9%
-     - auto
      - 78
      - 78
      - false
    * - 80F
      - 4.7%
-     - auto
      - 80
      - 80
      - false
    * - Void
      - 0%
-     - 
      - 
      - 
      - 
@@ -41572,6 +41610,63 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2%
      - wood
 
+.. _heating_season:
+
+Heating Season
+--------------
+
+Created by
+**********
+
+manually created
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``hvac_control_heating_season_period``
+     - false
+     - 
+     - String
+     - auto
+     - Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
+
+Options
+*******
+
+From ``project_national`` the list of options, option stock sturation, and option arguments for the **Heating Season** characteristic.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: auto
+
+   * - Option name
+     - Stock saturation
+     - ``hvac_control_heating_season_period``
+
+   * - Year Round
+     - 70%
+     - Jan 1 - Dec 31
+   * - Unavailable 1 Day
+     - 10%
+     - Unavailable 1 Day
+   * - Unavailable 1 Week
+     - 10%
+     - Unavailable 1 Week
+   * - Unavailable 1 Month
+     - 10%
+     - Unavailable 1 Month
+
 .. _heating_setpoint:
 
 Heating Setpoint
@@ -41616,12 +41711,6 @@ Arguments
      - Type
      - Choices
      - Description
-   * - ``hvac_control_heating_season_period``
-     - false
-     - 
-     - String
-     - auto
-     - Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.7.0/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
    * - ``hvac_control_heating_weekday_setpoint_temp``
      - true
      - deg-F
@@ -41653,80 +41742,67 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - Option name
      - Stock saturation
-     - ``hvac_control_heating_season_period``
      - ``hvac_control_heating_weekday_setpoint_temp``
      - ``hvac_control_heating_weekend_setpoint_temp``
      - ``use_auto_heating_season``
 
    * - 55F
      - 12%
-     - auto
      - 55
      - 55
      - false
    * - 60F
      - 2.3%
-     - auto
      - 60
      - 60
      - false
    * - 62F
      - 1.1%
-     - auto
      - 62
      - 62
      - false
    * - 65F
      - 5.8%
-     - auto
      - 65
      - 65
      - false
    * - 67F
      - 4.9%
-     - auto
      - 67
      - 67
      - false
    * - 68F
      - 20%
-     - auto
      - 68
      - 68
      - false
    * - 70F
      - 23%
-     - auto
      - 70
      - 70
      - false
    * - 72F
      - 15%
-     - auto
      - 72
      - 72
      - false
    * - 75F
      - 9.4%
-     - auto
      - 75
      - 75
      - false
    * - 76F
      - 2.3%
-     - auto
      - 76
      - 76
      - false
    * - 78F
      - 1.8%
-     - auto
      - 78
      - 78
      - false
    * - 80F
      - 1%
-     - auto
      - 80
      - 80
      - false
