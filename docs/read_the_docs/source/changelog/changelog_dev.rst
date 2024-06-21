@@ -7,10 +7,27 @@ Development Changelog
     :released: pending
 
     .. change::
+        :tags: workflow, bugfix, geometry
+        :pullreq: #1258
+
+        **Date**: 2024-06-21
+
+        Title:
+        Reduce garage protrusion slightly for 0-499 Geometry Floor Area
+
+        Description:
+        For the "0-499" Geometry Floor Area option, change the garage protrusion from 0.75 to 0.72.
+        This avoids the "Garage is as wide as the single-family detached unit." error.
+        Also add a new ResStockArguments test that creates geometry envelope for the 10K national project sample datapoints.
+
+        Assignees: Joe Robertson
+
+
+    .. change::
         :tags: documentation, changelog, feature
         :pullreq: 1244
 
-        **Date**: 2024-06-05
+        **Date**: 2024-06-12
 
         Title:
         RTD: detailed changelog
