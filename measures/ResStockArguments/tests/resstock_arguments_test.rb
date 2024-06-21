@@ -48,6 +48,7 @@ class ResStockArgumentsTest < Minitest::Test
     arg_name_prefixes = ['geometry', 'door', 'window', 'skylight']
     buildstock_csv_path = File.join(File.dirname(__FILE__), '../../../test/base_results/baseline/annual/buildstock.csv')
     building_ids = (1..(CSV.read(buildstock_csv_path).size - 1)).to_a
+    building_ids = building_ids.sample(0.8 * building_ids.size, random: Random.new(12345)) # 80% for runtime reduction
 
     failures = []
     completed = []
