@@ -10,7 +10,7 @@ Development Changelog
         :tags: workflow, bugfix, geometry
         :pullreq: #1258
 
-        **Date**: 2024-06-20
+        **Date**: 2024-06-21
 
         Title:
         Reduce garage protrusion slightly for 0-499 Geometry Floor Area
