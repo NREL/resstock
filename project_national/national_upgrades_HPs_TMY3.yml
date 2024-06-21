@@ -4,7 +4,7 @@ os_sha: f953b6fcaf
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 # output_directory:  /projects/heatpump/test_runs/n_500_20240530_2007_v1
-output_directory:  n_500_20240605_2007_v1
+output_directory:  n_500_20240620_2007_v1
 weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
 # weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
@@ -88,7 +88,7 @@ baseline:
   n_buildings_represented: 139647020 # American Community Survey 2021 5-year, B25001, does not include territories ( 138765649 without AK and HI )
 
 upgrades:
-  # Case 1: Baseline Stock - AMY2018, Furnace over-sizing factor = 1.7 for homes with a ducted fossil fuel furnace, default cooling autosizing factor (1.0)
+  # Case 1: Baseline Stock - TMY3, Furnace over-sizing factor = 1.7 for homes with a ducted fossil fuel furnace, default cooling autosizing factor (1.0)
   #         Updated defrost approach, tweak sampled heat pumps
   - upgrade_name: Case 3 - Baseline Upgrade - EnergyStar Heat Pump, Electric Backup
 
@@ -99,7 +99,7 @@ upgrades:
 
     options:
       - &hvac_heating_efficiency_ashp_case_3
-        option: HVAC Heating Efficiency|ASHP, SEER 16.0, 9.17 HSPF, Case 3
+        option: HVAC Heating Efficiency|ASHP, SEER2 15.2, 7.8 HSPF2, Case 3
         apply_logic: &ducted_ASHP_apply_logic
           - HVAC Has Ducts|Yes
         costs: &dummy_cost_values
@@ -114,7 +114,7 @@ upgrades:
         apply_logic: *ducted_ASHP_apply_logic
 
       - &hvac_heating_efficiency_mshp_case_3
-        option: HVAC Heating Efficiency|MSHP, SEER 16.84, 9.64 HSPF, Case 3
+        option: HVAC Heating Efficiency|MSHP, SEER2 15.2, 7.8 HSPF2, Case 3
         apply_logic: &nonducted_MSHP_apply_logic
           - HVAC Has Ducts|No
           - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
@@ -130,7 +130,7 @@ upgrades:
 
     options:
       - &hvac_heating_efficiency_ashp_case_2
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 16.0, 9.17 HSPF, Case 2
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 15.2, 7.8 HSPF2, Case 2
         apply_logic: *ducted_ASHP_apply_logic
         costs: *dummy_cost_values
         lifetime: *dummy_lifetime_value
@@ -138,7 +138,7 @@ upgrades:
       - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve
 
       - &hvac_heating_efficiency_mshp_case_2
-        option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 16.84, 9.64 HSPF, Case 2
+        option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER2 15.2, 7.8 HSPF2, Case 2
         apply_logic: *nonducted_MSHP_apply_logic
         costs: *dummy_cost_values
         lifetime: *dummy_lifetime_value
@@ -146,6 +146,52 @@ upgrades:
 
       - &heat_pump_backup_use_existing_system
         option: Heat Pump Backup|Use Existing System
+
+  - upgrade_name: Case 7 - Heat Pump Selection – EnergyStar Mid Efficiency, Electric Backup
+
+    package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+    options:
+      - &hvac_heating_efficiency_ashp_case_7
+        option: HVAC Heating Efficiency|ASHP, SEER2 15.2, 8.1 HSPF2, Case 7
+        apply_logic: *ducted_ASHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_ducted_heat_pump
+      - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve
+
+      - &hvac_heating_efficiency_mshp_case_7
+        option: HVAC Heating Efficiency|MSHP, SEER2 15.2, 8.5 HSPF2, Case 7
+        apply_logic: *nonducted_MSHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_non_ducted_heat_pump
+
+  - upgrade_name: Case 8 - Heat Pump Selection – Typical Cold Climate
+
+    package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+    options:
+      - &hvac_heating_efficiency_ashp_case_8
+        option: HVAC Heating Efficiency|ASHP, SEER2 17.5, 8.5 HSPF2, Case 8
+        apply_logic: *ducted_ASHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_ducted_heat_pump
+      - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve
+      - &hvac_performance_data_ashp_case_8
+        option: HVAC Detailed Performance Data|CCHP Ducted
+        apply_logic: *ducted_ASHP_apply_logic
+
+      - &hvac_heating_efficiency_mshp_case_8
+        option: HVAC Heating Efficiency|MSHP, SEER2 22.7, 10.3 HSPF2, Case 8
+        apply_logic: *nonducted_MSHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_non_ducted_heat_pump
+      - &hvac_performance-data_mshp_case_8
+        option: HVAC Detailed Performance Data|CCHP Non-Ducted
+        apply_logic: *nonducted_MSHP_apply_logic
 
 eagle:
   n_jobs: 3
