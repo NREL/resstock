@@ -62,10 +62,6 @@ jobs:
         run: |
           bundle exec rake unit_tests:integrity_check_tests
 
-      - name: Run all measure tests
-        run: |
-          bundle exec rake unit_tests:measure_tests
-
       - name: Upload feature samples
         uses: actions/upload-artifact@v4
         with:
@@ -77,6 +73,24 @@ jobs:
         with:
           path: coverage
           name: coverage
+
+  measure-tests:
+    runs-on: ubuntu-latest
+    needs: [format-files]
+    container:
+      image: docker://nrel/openstudio:3.8.0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install gems
+        run: |
+          rm -f Gemfile.lock && bundle install
+
+      - name: Run all measure tests
+        run: |
+          bundle exec rake workflow:measure_tests
 
   analysis-tests:
     runs-on: ubuntu-latest
@@ -363,6 +377,7 @@ jobs:
           ruby docs/read_the_docs/source/workflow_inputs/create_characteristics_rst.rb
           ruby docs/read_the_docs/source/workflow_outputs/csv_tables.rb
           cd docs/read_the_docs
+          pip install changelog
           make html SPHINXOPTS="-W --keep-going -n"
 
       - name: Save Docs

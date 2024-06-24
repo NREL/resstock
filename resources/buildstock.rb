@@ -247,25 +247,6 @@ def get_value_from_workflow_step_value(step_value)
   end
 end
 
-def get_values_from_runner_past_results(runner, measure_name)
-  require 'openstudio'
-  values = {}
-  success_value = OpenStudio::StepResult.new('Success')
-  runner.workflow.workflowSteps.each do |step|
-    next if not step.result.is_initialized
-
-    step_result = step.result.get
-    next if not step_result.measureName.is_initialized
-    next if step_result.measureName.get != measure_name
-    next if step_result.value != success_value
-
-    step_result.stepValues.each do |step_value|
-      values["#{step_value.name}"] = get_value_from_workflow_step_value(step_value)
-    end
-  end
-  return values
-end
-
 def get_value_from_runner(runner, key_lookup, error_if_missing = true)
   key_lookup = OpenStudio::toUnderscoreCase(key_lookup)
   runner.result.stepValues.each do |step_value|
@@ -296,7 +277,7 @@ def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_
       option_names.each do |option_name|
         next unless not option_name.nil?
 
-        if (row[0].downcase == parameter_name.downcase) && (row[1].downcase == option_name.downcase)
+        if (row[0].downcase == parameter_name.downcase) && (row[1] == option_name)
           current_option = option_name
           break
         end
