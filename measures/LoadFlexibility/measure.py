@@ -6,7 +6,6 @@
 
 import typing
 import openstudio
-import debugpy
 from pathlib import Path
 import os
 import json
@@ -17,6 +16,7 @@ import sys
 
 
 if os.environ.get('DEBUGPY', '') == 'true':
+    import debugpy
     debugpy.listen(5694, in_process_debug_adapter=True)
     print("Waiting for debugger attach")
     debugpy.wait_for_client()
