@@ -56,9 +56,11 @@ def reduce_columns_in_files(csv_dir: Path):
         print(f"Reducing {file_name}...")
         df = pd.read_csv(file, compression="infer", low_memory=False, keep_default_na=False)
 
-        cols = get_metric_columns()
+        if "results_up00" not in file_name:
+            cols = get_metric_columns()
+
         if "results_up00" in file_name:
-            cols += get_metadata_columns(df) 
+            cols = get_metadata_columns(df) 
 
         df[cols].to_csv(output_dir / (file_name+".csv"), index=False)
 
