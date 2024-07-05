@@ -17,7 +17,7 @@ kestrel:
   account: enduse
   postprocessing:
     time: 600
-    n_workers: 20
+    n_workers: 3
     n_procs: 20
   sampling:
     time: 60
@@ -63,7 +63,8 @@ workflow_generator:
         elec_folder: data/cambium/2022/LRMER_MidCase_25
 
     utility_bills:
-      - scenario_name: Bills
+      - scenario_name: Utility Rates - Fixed + Variable
+        simple_filepath: data/simple_rates/State.tsv
 
     simulation_output_report:
       timeseries_frequency: timestep
