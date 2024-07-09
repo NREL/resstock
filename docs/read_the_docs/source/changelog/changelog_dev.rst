@@ -24,7 +24,7 @@ Development Changelog
 
 
     .. change::
-        :tags: bugfix
+        :tags: bugfix, characteristics
         :pullreq: 1265
         :tickets: 1236
 
@@ -34,7 +34,7 @@ Development Changelog
         Fix Hot Water Fixtures multipliers
 
         Description:
-        Increase weighted average multiplier from 0.8 to 1.0 in Hot Water Fixtures.tsv.
+        Mean-shift hot water usage multipliers distribution by increasing weighted average from 0.8 to 1.0 in Hot Water Fixtures.tsv.
 
         Assignees: Lixi Liu
 
