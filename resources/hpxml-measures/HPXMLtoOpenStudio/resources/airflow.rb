@@ -5,7 +5,7 @@ class Airflow
   InfilPressureExponent = 0.65
 
   def self.apply(model, runner, weather, spaces, hpxml_header, hpxml_bldg, cfa,
-                 ncfl_ag, duct_systems, airloop_map, clg_ssn_sensor, eri_version,
+                 ncfl_ag, duct_systems, airloop_map, eri_version,
                  frac_windows_operable, apply_ashrae140_assumptions, schedules_file,
                  unavailable_periods, hvac_availability_sensor)
 
@@ -114,6 +114,15 @@ class Airflow
     conditioned_const_ach *= infil_values[:a_ext] unless conditioned_const_ach.nil?
     conditioned_ach50 *= infil_values[:a_ext] unless conditioned_ach50.nil?
     has_flue_chimney_in_cond_space = hpxml_bldg.air_infiltration.has_flue_or_chimney_in_conditioned_space
+
+    # Cooling season schedule
+    # Applies to natural ventilation, not HVAC equipment.
+    # Uses BAHSP cooling season, not user-specified cooling season (which may be, e.g., year-round).
+    _, default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, hpxml_bldg.latitude)
+    clg_season_sch = MonthWeekdayWeekendSchedule.new(model, 'cooling season schedule', Array.new(24, 1), Array.new(24, 1), default_cooling_months, Constants.ScheduleTypeLimitsFraction)
+    clg_ssn_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+    clg_ssn_sensor.setName('cool_season')
+    clg_ssn_sensor.setKeyName(clg_season_sch.schedule.name.to_s)
 
     apply_natural_ventilation_and_whole_house_fan(model, hpxml_bldg.site, vent_fans_whf, open_window_area, clg_ssn_sensor, hpxml_bldg.header.natvent_days_per_week,
                                                   infil_values[:volume], infil_values[:height], unavailable_periods)
@@ -273,20 +282,18 @@ class Airflow
       site_ap.ashrae_site_terrain_exponent = 0.33 # Towns, city outskirts, center of large cities
     end
 
+    # Mapping based on AIM-2 Model by Walker/Wilson
+    # Table 2: Estimates of Shelter Coefficient S_wo for No Flue (flue effect is handled later)
+    if site.shielding_of_home == HPXML::ShieldingNormal
+      site_ap.aim2_shelter_coeff = 0.50 # Class 4: "Very heavy shielding, many large obstructions within one house height"
+    elsif site.shielding_of_home == HPXML::ShieldingExposed
+      site_ap.aim2_shelter_coeff = 0.90 # Class 2: "Light local shielding with few obstructions within two house heights"
+    elsif site.shielding_of_home == HPXML::ShieldingWellShielded
+      site_ap.aim2_shelter_coeff = 0.30 # Class 5: "Complete shielding, with large buildings immediately adjacent"
+    end
+
     # S-G Shielding Coefficients are roughly 1/3 of AIM2 Shelter Coefficients
     site_ap.s_g_shielding_coef = site_ap.aim2_shelter_coeff / 3.0
-  end
-
-  def self.get_aim2_shelter_coefficient(shielding_of_home)
-    # Mapping based on AIM-2 Model by Walker/Wilson
-    # Table 2: Estimates of Shelter Coefficient S_wo for No Flue
-    if shielding_of_home == HPXML::ShieldingNormal
-      return 0.50 # Class 4: "Very heavy shielding, many large obstructions within one house height"
-    elsif shielding_of_home == HPXML::ShieldingExposed
-      return 0.90 # Class 2: "Light local shielding with few obstructions within two house heights"
-    elsif shielding_of_home == HPXML::ShieldingWellShielded
-      return 0.30 # Class 5: "Complete shielding, with large buildings immediately adjacent"
-    end
   end
 
   def self.apply_infiltration_to_unconditioned_space(model, space, ach, ela, c_w_SG, c_s_SG, duct_lk_imbals)
@@ -2002,7 +2009,7 @@ class Airflow
         y_i = 0.2 # Fraction of leakage through the flue; 0.2 is a "typical" value according to THE ALBERTA AIR INFIL1RATION MODEL, Walker and Wilson, 1990
         s_wflue = 1.0 # Flue Shelter Coefficient
       else
-        y_i = 0.0 # Fraction of leakage through the flu
+        y_i = 0.0 # Fraction of leakage through the flue
         s_wflue = 0.0 # Flue Shelter Coefficient
       end
 

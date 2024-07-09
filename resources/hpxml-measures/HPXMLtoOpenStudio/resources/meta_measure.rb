@@ -24,14 +24,14 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
   report_measure_errors_warnings(runner, rundir, debug)
   report_os_warnings(os_log, rundir)
 
-  if run_measures_only
-    return { success: success, runner: runner }
-  end
-
   if not success
     print "#{print_prefix}Creating input unsuccessful.\n"
     print "#{print_prefix}See #{File.join(rundir, 'run.log')} for details.\n"
     return { success: false, runner: runner }
+  end
+
+  if run_measures_only
+    return { success: success, runner: runner }
   end
 
   # Apply any additional output variables

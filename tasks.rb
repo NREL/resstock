@@ -67,7 +67,6 @@ if ARGV[0].to_sym == :update_measures
           'Lint/UselessAssignment',
           'Style/AndOr',
           'Style/FrozenStringLiteralComment',
-          'Style/HashSyntax',
           'Style/Next',
           'Style/NilComparison',
           'Style/RedundantParentheses',
