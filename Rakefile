@@ -21,17 +21,17 @@ namespace :unit_tests do
     t.warning = false
     t.verbose = true
   end
+end
 
+desc 'Perform tasks related to workflow tests'
+namespace :workflow do
   desc 'Run all measure tests'
   Rake::TestTask.new('measure_tests') do |t|
     t.test_files = Dir['measures/*/tests/*.rb']
     t.warning = false
     t.verbose = true
   end
-end
 
-desc 'Perform tasks related to analysis tests'
-namespace :workflow do
   desc 'Run analysis tests for sampled datapoints'
   Rake::TestTask.new('analysis_tests') do |t|
     t.test_files = Dir['test/test_run_analysis.rb']
