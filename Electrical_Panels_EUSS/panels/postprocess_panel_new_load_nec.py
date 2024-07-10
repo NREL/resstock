@@ -1,7 +1,7 @@
 """
 Requires env with python >= 3.10
 -**
-Electrical Panel Project: Estimate existing load in homes using NEC (2023)
+Electrical Panel Project: Estimate existing and new load in homes using NEC (2023)
 Load Summing Method: 220.83
 Maximum Demand Method: 220.87
 
@@ -9,16 +9,7 @@ NEC panel capacity = min. main circuit breaker size (A)
 
 By: Lixi.Liu@nrel.gov, Ilan.Upfal@nrel.gov
 Date: 02/01/2023
-Updated: 06/07/2024
-
------------------
-kW = kVA * PF, kW: working (active) power, kVA: apparent (active + reactive) power, PF: power factor
-For inductive load, use PF = 0.8 (except cooking per 220.55, PF=1)
-Reactive power is phantom in that there may be current draw or voltage drop but no power is actually dissipated
-(Inductors and capacitors have this behavior)
-
-Continous load := max current continues for 3+ hrs
-Branch circuit rating for continous load >= 1.25 x nameplate rating, but not applicable to load calc
+Updated: 07/09/2024
 
 -----------------
 
@@ -105,6 +96,7 @@ range_induction_120_power_rating = get_nameplate_rating(nameplate_rating, 'range
 
 hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'hot tub/spa', 'electric')
 pool_heater_power_rating = get_nameplate_rating(nameplate_rating, 'pool heater', 'electric')
+EVSE_power_rating = hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'electric vehicle charger', 'electric')
 
 
 # --- funcs ---
@@ -482,8 +474,6 @@ def _special_load_pool_pump(row, apply_df=True):
 def _special_load_evse(row):
     if row["completed_status"] != "Success":
         return np.nan
-    EVSE = nameplate_rating.loc[(nameplate_rating['load_category'] == 'electric vehicle charger') & (nameplate_rating['appliance'] == 'electric')]
-    EVSE_power_rating = list(EVSE['volt-amps'])[0]
 
     if row["build_existing_model.electric_vehicle"] == "None":
         EV_load = 0
@@ -958,7 +948,11 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
         "build_existing_model.hvac_cooling_type",
         "build_existing_model.bedrooms",
     ]
-    df_up = dfu.join(df.set_index(["building_id"])[HC_list], on=["building_id"], how="left")
+    HC_list = [x for x in HC_list if x not in dfu]
+    if HC_list:
+        df_up = dfu.join(df.set_index(["building_id"])[HC_list], on=["building_id"], how="left")
+    else:
+        df_up = dfu.copy()
 
     # 2 obtain valid list of upgrade option columns
     option_columns = [x for x in dfu.columns if x.startswith("upgrade_costs.option") and x.endswith("name")]
@@ -995,9 +989,14 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
     ev_option_cols, _ = get_upgrade_columns_and_options(option_cols, upgrade_options, "Electric Vehicle")
     df_up["new_load_evse"] = df_up.apply(lambda x: _new_load_evse(x, ev_option_cols), axis=1)
 
+    # # TEMP - add EV load explicitly (for part II of TEA)
+    # df_up["new_load_evse"] = max(EVSE_power_rating, 7200)
+
+    # Nullify 0 values
+    new_load_cols = [x for x in df_up.columns if "new_load" in x]
+    df_up[new_load_cols] = df_up[new_load_cols].replace(0, np.nan)
 
     if result_as_map:
-        new_load_cols = [x for x in df_up.columns if "new_load" in x]
         df_up = df_up[["building_id"] + new_load_cols]
     else:
         df_up = df_up.drop(columns=HC_list)
@@ -1049,7 +1048,6 @@ def calculate_new_load_total_220_83(dfi: pd.DataFrame, dfu: pd.DataFrame, n_kit:
     # Total pre-upgrade load based on no new hvac
     total_load_pre = "load_total_pre_upgrade_VA_220_83"
     total_amp_pre = "amp_total_pre_upgrade_A_220_83"
-    new_hvac = (df_new["new_load_hvac"]>0).rename("upgrade_has_new_hvac")
     df_existing[total_load_pre] = df_existing.apply(lambda x: apply_total_load_220_83(x, has_new_hvac_load=False), axis=1)
     df_existing[total_amp_pre] = df_existing[total_load_pre] / 240
 
@@ -1088,7 +1086,7 @@ def calculate_new_load_total_220_83(dfi: pd.DataFrame, dfu: pd.DataFrame, n_kit:
     if explode_result:
         cols = df_result.columns
     else:
-        cols = ["building_id", total_load_pre, total_amp_pre, total_load_post, total_amp_post]
+        cols = ["building_id", "apply_upgrade.upgrade_name", total_load_pre, total_amp_pre, total_load_post, total_amp_post]
 
     if result_as_map:
         return df_result[cols]
@@ -1107,7 +1105,7 @@ def calculate_new_load_total_220_87(df: pd.DataFrame, dfu: pd.DataFrame, explode
     # New Loads
     df_new = calculate_new_loads(df, dfu, result_as_map=True)
 
-    # Existing Loads
+    # Total pre-upgrade load
     total_load_pre = "load_total_pre_upgrade_VA_220_87"
     total_amp_pre = "amp_total_pre_upgrade_A_220_87"
     peak_col = "report_simulation_output.peak_electricity_annual_total_w"
@@ -1126,13 +1124,13 @@ def calculate_new_load_total_220_87(df: pd.DataFrame, dfu: pd.DataFrame, explode
     df[total_amp_pre] = df[total_load_pre] / 240 # amp
 
 
-    ## Total Loads
+    ## Total post-upgrade load 
     total_load_post = "load_total_post_upgrade_VA_220_87"
     total_amp_post = "amp_total_post_upgrade_A_220_87"
     cols = [
         "building_id",
-        "load_total_pre_upgrade_VA_220_87",
-        "amp_total_pre_upgrade_A_220_87",
+        total_load_pre,
+        total_amp_pre,
     ]
     df_new = df[cols].join(
         df_new.set_index(["building_id"]), on=["building_id"], how="right"
@@ -1294,6 +1292,9 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    if args.baseline_filename and not args.upgrade_filename:
+        msg = "missing positional argument upgrade_filename, see --help"
+        raise ValueError(msg)
     print("======================================================")
     print("New load calculation using 2023 NEC 220.83 and 220.87")
     print("======================================================")

@@ -47,7 +47,7 @@ def main(
             if plot:
                 cli_cmd.append("-p")
             if sfd_only:
-                cli_cmd.append("d")
+                cli_cmd.append("-d")
             print()
             print(cli_cmd)
             result = subprocess.run(
