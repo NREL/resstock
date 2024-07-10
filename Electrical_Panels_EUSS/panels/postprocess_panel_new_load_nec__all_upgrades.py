@@ -15,8 +15,15 @@ import pandas as pd
 
 def main(
     directory: Path, 
-    plot: bool = False, sfd_only: bool = False, explode_result: bool = False, result_as_map: bool = False):
-    
+    plot: bool = False, sfd_only: bool = False, explode_result: bool = False, result_as_map: bool = False, revision: bool = False):
+
+    if revision:
+        nec_file = "postprocess_panel_new_load_nec_revision.py"
+        msg = "using 2026 NEC REVISION"
+    else:
+        nec_file = "postprocess_panel_new_load_nec.py"
+        msg = "using 2023 NEC"
+
     upgrade_files = sorted([x for x in directory.glob("results_up*") if "up00" not in str(x)])
     baseline_file = [x for x in directory.glob("results_up*") if "up00" in str(x)][0]
 
@@ -30,7 +37,8 @@ def main(
             )
 
     upgrade_files = [x for x in upgrade_files if x not in completed_files]
-    print(f"Processing {len(upgrade_files)} upgrade files in directory, {len(completed_files)} files completed...")
+    print(f"Processing {len(upgrade_files)} upgrade files in directory, {msg}")
+    print(f"{len(completed_files)} files completed...")
     for i, file in enumerate(upgrade_files,1):
         print(f" {i}. {file}")
 
@@ -39,7 +47,7 @@ def main(
     for file in upgrade_files:
         try:
             start_time = time.time()
-            cli_cmd = ["python", "postprocess_panel_new_load_nec.py", str(baseline_file), str(file)]
+            cli_cmd = ["python", nec_file, str(baseline_file), str(file)]
             if explode_result:
                 cli_cmd.append("-x")
             if result_as_map:
@@ -128,9 +136,16 @@ if __name__ == "__main__":
         help="Whether to export NEC calculation result as a building_id map only. "
         "Default to appending NEC result as new column(s) to input result file. ",
     )
+    parser.add_argument(
+        "-r",
+        "--revision",
+        action="store_true",
+        default=False,
+        help="Whether to run calculations from 2026 Revision",
+    )
 
     args = parser.parse_args()
     main(
         Path(args.directory),
-        plot=args.plot, sfd_only=args.sfd_only, explode_result=args.explode_result, result_as_map=args.result_as_map
+        plot=args.plot, sfd_only=args.sfd_only, explode_result=args.explode_result, result_as_map=args.result_as_map, revision=args.revision,
         )
