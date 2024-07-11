@@ -7,6 +7,22 @@ Development Changelog
     :released: pending
 
     .. change::
+        :tags: workflow, bugfix
+        :pullreq: #1269
+
+        **Date**: 2024-07-11
+
+        Title:
+        ResStockArguments: convert args to double, integer
+
+        Description:
+        Avoids a bug that would be introduced by making air_leakage_value optional in https://github.com/NREL/OpenStudio-HPXML/pull/1760.
+        Per suggestion by @shorowit, create a method for automatically converting ResStockArguments argument data types based on original argument type.
+
+        Assignees: Joe Robertson
+
+
+    .. change::
         :tags: workflow, bugfix, geometry
         :pullreq: #1258
 
