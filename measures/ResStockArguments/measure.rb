@@ -790,8 +790,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     full_measure_path = File.join(measures_dir, 'BuildResidentialHPXML', 'measure.rb')
     measure = get_measure_instance(full_measure_path)
 
+    measure_arguments = measure.arguments(model)
     args.each do |name, value|
-      measure.arguments(model).each do |arg|
+      measure_arguments.each do |arg|
         next if arg.name != name.to_s
         next if value == Constants.Auto
 
@@ -801,6 +802,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         when 'integer'
           args[name] = Integer(value)
         end
+        break
       end
     end
     return args
