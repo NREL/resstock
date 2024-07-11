@@ -389,6 +389,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     args = runner.getArgumentValues(arguments(model), user_arguments)
+    args = convert_args(model, args)
 
     measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     arg_names = []
@@ -442,7 +443,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
       args[:geometry_unit_cfa] = Float(cfa)
     else
-      args[:geometry_unit_cfa] = Float(args[:geometry_unit_cfa])
+      args[:geometry_unit_cfa] = args[:geometry_unit_cfa]
     end
 
     # Vintage
@@ -454,14 +455,14 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if args[:geometry_unit_num_occupants].to_s == Constants.Auto
       args[:geometry_unit_num_occupants] = Geometry.get_occupancy_default_num(args[:geometry_unit_num_bedrooms])
     else
-      args[:geometry_unit_num_occupants] = Integer(args[:geometry_unit_num_occupants].to_s)
+      args[:geometry_unit_num_occupants] = args[:geometry_unit_num_occupants]
     end
 
     # Plug Loads
-    args[:misc_plug_loads_television_usage_multiplier] = Float(args[:misc_plug_loads_television_usage_multiplier].to_s) * args[:misc_plug_loads_television_2_usage_multiplier]
-    args[:misc_plug_loads_other_usage_multiplier] = Float(args[:misc_plug_loads_other_usage_multiplier].to_s) * args[:misc_plug_loads_other_2_usage_multiplier]
-    args[:misc_plug_loads_well_pump_usage_multiplier] = Float(args[:misc_plug_loads_well_pump_usage_multiplier].to_s) * args[:misc_plug_loads_well_pump_2_usage_multiplier]
-    args[:misc_plug_loads_vehicle_usage_multiplier] = Float(args[:misc_plug_loads_vehicle_usage_multiplier].to_s) * args[:misc_plug_loads_vehicle_2_usage_multiplier]
+    args[:misc_plug_loads_television_usage_multiplier] = args[:misc_plug_loads_television_usage_multiplier] * args[:misc_plug_loads_television_2_usage_multiplier]
+    args[:misc_plug_loads_other_usage_multiplier] = args[:misc_plug_loads_other_usage_multiplier] * args[:misc_plug_loads_other_2_usage_multiplier]
+    args[:misc_plug_loads_well_pump_usage_multiplier] = args[:misc_plug_loads_well_pump_usage_multiplier] * args[:misc_plug_loads_well_pump_2_usage_multiplier]
+    args[:misc_plug_loads_vehicle_usage_multiplier] = args[:misc_plug_loads_vehicle_usage_multiplier] * args[:misc_plug_loads_vehicle_2_usage_multiplier]
 
     # Other
     if args[:misc_plug_loads_other_annual_kwh].to_s == Constants.Auto
@@ -476,14 +477,14 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # PV
     if args[:pv_system_present] == 'true'
-      args[:pv_system_num_bedrooms_served] = Integer(args[:geometry_unit_num_bedrooms])
+      args[:pv_system_num_bedrooms_served] = args[:geometry_unit_num_bedrooms]
     else
       args[:pv_system_num_bedrooms_served] = 0
     end
 
     # Battery
     if args[:battery_present] == 'true'
-      args[:battery_num_bedrooms_served] = Integer(args[:geometry_unit_num_bedrooms])
+      args[:battery_num_bedrooms_served] = args[:geometry_unit_num_bedrooms]
     else
       args[:battery_num_bedrooms_served] = 0
     end
@@ -598,11 +599,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:geometry_unit_back_wall_is_adiabatic] = false
 
     # Map corridor arguments to adiabatic walls and shading
-    n_floors = Float(args[:geometry_num_floors_above_grade].to_s)
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args[:geometry_unit_type]
-      n_units = Float(args[:geometry_building_num_units].to_s)
-      horiz_location = args[:geometry_unit_horizontal_location].to_s
-      aspect_ratio = Float(args[:geometry_unit_aspect_ratio].to_s)
+      n_floors = Float(args[:geometry_num_floors_above_grade])
+      n_units = Float(args[:geometry_building_num_units])
+      horiz_location = args[:geometry_unit_horizontal_location]
+      aspect_ratio = args[:geometry_unit_aspect_ratio]
 
       if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
@@ -716,7 +717,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
       args[:geometry_unit_num_floors_above_grade] = 1
     else
-      args[:geometry_unit_num_floors_above_grade] = Integer(args[:geometry_num_floors_above_grade])
+      args[:geometry_unit_num_floors_above_grade] = args[:geometry_num_floors_above_grade]
     end
 
     # Adiabatic Floor/Ceiling
@@ -742,7 +743,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Rim Joist Assembly R-Value
     rim_joist_assembly_r = 0
-    if Float(args[:geometry_rim_joist_height].to_s) > 0
+    if args[:geometry_rim_joist_height] > 0
       drywall_assembly_r = 0.9
       uninsulated_wall_assembly_r = 3.4
 
@@ -782,6 +783,27 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       schedule[i] += offset_magnitude * direction
     end
     return schedule
+  end
+
+  def convert_args(model, args)
+    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
+    full_measure_path = File.join(measures_dir, 'BuildResidentialHPXML', 'measure.rb')
+    measure = get_measure_instance(full_measure_path)
+
+    args.each do |name, value|
+      measure.arguments(model).each do |arg|
+        next if arg.name != name.to_s
+        next if value == Constants.Auto
+
+        case arg.type.valueName.downcase
+        when 'double'
+          args[name] = Float(value)
+        when 'integer'
+          args[name] = Integer(value)
+        end
+      end
+    end
+    return args
   end
 end
 
