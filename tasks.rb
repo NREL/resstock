@@ -19,7 +19,7 @@ def create_hpxmls
   dirs = json_inputs.keys.map { |file_path| File.dirname(file_path) }.uniq
 
   schema_path = File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
-  schema_validator = XMLValidator.get_schema_validator(schema_path)
+  schema_validator = XMLValidator.get_xml_validator(schema_path)
 
   schedules_regenerated = []
 
@@ -851,28 +851,39 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                              shgc: 0.45,
                              fraction_operable: 0.0,
                              attached_to_wall_idref: hpxml_bldg.foundation_walls[0].id)
-    elsif ['base-enclosure-skylights-physical-properties.xml'].include? hpxml_file
-      hpxml_bldg.skylights[0].ufactor = nil
-      hpxml_bldg.skylights[0].shgc = nil
-      hpxml_bldg.skylights[0].glass_layers = HPXML::WindowLayersSinglePane
-      hpxml_bldg.skylights[0].frame_type = HPXML::WindowFrameTypeWood
-      hpxml_bldg.skylights[0].glass_type = HPXML::WindowGlassTypeTinted
-      hpxml_bldg.skylights[1].ufactor = nil
-      hpxml_bldg.skylights[1].shgc = nil
-      hpxml_bldg.skylights[1].glass_layers = HPXML::WindowLayersDoublePane
-      hpxml_bldg.skylights[1].frame_type = HPXML::WindowFrameTypeMetal
-      hpxml_bldg.skylights[1].thermal_break = true
-      hpxml_bldg.skylights[1].glass_type = HPXML::WindowGlassTypeLowE
-      hpxml_bldg.skylights[1].gas_fill = HPXML::WindowGasKrypton
-    elsif ['base-enclosure-skylights-shading.xml'].include? hpxml_file
-      hpxml_bldg.skylights[0].exterior_shading_factor_summer = 0.1
-      hpxml_bldg.skylights[0].exterior_shading_factor_winter = 0.9
-      hpxml_bldg.skylights[0].interior_shading_factor_summer = 0.01
-      hpxml_bldg.skylights[0].interior_shading_factor_winter = 0.99
-      hpxml_bldg.skylights[1].exterior_shading_factor_summer = 0.5
-      hpxml_bldg.skylights[1].exterior_shading_factor_winter = 0.0
-      hpxml_bldg.skylights[1].interior_shading_factor_summer = 0.5
-      hpxml_bldg.skylights[1].interior_shading_factor_winter = 1.0
+    elsif hpxml_file.include? 'base-enclosure-skylights-cathedral.xml'
+      hpxml_bldg.skylights.each do |skylight|
+        skylight.curb_area = 5.25
+        skylight.curb_assembly_r_value = 1.96
+      end
+    elsif hpxml_file.include? 'base-enclosure-skylights'
+      hpxml_bldg.skylights.each do |skylight|
+        skylight.shaft_area = 60.0
+        skylight.shaft_assembly_r_value = 6.25
+      end
+      if ['base-enclosure-skylights-physical-properties.xml'].include? hpxml_file
+        hpxml_bldg.skylights[0].ufactor = nil
+        hpxml_bldg.skylights[0].shgc = nil
+        hpxml_bldg.skylights[0].glass_layers = HPXML::WindowLayersSinglePane
+        hpxml_bldg.skylights[0].frame_type = HPXML::WindowFrameTypeWood
+        hpxml_bldg.skylights[0].glass_type = HPXML::WindowGlassTypeTinted
+        hpxml_bldg.skylights[1].ufactor = nil
+        hpxml_bldg.skylights[1].shgc = nil
+        hpxml_bldg.skylights[1].glass_layers = HPXML::WindowLayersDoublePane
+        hpxml_bldg.skylights[1].frame_type = HPXML::WindowFrameTypeMetal
+        hpxml_bldg.skylights[1].thermal_break = true
+        hpxml_bldg.skylights[1].glass_type = HPXML::WindowGlassTypeLowE
+        hpxml_bldg.skylights[1].gas_fill = HPXML::WindowGasKrypton
+      elsif ['base-enclosure-skylights-shading.xml'].include? hpxml_file
+        hpxml_bldg.skylights[0].exterior_shading_factor_summer = 0.1
+        hpxml_bldg.skylights[0].exterior_shading_factor_winter = 0.9
+        hpxml_bldg.skylights[0].interior_shading_factor_summer = 0.01
+        hpxml_bldg.skylights[0].interior_shading_factor_winter = 0.99
+        hpxml_bldg.skylights[1].exterior_shading_factor_summer = 0.5
+        hpxml_bldg.skylights[1].exterior_shading_factor_winter = 0.0
+        hpxml_bldg.skylights[1].interior_shading_factor_summer = 0.5
+        hpxml_bldg.skylights[1].interior_shading_factor_winter = 1.0
+      end
     elsif ['base-enclosure-windows-physical-properties.xml'].include? hpxml_file
       hpxml_bldg.windows[0].ufactor = nil
       hpxml_bldg.windows[0].shgc = nil
@@ -2220,6 +2231,8 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                                       used_for_whole_building_ventilation: true)
     elsif ['base-mechvent-cfis-airflow-fraction-zero.xml'].include? hpxml_file
       hpxml_bldg.ventilation_fans[0].cfis_vent_mode_airflow_fraction = 0.0
+    elsif ['base-mechvent-cfis-no-additional-runtime.xml'].include? hpxml_file
+      hpxml_bldg.ventilation_fans[0].cfis_addtl_runtime_operating_mode = HPXML::CFISModeNone
     elsif ['base-mechvent-cfis-supplemental-fan-exhaust.xml',
            'base-mechvent-cfis-supplemental-fan-supply.xml'].include? hpxml_file
       hpxml_bldg.ventilation_fans.add(id: "VentilationFan#{hpxml_bldg.ventilation_fans.size + 1}",
@@ -2570,6 +2583,8 @@ if ARGV[0].to_sym == :update_measures
           'Lint/UnusedMethodArgument',
           'Lint/UselessAssignment',
           'Style/AndOr',
+          'Style/Documentation',
+          'Style/DocumentationMethod',
           'Style/FrozenStringLiteralComment',
           'Style/HashSyntax',
           'Style/Next',

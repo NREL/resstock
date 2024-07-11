@@ -482,6 +482,7 @@ Additional detail related to design loads can be found in the :ref:`design_load_
    HVAC Design Load: Heating: Ceilings (Btu/h)                            Heating design load for ceilings
    HVAC Design Load: Heating: Infiltration (Btu/h)                        Heating design load for infiltration
    HVAC Design Load: Heating: Ventilation (Btu/h)                         Heating design load for ventilation
+   HVAC Design Load: Heating: Piping (Btu/h)                              Heating design load for hydronic piping
    HVAC Design Load: Cooling Sensible: Total (Btu/h)                      Total sensible cooling design load
    HVAC Design Load: Cooling Sensible: Ducts (Btu/h)                      Sensible cooling design load for ducts
    HVAC Design Load: Cooling Sensible: Windows (Btu/h)                    Sensible cooling design load for windows
@@ -495,6 +496,7 @@ Additional detail related to design loads can be found in the :ref:`design_load_
    HVAC Design Load: Cooling Sensible: Infiltration (Btu/h)               Sensible cooling design load for infiltration
    HVAC Design Load: Cooling Sensible: Ventilation (Btu/h)                Sensible cooling design load for ventilation
    HVAC Design Load: Cooling Sensible: Internal Gains (Btu/h)             Sensible cooling design load for internal gains
+   HVAC Design Load: Cooling Sensible: Blower Heat (Btu/h)                Sensible cooling design load for blower fan heat
    HVAC Design Load: Cooling Sensible: AED Excursion (Btu/h)              Sensible cooling design load for Adequate Exposure Diversity (AED) excursion
    HVAC Design Load: Cooling Latent: Total (Btu/h)                        Total latent cooling design load
    HVAC Design Load: Cooling Latent: Ducts (Btu/h)                        Latent cooling design load for ducts
@@ -527,6 +529,7 @@ Additional detail related to zone design loads can be found in the :ref:`design_
    HVAC Zone Design Load: Heating: Ceilings (Btu/h)                       Heating design load for ceilings
    HVAC Zone Design Load: Heating: Infiltration (Btu/h)                   Heating design load for infiltration
    HVAC Zone Design Load: Heating: Ventilation (Btu/h)                    Heating design load for ventilation
+   HVAC Zone Design Load: Heating: Piping (Btu/h)                         Heating design load for hydronic piping
    HVAC Zone Design Load: Cooling Sensible: Total (Btu/h)                 Total sensible cooling design load
    HVAC Zone Design Load: Cooling Sensible: Ducts (Btu/h)                 Sensible cooling design load for ducts
    HVAC Zone Design Load: Cooling Sensible: Windows (Btu/h)               Sensible cooling design load for windows
@@ -540,6 +543,7 @@ Additional detail related to zone design loads can be found in the :ref:`design_
    HVAC Zone Design Load: Cooling Sensible: Infiltration (Btu/h)          Sensible cooling design load for infiltration
    HVAC Zone Design Load: Cooling Sensible: Ventilation (Btu/h)           Sensible cooling design load for ventilation
    HVAC Zone Design Load: Cooling Sensible: Internal Gains (Btu/h)        Sensible cooling design load for internal gains
+   HVAC Zone Design Load: Cooling Sensible: Blower Heat (Btu/h)           Sensible cooling design load for blower fan heat
    HVAC Zone Design Load: Cooling Sensible: AED Excursion (Btu/h)         Sensible cooling design load for Adequate Exposure Diversity (AED) excursion
    HVAC Zone Design Load: Cooling Latent: Total (Btu/h)                   Total latent cooling design load
    HVAC Zone Design Load: Cooling Latent: Ducts (Btu/h)                   Latent cooling design load for ducts
@@ -738,6 +742,8 @@ For each HPXML Building, the following output types are reported.
    Internal Gains                                                                      X                        X  
    Ducts                                                               X               X                        X  
    Ventilation                                                         X               X                        X  
+   Piping                                                              X
+   Blower Heat                                                                         X
    AED Excursion                                                                       X                          
    Total                                                               X               X                        X
    =======================  ===========  ===========  ===============  ==============  =======================  =====================
@@ -763,6 +769,8 @@ Only those surfaces attached to a space in the given zone will be included.
    Internal Gains                                                                      X                        X  
    Ducts                                                               X               X                        X  
    Ventilation                                                         X               X                        X  
+   Piping                                                              X
+   Blower Heat                                                                         X
    AED Excursion                                                                       X                          
    Total                                                               X               X                        X
    =======================  ===========  ===========  ===============  ==============  =======================  =====================

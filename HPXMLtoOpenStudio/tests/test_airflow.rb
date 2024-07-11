@@ -136,6 +136,18 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
   end
 
+  def test_infiltration_leakiness_description
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-infil-leakiness-description.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+
+    # Check infiltration/ventilation program
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
+    assert_in_epsilon(0.1956, program_values['c'].sum, 0.01)
+    assert_in_epsilon(0.0573, program_values['Cs'].sum, 0.01)
+    assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+  end
+
   def test_infiltration_multifamily
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit.xml'))
@@ -156,6 +168,18 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
     assert_in_epsilon(0.0118, program_values['c'].sum, 0.01)
+    assert_in_epsilon(0.0504, program_values['Cs'].sum, 0.01)
+    assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+  end
+
+  def test_infiltration_multifamily_leakiness_description
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-bldgtype-mf-unit-infil-leakiness-description.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+
+    # Check infiltration/ventilation program
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
+    assert_in_epsilon(0.0055, program_values['c'].sum, 0.01)
     assert_in_epsilon(0.0504, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
   end

@@ -300,7 +300,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
     }
 
     schema_path = File.join(File.dirname(__FILE__), '../..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
-    schema_validator = XMLValidator.get_schema_validator(schema_path)
+    schema_validator = XMLValidator.get_xml_validator(schema_path)
 
     puts "Generating #{hpxmls_files.size} HPXML files..."
 
@@ -765,7 +765,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['pv_system_2_array_tilt'] = 'roofpitch+15'
     elsif ['extra-dhw-solar-latitude.xml'].include? hpxml_file
       args['solar_thermal_system_type'] = HPXML::SolarThermalSystemType
-      args['solar_thermal_collector_tilt'] = 'latitude-15'
+      args['solar_thermal_collector_tilt'] = 'Latitude-15'
     elsif ['extra-second-refrigerator.xml'].include? hpxml_file
       args['extra_refrigerator_location'] = HPXML::LocationConditionedSpace
     elsif ['extra-second-heating-system-portable-heater-to-heating-system.xml'].include? hpxml_file

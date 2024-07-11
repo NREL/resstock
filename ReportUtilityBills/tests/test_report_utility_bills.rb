@@ -78,8 +78,8 @@ class ReportUtilityBillsTest < Minitest::Test
                                              fuel_oil_marginal_rate: 3.495346153846154)
 
     # Check for presence of fuels once
-    has_fuel = @hpxml_bldg.has_fuels(Constants.FossilFuels, @hpxml.to_doc)
-    HPXMLDefaults.apply_header(@hpxml_header, nil, @hpxml_bldg)
+    has_fuel = @hpxml_bldg.has_fuels(@hpxml.to_doc)
+    HPXMLDefaults.apply_header(@hpxml_header, @hpxml_bldg, nil)
     HPXMLDefaults.apply_utility_bill_scenarios(nil, @hpxml_header, @hpxml_bldg, has_fuel)
 
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
@@ -250,6 +250,18 @@ class ReportUtilityBillsTest < Minitest::Test
     # See https://github.com/NREL/OpenStudio-HPXML/issues/1444
     @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
     hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+    hpxml.header.utility_bill_scenarios.add(name: 'Test 1', elec_tariff_filepath: '../../ReportUtilityBills/tests/Detailed Rate.json')
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    actual_bills, actual_monthly_bills = _test_measure()
+    assert_operator(actual_bills['Test 1: Total (USD)'], :>, 0)
+    _check_monthly_bills(actual_bills, actual_monthly_bills)
+  end
+
+  def test_workflow_detailed_calculations_scheduled_battery
+    # Detailed Rate.json was renamed from Jackson Electric Member Corp - A Residential Service Senior Citizen Low Income Assistance (Effective 2017-01-01).json
+    # See https://github.com/NREL/OpenStudio-HPXML/issues/1444
+    @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-battery-scheduled.xml'))
     hpxml.header.utility_bill_scenarios.add(name: 'Test 1', elec_tariff_filepath: '../../ReportUtilityBills/tests/Detailed Rate.json')
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     actual_bills, actual_monthly_bills = _test_measure()
