@@ -540,7 +540,7 @@ class RunOSWs
   end
 end
 
-class Version
+module Version
   ResStock_Version = '3.2.0' # Version of ResStock
   BuildStockBatch_Version = '2023.10.0' # Minimum required version of BuildStockBatch
 
