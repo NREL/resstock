@@ -238,6 +238,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     args = runner.getArgumentValues(arguments(model), user_arguments)
 
+    runner.registerWarning("Starting Build Existing Model. Got these args: #{args}")
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources'))
     characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/housing_characteristics'))
@@ -733,6 +734,21 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true # for apply_hvac_sizing since ApplyUpgrade sets HVAC capacities
       measures['BuildResidentialHPXML'][0]['apply_validation'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
+
+      # Add EV stuffs
+      # "ev_energy_efficiency": 0.32,
+      measures['BuildResidentialHPXML'][0]['ev_present'] = true
+      # Use random integer between 80 and 100
+      measures['BuildResidentialHPXML'][0]['ev_battery_capacity'] = 100
+      measures['BuildResidentialHPXML'][0]['ev_battery_usable_capacity'] = 80
+      measures['BuildResidentialHPXML'][0]['ev_battery_discharge_power'] = 6000
+      measures['BuildResidentialHPXML'][0]['ev_charger_present'] = true
+      measures['BuildResidentialHPXML'][0]['ev_charger_power'] = 5690
+      measures['BuildResidentialHPXML'][0]['ev_miles_per_year'] = 10000
+      measures['BuildResidentialHPXML'][0]['ev_energy_efficiency'] = 0.32
+      measures['BuildResidentialHPXML'][0]['ev_fraction_charged_home'] = 1
+      measures['BuildResidentialHPXML'][0]['ev_charger_location'] = 'outside'
+
       if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         register_logs(runner, new_runner)
         return false
