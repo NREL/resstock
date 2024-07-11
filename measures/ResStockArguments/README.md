@@ -57,28 +57,6 @@ Whether to use daylight saving. If not provided, the OS-HPXML default (see <a hr
 
 <br/>
 
-**Simulation Control: HVAC On-Off Thermostat Deadband**
-
-Research feature to model on-off thermostat deadband and start-up degradation for single or two speed AC/ASHP systems, and realistic time-based staging for two speed AC/ASHP systems. Currently only supported with 1 min timestep.
-
-- **Name:** ``simulation_control_onoff_thermostat_deadband``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**Simulation Control: Heat Pump Backup Heating Capacity Increment**
-
-Research feature to model capacity increment of multi-stage heat pump backup systems with time-based staging. Only applies to air-source heat pumps where Backup Type is 'integrated' and Backup Fuel Type is 'electricity'. Currently only supported with 1 min timestep.
-
-- **Name:** ``simulation_control_heat_pump_backup_heating_capacity_increment``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
 **Site: Type**
 
 The type of site. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site'>HPXML Site</a>) is used.
