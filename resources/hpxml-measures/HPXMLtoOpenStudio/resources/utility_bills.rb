@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
+# TODO
 class UtilityBills
+  # TODO
+  #
+  # @param fuel_type [TODO] TODO
+  # @return [TODO] TODO
   def self.get_fuel_units(fuel_type)
     return { HPXML::FuelTypeElectricity => 'kwh',
              HPXML::FuelTypeNaturalGas => 'therm',
@@ -11,6 +16,14 @@ class UtilityBills
              HPXML::FuelTypeWoodPellets => 'kbtu' }[fuel_type]
   end
 
+  # TODO
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param state_code [TODO] TODO
+  # @param fuel_type [TODO] TODO
+  # @param fixed_charge [TODO] TODO
+  # @param marginal_rate [TODO] TODO
+  # @return [TODO] TODO
   def self.get_rates_from_eia_data(runner, state_code, fuel_type, fixed_charge, marginal_rate = nil)
     msn_codes = Constants.StateCodesMap.keys
     msn_codes << 'US'
@@ -36,6 +49,11 @@ class UtilityBills
     return marginal_rate, average_rate
   end
 
+  # TODO
+  #
+  # @param state_code [TODO] TODO
+  # @param fuel_type [TODO] TODO
+  # @return [TODO] TODO
   def self.get_household_consumption(state_code, fuel_type)
     rows = CSV.read(File.join(File.dirname(__FILE__), '../../ReportUtilityBills/resources/simple_rates/HouseholdConsumption.csv'))
     rows.each do |row|
@@ -49,14 +67,32 @@ class UtilityBills
     end
   end
 
+  # TODO
+  #
+  # @param average_rate [TODO] TODO
+  # @param fixed_charge [TODO] TODO
+  # @param household_consumption [TODO] TODO
+  # @return [TODO] TODO
   def self.average_rate_to_marginal_rate(average_rate, fixed_charge, household_consumption)
     return average_rate - 12.0 * fixed_charge / household_consumption
   end
 
+  # TODO
+  #
+  # @param marginal_rate [TODO] TODO
+  # @param fixed_charge [TODO] TODO
+  # @param household_consumption [TODO] TODO
+  # @return [TODO] TODO
   def self.marginal_rate_to_average_rate(marginal_rate, fixed_charge, household_consumption)
     return marginal_rate + 12.0 * fixed_charge / household_consumption
   end
 
+  # TODO
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param state_code [TODO] TODO
+  # @param fuel_type [TODO] TODO
+  # @return [TODO] TODO
   def self.get_eia_seds_rate(runner, state_code, fuel_type)
     msn_code_map = {
       HPXML::FuelTypeElectricity => 'ESRCD',

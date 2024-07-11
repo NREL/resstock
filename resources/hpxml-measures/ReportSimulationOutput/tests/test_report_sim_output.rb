@@ -218,6 +218,7 @@ class ReportSimulationOutputTest < Minitest::Test
     'HVAC Design Load: Heating: Ceilings (Btu/h)',
     'HVAC Design Load: Heating: Infiltration (Btu/h)',
     'HVAC Design Load: Heating: Ventilation (Btu/h)',
+    'HVAC Design Load: Heating: Piping (Btu/h)',
     'HVAC Design Load: Cooling Sensible: Total (Btu/h)',
     'HVAC Design Load: Cooling Sensible: Ducts (Btu/h)',
     'HVAC Design Load: Cooling Sensible: Windows (Btu/h)',
@@ -232,6 +233,7 @@ class ReportSimulationOutputTest < Minitest::Test
     'HVAC Design Load: Cooling Sensible: Infiltration (Btu/h)',
     'HVAC Design Load: Cooling Sensible: Ventilation (Btu/h)',
     'HVAC Design Load: Cooling Sensible: Internal Gains (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Blower Heat (Btu/h)',
     'HVAC Design Load: Cooling Latent: Total (Btu/h)',
     'HVAC Design Load: Cooling Latent: Ducts (Btu/h)',
     'HVAC Design Load: Cooling Latent: Infiltration (Btu/h)',
@@ -1342,6 +1344,8 @@ class ReportSimulationOutputTest < Minitest::Test
     assert_equal(9.0, actual_annual_rows['HVAC Geothermal Loop: Borehole/Trench Count'])
     assert_equal(315.0, actual_annual_rows['HVAC Geothermal Loop: Borehole/Trench Length (ft)'])
   end
+
+  private
 
   def _test_measure(args_hash, expect_success: true)
     # Run measure via OSW

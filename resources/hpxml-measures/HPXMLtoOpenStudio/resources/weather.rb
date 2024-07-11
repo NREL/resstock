@@ -1,23 +1,32 @@
 # frozen_string_literal: true
 
+# TODO
+class WeatherHeader
+  ATTRS ||= [:City, :StateProvinceRegion, :Latitude, :Longitude, :Elevation, :TimeZone, :WMONumber, :DSTStartDate, :DSTEndDate, :ActualYearStartDate, :RecordsPerHour, :NumRecords]
+  attr_accessor(*ATTRS)
+end
+
+# TODO
 class WeatherData
-  def initialize
-  end
   ATTRS ||= [:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :MonthlyAvgDrybulbs, :ShallowGroundAnnualTemp, :ShallowGroundMonthlyTemps,
              :DeepGroundAnnualTemp, :DeepGroundSurfTempAmp1, :DeepGroundSurfTempAmp2, :DeepGroundPhaseShiftTempAmp1, :DeepGroundPhaseShiftTempAmp2,
              :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs, :MainsAnnualTemp, :MainsDailyTemps, :MainsMonthlyTemps]
   attr_accessor(*ATTRS)
 end
 
+# TODO
 class WeatherDesign
-  def initialize
-  end
   ATTRS ||= [:HeatingDrybulb, :CoolingDrybulb, :CoolingHumidityRatio, :DailyTemperatureRange]
   attr_accessor(*ATTRS)
 end
 
-class WeatherProcess
+# TODO
+class WeatherFile
+  # @param epw_path [String] Path to the EPW weather file
+  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param hpxml [HPXML] HPXML object
   def initialize(epw_path:, runner:, hpxml: nil)
+    @header = WeatherHeader.new
     @data = WeatherData.new
     @design = WeatherDesign.new
 
@@ -25,23 +34,24 @@ class WeatherProcess
       fail "Cannot find weather file at #{epw_path}."
     end
 
-    epw_file = OpenStudio::EpwFile.new(epw_path, true)
-
-    process_epw(runner, epw_file, hpxml)
+    process_epw(runner, epw_path, hpxml)
   end
 
-  attr_accessor(:data, :design)
+  attr_accessor(:header, :data, :design)
 
   private
 
-  def process_epw(runner, epw_file, hpxml)
-    if epw_file.recordsPerHour != 1
-      fail "Unexpected records per hour: #{epw_file.recordsPerHour}."
-    end
+  # TODO
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param epw_path [String] Path to the EPW weather file
+  # @param hpxml [HPXML] HPXML object
+  # @return [TODO] TODO
+  def process_epw(runner, epw_path, hpxml)
+    epw_file = OpenStudio::EpwFile.new(epw_path, true)
 
-    epw_file_data = epw_file.data
-
-    epwHasDesignData = get_design_info_from_epw(runner, epw_file)
+    get_header_info_from_epw(epw_file)
+    epw_has_design_data = get_design_info_from_epw(runner, epw_file)
 
     # Timeseries data:
     rowdata = []
@@ -49,7 +59,7 @@ class WeatherProcess
     dailyhighdbs = []
     dailylowdbs = []
     monthdbs = []
-    epw_file_data.each_with_index do |epwdata, rownum|
+    epw_file.data.each_with_index do |epwdata, rownum|
       rowdict = {}
       rowdict['month'] = epwdata.month
       rowdict['day'] = epwdata.day
@@ -74,12 +84,12 @@ class WeatherProcess
 
       rowdata << rowdict
 
-      next unless (rownum + 1) % (24 * epw_file.recordsPerHour) == 0
+      next unless (rownum + 1) % (24 * header.RecordsPerHour) == 0
 
       db = []
-      maxdb = rowdata[rowdata.length - (24 * epw_file.recordsPerHour)]['db']
-      mindb = rowdata[rowdata.length - (24 * epw_file.recordsPerHour)]['db']
-      rowdata[rowdata.length - (24 * epw_file.recordsPerHour)..-1].each do |x|
+      maxdb = rowdata[rowdata.length - (24 * header.RecordsPerHour)]['db']
+      mindb = rowdata[rowdata.length - (24 * header.RecordsPerHour)]['db']
+      rowdata[rowdata.length - (24 * header.RecordsPerHour)..-1].each do |x|
         if x['db'] > maxdb
           maxdb = x['db']
         end
@@ -89,7 +99,7 @@ class WeatherProcess
         db << x['db']
       end
 
-      dailydbs << db.sum(0.0) / (24.0 * epw_file.recordsPerHour)
+      dailydbs << db.sum(0.0) / (24.0 * header.RecordsPerHour)
       dailyhighdbs << maxdb
       dailylowdbs << mindb
     end
@@ -104,16 +114,20 @@ class WeatherProcess
 
     calc_heat_cool_degree_days(dailydbs)
     calc_avg_monthly_highs_lows(dailyhighdbs, dailylowdbs)
-    calc_shallow_ground_temperatures(epw_file)
-    calc_deep_ground_temperatures(hpxml, epw_file)
-    calc_mains_temperatures(dailydbs.size, epw_file)
-    data.WSF = calc_ashrae_622_wsf(rowdata, epw_file)
+    calc_shallow_ground_temperatures()
+    calc_deep_ground_temperatures(hpxml)
+    calc_mains_temperatures(dailydbs.size)
+    data.WSF = calc_ashrae_622_wsf(rowdata)
 
-    if not epwHasDesignData
-      calc_design_info(runner, rowdata, epw_file, data)
+    if not epw_has_design_data
+      calc_design_info(runner, rowdata, data)
     end
   end
 
+  # TODO
+  #
+  # @param dailydbs [TODO] TODO
+  # @return [TODO] TODO
   def calc_heat_cool_degree_days(dailydbs)
     # Calculates and stores heating/cooling degree days
     data.HDD65F = calc_degree_days(dailydbs, 65, true)
@@ -122,6 +136,12 @@ class WeatherProcess
     data.CDD50F = calc_degree_days(dailydbs, 50, false)
   end
 
+  # TODO
+  #
+  # @param dailydbs [TODO] TODO
+  # @param base_temp_f [TODO] TODO
+  # @param is_heating [TODO] TODO
+  # @return [TODO] TODO
   def calc_degree_days(daily_dbs, base_temp_f, is_heating)
     # Calculates and returns degree days from a base temperature for either heating or cooling
     base_temp_c = UnitConversions.convert(base_temp_f, 'F', 'C')
@@ -148,6 +168,11 @@ class WeatherProcess
     return 1.8 * deg_days
   end
 
+  # TODO
+  #
+  # @param daily_high_dbs [TODO] TODO
+  # @param daily_low_dbs [TODO] TODO
+  # @return [TODO] TODO
   def calc_avg_monthly_highs_lows(daily_high_dbs, daily_low_dbs)
     # Calculates and stores avg daily highs and lows for each month
     data.MonthlyAvgDailyHighDrybulbs = []
@@ -174,13 +199,17 @@ class WeatherProcess
     end
   end
 
-  def calc_ashrae_622_wsf(rowdata, epw_file)
+  # TODO
+  #
+  # @param rowdata [TODO] TODO
+  # @return [TODO] TODO
+  def calc_ashrae_622_wsf(rowdata)
     require 'csv'
     ashrae_csv = File.join(File.dirname(__FILE__), 'data', 'ashrae_622_wsf.csv')
 
     wsf = nil
     CSV.read(ashrae_csv, headers: false).each do |data|
-      next unless data[0] == epw_file.wmoNumber
+      next unless data[0] == header.WMONumber
 
       wsf = Float(data[1]).round(2)
     end
@@ -223,12 +252,46 @@ class WeatherProcess
     return wsf.round(2)
   end
 
+  # TODO
+  #
+  # @param epw_file [OpenStudio::EpwFile] OpenStudio EpwFile object
+  # @return [TODO] TODO
+  def get_header_info_from_epw(epw_file)
+    header.City = epw_file.city
+    header.StateProvinceRegion = epw_file.stateProvinceRegion
+    header.Latitude = epw_file.latitude
+    header.Longitude = epw_file.longitude
+    header.Elevation = UnitConversions.convert(epw_file.elevation, 'm', 'ft')
+    header.TimeZone = epw_file.timeZone
+    header.WMONumber = epw_file.wmoNumber
+    if epw_file.daylightSavingStartDate.is_initialized
+      header.DSTStartDate = epw_file.daylightSavingStartDate.get
+    end
+    if epw_file.daylightSavingEndDate.is_initialized
+      header.DSTEndDate = epw_file.daylightSavingEndDate.get
+    end
+    if epw_file.startDateActualYear.is_initialized
+      header.ActualYearStartDate = epw_file.startDateActualYear.get
+    end
+    header.RecordsPerHour = epw_file.recordsPerHour
+    header.NumRecords = epw_file.data.size
+
+    if header.RecordsPerHour != 1
+      fail "Unexpected records per hour: #{header.RecordsPerHour}."
+    end
+  end
+
+  # TODO
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param epw_file [OpenStudio::EpwFile] OpenStudio EpwFile object
+  # @return [TODO] TODO
   def get_design_info_from_epw(runner, epw_file)
     # Retrieve design conditions from weather header
     epw_design_conditions = epw_file.designConditions
-    epwHasDesignData = false
+    epw_has_design_data = false
     if epw_design_conditions.length > 0
-      epwHasDesignData = true
+      epw_has_design_data = true
       epw_design_condition = epw_design_conditions[0]
       if epw_design_conditions.length > 1
         runner.registerWarning("Multiple EPW design conditions found; the first one (#{epw_design_condition.titleOfDesignCondition}) will be used.")
@@ -236,24 +299,30 @@ class WeatherProcess
       design.HeatingDrybulb = UnitConversions.convert(epw_design_condition.heatingDryBulb99, 'C', 'F')
       design.CoolingDrybulb = UnitConversions.convert(epw_design_condition.coolingDryBulb1, 'C', 'F')
       design.DailyTemperatureRange = UnitConversions.convert(epw_design_condition.coolingDryBulbRange, 'deltaC', 'deltaF')
-      press_psi = Psychrometrics.Pstd_fZ(UnitConversions.convert(epw_file.elevation, 'm', 'ft'))
+      press_psi = Psychrometrics.Pstd_fZ(header.Elevation)
       design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, UnitConversions.convert(epw_design_condition.coolingMeanCoincidentWetBulb1, 'C', 'F'), press_psi)
     end
-    return epwHasDesignData
+    return epw_has_design_data
   end
 
-  def calc_design_info(runner, rowdata, epw_file, data)
+  # TODO
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param rowdata [TODO] TODO
+  # @param data [TODO] TODO
+  # @return [TODO] TODO
+  def calc_design_info(runner, rowdata, data)
     # Calculate design conditions from weather data
     if not runner.nil?
       runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
     end
 
-    press_psi = Psychrometrics.Pstd_fZ(UnitConversions.convert(epw_file.elevation, 'm', 'ft'))
+    press_psi = Psychrometrics.Pstd_fZ(header.Elevation)
     annual_hd_sorted_by_db = rowdata.sort_by { |x| x['db'] }
 
     # 1%/99% values
-    heat99per_db = annual_hd_sorted_by_db[88 * epw_file.recordsPerHour]['db']
-    cool01per_db = annual_hd_sorted_by_db[8673 * epw_file.recordsPerHour]['db']
+    heat99per_db = annual_hd_sorted_by_db[88 * header.RecordsPerHour]['db']
+    cool01per_db = annual_hd_sorted_by_db[8673 * header.RecordsPerHour]['db']
 
     # Mean coincident values for cooling
     cool_wetbulb = []
@@ -274,7 +343,10 @@ class WeatherProcess
     design.HeatingDrybulb = UnitConversions.convert(heat99per_db, 'C', 'F')
   end
 
-  def calc_shallow_ground_temperatures(epw_file)
+  # TODO
+  #
+  # @return [TODO] TODO
+  def calc_shallow_ground_temperatures()
     # Return shallow monthly/annual ground temperatures.
     # This correlation is the same that is used in DOE-2's src\WTH.f file, subroutine GTEMP
 
@@ -300,13 +372,17 @@ class WeatherProcess
     end
     data.ShallowGroundAnnualTemp = data.AnnualAvgDrybulb
 
-    if epw_file.latitude < 0
+    if header.Latitude < 0
       # Southern hemisphere
       data.ShallowGroundMonthlyTemps.rotate!(6)
     end
   end
 
-  def calc_deep_ground_temperatures(hpxml, epw_file)
+  # TODO
+  #
+  # @param hpxml [HPXML] HPXML object
+  # @return [TODO] TODO
+  def calc_deep_ground_temperatures(hpxml)
     # Return deep annual ground temperature.
     # Annual average ground temperature using Xing's model.
 
@@ -328,7 +404,7 @@ class WeatherProcess
     require 'matrix'
 
     # Minimize distance to Station
-    v1 = Vector[epw_file.latitude, epw_file.longitude]
+    v1 = Vector[header.Latitude, header.Longitude]
     dist = 1 / Constants.small
     temperatures_amplitudes = nil
     CSV.foreach(deep_ground_temperatures) do |row|
@@ -347,13 +423,17 @@ class WeatherProcess
     data.DeepGroundPhaseShiftTempAmp2 = temperatures_amplitudes[4] # days
   end
 
-  def calc_mains_temperatures(n_days, epw_file)
+  # TODO
+  #
+  # @param n_days [TODO] TODO
+  # @return [TODO] TODO
+  def calc_mains_temperatures(n_days)
     # Algorithm based on Burch & Christensen "Towards Development of an Algorithm for Mains Water Temperature"
     deg_rad = Math::PI / 180
 
     tmains_ratio = 0.4 + 0.01 * (data.AnnualAvgDrybulb - 44)
     tmains_lag = 35 - (data.AnnualAvgDrybulb - 44)
-    if epw_file.latitude < 0
+    if header.Latitude < 0
       sign = 1 # southern hemisphere
     else
       sign = -1

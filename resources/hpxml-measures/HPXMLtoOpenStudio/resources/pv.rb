@@ -1,6 +1,14 @@
 # frozen_string_literal: true
 
-class PV
+# TODO
+module PV
+  # TODO
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
+  # @param pv_system [TODO] TODO
+  # @param unit_multiplier [Integer] Number of similar dwelling units
+  # @return [TODO] TODO
   def self.apply(model, nbeds, pv_system, unit_multiplier)
     obj_name = pv_system.id
 
@@ -55,11 +63,20 @@ class PV
     elcd.addGenerator(gpvwatts)
   end
 
+  # TODO
+  #
+  # @param year_modules_manufactured [TODO] TODO
+  # @return [TODO] TODO
   def self.calc_module_power_from_year(year_modules_manufactured)
     # Calculation from HEScore
     return 13.3 * year_modules_manufactured - 26494.0 # W/panel
   end
 
+  # TODO
+  #
+  # @param year_modules_manufactured [TODO] TODO
+  # @param default_loss_fraction [TODO] TODO
+  # @return [TODO] TODO
   def self.calc_losses_fraction_from_year(year_modules_manufactured, default_loss_fraction)
     # Calculation from HEScore
     age = Time.new.year - year_modules_manufactured
@@ -68,10 +85,17 @@ class PV
     return losses_fraction
   end
 
+  # TODO
+  #
+  # @return [TODO] TODO
   def self.get_default_inv_eff()
     return 0.96 # PVWatts default inverter efficiency
   end
 
+  # TODO
+  #
+  # @param year_modules_manufactured [TODO] TODO
+  # @return [TODO] TODO
   def self.get_default_system_losses(year_modules_manufactured = nil)
     default_loss_fraction = 0.14 # PVWatts default system losses
     if not year_modules_manufactured.nil?

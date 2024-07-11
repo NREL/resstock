@@ -1,10 +1,23 @@
 # frozen_string_literal: true
 
-class MathTools
+# TODO
+module MathTools
+  # TODO
+  #
+  # @param str [TODO] TODO
+  # @return [TODO] TODO
   def self.valid_float?(str)
     !!Float(str) rescue false
   end
 
+  # TODO
+  #
+  # @param x [TODO] TODO
+  # @param x0 [TODO] TODO
+  # @param x1 [TODO] TODO
+  # @param f0 [TODO] TODO
+  # @param f1 [TODO] TODO
+  # @return [TODO] TODO
   def self.interp2(x, x0, x1, f0, f1)
     '''
     Returns the linear interpolation between two results.
@@ -13,6 +26,19 @@ class MathTools
     return f0 + ((x - x0) / (x1 - x0)) * (f1 - f0)
   end
 
+  # TODO
+  #
+  # @param x [TODO] TODO
+  # @param y [TODO] TODO
+  # @param x1 [TODO] TODO
+  # @param x2 [TODO] TODO
+  # @param y1 [TODO] TODO
+  # @param y2 [TODO] TODO
+  # @param fx1y1 [TODO] TODO
+  # @param fx1y2 [TODO] TODO
+  # @param fx2y1 [TODO] TODO
+  # @param fx2y2 [TODO] TODO
+  # @return [TODO] TODO
   def self.interp4(x, y, x1, x2, y1, y2, fx1y1, fx1y2, fx2y1, fx2y2)
     '''
     Returns the bilinear interpolation between four results.
@@ -24,6 +50,12 @@ class MathTools
           + (fx2y2 / ((x2 - x1) * (y2 - y1))) * (x - x1) * (y - y1)
   end
 
+  # TODO
+  #
+  # @param x [TODO] TODO
+  # @param y [TODO] TODO
+  # @param c [TODO] TODO
+  # @return [TODO] TODO
   def self.biquadratic(x, y, c)
     '''
     Description:
@@ -48,6 +80,11 @@ class MathTools
     return z
   end
 
+  # TODO
+  #
+  # @param x [TODO] TODO
+  # @param c [TODO] TODO
+  # @return [TODO] TODO
   def self.quadratic(x, c)
     '''
     Description:
@@ -75,6 +112,12 @@ class MathTools
     return y
   end
 
+  # TODO
+  #
+  # @param x [TODO] TODO
+  # @param y [TODO] TODO
+  # @param c [TODO] TODO
+  # @return [TODO] TODO
   def self.bicubic(x, y, c)
     '''
     Description:
@@ -105,6 +148,17 @@ class MathTools
     return z
   end
 
+  # TODO
+  #
+  # @param x0 [TODO] TODO
+  # @param f0 [TODO] TODO
+  # @param x1 [TODO] TODO
+  # @param f1 [TODO] TODO
+  # @param x2 [TODO] TODO
+  # @param f2 [TODO] TODO
+  # @param icount [TODO] TODO
+  # @param cvg [TODO] TODO
+  # @return [TODO] TODO
   def self.Iterate(x0, f0, x1, f1, x2, f2, icount, cvg)
     '''
     Description:
@@ -259,7 +313,15 @@ class MathTools
 end
 
 # Adapted from https://stackoverflow.com/questions/6934185/ruby-net-http-following-redirects
-class UrlResolver
+module UrlResolver
+  # TODO
+  #
+  # @param uri_str [TODO] TODO
+  # @param outfile [TODO] TODO
+  # @param agent [TODO] TODO
+  # @param max_attempts [TODO] TODO
+  # @param timeout [TODO] TODO
+  # @return [TODO] TODO
   def self.fetch(uri_str, outfile, agent = 'curl/7.43.0', max_attempts = 10, timeout = 10)
     attempts = 0
     cookie = nil
@@ -326,7 +388,14 @@ class UrlResolver
   end
 end
 
-class FilePath
+# TODO
+module FilePath
+  # TODO
+  #
+  # @param path [TODO] TODO
+  # @param relative_dir [TODO] TODO
+  # @param name [TODO] TODO
+  # @return [TODO] TODO
   def self.check_path(path, relative_dir, name)
     return if path.nil?
     return File.absolute_path(path) if File.exist? path
