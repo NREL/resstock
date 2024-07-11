@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Constants
+module Constants
   def self.build_residential_hpxml_excludes
     # don't make these BuildResidentialHPXML arguments into ResStockArguments arguments
     return ['hpxml_path',
