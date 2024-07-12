@@ -27,15 +27,15 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
   # define the arguments that the user will input
   def arguments(model)
-    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # BuildResidentialHPXML
 
+    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     full_measure_path = File.join(measures_dir, 'BuildResidentialHPXML', 'measure.rb')
-    measure = get_measure_instance(full_measure_path)
+    @build_residential_hpxml_measure = get_measure_instance(full_measure_path)
 
-    measure.arguments(model).each do |arg|
+    @build_residential_hpxml_measure.arguments(model).each do |arg|
       next if Constants.build_residential_hpxml_excludes.include? arg.name
 
       # Following are arguments with the same name but different options
@@ -66,9 +66,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # BuildResidentialScheduleFile
 
     full_measure_path = File.join(measures_dir, 'BuildResidentialScheduleFile', 'measure.rb')
-    measure = get_measure_instance(full_measure_path)
+    @build_residential_schedule_file_measure = get_measure_instance(full_measure_path)
 
-    measure.arguments(model).each do |arg|
+    @build_residential_schedule_file_measure.arguments(model).each do |arg|
       next if Constants.build_residential_schedule_file_excludes.include? arg.name
 
       args << arg
@@ -391,13 +391,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args = runner.getArgumentValues(arguments(model), user_arguments)
     args = convert_args(model, args)
 
-    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     arg_names = []
-    { 'BuildResidentialHPXML' => Constants.build_residential_hpxml_excludes,
-      'BuildResidentialScheduleFile' => Constants.build_residential_schedule_file_excludes }.each do |measure_name, measure_excludes|
-      full_measure_path = File.join(measures_dir, measure_name, 'measure.rb')
-      measure = get_measure_instance(full_measure_path)
-
+    { @build_residential_hpxml_measure => Constants.build_residential_hpxml_excludes,
+      @build_residential_schedule_file_measure => Constants.build_residential_schedule_file_excludes }.each do |measure, measure_excludes|
       measure.arguments(model).each do |arg|
         next if measure_excludes.include? arg.name
 
@@ -447,15 +443,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Vintage
-    if !args[:vintage].nil? && args[:year_built].to_s == Constants.Auto
+    if !args[:vintage].nil? && args[:year_built] == Constants.Auto
       args[:year_built] = Integer(Float(args[:vintage].gsub(/[^0-9]/, ''))) # strip non-numeric
     end
 
     # Num Occupants
-    if args[:geometry_unit_num_occupants].to_s == Constants.Auto
+    if args[:geometry_unit_num_occupants] == Constants.Auto
       args[:geometry_unit_num_occupants] = Geometry.get_occupancy_default_num(args[:geometry_unit_num_bedrooms])
-    else
-      args[:geometry_unit_num_occupants] = args[:geometry_unit_num_occupants]
     end
 
     # Plug Loads
@@ -465,7 +459,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:misc_plug_loads_vehicle_usage_multiplier] = args[:misc_plug_loads_vehicle_usage_multiplier] * args[:misc_plug_loads_vehicle_2_usage_multiplier]
 
     # Other
-    if args[:misc_plug_loads_other_annual_kwh].to_s == Constants.Auto
+    if args[:misc_plug_loads_other_annual_kwh] == Constants.Auto
       if [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type])
         args[:misc_plug_loads_other_annual_kwh] = 863.26 + 219.26 * args[:geometry_unit_num_occupants] + 0.33 * args[:geometry_unit_cfa] # RECS 2020
       elsif [HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type])
@@ -518,11 +512,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:hvac_control_cooling_weekend_setpoint] = weekend_cooling_setpoints.join(', ')
 
     # Seasons
-    if args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].to_s == Constants.Auto
+    if args[:use_auto_heating_season] && args[:hvac_control_heating_season_period] == Constants.Auto
       args[:hvac_control_heating_season_period] = HPXML::BuildingAmerica
     end
 
-    if args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].to_s == Constants.Auto
+    if args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period] == Constants.Auto
       args[:hvac_control_cooling_season_period] = HPXML::BuildingAmerica
     end
 
@@ -579,7 +573,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Error check geometry inputs
     corridor_width = args[:geometry_corridor_width]
-    corridor_position = args[:geometry_corridor_position].to_s
+    corridor_position = args[:geometry_corridor_position]
 
     if (corridor_width == 0) && (corridor_position != 'None')
       corridor_position = 'None'
@@ -786,11 +780,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
   end
 
   def convert_args(model, args)
-    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
-    full_measure_path = File.join(measures_dir, 'BuildResidentialHPXML', 'measure.rb')
-    measure = get_measure_instance(full_measure_path)
-
-    measure_arguments = measure.arguments(model)
+    measure_arguments = @build_residential_hpxml_measure.arguments(model)
     args.each do |name, value|
       measure_arguments.each do |arg|
         next if arg.name != name.to_s
