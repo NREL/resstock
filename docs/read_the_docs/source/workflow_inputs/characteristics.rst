@@ -36375,7 +36375,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - Mobile Home
      - 6.2%
-     - single-family detached
+     - manufactured home
      - 1.8
      - 8
    * - Multi-Family with 2 - 4 Units
