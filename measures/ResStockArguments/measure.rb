@@ -793,20 +793,27 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
   def convert_args(model, args)
     measure_arguments = @build_residential_hpxml_measure.arguments(model)
     args.each do |name, value|
+      next if value == Constants.Auto
+      next if !valid_float?(value)
+
       measure_arguments.each do |arg|
         next if arg.name != name.to_s
-        next if value == Constants.Auto
 
         case arg.type.valueName.downcase
         when 'double'
           args[name] = Float(value)
+          break
         when 'integer'
           args[name] = Integer(value)
+          break
         end
-        break
       end
     end
     return args
+  end
+
+  def valid_float?(str)
+    return !!Float(str) rescue false
   end
 end
 
