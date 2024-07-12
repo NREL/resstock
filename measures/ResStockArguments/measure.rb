@@ -408,7 +408,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Conditioned floor area
     if args[:geometry_unit_cfa] == Constants.Auto
-      # FIXME: Need to disaggregate detached and mobile home
+      # TODO: Disaggregate detached and mobile home
       cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 298, # AHS 2021, 1 detached and mobile home weighted average
                ['0-499', HPXML::ResidentialTypeSFA] => 273, # AHS 2021, 1 attached
                ['0-499', HPXML::ResidentialTypeApartment] => 322, # AHS 2021, multi-family weighted average
@@ -475,7 +475,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Other
     if args[:misc_plug_loads_other_annual_kwh].to_s == Constants.Auto
-      # FIXME: Need to disaggregate detached and mobile home
+      # TODO: Disaggregate detached and mobile home
       if [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include?(args[:geometry_unit_type])
         args[:misc_plug_loads_other_annual_kwh] = 863.26 + 219.26 * args[:geometry_unit_num_occupants] + 0.33 * args[:geometry_unit_cfa] # RECS 2020
       elsif [HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type])
