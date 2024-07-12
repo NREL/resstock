@@ -33,9 +33,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     full_measure_path = File.join(measures_dir, 'BuildResidentialHPXML', 'measure.rb')
-    @build_residential_hpxml_measure = get_measure_instance(full_measure_path)
+    @build_residential_hpxml_measure_arguments = get_measure_instance(full_measure_path).arguments(model)
 
-    @build_residential_hpxml_measure.arguments(model).each do |arg|
+    @build_residential_hpxml_measure_arguments.each do |arg|
       next if Constants.build_residential_hpxml_excludes.include? arg.name
 
       # Following are arguments with the same name but different options
@@ -66,9 +66,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # BuildResidentialScheduleFile
 
     full_measure_path = File.join(measures_dir, 'BuildResidentialScheduleFile', 'measure.rb')
-    @build_residential_schedule_file_measure = get_measure_instance(full_measure_path)
+    @build_residential_schedule_file_measure_arguments = get_measure_instance(full_measure_path).arguments(model)
 
-    @build_residential_schedule_file_measure.arguments(model).each do |arg|
+    @build_residential_schedule_file_measure_arguments.each do |arg|
       next if Constants.build_residential_schedule_file_excludes.include? arg.name
 
       args << arg
@@ -389,12 +389,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     args = runner.getArgumentValues(arguments(model), user_arguments)
-    args = convert_args(model, args)
+    args = convert_args(args)
 
     arg_names = []
-    { @build_residential_hpxml_measure => Constants.build_residential_hpxml_excludes,
-      @build_residential_schedule_file_measure => Constants.build_residential_schedule_file_excludes }.each do |measure, measure_excludes|
-      measure.arguments(model).each do |arg|
+    { @build_residential_hpxml_measure_arguments => Constants.build_residential_hpxml_excludes,
+      @build_residential_schedule_file_measure_arguments => Constants.build_residential_schedule_file_excludes }.each do |measure_arguments, measure_excludes|
+      measure_arguments.each do |arg|
         next if measure_excludes.include? arg.name
 
         arg_names << arg.name.to_sym
@@ -790,8 +790,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     return schedule
   end
 
-  def convert_args(model, args)
-    measure_arguments = @build_residential_hpxml_measure.arguments(model)
+  def convert_args(args)
+    measure_arguments = @build_residential_hpxml_measure_arguments
     args.each do |name, value|
       next if value == Constants.Auto
       next if !valid_float?(value)
