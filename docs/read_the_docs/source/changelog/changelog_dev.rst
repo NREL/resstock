@@ -10,7 +10,7 @@ Development Changelog
         :tags: workflow, feature, utility bills
         :pullreq: #1246
 
-        **Date**: 2024-06-24
+        **Date**: 2024-07-12
 
         Title:
         Latest OS-HPXML, v1.8.1
