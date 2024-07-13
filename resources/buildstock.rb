@@ -72,8 +72,8 @@ class TsvFile
       end
 
       if not rows_keys_s[row_key_values].nil?
-        if key_s.size > 0
-          register_error("Multiple rows found in #{@filename} with dependencies: #{key_s}.", @runner)
+        if not row_key_values.empty?
+          register_error("Multiple rows found in #{@filename} with dependencies: #{hash_to_string(row_key_values)}.", @runner)
         else
           register_error("Multiple rows found in #{@filename}.", @runner)
         end
@@ -96,7 +96,7 @@ class TsvFile
 
     rownum = @rows_keys_s[dependency_values]
     if rownum.nil?
-      if key_s.size > 0
+      if not dependency_values.empty?
         register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value} with dependencies: #{hash_to_string(dependency_values)}.", @runner)
       else
         register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value}.", @runner)
