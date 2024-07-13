@@ -22,7 +22,7 @@ class TsvFile
     rows = File.readlines(@full_path).map { |row| row.split("\t") } # don't use CSV class for faster processing of large files
     full_header = rows.shift
     rows.delete_if { |row| row[0].start_with? "\#" }
-    rows.map { |row| row.delete_if { |x| x.to_s.empty? } } # purge trailing empty fields
+    rows.map! { |row| row.delete_if { |x| x.to_s.empty? } } # purge trailing empty fields
 
     if full_header.nil?
       register_error("Could not find header row in #{@filename}.", @runner)
