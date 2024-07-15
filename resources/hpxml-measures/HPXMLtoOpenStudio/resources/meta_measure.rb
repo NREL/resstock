@@ -483,14 +483,11 @@ end
 # @param separator [TODO] TODO
 # @return [TODO] TODO
 def hash_to_string(hash, delim = '=', separator = ',')
-  hash_s = ''
+  vals = []
   hash.each do |k, v|
-    hash_s += "#{k}#{delim}#{v}#{separator}"
+    vals << "#{k}#{delim}#{v}"
   end
-  if hash_s.size > 0
-    hash_s = hash_s.chomp(separator.to_s)
-  end
-  return hash_s
+  return vals.join(separator.to_s)
 end
 
 # TODO
