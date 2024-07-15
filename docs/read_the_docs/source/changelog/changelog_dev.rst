@@ -34,7 +34,6 @@ Development Changelog
         Description:
         For the "0-499" Geometry Floor Area option, change the garage protrusion from 0.75 to 0.72.
         This avoids the "Garage is as wide as the single-family detached unit." error.
-        Also add a new ResStockArguments test that creates geometry envelope for the 10K national project sample datapoints.
 
         Assignees: Joe Robertson
 
