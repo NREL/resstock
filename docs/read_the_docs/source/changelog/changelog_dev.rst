@@ -7,10 +7,10 @@ Development Changelog
     :released: pending
 
     .. change::
-        :tags: workflow, bugfix
+        :tags: workflow, refactor
         :pullreq: #1269
 
-        **Date**: 2024-07-12
+        **Date**: 2024-07-15
 
         Title:
         ResStockArguments: convert args to double, integer
