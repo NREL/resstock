@@ -632,7 +632,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('slab_perimeter_depth', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('slab_perimeter_insulation_depth', true)
     arg.setDisplayName('Slab: Perimeter Insulation Depth')
     arg.setUnits('ft')
     arg.setDescription('Depth from grade to bottom of vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.')
@@ -646,7 +646,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('slab_under_width', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('slab_under_insulation_width', true)
     arg.setDisplayName('Slab: Under Slab Insulation Width')
     arg.setUnits('ft')
     arg.setDescription('Width from slab edge inward of horizontal under-slab insulation. Enter 999 to specify that the under slab insulation spans the entire slab. Applies to slab-on-grade foundations and basement/crawlspace floors.')
@@ -5157,10 +5157,10 @@ module HPXMLFile
         exposed_perimeter -= Geometry.get_unexposed_garage_perimeter(**args)
       end
 
-      if args[:slab_under_width] >= 999
+      if args[:slab_under_insulation_width] >= 999
         under_slab_insulation_spans_entire_slab = true
       else
-        under_slab_insulation_width = args[:slab_under_width]
+        under_slab_insulation_width = args[:slab_under_insulation_width]
       end
 
       hpxml_bldg.slabs.add(id: "Slab#{hpxml_bldg.slabs.size + 1}",
@@ -5168,7 +5168,7 @@ module HPXMLFile
                            area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2'),
                            thickness: args[:slab_thickness],
                            exposed_perimeter: exposed_perimeter,
-                           perimeter_insulation_depth: args[:slab_perimeter_depth],
+                           perimeter_insulation_depth: args[:slab_perimeter_insulation_depth],
                            under_slab_insulation_width: under_slab_insulation_width,
                            perimeter_insulation_r_value: args[:slab_perimeter_insulation_r],
                            under_slab_insulation_r_value: args[:slab_under_insulation_r],

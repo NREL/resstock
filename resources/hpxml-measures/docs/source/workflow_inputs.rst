@@ -994,13 +994,13 @@ For example, ACH50 (ACH at 50 Pascals) is a commonly obtained value from a blowe
   ====================================  ======  =====  ===========  =========  =======  ===============================================
   Element                               Type    Units  Constraints  Required   Default  Notes
   ====================================  ======  =====  ===========  =========  =======  ===============================================
-  ``BuildingAirLeakage/UnitofMeasure``  string         See [#]_     Yes                 Units for air leakage
   ``HousePressure``                     double  Pa     > 0          Yes                 House pressure with respect to outside [#]_
+  ``BuildingAirLeakage/UnitofMeasure``  string         See [#]_     Yes                 Units for air leakage
   ``BuildingAirLeakage/AirLeakage``     double         > 0          Yes                 Value for air leakage
   ====================================  ======  =====  ===========  =========  =======  ===============================================
 
-  .. [#] UnitofMeasure choices are "ACH" or "CFM".
   .. [#] HousePressure typical value is 50 Pa.
+  .. [#] UnitofMeasure choices are "ACH" or "CFM".
 
 .. _infil_natural_ach_cfm:
 
