@@ -365,10 +365,17 @@ module HVACSizing
         heat_temp = outdoor_design_temp
       end
 
-    elsif [HPXML::LocationGarage, HPXML::LocationBasementUnconditioned,
-           HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? location
-      # Note: We use this approach for garages in case they are partially below grade,
-      # in which case the ASHRAE 152/MJ8 typical assumption will be quite wrong.
+    elsif location == HPXML::LocationGarage && hpxml_bldg.foundation_walls.count { |fw| fw.interior_adjacent_to == HPXML::LocationGarage } == 0
+      # Completely above-grade garage
+      # Calculate the garage heating design temperature based on Table 4C for closed garages
+      # Linearly interpolate between Garage 1 and Garage 2 tables
+      garage_frac_under_conditioned = get_garage_frac_under_conditioned(hpxml_bldg, location)
+      heat_temp = (hpxml_bldg.header.manualj_heating_design_temp +
+                   (5.0 * garage_frac_under_conditioned))
+
+    elsif [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented,
+           HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? location
+      # Includes below-grade garage
       heat_temp = calculate_space_design_temp(mj, location, weather, hpxml_bldg, mj.heat_setpoint, outdoor_design_temp, ground_temp, false)
 
     elsif [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace,
@@ -495,10 +502,28 @@ module HVACSizing
         cool_temp += (outdoor_design_temp - 95.0) + mj.daily_range_temp_adjust[mj.daily_range_num]
       end
 
-    elsif [HPXML::LocationGarage, HPXML::LocationBasementUnconditioned,
-           HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? location
-      # Note: We use this approach for garages in case they are partially below grade,
-      # in which case the ASHRAE 152/MJ8 typical assumption will be quite wrong.
+    elsif location == HPXML::LocationGarage && hpxml_bldg.foundation_walls.count { |fw| fw.interior_adjacent_to == HPXML::LocationGarage } == 0
+      # Completely above-grade garage
+      # Calculate the garage cooling design temperature based on Table 4C for closed garages
+      # Linearly interpolate between Garage 1 and Garage 2 tables
+      garage_frac_under_conditioned = get_garage_frac_under_conditioned(hpxml_bldg, location)
+      if mj.daily_range_num == 0
+        cool_temp = (hpxml_bldg.header.manualj_cooling_design_temp +
+                     (11.0 * garage_frac_under_conditioned) +
+                     (22.0 * (1.0 - garage_frac_under_conditioned)))
+      elsif mj.daily_range_num == 1
+        cool_temp = (hpxml_bldg.header.manualj_cooling_design_temp +
+                     (6.0 * garage_frac_under_conditioned) +
+                     (17.0 * (1.0 - garage_frac_under_conditioned)))
+      elsif mj.daily_range_num == 2
+        cool_temp = (hpxml_bldg.header.manualj_cooling_design_temp +
+                     (1.0 * garage_frac_under_conditioned) +
+                     (12.0 * (1.0 - garage_frac_under_conditioned)))
+      end
+
+    elsif [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented,
+           HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? location
+      # Includes below-grade garage
       cool_temp = calculate_space_design_temp(mj, location, weather, hpxml_bldg, mj.cool_setpoint, outdoor_design_temp, ground_temp, false)
 
     elsif [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace,
@@ -512,6 +537,32 @@ module HVACSizing
     fail "Design temp cooling not calculated for #{location}." if cool_temp.nil?
 
     return cool_temp
+  end
+
+  # Estimates the fraction of garage under conditioned space from adjacent surfaces.
+  #
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param location [String] The HPXML::LocationXXX of interest
+  # @return [Double] Garage fraction under conditioned space
+  def self.get_garage_frac_under_conditioned(hpxml_bldg, location)
+    area_total = 0.0
+    area_conditioned = 0.0
+    hpxml_bldg.roofs.each do |roof|
+      next unless roof.interior_adjacent_to == location
+
+      area_total += roof.area
+    end
+    hpxml_bldg.floors.each do |floor|
+      next unless [floor.interior_adjacent_to, floor.exterior_adjacent_to].include? location
+
+      area_total += floor.area
+      area_conditioned += floor.area if floor.is_thermal_boundary
+    end
+    if area_total == 0
+      return 0.5
+    end
+
+    return area_conditioned / area_total
   end
 
   # Initializes zone/space load hashes.
