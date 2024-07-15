@@ -730,7 +730,7 @@ Nominal R-value of the vertical slab perimeter insulation. Applies to slab-on-gr
 
 Depth from grade to bottom of vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
 
-- **Name:** ``slab_perimeter_depth``
+- **Name:** ``slab_perimeter_insulation_depth``
 - **Type:** ``Double``
 
 - **Units:** ``ft``
@@ -756,7 +756,7 @@ Nominal R-value of the horizontal under slab insulation. Applies to slab-on-grad
 
 Width from slab edge inward of horizontal under-slab insulation. Enter 999 to specify that the under slab insulation spans the entire slab. Applies to slab-on-grade foundations and basement/crawlspace floors.
 
-- **Name:** ``slab_under_width``
+- **Name:** ``slab_under_insulation_width``
 - **Type:** ``Double``
 
 - **Units:** ``ft``
