@@ -557,6 +557,18 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 7, begin_day_num, end_day_num, sim_calendar_year)
         elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Month'
           unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 30, begin_day_num, end_day_num, sim_calendar_year)
+        elsif args[:hvac_control_heating_season_period] == 'Unavailable 2 Weeks'
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 14, begin_day_num, end_day_num, sim_calendar_year)
+        elsif args[:hvac_control_heating_season_period] == 'Unavailable 3 Days'
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 3, begin_day_num, end_day_num, sim_calendar_year)
+        elsif args[:hvac_control_heating_season_period] == 'Unavailable 3 Months'
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 90, begin_day_num, end_day_num, sim_calendar_year)
+        elsif args[:hvac_control_heating_season_period] == 'Unavailable All Days'
+          # FIXME: this would set the season equal to all days EXCEPT for the BA season, which is technically not what we want. but there is no value we can pass in to mean year round unavailable; only achievable using HVAC unavailable periods.
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], Constants.NumDaysInYear(sim_calendar_year), begin_day_num, end_day_num, sim_calendar_year)
+        else
+          runner.registerError("ResStockArguments: Undefined number of unavailable days for sampled option '#{args[:hvac_control_heating_season_period]}'.")
+          return false
         end
         begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year)
         end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year)
@@ -579,6 +591,18 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 7, begin_day_num, end_day_num, sim_calendar_year)
         elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Month'
           unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 30, begin_day_num, end_day_num, sim_calendar_year)
+        elsif args[:hvac_control_cooling_season_period] == 'Unavailable 2 Weeks'
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 14, begin_day_num, end_day_num, sim_calendar_year)
+        elsif args[:hvac_control_cooling_season_period] == 'Unavailable 3 Days'
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 3, begin_day_num, end_day_num, sim_calendar_year)
+        elsif args[:hvac_control_cooling_season_period] == 'Unavailable 3 Months'
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 90, begin_day_num, end_day_num, sim_calendar_year)
+        elsif args[:hvac_control_cooling_season_period] == 'Unavailable All Days'
+          # FIXME: this would set the season equal to all days EXCEPT for the BA season, which is technically not what we want. but there is no value we can pass in to mean year round unavailable; only achievable using HVAC unavailable periods.
+          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], Constants.NumDaysInYear(sim_calendar_year), begin_day_num, end_day_num, sim_calendar_year)
+        else
+          runner.registerError("ResStockArguments: Undefined number of unavailable days for sampled option '#{args[:hvac_control_cooling_season_period]}'.")
+          return false
         end
         begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year)
         end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year)
@@ -861,9 +885,14 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     begin_day_nums = day_nums[0...(-n_days - 1)]
-    subset_begin_day_num = begin_day_nums.sample(1, random: Random.new(building_id))
-    subset_begin_day_num = subset_begin_day_num[0]
-    subset_end_day_num = day_nums[day_nums.index(subset_begin_day_num) + n_days + 1]
+    if begin_day_nums.empty? # if n_days is longer than the season, set equal to the whole season
+      subset_begin_day_num = day_nums[0]
+      subset_end_day_num = day_nums[-1]
+    else
+      subset_begin_day_num = begin_day_nums.sample(1, random: Random.new(building_id))
+      subset_begin_day_num = subset_begin_day_num[0]
+      subset_end_day_num = day_nums[day_nums.index(subset_begin_day_num) + n_days + 1]
+    end
 
     return subset_begin_day_num, subset_end_day_num
   end
