@@ -7,6 +7,22 @@ Development Changelog
     :released: pending
 
     .. change::
+        :tags: workflow, refactor
+        :pullreq: #1269
+
+        **Date**: 2024-07-15
+
+        Title:
+        ResStockArguments: convert args to double, integer
+
+        Description:
+        Avoids a bug that would be introduced by making air_leakage_value optional in https://github.com/NREL/OpenStudio-HPXML/pull/1760.
+        Per suggestion by @shorowit, create a method for automatically converting ResStockArguments argument data types based on original argument type.
+
+        Assignees: Joe Robertson
+
+
+    .. change::
         :tags: workflow, bugfix, geometry
         :pullreq: #1258
 
@@ -18,7 +34,6 @@ Development Changelog
         Description:
         For the "0-499" Geometry Floor Area option, change the garage protrusion from 0.75 to 0.72.
         This avoids the "Garage is as wide as the single-family detached unit." error.
-        Also add a new ResStockArguments test that creates geometry envelope for the 10K national project sample datapoints.
 
         Assignees: Joe Robertson
 
