@@ -27,15 +27,15 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
   # define the arguments that the user will input
   def arguments(model)
-    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # BuildResidentialHPXML
 
+    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     full_measure_path = File.join(measures_dir, 'BuildResidentialHPXML', 'measure.rb')
-    measure = get_measure_instance(full_measure_path)
+    @build_residential_hpxml_measure_arguments = get_measure_instance(full_measure_path).arguments(model)
 
-    measure.arguments(model).each do |arg|
+    @build_residential_hpxml_measure_arguments.each do |arg|
       next if Constants.build_residential_hpxml_excludes.include? arg.name
 
       # Following are arguments with the same name but different options
@@ -66,9 +66,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # BuildResidentialScheduleFile
 
     full_measure_path = File.join(measures_dir, 'BuildResidentialScheduleFile', 'measure.rb')
-    measure = get_measure_instance(full_measure_path)
+    @build_residential_schedule_file_measure_arguments = get_measure_instance(full_measure_path).arguments(model)
 
-    measure.arguments(model).each do |arg|
+    @build_residential_schedule_file_measure_arguments.each do |arg|
       next if Constants.build_residential_schedule_file_excludes.include? arg.name
 
       args << arg
@@ -394,6 +394,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     args = runner.getArgumentValues(arguments(model), user_arguments)
+    args = convert_args(args)
 
     # create EpwFile object
     epw_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../weather', File.basename(args[:weather_station_epw_filepath])))
@@ -406,14 +407,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     weather = WeatherProcess.new(epw_path: epw_path, runner: nil)
 
     # collect arguments for deletion
-    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     arg_names = []
-    { 'BuildResidentialHPXML' => Constants.build_residential_hpxml_excludes,
-      'BuildResidentialScheduleFile' => Constants.build_residential_schedule_file_excludes }.each do |measure_name, measure_excludes|
-      full_measure_path = File.join(measures_dir, measure_name, 'measure.rb')
-      measure = get_measure_instance(full_measure_path)
-
-      measure.arguments(model).each do |arg|
+    { @build_residential_hpxml_measure_arguments => Constants.build_residential_hpxml_excludes,
+      @build_residential_schedule_file_measure_arguments => Constants.build_residential_schedule_file_excludes }.each do |measure_arguments, measure_excludes|
+      measure_arguments.each do |arg|
         next if measure_excludes.include? arg.name
 
         arg_names << arg.name.to_sym
@@ -424,33 +421,43 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Conditioned floor area
     if args[:geometry_unit_cfa] == Constants.Auto
+      # TODO: Disaggregate detached and mobile home
       cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 298, # AHS 2021, 1 detached and mobile home weighted average
-               ['0-499', HPXML::ResidentialTypeSFA] => 273, # AHS 2021, 1 detached and mobile home weighted average
+               ['0-499', HPXML::ResidentialTypeSFA] => 273, # AHS 2021, 1 attached
                ['0-499', HPXML::ResidentialTypeApartment] => 322, # AHS 2021, multi-family weighted average
+               ['0-499', HPXML::ResidentialTypeManufactured] => 298, # AHS 2021, 1 detached and mobile home weighted average
                ['500-749', HPXML::ResidentialTypeSFD] => 634, # AHS 2021, 1 detached and mobile home weighted average
                ['500-749', HPXML::ResidentialTypeSFA] => 625, # AHS 2021, 1 attached
                ['500-749', HPXML::ResidentialTypeApartment] => 623, # AHS 2021, multi-family weighted average
+               ['500-749', HPXML::ResidentialTypeManufactured] => 634, # AHS 2021, 1 detached and mobile home weighted average
                ['750-999', HPXML::ResidentialTypeSFD] => 881, # AHS 2021, 1 detached and mobile home weighted average
                ['750-999', HPXML::ResidentialTypeSFA] => 872, # AHS 2021, 1 attached
                ['750-999', HPXML::ResidentialTypeApartment] => 854, # AHS 2021, multi-family weighted average
+               ['750-999', HPXML::ResidentialTypeManufactured] => 881, # AHS 2021, 1 detached and mobile home weighted average
                ['1000-1499', HPXML::ResidentialTypeSFD] => 1228, # AHS 2021, 1 detached and mobile home weighted average
                ['1000-1499', HPXML::ResidentialTypeSFA] => 1207, # AHS 2021, 1 attached
                ['1000-1499', HPXML::ResidentialTypeApartment] => 1138, # AHS 2021, multi-family weighted average
+               ['1000-1499', HPXML::ResidentialTypeManufactured] => 1228, # AHS 2021, 1 detached and mobile home weighted average
                ['1500-1999', HPXML::ResidentialTypeSFD] => 1698, # AHS 2021, 1 detached and mobile home weighted average
                ['1500-1999', HPXML::ResidentialTypeSFA] => 1678, # AHS 2021, 1 attached
                ['1500-1999', HPXML::ResidentialTypeApartment] => 1682, # AHS 2021, multi-family weighted average
+               ['1500-1999', HPXML::ResidentialTypeManufactured] => 1698, # AHS 2021, 1 detached and mobile home weighted average
                ['2000-2499', HPXML::ResidentialTypeSFD] => 2179, # AHS 2021, 1 detached and mobile home weighted average
                ['2000-2499', HPXML::ResidentialTypeSFA] => 2152, # AHS 2021, 1 attached
                ['2000-2499', HPXML::ResidentialTypeApartment] => 2115, # AHS 2021, multi-family weighted average
+               ['2000-2499', HPXML::ResidentialTypeManufactured] => 2179, # AHS 2021, 1 detached and mobile home weighted average
                ['2500-2999', HPXML::ResidentialTypeSFD] => 2678, # AHS 2021, 1 detached and mobile home weighted average
                ['2500-2999', HPXML::ResidentialTypeSFA] => 2663, # AHS 2021, 1 attached
                ['2500-2999', HPXML::ResidentialTypeApartment] => 2648, # AHS 2021, multi-family weighted average
+               ['2500-2999', HPXML::ResidentialTypeManufactured] => 2678, # AHS 2021, 1 detached and mobile home weighted average
                ['3000-3999', HPXML::ResidentialTypeSFD] => 3310, # AHS 2021, 1 detached and mobile home weighted average
                ['3000-3999', HPXML::ResidentialTypeSFA] => 3228, # AHS 2021, 1 attached
                ['3000-3999', HPXML::ResidentialTypeApartment] => 3171, # AHS 2021, multi-family weighted average
+               ['3000-3999', HPXML::ResidentialTypeManufactured] => 3310, # AHS 2021, 1 detached and mobile home weighted average
                ['4000+', HPXML::ResidentialTypeSFD] => 5587, # AHS 2021, 1 detached and mobile home weighted average
                ['4000+', HPXML::ResidentialTypeSFA] => 7414, # AHS 2019, 1 attached
-               ['4000+', HPXML::ResidentialTypeApartment] => 6348 } # AHS 2021, 4,000 or more all unit average
+               ['4000+', HPXML::ResidentialTypeApartment] => 6348, # AHS 2021, 4,000 or more all unit average
+               ['4000+', HPXML::ResidentialTypeManufactured] => 5587 } # AHS 2021, 1 detached and mobile home weighted average
       cfa = cfas[[args[:geometry_unit_cfa_bin], args[:geometry_unit_type]]]
       if cfa.nil?
         runner.registerError("ResStockArguments: Could not look up conditioned floor area for '#{args[:geometry_unit_cfa_bin]}' and '#{args[:geometry_unit_type]}'.")
@@ -458,30 +465,29 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
       args[:geometry_unit_cfa] = Float(cfa)
     else
-      args[:geometry_unit_cfa] = Float(args[:geometry_unit_cfa])
+      args[:geometry_unit_cfa] = args[:geometry_unit_cfa]
     end
 
     # Vintage
-    if !args[:vintage].nil? && args[:year_built].to_s == Constants.Auto
+    if !args[:vintage].nil? && args[:year_built] == Constants.Auto
       args[:year_built] = Integer(Float(args[:vintage].gsub(/[^0-9]/, ''))) # strip non-numeric
     end
 
     # Num Occupants
-    if args[:geometry_unit_num_occupants].to_s == Constants.Auto
+    if args[:geometry_unit_num_occupants] == Constants.Auto
       args[:geometry_unit_num_occupants] = Geometry.get_occupancy_default_num(args[:geometry_unit_num_bedrooms])
-    else
-      args[:geometry_unit_num_occupants] = Integer(args[:geometry_unit_num_occupants].to_s)
     end
 
     # Plug Loads
-    args[:misc_plug_loads_television_usage_multiplier] = Float(args[:misc_plug_loads_television_usage_multiplier].to_s) * args[:misc_plug_loads_television_2_usage_multiplier]
-    args[:misc_plug_loads_other_usage_multiplier] = Float(args[:misc_plug_loads_other_usage_multiplier].to_s) * args[:misc_plug_loads_other_2_usage_multiplier]
-    args[:misc_plug_loads_well_pump_usage_multiplier] = Float(args[:misc_plug_loads_well_pump_usage_multiplier].to_s) * args[:misc_plug_loads_well_pump_2_usage_multiplier]
-    args[:misc_plug_loads_vehicle_usage_multiplier] = Float(args[:misc_plug_loads_vehicle_usage_multiplier].to_s) * args[:misc_plug_loads_vehicle_2_usage_multiplier]
+    args[:misc_plug_loads_television_usage_multiplier] = args[:misc_plug_loads_television_usage_multiplier] * args[:misc_plug_loads_television_2_usage_multiplier]
+    args[:misc_plug_loads_other_usage_multiplier] = args[:misc_plug_loads_other_usage_multiplier] * args[:misc_plug_loads_other_2_usage_multiplier]
+    args[:misc_plug_loads_well_pump_usage_multiplier] = args[:misc_plug_loads_well_pump_usage_multiplier] * args[:misc_plug_loads_well_pump_2_usage_multiplier]
+    args[:misc_plug_loads_vehicle_usage_multiplier] = args[:misc_plug_loads_vehicle_usage_multiplier] * args[:misc_plug_loads_vehicle_2_usage_multiplier]
 
     # Other
-    if args[:misc_plug_loads_other_annual_kwh].to_s == Constants.Auto
-      if [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type])
+    if args[:misc_plug_loads_other_annual_kwh] == Constants.Auto
+      # TODO: Disaggregate detached and mobile home
+      if [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include?(args[:geometry_unit_type])
         args[:misc_plug_loads_other_annual_kwh] = 863.26 + 219.26 * args[:geometry_unit_num_occupants] + 0.33 * args[:geometry_unit_cfa] # RECS 2020
       elsif [HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type])
         args[:misc_plug_loads_other_annual_kwh] = 654.92 + 206.52 * args[:geometry_unit_num_occupants] + 0.21 * args[:geometry_unit_cfa] # RECS 2020
@@ -492,14 +498,14 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # PV
     if args[:pv_system_present] == 'true'
-      args[:pv_system_num_bedrooms_served] = Integer(args[:geometry_unit_num_bedrooms])
+      args[:pv_system_num_bedrooms_served] = args[:geometry_unit_num_bedrooms]
     else
       args[:pv_system_num_bedrooms_served] = 0
     end
 
     # Battery
     if args[:battery_present] == 'true'
-      args[:battery_num_bedrooms_served] = Integer(args[:geometry_unit_num_bedrooms])
+      args[:battery_num_bedrooms_served] = args[:geometry_unit_num_bedrooms]
     else
       args[:battery_num_bedrooms_served] = 0
     end
@@ -634,7 +640,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Error check geometry inputs
     corridor_width = args[:geometry_corridor_width]
-    corridor_position = args[:geometry_corridor_position].to_s
+    corridor_position = args[:geometry_corridor_position]
 
     if (corridor_width == 0) && (corridor_position != 'None')
       corridor_position = 'None'
@@ -654,11 +660,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:geometry_unit_back_wall_is_adiabatic] = false
 
     # Map corridor arguments to adiabatic walls and shading
-    n_floors = Float(args[:geometry_num_floors_above_grade].to_s)
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args[:geometry_unit_type]
-      n_units = Float(args[:geometry_building_num_units].to_s)
-      horiz_location = args[:geometry_unit_horizontal_location].to_s
-      aspect_ratio = Float(args[:geometry_unit_aspect_ratio].to_s)
+      n_floors = Float(args[:geometry_num_floors_above_grade])
+      n_units = Float(args[:geometry_building_num_units])
+      horiz_location = args[:geometry_unit_horizontal_location]
+      aspect_ratio = args[:geometry_unit_aspect_ratio]
 
       if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
@@ -767,7 +773,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
       args[:geometry_unit_num_floors_above_grade] = 1
     else
-      args[:geometry_unit_num_floors_above_grade] = Integer(args[:geometry_num_floors_above_grade])
+      args[:geometry_unit_num_floors_above_grade] = args[:geometry_num_floors_above_grade]
     end
 
     # Adiabatic Floor/Ceiling
@@ -793,7 +799,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Rim Joist Assembly R-Value
     rim_joist_assembly_r = 0
-    if Float(args[:geometry_rim_joist_height].to_s) > 0
+    if args[:geometry_rim_joist_height] > 0
       drywall_assembly_r = 0.9
       uninsulated_wall_assembly_r = 3.4
 
@@ -867,6 +873,23 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     month_day = "#{month_names[date.monthOfYear.value - 1]} #{date.dayOfMonth}"
     return month_day
+  end
+
+  def convert_args(args)
+    measure_arguments = @build_residential_hpxml_measure_arguments
+    measure_arguments.each do |arg|
+      arg_name = arg.name.to_sym
+      value = args[arg_name]
+      next if value.nil? || (value == Constants.Auto)
+
+      case arg.type.valueName.downcase
+      when 'double'
+        args[arg_name] = Float(value)
+      when 'integer'
+        args[arg_name] = Integer(value)
+      end
+    end
+    return args
   end
 end
 
