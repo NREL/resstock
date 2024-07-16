@@ -19,21 +19,10 @@ class TsvFile
     option_key = 'Option='
     dep_key = 'Dependency='
 
-    full_header = nil
-    rows = []
-    CSV.foreach(@full_path, col_sep: "\t") do |row|
-      next if row[0].start_with? "\#"
-
-      row.delete_if { |x| x.nil? || (x.size == 0) } # purge trailing empty fields
-
-      # Store one header line
-      if full_header.nil?
-        full_header = row
-        next
-      end
-
-      rows << row
-    end
+    rows = File.readlines(@full_path).map { |row| row.split("\t") } # don't use CSV class for faster processing of large files
+    full_header = rows.shift
+    rows.delete_if { |row| row[0].start_with? "\#" }
+    rows.map! { |row| row.delete_if { |x| x.to_s.empty? } } # purge trailing empty fields
 
     if full_header.nil?
       register_error("Could not find header row in #{@filename}.", @runner)
@@ -65,11 +54,9 @@ class TsvFile
     dependency_cols.each do |dependency, col|
       dependency_options[dependency] = []
       rows.each do |row|
-        next if row[0].start_with? "\#"
-        next if dependency_options[dependency].include? row[col]
-
         dependency_options[dependency] << row[col]
       end
+      dependency_options[dependency].uniq!
     end
 
     return rows, option_cols, dependency_cols, dependency_options, full_header, header
@@ -79,24 +66,20 @@ class TsvFile
     # Caches data for faster tsv lookups
     rows_keys_s = {}
     @rows.each_with_index do |row, rownum|
-      next if row[0].start_with? "\#"
-
       row_key_values = {}
-      @dependency_cols.keys.each do |dep|
-        row_key_values[dep] = row[@dependency_cols[dep]]
+      @dependency_cols.each do |dep, col|
+        row_key_values[dep] = row[col]
       end
-      key_s = hash_to_string(row_key_values)
-      key_s_downcase = key_s.downcase
 
-      if not rows_keys_s[key_s_downcase].nil?
-        if key_s.size > 0
-          register_error("Multiple rows found in #{@filename} with dependencies: #{key_s}.", @runner)
+      if not rows_keys_s[row_key_values].nil?
+        if not row_key_values.empty?
+          register_error("Multiple rows found in #{@filename} with dependencies: #{hash_to_string(row_key_values)}.", @runner)
         else
           register_error("Multiple rows found in #{@filename}.", @runner)
         end
       end
 
-      rows_keys_s[key_s_downcase] = rownum
+      rows_keys_s[row_key_values] = rownum
     end
     return rows_keys_s
   end
@@ -111,13 +94,10 @@ class TsvFile
       dependency_values = {}
     end
 
-    key_s = hash_to_string(dependency_values)
-    key_s_downcase = key_s.downcase
-
-    rownum = @rows_keys_s[key_s_downcase]
+    rownum = @rows_keys_s[dependency_values]
     if rownum.nil?
-      if key_s.size > 0
-        register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value} with dependencies: #{key_s}.", @runner)
+      if not dependency_values.empty?
+        register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value} with dependencies: #{hash_to_string(dependency_values)}.", @runner)
       else
         register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value}.", @runner)
       end

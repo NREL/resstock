@@ -26,8 +26,8 @@ Additionally, for each parameter an **Arguments** table is populated (if applica
 
 Furthermore, all *optional* Choice arguments include "auto" as one of the possible **Choices**.
 Most *optional* String/Double/Integer/Boolean arguments can also be assigned a value of "auto" (e.g., ``site_ground_conductivity``).
-Assigning "auto" means that downstream OS-HPXML default values (if applicable) will be used.
-When applicable, the **Description** field will include link(s) to `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.
+Assigning "auto" means that downstream default values (e.g., from OpenStudio-HPXML) will be used (if applicable).
+When an argument is defaulted using OpenStudio-HPXML, the **Description** field will include link(s) to `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.
 
 .. _ahs_region:
 
@@ -36375,7 +36375,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - Mobile Home
      - 6.2%
-     - single-family detached
+     - manufactured home
      - 1.8
      - 8
    * - Multi-Family with 2 - 4 Units
@@ -47756,7 +47756,7 @@ Arguments
      - false
      - #
      - Double
-     -
+     - auto
      - The number of occupants in the unit. If not provided, an *asset* calculation is performed assuming standard occupancy, in which various end use defaults (e.g., plug loads, appliances, and hot water usage) are calculated based on Number of Bedrooms and Conditioned Floor Area per ANSI/RESNET/ICC 301-2019. If provided, an *operational* calculation is instead performed in which the end use defaults are adjusted using the relationship between Number of Bedrooms and Number of Occupants from RECS 2015.
    * - ``general_water_use_usage_multiplier``
      - false
@@ -62330,7 +62330,7 @@ Arguments
      - false
      - 
      - Integer
-     -
+     - auto
      - The year the building was built.
    * - ``vintage``
      - false
