@@ -7,8 +7,28 @@ Development Changelog
     :released: pending
 
     .. change::
+        :tags: workflow, 
+        :pullreq: 1253
+
+        **Date**: 2024-07-17
+
+        Title:
+        Convert UpgradeCosts measure to ModelMeasure
+
+        Description:
+        UpgradeCosts does not need to be a reporting measure; it doesn't actually report any simulation output.
+        ReportHPXMLOutput does not need to be its own measure; it can be pulled into UpgradeCosts.
+
+        If UpgradeCosts becomes a model measure, it gets applied before simulation time and therefore its registered values would show up in the results.csv when using the measures_only flag.
+
+        buildstockbatch: `pull request 458 <https://github.com/NREL/buildstockbatch/pull/458>`_
+
+        Assignees: Joe Robertson
+
+
+    .. change::
         :tags: workflow, refactor
-        :pullreq: #1269
+        :pullreq: 1269
 
         **Date**: 2024-07-15
 
@@ -24,27 +44,7 @@ Development Changelog
 
     .. change::
         :tags: workflow, bugfix, geometry
-        :pullreq: #1253
-
-        **Date**: 2024-07-12
-
-        Title:
-        Convert UpgradeCosts measure to ModelMeasure
-
-        Description:
-        UpgradeCosts does not need to be a reporting measure; it doesn't actually report any simulation output.
-        ReportHPXMLOutput does not need to be its own measure; it can be pulled into UpgradeCosts.
-
-        If UpgradeCosts becomes a model measure, it gets applied before simulation time and therefore its registered values would show up in the results.csv when using the measures_only flag.
-
-        buildstockbatch: `pull request 458 <https://github.com/NREL/resstock-estimation/pull/458>`_
-
-        Assignees: Joe Robertson
-
-
-    .. change::
-        :tags: workflow, bugfix, geometry
-        :pullreq: #1258
+        :pullreq: 1258
 
         **Date**: 2024-06-21
 
