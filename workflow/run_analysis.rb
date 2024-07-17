@@ -107,6 +107,135 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
     end
   end
 
+  workflow_args = { 'build_existing_model' => {},
+                    'measures' => [],
+                    'simulation_output_report' => {},
+                    'server_directory_cleanup' => {} }
+  workflow_args.update(cfg['workflow_generator']['args'])
+
+  sim_ctl_args = {
+    'simulation_control_timestep' => 60,
+    'simulation_control_run_period_begin_month' => 1,
+    'simulation_control_run_period_begin_day_of_month' => 1,
+    'simulation_control_run_period_end_month' => 12,
+    'simulation_control_run_period_end_day_of_month' => 31,
+    'simulation_control_run_period_calendar_year' => 2007,
+    'add_component_loads' => false
+  }
+
+  bld_exist_model_args = {
+    'buildstock_csv_path': buildstock_csv_path,
+    'building_id': '',
+    'sample_weight': Float(cfg['baseline']['n_buildings_represented']) / n_datapoints # aligns with buildstockbatch
+  }
+
+  bld_exist_model_args.update(sim_ctl_args)
+  bld_exist_model_args.update(workflow_args['build_existing_model'])
+
+  add_component_loads = false
+  if bld_exist_model_args.keys.include?('add_component_loads')
+    add_component_loads = bld_exist_model_args['add_component_loads']
+    bld_exist_model_args.delete('add_component_loads')
+  end
+
+  if workflow_args.keys.include?('emissions')
+    emissions = workflow_args['emissions']
+    bld_exist_model_args['emissions_scenario_names'] = emissions.collect { |s| s['scenario_name'] }.join(',')
+    bld_exist_model_args['emissions_types'] = emissions.collect { |s| s['type'] }.join(',')
+    bld_exist_model_args['emissions_electricity_folders'] = emissions.collect { |s| s['elec_folder'] }.join(',')
+    bld_exist_model_args['emissions_natural_gas_values'] = emissions.collect { |s| s['gas_value'] }.join(',')
+    bld_exist_model_args['emissions_propane_values'] = emissions.collect { |s| s['propane_value'] }.join(',')
+    bld_exist_model_args['emissions_fuel_oil_values'] = emissions.collect { |s| s['oil_value'] }.join(',')
+    bld_exist_model_args['emissions_wood_values'] = emissions.collect { |s| s['wood_value'] }.join(',')
+  end
+
+  if workflow_args.keys.include?('utility_bills')
+    utility_bills = workflow_args['utility_bills']
+    bld_exist_model_args['utility_bill_scenario_names'] = utility_bills.collect { |s| s['scenario_name'] }.join(',')
+    bld_exist_model_args['utility_bill_simple_filepaths'] = utility_bills.collect { |s| s['simple_filepath'] }.join(',')
+    bld_exist_model_args['utility_bill_detailed_filepaths'] = utility_bills.collect { |s| s['detailed_filepath'] }.join(',')
+    bld_exist_model_args['utility_bill_electricity_fixed_charges'] = utility_bills.collect { |s| s['elec_fixed_charge'] }.join(',')
+    bld_exist_model_args['utility_bill_electricity_marginal_rates'] = utility_bills.collect { |s| s['elec_marginal_rate'] }.join(',')
+    bld_exist_model_args['utility_bill_natural_gas_fixed_charges'] = utility_bills.collect { |s| s['gas_fixed_charge'] }.join(',')
+    bld_exist_model_args['utility_bill_natural_gas_marginal_rates'] = utility_bills.collect { |s| s['gas_marginal_rate'] }.join(',')
+    bld_exist_model_args['utility_bill_propane_fixed_charges'] = utility_bills.collect { |s| s['propane_fixed_charge'] }.join(',')
+    bld_exist_model_args['utility_bill_propane_marginal_rates'] = utility_bills.collect { |s| s['propane_marginal_rate'] }.join(',')
+    bld_exist_model_args['utility_bill_fuel_oil_fixed_charges'] = utility_bills.collect { |s| s['oil_fixed_charge'] }.join(',')
+    bld_exist_model_args['utility_bill_fuel_oil_marginal_rates'] = utility_bills.collect { |s| s['oil_marginal_rate'] }.join(',')
+    bld_exist_model_args['utility_bill_wood_fixed_charges'] = utility_bills.collect { |s| s['wood_fixed_charge'] }.join(',')
+    bld_exist_model_args['utility_bill_wood_marginal_rates'] = utility_bills.collect { |s| s['wood_marginal_rate'] }.join(',')
+    bld_exist_model_args['utility_bill_pv_compensation_types'] = utility_bills.collect { |s| s['pv_compensation_type'] }.join(',')
+    bld_exist_model_args['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = utility_bills.collect { |s| s['pv_net_metering_annual_excess_sellback_rate_type'] }.join(',')
+    bld_exist_model_args['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = utility_bills.collect { |s| s['pv_net_metering_annual_excess_sellback_rate'] }.join(',')
+    bld_exist_model_args['utility_bill_pv_feed_in_tariff_rates'] = utility_bills.collect { |s| s['pv_feed_in_tariff_rate'] }.join(',')
+    bld_exist_model_args['utility_bill_pv_monthly_grid_connection_fee_units'] = utility_bills.collect { |s| s['pv_monthly_grid_connection_fee_units'] }.join(',')
+    bld_exist_model_args['utility_bill_pv_monthly_grid_connection_fees'] = utility_bills.collect { |s| s['pv_monthly_grid_connection_fee'] }.join(',')
+  end
+
+  if cfg['sampler']['type'] == 'residential_quota_downselect'
+    bld_exist_model_args['downselect_logic'] = make_apply_logic_arg(cfg['sampler']['args']['logic'])
+  end
+
+  sim_out_rep_args = {
+    'output_format' => 'csv',
+    'include_annual_total_consumptions' => true,
+    'include_annual_fuel_consumptions' => true,
+    'include_annual_end_use_consumptions' => true,
+    'include_annual_system_use_consumptions' => false,
+    'include_annual_emissions' => true,
+    'include_annual_emission_fuels' => true,
+    'include_annual_emission_end_uses' => true,
+    'include_annual_total_loads' => true,
+    'include_annual_unmet_hours' => true,
+    'include_annual_peak_fuels' => true,
+    'include_annual_peak_loads' => true,
+    'include_annual_component_loads' => true,
+    'include_annual_hot_water_uses' => true,
+    'include_annual_hvac_summary' => true,
+    'include_annual_resilience' => true,
+    'timeseries_frequency' => 'none',
+    'include_timeseries_total_consumptions' => false,
+    'include_timeseries_fuel_consumptions' => false,
+    'include_timeseries_end_use_consumptions' => true,
+    'include_timeseries_system_use_consumptions' => false,
+    'include_timeseries_emissions' => false,
+    'include_timeseries_emission_fuels' => false,
+    'include_timeseries_emission_end_uses' => false,
+    'include_timeseries_hot_water_uses' => false,
+    'include_timeseries_total_loads' => true,
+    'include_timeseries_component_loads' => false,
+    'include_timeseries_unmet_hours' => false,
+    'include_timeseries_zone_temperatures' => false,
+    'include_timeseries_airflows' => false,
+    'include_timeseries_weather' => false,
+    'include_timeseries_resilience' => false,
+    'timeseries_timestamp_convention' => 'end',
+    'timeseries_num_decimal_places' => 3,
+    'add_timeseries_dst_column' => true,
+    'add_timeseries_utc_column' => true,
+    'user_output_variables' => ''
+  }
+  sim_out_rep_args.update(workflow_args['simulation_output_report'])
+
+  if sim_out_rep_args.keys.include?('output_variables')
+    output_variables = sim_out_rep_args['output_variables']
+    sim_out_rep_args['user_output_variables'] = output_variables.collect { |o| o['name'] }.join(',')
+    sim_out_rep_args.delete('output_variables')
+  end
+
+  include_annual_bills = false
+  include_monthly_bills = false
+  register_annual_bills = true
+  register_monthly_bills = false
+  if sim_out_rep_args.keys.include?('include_annual_bills')
+    register_annual_bills = sim_out_rep_args['include_annual_bills']
+    sim_out_rep_args.delete('include_annual_bills')
+  end
+  if sim_out_rep_args.keys.include?('include_monthly_bills')
+    register_monthly_bills = sim_out_rep_args['include_monthly_bills']
+    sim_out_rep_args.delete('include_monthly_bills')
+  end
+
   osw_paths = {}
   upgrade_names.each_with_index do |upgrade_name, upgrade_idx|
     scenario_osw_dir = File.join(results_dir, 'osw', upgrade_name)
@@ -114,136 +243,6 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
 
     scenario_xml_dir = File.join(results_dir, 'xml', upgrade_name)
     Dir.mkdir(scenario_xml_dir)
-
-    workflow_args = { 'build_existing_model' => {},
-                      'measures' => [],
-                      'simulation_output_report' => {},
-                      'server_directory_cleanup' => {} }
-    workflow_args.update(cfg['workflow_generator']['args'])
-
-    sim_ctl_args = {
-      'simulation_control_timestep' => 60,
-      'simulation_control_run_period_begin_month' => 1,
-      'simulation_control_run_period_begin_day_of_month' => 1,
-      'simulation_control_run_period_end_month' => 12,
-      'simulation_control_run_period_end_day_of_month' => 31,
-      'simulation_control_run_period_calendar_year' => 2007,
-      'add_component_loads' => false
-    }
-
-    bld_exist_model_args = {
-      'buildstock_csv_path': buildstock_csv_path,
-      'building_id': '',
-      'sample_weight': Float(cfg['baseline']['n_buildings_represented']) / n_datapoints # aligns with buildstockbatch
-    }
-
-    bld_exist_model_args.update(sim_ctl_args)
-    bld_exist_model_args.update(workflow_args['build_existing_model'])
-
-    add_component_loads = false
-    if bld_exist_model_args.keys.include?('add_component_loads')
-      add_component_loads = bld_exist_model_args['add_component_loads']
-      bld_exist_model_args.delete('add_component_loads')
-    end
-
-    if workflow_args.keys.include?('emissions')
-      emissions = workflow_args['emissions']
-      bld_exist_model_args['emissions_scenario_names'] = emissions.collect { |s| s['scenario_name'] }.join(',')
-      bld_exist_model_args['emissions_types'] = emissions.collect { |s| s['type'] }.join(',')
-      bld_exist_model_args['emissions_electricity_folders'] = emissions.collect { |s| s['elec_folder'] }.join(',')
-      bld_exist_model_args['emissions_natural_gas_values'] = emissions.collect { |s| s['gas_value'] }.join(',')
-      bld_exist_model_args['emissions_propane_values'] = emissions.collect { |s| s['propane_value'] }.join(',')
-      bld_exist_model_args['emissions_fuel_oil_values'] = emissions.collect { |s| s['oil_value'] }.join(',')
-      bld_exist_model_args['emissions_wood_values'] = emissions.collect { |s| s['wood_value'] }.join(',')
-    end
-
-    if workflow_args.keys.include?('utility_bills')
-      utility_bills = workflow_args['utility_bills']
-      bld_exist_model_args['utility_bill_scenario_names'] = utility_bills.collect { |s| s['scenario_name'] }.join(',')
-      bld_exist_model_args['utility_bill_simple_filepaths'] = utility_bills.collect { |s| s['simple_filepath'] }.join(',')
-      bld_exist_model_args['utility_bill_detailed_filepaths'] = utility_bills.collect { |s| s['detailed_filepath'] }.join(',')
-      bld_exist_model_args['utility_bill_electricity_fixed_charges'] = utility_bills.collect { |s| s['elec_fixed_charge'] }.join(',')
-      bld_exist_model_args['utility_bill_electricity_marginal_rates'] = utility_bills.collect { |s| s['elec_marginal_rate'] }.join(',')
-      bld_exist_model_args['utility_bill_natural_gas_fixed_charges'] = utility_bills.collect { |s| s['gas_fixed_charge'] }.join(',')
-      bld_exist_model_args['utility_bill_natural_gas_marginal_rates'] = utility_bills.collect { |s| s['gas_marginal_rate'] }.join(',')
-      bld_exist_model_args['utility_bill_propane_fixed_charges'] = utility_bills.collect { |s| s['propane_fixed_charge'] }.join(',')
-      bld_exist_model_args['utility_bill_propane_marginal_rates'] = utility_bills.collect { |s| s['propane_marginal_rate'] }.join(',')
-      bld_exist_model_args['utility_bill_fuel_oil_fixed_charges'] = utility_bills.collect { |s| s['oil_fixed_charge'] }.join(',')
-      bld_exist_model_args['utility_bill_fuel_oil_marginal_rates'] = utility_bills.collect { |s| s['oil_marginal_rate'] }.join(',')
-      bld_exist_model_args['utility_bill_wood_fixed_charges'] = utility_bills.collect { |s| s['wood_fixed_charge'] }.join(',')
-      bld_exist_model_args['utility_bill_wood_marginal_rates'] = utility_bills.collect { |s| s['wood_marginal_rate'] }.join(',')
-      bld_exist_model_args['utility_bill_pv_compensation_types'] = utility_bills.collect { |s| s['pv_compensation_type'] }.join(',')
-      bld_exist_model_args['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = utility_bills.collect { |s| s['pv_net_metering_annual_excess_sellback_rate_type'] }.join(',')
-      bld_exist_model_args['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = utility_bills.collect { |s| s['pv_net_metering_annual_excess_sellback_rate'] }.join(',')
-      bld_exist_model_args['utility_bill_pv_feed_in_tariff_rates'] = utility_bills.collect { |s| s['pv_feed_in_tariff_rate'] }.join(',')
-      bld_exist_model_args['utility_bill_pv_monthly_grid_connection_fee_units'] = utility_bills.collect { |s| s['pv_monthly_grid_connection_fee_units'] }.join(',')
-      bld_exist_model_args['utility_bill_pv_monthly_grid_connection_fees'] = utility_bills.collect { |s| s['pv_monthly_grid_connection_fee'] }.join(',')
-    end
-
-    if cfg['sampler']['type'] == 'residential_quota_downselect'
-      bld_exist_model_args['downselect_logic'] = make_apply_logic_arg(cfg['sampler']['args']['logic'])
-    end
-
-    sim_out_rep_args = {
-      'output_format' => 'csv',
-      'include_annual_total_consumptions' => true,
-      'include_annual_fuel_consumptions' => true,
-      'include_annual_end_use_consumptions' => true,
-      'include_annual_system_use_consumptions' => false,
-      'include_annual_emissions' => true,
-      'include_annual_emission_fuels' => true,
-      'include_annual_emission_end_uses' => true,
-      'include_annual_total_loads' => true,
-      'include_annual_unmet_hours' => true,
-      'include_annual_peak_fuels' => true,
-      'include_annual_peak_loads' => true,
-      'include_annual_component_loads' => true,
-      'include_annual_hot_water_uses' => true,
-      'include_annual_hvac_summary' => true,
-      'include_annual_resilience' => true,
-      'timeseries_frequency' => 'none',
-      'include_timeseries_total_consumptions' => false,
-      'include_timeseries_fuel_consumptions' => false,
-      'include_timeseries_end_use_consumptions' => true,
-      'include_timeseries_system_use_consumptions' => false,
-      'include_timeseries_emissions' => false,
-      'include_timeseries_emission_fuels' => false,
-      'include_timeseries_emission_end_uses' => false,
-      'include_timeseries_hot_water_uses' => false,
-      'include_timeseries_total_loads' => true,
-      'include_timeseries_component_loads' => false,
-      'include_timeseries_unmet_hours' => false,
-      'include_timeseries_zone_temperatures' => false,
-      'include_timeseries_airflows' => false,
-      'include_timeseries_weather' => false,
-      'include_timeseries_resilience' => false,
-      'timeseries_timestamp_convention' => 'end',
-      'timeseries_num_decimal_places' => 3,
-      'add_timeseries_dst_column' => true,
-      'add_timeseries_utc_column' => true
-    }
-    sim_out_rep_args.update(workflow_args['simulation_output_report'])
-
-    if sim_out_rep_args.keys.include?('output_variables')
-      output_variables = sim_out_rep_args['output_variables']
-      sim_out_rep_args['user_output_variables'] = output_variables.collect { |o| o['name'] }.join(',')
-      sim_out_rep_args.delete('output_variables')
-    end
-
-    include_annual_bills = true
-    include_monthly_bills = false
-    register_annual_bills = true
-    register_monthly_bills = false
-    if sim_out_rep_args.keys.include?('include_annual_bills')
-      include_annual_bills = sim_out_rep_args['include_annual_bills']
-      register_annual_bills = sim_out_rep_args['include_annual_bills']
-      sim_out_rep_args.delete('include_annual_bills')
-    end
-    if sim_out_rep_args.keys.include?('include_monthly_bills')
-      include_monthly_bills = sim_out_rep_args['include_monthly_bills']
-      register_monthly_bills = sim_out_rep_args['include_monthly_bills']
-      sim_out_rep_args.delete('include_monthly_bills')
-    end
 
     osw = {
       'steps' => [
