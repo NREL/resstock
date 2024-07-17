@@ -212,7 +212,8 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
     'timeseries_timestamp_convention' => 'end',
     'timeseries_num_decimal_places' => 3,
     'add_timeseries_dst_column' => true,
-    'add_timeseries_utc_column' => true
+    'add_timeseries_utc_column' => true,
+    'user_output_variables' => ''
   }
   sim_out_rep_args.update(workflow_args['simulation_output_report'])
 
