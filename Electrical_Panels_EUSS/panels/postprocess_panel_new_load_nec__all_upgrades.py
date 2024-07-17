@@ -16,7 +16,8 @@ import pandas as pd
 def main(
     directory: Path, 
     plot: bool = False, sfd_only: bool = False, explode_result: bool = False, result_as_map: bool = False, revision: bool = False):
-
+    
+    assert directory.exists(), f"{directory=} does not exist."
     if revision:
         nec_file = "postprocess_panel_new_load_nec_revision.py"
         msg = "using 2026 NEC REVISION"

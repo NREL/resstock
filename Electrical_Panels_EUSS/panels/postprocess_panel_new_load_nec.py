@@ -96,7 +96,8 @@ range_induction_120_power_rating = get_nameplate_rating(nameplate_rating, 'range
 
 hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'hot tub/spa', 'electric')
 pool_heater_power_rating = get_nameplate_rating(nameplate_rating, 'pool heater', 'electric')
-EVSE_power_rating = hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'electric vehicle charger', 'electric')
+EVSE_power_rating_level1 = hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'electric vehicle charger', 'electric, level 1')
+EVSE_power_rating_level2 = hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'electric vehicle charger', 'electric, level 2')
 
 
 # --- funcs ---
@@ -477,8 +478,10 @@ def _special_load_evse(row):
 
     if row["build_existing_model.electric_vehicle"] == "None":
         EV_load = 0
-    else: 
-        EV_load = max(EVSE_power_rating, 7200)
+    elif "Level 1" in row["build_existing_model.electric_vehicle"]:
+        EV_load = EVSE_power_rating_level1
+    elif "Level 2" in row["build_existing_model.electric_vehicle"]:
+        EV_load = max(EVSE_power_rating_level2, 7200)
     return EV_load
 
 
@@ -488,8 +491,10 @@ def _new_load_evse(row, option_columns):
         return np.nan
 
     for opt_col in option_columns:
-        if "Electric Vehicle" in row[opt_col] and "None" not in row[opt_col]:
-            return max(EVSE_power_rating, 7200)
+        if "Electric Vehicle" in row[opt_col] and "Level 1" in row[opt_col]:
+            return EVSE_power_rating_level1
+        if "Electric Vehicle" in row[opt_col] and "Level 2" in row[opt_col]:
+            return max(EVSE_power_rating_level2, 7200)
 
     return 0
 
@@ -947,6 +952,7 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
         "build_existing_model.hvac_heating_type",
         "build_existing_model.hvac_cooling_type",
         "build_existing_model.bedrooms",
+        "build_existing_model.geometry_building_type_recs",
     ]
     HC_list = [x for x in HC_list if x not in dfu]
     if HC_list:
@@ -990,7 +996,13 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
     df_up["new_load_evse"] = df_up.apply(lambda x: _new_load_evse(x, ev_option_cols), axis=1)
 
     # # TEMP - add EV load explicitly (for part II of TEA)
-    # df_up["new_load_evse"] = max(EVSE_power_rating, 7200)
+    cond = df_up["build_existing_model.geometry_building_type_recs"].isin([
+        "Single-Family Detached",
+        "Single-Family Attached",
+        "Mobile Home",
+        ])
+    # df_up.loc[cond, "new_load_evse"] = EVSE_power_rating_level1
+    df_up.loc[cond, "new_load_evse"] = max(EVSE_power_rating_level2, 7200)
 
     # Nullify 0 values
     new_load_cols = [x for x in df_up.columns if "new_load" in x]

@@ -967,6 +967,7 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
         "build_existing_model.hvac_heating_type",
         "build_existing_model.hvac_cooling_type",
         "build_existing_model.bedrooms",
+        "build_existing_model.geometry_building_type_recs",
     ]
     HC_list = [x for x in HC_list if x not in dfu]
     if HC_list:
@@ -1010,7 +1011,13 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
     df_up["new_load_evse"] = df_up.apply(lambda x: _new_load_evse(x, ev_option_cols), axis=1)
 
     # # TEMP - add EV load explicitly (for part II of TEA)
-    # df_up["new_load_evse"] = max(EVSE_power_rating, 7200)
+    cond = df_up["build_existing_model.geometry_building_type_recs"].isin([
+        "Single-Family Detached",
+        "Single-Family Attached",
+        "Mobile Home",
+        ])
+    # df_up.loc[cond, "new_load_evse"] = EVSE_power_rating_level1
+    df_up.loc[cond, "new_load_evse"] = max(EVSE_power_rating_level2, 7200)
 
     # Nullify 0 values
     new_load_cols = [x for x in df_up.columns if "new_load" in x]
