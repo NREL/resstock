@@ -160,7 +160,6 @@ def _test_baseline_contents(actual_contents, testing = false)
   expected_extras = expected_contents - actual_contents
   return true if expected_extras.empty?
 
-  puts "Baseline Contents, expected - actual: #{expected_extras}"
   return false
 end
 
@@ -171,7 +170,6 @@ def _test_upgrade_contents(actual_contents, testing = false)
   expected_extras = expected_contents - actual_contents
   return true if expected_extras.empty?
 
-  puts "Upgrade Contents, expected - actual: #{expected_extras}"
   return false
 end
 
