@@ -7,7 +7,7 @@ Development Changelog
     :released: pending
 
     .. change::
-        :tags: workflow, 
+        :tags: workflow, refactor, bugfix
         :pullreq: 1253
 
         **Date**: 2024-07-17
@@ -20,6 +20,11 @@ Development Changelog
         ReportHPXMLOutput does not need to be its own measure; it can be pulled into UpgradeCosts.
 
         If UpgradeCosts becomes a model measure, it gets applied before simulation time and therefore its registered values would show up in the results.csv when using the measures_only flag.
+
+        This also fixes a bug related to using the measure_only flag.
+        When using measure_only, the results.json file is not produced.
+        Therefore, no registered values would show up in the results csv.
+        Now we use data_point_out.json, which is produced when using measures_only.
 
         buildstockbatch: `pull request 458 <https://github.com/NREL/buildstockbatch/pull/458>`_
 
