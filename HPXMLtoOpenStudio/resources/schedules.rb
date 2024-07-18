@@ -474,7 +474,7 @@ class MonthWeekdayWeekendSchedule
   # @param values [Array<Double>] an array of numbers
   # @return [Array<Double>] normalized values that sum to one
   def normalize_sum_to_one(values)
-    sum = values.reduce(:+).to_f
+    sum = values.sum.to_f
     if sum == 0.0
       return values
     end
@@ -487,7 +487,7 @@ class MonthWeekdayWeekendSchedule
   # @param values [Array<Double>] an array of numbers
   # @return [Array<Double>] normalized values that average to one
   def normalize_avg_to_one(values)
-    avg = values.reduce(:+).to_f / values.size
+    avg = values.sum.to_f / values.size
     if avg == 0.0
       return values
     end
@@ -549,7 +549,7 @@ class MonthWeekdayWeekendSchedule
 
     day_startm = Schedule.day_start_months(year)
     day_startm[begin_month - 1] += begin_day - 1
-    day_endm = [Schedule.day_start_months(year), month_num_days].transpose.map { |i| i.reduce(:+) - 1 }
+    day_endm = [Schedule.day_start_months(year), month_num_days].transpose.map { |i| i.sum - 1 }
 
     time = []
     for h in 1..24
