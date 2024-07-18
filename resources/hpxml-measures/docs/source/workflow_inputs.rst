@@ -577,8 +577,8 @@ Building occupancy is entered in ``/HPXML/Building/BuildingDetails/BuildingSumma
   ``extension/GeneralWaterUseMonthlyScheduleMultipliers``  array                         No        See [#]_  12 comma-separated monthly multipliers
   =======================================================  ========  =====  ===========  ========  ========  ========================
 
-  .. [#] If NumberofResidents not provided, an *asset* calculation is performed assuming standard occupancy, in which various end use defaults (e.g., plug loads, appliances, and hot water usage) are calculated based on NumberofBedrooms and ConditionedFloorArea per `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNET3012019P1>`_.
-         If NumberofResidents is provided, an *operational* calculation is instead performed in which the end use defaults are adjusted using the relationship between NumberofBedrooms and NumberofResidents from `RECS 2015 <https://www.eia.gov/consumption/residential/reports/2015/overview/>`_:
+  .. [#] If NumberofResidents not provided, an *asset* calculation is performed assuming standard occupancy, in which occupant-driven end uses (e.g., plug loads, appliances, hot water) are calculated based on NumberofBedrooms.
+         If NumberofResidents is provided, an *operational* calculation is instead performed, in which hot water end uses are calculated based on NumberofResidents from `Estimating Daily Domestic Hot-Water Use in North American Homes <http://www.fsec.ucf.edu/en/publications/pdf/fsec-pf-464-15.pdf>`_ and all other occupant-driven end uses are adjusted using the following relationship from `RECS 2015 <https://www.eia.gov/consumption/residential/reports/2015/overview/>`_:
 
          \- **single-family detached or manufactured home**: NumberofBedrooms = -1.47 + 1.69 * NumberofResidents
 
@@ -3910,6 +3910,7 @@ If any water heating systems are provided, a single hot water distribution syste
 - :ref:`hot_water_dist_recirc_shared`
 
 Hot water distribution systems are modeled according to the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNET3012019P1>`_.
+If NumberofResidents is provided, then hot water distribution use from Equation 14 of `Estimating Daily Domestic Hot-Water Use in North American Homes <http://www.fsec.ucf.edu/en/publications/pdf/fsec-pf-464-15.pdf>`_ is substituted into the ANSI/RESNET/ICC 301 equations.
 
 .. note::
 
@@ -4133,6 +4134,7 @@ Additional information can be entered in ``/HPXML/Building/BuildingDetails/Syste
   .. [#] If WaterFixturesMonthlyScheduleMultipliers not provided (and :ref:`schedules_detailed` not used), default values are used: "1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0".
 
 Water fixture hot water use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNET3012019P1>`_.
+If NumberofResidents is provided, then water fixture use from Equation 14 of `Estimating Daily Domestic Hot-Water Use in North American Homes <http://www.fsec.ucf.edu/en/publications/pdf/fsec-pf-464-15.pdf>`_ is substituted into the ANSI/RESNET/ICC 301 equations.
 
 HPXML Solar Thermal
 *******************
@@ -4403,6 +4405,7 @@ If IntegratedModifiedEnergyFactor or ModifiedEnergyFactor is provided, a complet
   ================================  =======  =======  ===========  ============  =======  ====================================
 
 Clothes washer energy use and hot water use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 Addendum A <https://www.resnet.us/wp-content/uploads/ANSI_RESNET_ICC-301-2019-Addendum-A-2019_7.16.20-1.pdf>`_.
+If NumberofResidents is provided, then the number of cycles from Equation 1 of `Estimating Daily Domestic Hot-Water Use in North American Homes <http://www.fsec.ucf.edu/en/publications/pdf/fsec-pf-464-15.pdf>`_ is substituted into the ANSI/RESNET/ICC 301 equations.
 
 HPXML Clothes Dryer
 *******************
@@ -4491,6 +4494,7 @@ If the RatedAnnualkWh or EnergyFactor is provided, a complete set of EnergyGuide
   ========================  =======  =======  ===========  ========  =======  ==================================
 
 Dishwasher energy use and hot water use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 Addendum A <https://www.resnet.us/wp-content/uploads/ANSI_RESNET_ICC-301-2019-Addendum-A-2019_7.16.20-1.pdf>`_.
+If NumberofResidents is provided, then the number of cycles from Equation 3 of `Estimating Daily Domestic Hot-Water Use in North American Homes <http://www.fsec.ucf.edu/en/publications/pdf/fsec-pf-464-15.pdf>`_ is substituted into the ANSI/RESNET/ICC 301 equations.
 
 HPXML Refrigerators
 *******************

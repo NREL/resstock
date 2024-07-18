@@ -80,10 +80,10 @@ module Geometry
 
   # Get the default number of occupants.
   #
-  # @param nbeds [Integer] the number of bedrooms
-  # @return [Double] the number of occupants, which is equal to the number of bedrooms
+  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
+  # @return [Double] Number of occupants in the dwelling unit
   def self.get_occupancy_default_num(nbeds:)
-    return Float(nbeds)
+    return Float(nbeds) # Per ANSI 301 for an asset calculation
   end
 
   # Create space and zone based on contents of spaces and value of location.
@@ -491,12 +491,14 @@ module Geometry
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param num_occ [TODO] TODO
+  # @param num_occ [Double] Number of occupants in the dwelling unit
   # @param space [OpenStudio::Model::Space] an OpenStudio::Model::Space object
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [void]
   def self.apply_occupants(model, runner, hpxml_bldg, num_occ, space, schedules_file, unavailable_periods)
+    return if num_occ <= 0
+
     occ_gain, _hrs_per_day, sens_frac, _lat_frac = get_occupancy_default_values()
     activity_per_person = UnitConversions.convert(occ_gain, 'Btu/hr', 'W')
 

@@ -789,12 +789,12 @@ module HPXMLDefaults
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [void]
   def self.apply_building_occupancy(hpxml_bldg, schedules_file)
-    if hpxml_bldg.building_occupancy.number_of_residents.nil?
-      hpxml_bldg.building_construction.additional_properties.adjusted_number_of_bedrooms = hpxml_bldg.building_construction.number_of_bedrooms
-    else
-      # Set adjusted number of bedrooms for operational calculation; this is an adjustment on
+    if not hpxml_bldg.building_occupancy.number_of_residents.nil?
+      # Set equivalent number of bedrooms for operational calculation; this is an adjustment on
       # ANSI 301 or Building America equations, which are based on number of bedrooms.
-      hpxml_bldg.building_construction.additional_properties.adjusted_number_of_bedrooms = get_nbeds_adjusted_for_operational_calculation(hpxml_bldg)
+      hpxml_bldg.building_construction.additional_properties.equivalent_number_of_bedrooms = get_equivalent_nbeds_for_operational_calculation(hpxml_bldg)
+    else
+      hpxml_bldg.building_construction.additional_properties.equivalent_number_of_bedrooms = hpxml_bldg.building_construction.number_of_bedrooms
     end
     schedules_file_includes_occupants = (schedules_file.nil? ? false : schedules_file.includes_col_name(SchedulesFile::Columns[:Occupants].name))
     if hpxml_bldg.building_occupancy.weekday_fractions.nil? && !schedules_file_includes_occupants
@@ -3429,14 +3429,14 @@ module HPXMLDefaults
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [void]
   def self.apply_pools_and_permanent_spas(hpxml_bldg, cfa, schedules_file)
-    nbeds = hpxml_bldg.building_construction.additional_properties.adjusted_number_of_bedrooms
+    nbeds_eq = hpxml_bldg.building_construction.additional_properties.equivalent_number_of_bedrooms
     hpxml_bldg.pools.each do |pool|
       next if pool.type == HPXML::TypeNone
 
       if pool.pump_type != HPXML::TypeNone
         # Pump
         if pool.pump_kwh_per_year.nil?
-          pool.pump_kwh_per_year = MiscLoads.get_pool_pump_default_values(cfa, nbeds)
+          pool.pump_kwh_per_year = MiscLoads.get_pool_pump_default_values(cfa, nbeds_eq)
           pool.pump_kwh_per_year_isdefaulted = true
         end
         if pool.pump_usage_multiplier.nil?
@@ -3462,7 +3462,7 @@ module HPXMLDefaults
 
       # Heater
       if pool.heater_load_value.nil?
-        default_heater_load_units, default_heater_load_value = MiscLoads.get_pool_heater_default_values(cfa, nbeds, pool.heater_type)
+        default_heater_load_units, default_heater_load_value = MiscLoads.get_pool_heater_default_values(cfa, nbeds_eq, pool.heater_type)
         pool.heater_load_units = default_heater_load_units
         pool.heater_load_value = default_heater_load_value
         pool.heater_load_value_isdefaulted = true
@@ -3492,7 +3492,7 @@ module HPXMLDefaults
       if spa.pump_type != HPXML::TypeNone
         # Pump
         if spa.pump_kwh_per_year.nil?
-          spa.pump_kwh_per_year = MiscLoads.get_permanent_spa_pump_default_values(cfa, nbeds)
+          spa.pump_kwh_per_year = MiscLoads.get_permanent_spa_pump_default_values(cfa, nbeds_eq)
           spa.pump_kwh_per_year_isdefaulted = true
         end
         if spa.pump_usage_multiplier.nil?
@@ -3518,7 +3518,7 @@ module HPXMLDefaults
 
       # Heater
       if spa.heater_load_value.nil?
-        default_heater_load_units, default_heater_load_value = MiscLoads.get_permanent_spa_heater_default_values(cfa, nbeds, spa.heater_type)
+        default_heater_load_units, default_heater_load_value = MiscLoads.get_permanent_spa_heater_default_values(cfa, nbeds_eq, spa.heater_type)
         spa.heater_load_units = default_heater_load_units
         spa.heater_load_value = default_heater_load_value
         spa.heater_load_value_isdefaulted = true
@@ -3550,7 +3550,7 @@ module HPXMLDefaults
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [void]
   def self.apply_plug_loads(hpxml_bldg, cfa, schedules_file)
-    nbeds = hpxml_bldg.building_construction.additional_properties.adjusted_number_of_bedrooms
+    nbeds_eq = hpxml_bldg.building_construction.additional_properties.equivalent_number_of_bedrooms
     hpxml_bldg.plug_loads.each do |plug_load|
       if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
         default_annual_kwh, default_sens_frac, default_lat_frac = MiscLoads.get_residual_mels_default_values(cfa)
@@ -3580,7 +3580,7 @@ module HPXMLDefaults
           plug_load.monthly_multipliers_isdefaulted = true
         end
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
-        default_annual_kwh, default_sens_frac, default_lat_frac = MiscLoads.get_televisions_default_values(cfa, nbeds)
+        default_annual_kwh, default_sens_frac, default_lat_frac = MiscLoads.get_televisions_default_values(cfa, nbeds_eq)
         if plug_load.kwh_per_year.nil?
           plug_load.kwh_per_year = default_annual_kwh
           plug_load.kwh_per_year_isdefaulted = true
@@ -3634,7 +3634,7 @@ module HPXMLDefaults
           plug_load.monthly_multipliers_isdefaulted = true
         end
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
-        default_annual_kwh = MiscLoads.get_well_pump_default_values(cfa, nbeds)
+        default_annual_kwh = MiscLoads.get_well_pump_default_values(cfa, nbeds_eq)
         if plug_load.kwh_per_year.nil?
           plug_load.kwh_per_year = default_annual_kwh
           plug_load.kwh_per_year_isdefaulted = true
@@ -3675,11 +3675,11 @@ module HPXMLDefaults
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [void]
   def self.apply_fuel_loads(hpxml_bldg, cfa, schedules_file)
-    nbeds = hpxml_bldg.building_construction.additional_properties.adjusted_number_of_bedrooms
+    nbeds_eq = hpxml_bldg.building_construction.additional_properties.equivalent_number_of_bedrooms
     hpxml_bldg.fuel_loads.each do |fuel_load|
       if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
         if fuel_load.therm_per_year.nil?
-          fuel_load.therm_per_year = MiscLoads.get_gas_grill_default_values(cfa, nbeds)
+          fuel_load.therm_per_year = MiscLoads.get_gas_grill_default_values(cfa, nbeds_eq)
           fuel_load.therm_per_year_isdefaulted = true
         end
         if fuel_load.frac_sensible.nil?
@@ -3705,7 +3705,7 @@ module HPXMLDefaults
         end
       elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeLighting
         if fuel_load.therm_per_year.nil?
-          fuel_load.therm_per_year = MiscLoads.get_gas_lighting_default_values(cfa, nbeds)
+          fuel_load.therm_per_year = MiscLoads.get_gas_lighting_default_values(cfa, nbeds_eq)
           fuel_load.therm_per_year_isdefaulted = true
         end
         if fuel_load.frac_sensible.nil?
@@ -3731,7 +3731,7 @@ module HPXMLDefaults
         end
       elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeFireplace
         if fuel_load.therm_per_year.nil?
-          fuel_load.therm_per_year = MiscLoads.get_gas_fireplace_default_values(cfa, nbeds)
+          fuel_load.therm_per_year = MiscLoads.get_gas_fireplace_default_values(cfa, nbeds_eq)
           fuel_load.therm_per_year_isdefaulted = true
         end
         if fuel_load.frac_sensible.nil?
@@ -3839,7 +3839,7 @@ module HPXMLDefaults
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @return [Double] Equivalent number of bedrooms
-  def self.get_nbeds_adjusted_for_operational_calculation(hpxml_bldg)
+  def self.get_equivalent_nbeds_for_operational_calculation(hpxml_bldg)
     n_occs = hpxml_bldg.building_occupancy.number_of_residents
     unit_type = hpxml_bldg.building_construction.residential_facility_type
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? unit_type
