@@ -3,21 +3,21 @@
 require 'csv'
 require 'matrix'
 
-# TODO
+# Collection of methods related to the generation of stochastic occupancy schedules.
 class ScheduleGenerator
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
-  # @param state [TODO] TODO
-  # @param column_names [TODO] TODO
-  # @param random_seed [TODO] TODO
-  # @param minutes_per_step [TODO] TODO
-  # @param steps_in_day [TODO] TODO
-  # @param mkc_ts_per_day [TODO] TODO
-  # @param mkc_ts_per_hour [TODO] TODO
-  # @param total_days_in_year [TODO] TODO
-  # @param sim_year [TODO] TODO
-  # @param sim_start_day [TODO] TODO
-  # @param debug [TODO] TODO
-  # @param append_output [TODO] TODO
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param state [String] State code from the HPXML file
+  # @param column_names [Array<String>] list of the schedule column names to generate
+  # @param random_seed [Integer] the seed for the random number generator
+  # @param minutes_per_step [Integer] the simulation timestep (minutes)
+  # @param steps_in_day [Integer] the number of steps in a 24-hour day
+  # @param mkc_ts_per_day [Integer] Markov chain timesteps per day
+  # @param mkc_ts_per_hour [Integer] Markov chain timesteps per hour
+  # @param total_days_in_year [Integer] number of days in the calendar year
+  # @param sim_year [Integer] the calendar year
+  # @param sim_start_day [DateTime] the DateTime object corresponding to Jan 1 of the calendar year
+  # @param debug [Boolean] If true, writes extra column(s) (e.g., sleeping) for informational purposes.
+  # @param append_output [Boolean] If true and the output CSV file already exists, appends columns to the file rather than overwriting it. The existing output CSV file must have the same number of rows (i.e., timeseries frequency) as the new columns being appended.
   def initialize(runner:,
                  state:,
                  column_names: nil,
@@ -49,18 +49,18 @@ class ScheduleGenerator
 
   attr_accessor(:schedules)
 
-  # TODO
+  # Get the subset of schedule column names that the stochastic schedule generator supports.
   #
-  # @return [TODO] TODO
+  # @return [Array<String>] list of all schedule column names whose schedules can be stochastically generated
   def self.export_columns
     return SchedulesFile::Columns.values.select { |c| c.can_be_stochastic }.map { |c| c.name }
   end
 
-  # TODO
+  # The top-level method for initializing the schedules hash just before calling the main stochastic schedules method.
   #
-  # @param args [TODO] TODO
+  # @param args [Hash] Map of :argument_name => value
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @return [TODO] TODO
+  # @return [Boolean] true if successful
   def create(args:,
              weather:)
     @schedules = {}
@@ -85,11 +85,11 @@ class ScheduleGenerator
     return true
   end
 
-  # TODO
+  # The main method for creating stochastic schedules.
   #
-  # @param args [TODO] TODO
+  # @param args [Hash] Map of :argument_name => value
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @return [TODO] TODO
+  # @return [Boolean] true if successful
   def create_stochastic_schedules(args:,
                                   weather:)
     # initialize a random number generator

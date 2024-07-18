@@ -225,11 +225,6 @@ class Material
   # @param roof_pitch [TODO] TODO
   # @return [TODO] TODO
   def self.AirFilmRoof(roof_pitch)
-    # Use weighted average between enhanced and reduced convection based on degree days.
-    # hdd_frac = hdd65f / (hdd65f + cdd65f)
-    # cdd_frac = cdd65f / (hdd65f + cdd65f)
-    # return self.AirFilmSlopeEnhanced(roof_pitch).rvalue * hdd_frac + self.AirFilmSlopeReduced(roof_pitch).rvalue * cdd_frac # hr-ft-F/Btu
-    # Simplification to not depend on weather
     rvalue = (self.AirFilmSlopeEnhanced(roof_pitch).rvalue + self.AirFilmSlopeReduced(roof_pitch).rvalue) / 2.0 # hr-ft-F/Btu
     return self.AirFilm(rvalue)
   end
@@ -239,11 +234,6 @@ class Material
   # @param roof_pitch [TODO] TODO
   # @return [TODO] TODO
   def self.AirFilmRoofRadiantBarrier(roof_pitch)
-    # Use weighted average between enhanced and reduced convection based on degree days.
-    # hdd_frac = hdd65f / (hdd65f + cdd65f)
-    # cdd_frac = cdd65f / (hdd65f + cdd65f)
-    # return self.AirFilmSlopeEnhancedReflective(roof_pitch).rvalue * hdd_frac + self.AirFilmSlopeReducedReflective(roof_pitch).rvalue * cdd_frac # hr-ft-F/Btu
-    # Simplification to not depend on weather
     rvalue = (self.AirFilmSlopeEnhancedReflective(roof_pitch).rvalue + self.AirFilmSlopeReducedReflective(roof_pitch).rvalue) / 2.0 # hr-ft-F/Btu
     return self.AirFilm(rvalue)
   end

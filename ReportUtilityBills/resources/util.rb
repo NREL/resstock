@@ -3,7 +3,7 @@
 # Object that stores collections of EnergyPlus meter names, units, and timeseries data.
 class Fuel
   # @param meters [Array<String>] array of EnergyPlus meter names
-  # @param units [String] fuel units of type HPXML::FuelTypeXXX
+  # @param units [String] fuel units (HPXML::FuelTypeXXX)
   def initialize(meters: [], units:)
     @meters = meters
     @timeseries = []

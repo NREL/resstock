@@ -17,7 +17,7 @@ module HPXMLDefaults
   # attributes for all defaulted values. This allows the user to easily observe which
   # values were defaulted and what default values were used.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml [HPXML] HPXML object
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
@@ -233,7 +233,7 @@ module HPXMLDefaults
   # Assigns default values for omitted optional inputs in the HPXML::BuildingHeader object
   # specific to HVAC equipment sizing
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param nbeds [Integer] Number of bedrooms in the dwelling unit
@@ -480,7 +480,7 @@ module HPXMLDefaults
 
   # Assigns default values for omitted optional inputs in the HPXML::UtilityBillScenarios objects
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param has_fuel [Hash] Map of HPXML fuel type => boolean of whether fuel type is used
@@ -1326,7 +1326,7 @@ module HPXMLDefaults
 
   # Assigns default values for omitted optional inputs in the HPXML::Floor objects
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @return [void]
   def self.apply_floors(runner, hpxml_bldg)
@@ -1640,7 +1640,7 @@ module HPXMLDefaults
   # Assigns default values for omitted optional inputs in the HPXML::HeatingSystem,
   # HPXML::CoolingSystem, and HPXML::HeatPump objects
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml [HPXML] HPXML object
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
@@ -2536,13 +2536,13 @@ module HPXMLDefaults
         vent_fan.is_shared_system_isdefaulted = true
       end
 
-      if vent_fan.hours_in_operation.nil? && !vent_fan.is_cfis_supplemental_fan?
+      if vent_fan.hours_in_operation.nil? && !vent_fan.is_cfis_supplemental_fan
         vent_fan.hours_in_operation = (vent_fan.fan_type == HPXML::MechVentTypeCFIS) ? 8.0 : 24.0
         vent_fan.hours_in_operation_isdefaulted = true
       end
 
       if vent_fan.flow_rate.nil?
-        if hpxml_bldg.ventilation_fans.select { |vf| vf.used_for_whole_building_ventilation && !vf.is_cfis_supplemental_fan? }.size > 1
+        if hpxml_bldg.ventilation_fans.select { |vf| vf.used_for_whole_building_ventilation && !vf.is_cfis_supplemental_fan }.size > 1
           fail 'Defaulting flow rates for multiple mechanical ventilation systems is currently not supported.'
         end
 
@@ -2745,9 +2745,9 @@ module HPXMLDefaults
         hot_water_distribution.standard_piping_length_isdefaulted = true
       end
     elsif hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
-      if hot_water_distribution.recirculation_piping_length.nil?
-        hot_water_distribution.recirculation_piping_length = HotWaterAndAppliances.get_default_recirc_loop_length(HotWaterAndAppliances.get_default_std_pipe_length(has_uncond_bsmnt, has_cond_bsmnt, cfa, ncfl))
-        hot_water_distribution.recirculation_piping_length_isdefaulted = true
+      if hot_water_distribution.recirculation_piping_loop_length.nil?
+        hot_water_distribution.recirculation_piping_loop_length = HotWaterAndAppliances.get_default_recirc_loop_length(HotWaterAndAppliances.get_default_std_pipe_length(has_uncond_bsmnt, has_cond_bsmnt, cfa, ncfl))
+        hot_water_distribution.recirculation_piping_loop_length_isdefaulted = true
       end
       if hot_water_distribution.recirculation_branch_piping_length.nil?
         hot_water_distribution.recirculation_branch_piping_length = HotWaterAndAppliances.get_default_recirc_branch_loop_length()
@@ -3765,7 +3765,7 @@ module HPXMLDefaults
 
   # Assigns default capacities/airflows for autosized HPXML HVAC equipment.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param output_format [String] Detailed output file format ('csv', 'json', or 'msgpack')

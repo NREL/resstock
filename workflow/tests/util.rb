@@ -891,7 +891,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
   assert_equal(hpxml_bldg.total_fraction_cool_load_served > 0, clg_energy > 0)
 
   # Mechanical Ventilation
-  whole_vent_fans = hpxml_bldg.ventilation_fans.select { |vent_mech| vent_mech.used_for_whole_building_ventilation && !vent_mech.is_cfis_supplemental_fan? }
+  whole_vent_fans = hpxml_bldg.ventilation_fans.select { |vent_mech| vent_mech.used_for_whole_building_ventilation && !vent_mech.is_cfis_supplemental_fan }
   local_vent_fans = hpxml_bldg.ventilation_fans.select { |vent_mech| vent_mech.used_for_local_ventilation }
   fan_cfis_with_addl_runtime = whole_vent_fans.select { |vent_mech| vent_mech.fan_type == HPXML::MechVentTypeCFIS && vent_mech.cfis_addtl_runtime_operating_mode != HPXML::CFISModeNone }
   fan_sup = whole_vent_fans.select { |vent_mech| vent_mech.fan_type == HPXML::MechVentTypeSupply }

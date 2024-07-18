@@ -6,7 +6,7 @@ class ScheduleConstant
   # @param sch_name [String] name that is assigned to the OpenStudio Schedule object
   # @param val [Double] the constant schedule value
   # @param schedule_type_limits_name [String] data type for the values contained in the schedule
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   def initialize(model, sch_name, val = 1.0, schedule_type_limits_name = nil, unavailable_periods: [])
     year = model.getYearDescription.assumedYear
     @schedule = create_schedule(model, sch_name, val, year, schedule_type_limits_name, unavailable_periods)
@@ -23,7 +23,7 @@ class ScheduleConstant
   # @param val [Double] the constant schedule value
   # @param year [Integer] the calendar year
   # @param schedule_type_limits_name [String] data type for the values contained in the schedule
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [OpenStudio::Model::ScheduleConstant or OpenStudio::Model::ScheduleRuleset] the OpenStudio Schedule object with constant schedule
   def create_schedule(model, sch_name, val, year, schedule_type_limits_name, unavailable_periods)
     if unavailable_periods.empty?
@@ -64,7 +64,7 @@ class HourlyByMonthSchedule
   # @param weekday_month_by_hour_values [Array<Array<Double>>] a 12-element array of 24-element arrays of numbers
   # @param schedule_type_limits_name [String] data type for the values contained in the schedule
   # @param normalize_values [Boolean] whether to divide schedule values by the max value
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   def initialize(model, sch_name, weekday_month_by_hour_values, weekend_month_by_hour_values,
                  schedule_type_limits_name = nil, normalize_values = true, unavailable_periods: nil)
     year = model.getYearDescription.assumedYear
@@ -130,7 +130,7 @@ class HourlyByMonthSchedule
   # @param sch_name [String] name that is assigned to the OpenStudio Schedule object
   # @param year [Integer] the calendar year
   # @param schedule_type_limits_name [String] data type for the values contained in the schedule
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [OpenStudio::Model::Ruleset] the OpenStudio Schedule object with rules
   def create_schedule(model, sch_name, year, schedule_type_limits_name, unavailable_periods)
     day_startm = Schedule.day_start_months(year)
@@ -238,7 +238,7 @@ class HourlyByDaySchedule
   # @param weekday_day_by_hour_values [Array<Array<Double>>] a 365-element array of 24-element arrays of numbers
   # @param weekend_day_by_hour_values [Array<Array<Double>>] a 365-element array of 24-element arrays of numbers
   # @param normalize_values [Boolean] whether to divide schedule values by the max value
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   def initialize(model, sch_name, weekday_day_by_hour_values, weekend_day_by_hour_values,
                  schedule_type_limits_name = nil, normalize_values = true, unavailable_periods: nil)
     year = model.getYearDescription.assumedYear
@@ -306,7 +306,7 @@ class HourlyByDaySchedule
   # @param year [Integer] the calendar year
   # @param num_days [Integer] the number of days in the calendar year
   # @param schedule_type_limits_name [String] data type for the values contained in the schedule
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [OpenStudio::Model::Ruleset] the OpenStudio Schedule object with rules
   def create_schedule(model, sch_name, year, num_days, schedule_type_limits_name, unavailable_periods)
     time = []
@@ -417,7 +417,7 @@ class MonthWeekdayWeekendSchedule
   # @param begin_day [Integer] TODO
   # @param end_month [Integer] TODO
   # @param end_day [Integer] TODO
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   def initialize(model, sch_name, weekday_hourly_values, weekend_hourly_values, monthly_values,
                  schedule_type_limits_name = nil, normalize_values = true, begin_month = 1,
                  begin_day = 1, end_month = 12, end_day = 31, unavailable_periods: nil)
@@ -540,7 +540,7 @@ class MonthWeekdayWeekendSchedule
   # @param end_month [TODO] TODO
   # @param end_day [TODO] TODO
   # @param schedule_type_limits_name [String] data type for the values contained in the schedule
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [OpenStudio::Model::ScheduleRuleset] the OpenStudio Schedule object with rules
   def create_schedule(model, sch_name, year, begin_month, begin_day, end_month, end_day,
                       schedule_type_limits_name, unavailable_periods)
@@ -828,9 +828,9 @@ module Schedule
 
   # TODO
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param schedule_name [TODO] TODO
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [TODO] TODO
   def self.get_unavailable_periods(runner, schedule_name, unavailable_periods)
     return unavailable_periods.select { |p| Schedule.unavailable_period_applies(runner, schedule_name, p.column_name) }
@@ -840,7 +840,7 @@ module Schedule
   #
   # @param schedule [TODO] TODO
   # @param sch_name [String] name that is assigned to the OpenStudio Schedule object
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @param year [Integer] the calendar year
   # @return [TODO] TODO
   def self.set_unavailable_periods(schedule, sch_name, unavailable_periods, year)
@@ -1753,7 +1753,7 @@ module Schedule
 
   # TODO
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param schedule_name [TODO] TODO
   # @param col_name [TODO] TODO
   # @return [TODO] TODO
@@ -1792,7 +1792,7 @@ module Schedule
 
   # Ensure that the defined schedule value array (or string of numbers) is the correct length.
   #
-  # @param values [Array<Double> or String] a num_values-element array of numbers or a comma-seperated string of numbers
+  # @param values [Array<Double> or Array<String> or String] a num_values-element array of numbers or a comma-separated string of numbers
   # @param num_values [Integer] expected number of values in the outer array
   # @param sch_name [String] name that is assigned to the OpenStudio Schedule object
   # @return [Array<Double>] a num_values-element array of numbers
@@ -1907,10 +1907,10 @@ class SchedulesFile
     WholeHouseFan: Column.new('whole_house_fan', true, false, nil),
   }
 
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param schedules_paths [Array<String>] array of file paths pointing to detailed schedule CSVs
   # @param year [Integer] the calendar year
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @param output_path [String] the file path for which to export a single detailed schedule CSV file and also reference from OpenStudio ScheduleFile objects
   def initialize(runner: nil,
                  schedules_paths:,
@@ -2288,8 +2288,8 @@ class SchedulesFile
 
   # TODO
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [void]
   def set_unavailable_periods(runner, unavailable_periods)
     if @unavailable_periods_csv_data.nil?

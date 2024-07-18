@@ -579,7 +579,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['solar_thermal_system_type'] = 'none'
       args['solar_thermal_collector_area'] = 40.0
       args['solar_thermal_collector_loop_type'] = HPXML::SolarThermalLoopTypeDirect
-      args['solar_thermal_collector_type'] = HPXML::SolarThermalTypeEvacuatedTube
+      args['solar_thermal_collector_type'] = HPXML::SolarThermalCollectorTypeEvacuatedTube
       args['solar_thermal_collector_azimuth'] = 180
       args['solar_thermal_collector_tilt'] = 20
       args['solar_thermal_collector_rated_optical_efficiency'] = 0.5
@@ -764,7 +764,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['pv_system_array_tilt'] = 'roofpitch'
       args['pv_system_2_array_tilt'] = 'roofpitch+15'
     elsif ['extra-dhw-solar-latitude.xml'].include? hpxml_file
-      args['solar_thermal_system_type'] = HPXML::SolarThermalSystemType
+      args['solar_thermal_system_type'] = HPXML::SolarThermalSystemTypeHotWater
       args['solar_thermal_collector_tilt'] = 'Latitude-15'
     elsif ['extra-second-refrigerator.xml'].include? hpxml_file
       args['extra_refrigerator_location'] = HPXML::LocationConditionedSpace

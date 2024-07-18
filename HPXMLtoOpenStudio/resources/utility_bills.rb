@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-# TODO
+# Collection of methods related to getting units by fuel type, EIA average and marginal rates by state, and household consumptions by state.
 class UtilityBills
-  # TODO
+  # Get type of unit according to HPXML fuel type.
   #
-  # @param fuel_type [TODO] TODO
-  # @return [TODO] TODO
+  # @param fuel_type [String] HPXML fuel type
+  # @return [String] type of unit as stored in unit_conversions.rb
   def self.get_fuel_units(fuel_type)
     return { HPXML::FuelTypeElectricity => 'kwh',
              HPXML::FuelTypeNaturalGas => 'therm',
@@ -16,31 +16,39 @@ class UtilityBills
              HPXML::FuelTypeWoodPellets => 'kbtu' }[fuel_type]
   end
 
-  # TODO
+  # For a given state, get either the average rate from EIA data and calculate the marginal rate or calculate the average rate from a given marginal rate.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
-  # @param state_code [TODO] TODO
-  # @param fuel_type [TODO] TODO
-  # @param fixed_charge [TODO] TODO
-  # @param marginal_rate [TODO] TODO
-  # @return [TODO] TODO
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param state_code [String] State code from the HPXML file
+  # @param fuel_type [String] HPXML fuel type
+  # @param fixed_charge [Double] the monthly fixed charge (USD/month)
+  # @param marginal_rate [Double] the marginal flat rate (USD/kWh or USD/therm, etc.)
+  # @return [Array<Double, Double>] the marginal and average rates (USD/kWh or USD/therm, etc., USD/month)
   def self.get_rates_from_eia_data(runner, state_code, fuel_type, fixed_charge, marginal_rate = nil)
     msn_codes = Constants.StateCodesMap.keys
     msn_codes << 'US'
     return unless msn_codes.include? state_code # Check if the state_code is valid
 
     average_rate = nil
+
     if [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas].include? fuel_type
       household_consumption = get_household_consumption(state_code, fuel_type)
-      if not marginal_rate.nil?
-        # Calculate average rate from user-specified fixed charge, user-specified marginal rate, and EIA data
+    end
+
+    if not marginal_rate.nil?
+      if [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas].include? fuel_type
+        # Calculate average rate from user-specified marginal rate, user-specified fixed charge, and EIA data
         average_rate = marginal_rate_to_average_rate(marginal_rate, fixed_charge, household_consumption)
-      else
+      elsif [HPXML::FuelTypeOil, HPXML::FuelTypePropane, HPXML::FuelTypeCoal, HPXML::FuelTypeWoodCord, HPXML::FuelTypeWoodPellets].include? fuel_type
+        # Do nothing
+      end
+    else
+      if [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas].include? fuel_type
         average_rate = get_eia_seds_rate(runner, state_code, fuel_type)
         marginal_rate = average_rate_to_marginal_rate(average_rate, fixed_charge, household_consumption)
+      elsif [HPXML::FuelTypeOil, HPXML::FuelTypePropane, HPXML::FuelTypeCoal, HPXML::FuelTypeWoodCord, HPXML::FuelTypeWoodPellets].include? fuel_type
+        marginal_rate = get_eia_seds_rate(runner, state_code, fuel_type)
       end
-    elsif [HPXML::FuelTypeOil, HPXML::FuelTypePropane, HPXML::FuelTypeCoal, HPXML::FuelTypeWoodCord, HPXML::FuelTypeWoodPellets].include? fuel_type
-      marginal_rate = get_eia_seds_rate(runner, state_code, fuel_type)
     end
 
     marginal_rate = marginal_rate.round(4) unless marginal_rate.nil?
@@ -49,11 +57,11 @@ class UtilityBills
     return marginal_rate, average_rate
   end
 
-  # TODO
+  # Get the average household consumption (kWh or therm per home per year) by state.
   #
-  # @param state_code [TODO] TODO
-  # @param fuel_type [TODO] TODO
-  # @return [TODO] TODO
+  # @param state_code [String] State code from the HPXML file
+  # @param fuel_type [String] HPXML fuel type
+  # @return [Double] average household electricity or natural gas consumption (kWh/home/yr or therms/home/yr)
   def self.get_household_consumption(state_code, fuel_type)
     rows = CSV.read(File.join(File.dirname(__FILE__), '../../ReportUtilityBills/resources/simple_rates/HouseholdConsumption.csv'))
     rows.each do |row|
@@ -67,32 +75,32 @@ class UtilityBills
     end
   end
 
-  # TODO
+  # Get the marginal rate given fixed charge and average household consumption.
   #
-  # @param average_rate [TODO] TODO
-  # @param fixed_charge [TODO] TODO
-  # @param household_consumption [TODO] TODO
-  # @return [TODO] TODO
+  # @param average_rate [Double] the fuel rate averaged over both fixed and marginal annual costs (USD/kWh or USD/therm, etc.)
+  # @param fixed_charge [Double] the monthly fixed charge (USD/month)
+  # @param household_consumption [Double] average household electricity or natural gas consumption (kWh/home/yr or therms/home/yr)
+  # @return [Double] the marginal flat rate (USD/kWh or USD/therm, etc.)
   def self.average_rate_to_marginal_rate(average_rate, fixed_charge, household_consumption)
     return average_rate - 12.0 * fixed_charge / household_consumption
   end
 
-  # TODO
+  # Get the average rate given fixed charge and average household consumption.
   #
-  # @param marginal_rate [TODO] TODO
-  # @param fixed_charge [TODO] TODO
-  # @param household_consumption [TODO] TODO
-  # @return [TODO] TODO
+  # @param marginal_rate [Double] the marginal flat rate (USD/kWh or USD/therm, etc.)
+  # @param fixed_charge [Double] the monthly fixed charge (USD/month)
+  # @param household_consumption [Double] average household electricity or natural gas consumption (kWh/home/yr or therms/home/yr)
+  # @return [Double] the fuel rate averaged over both fixed and marginal annual costs (USD/kWh or USD/therm, etc.)
   def self.marginal_rate_to_average_rate(marginal_rate, fixed_charge, household_consumption)
     return marginal_rate + 12.0 * fixed_charge / household_consumption
   end
 
-  # TODO
+  # Get the EIA SEDS prices by state and fuel type.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
-  # @param state_code [TODO] TODO
-  # @param fuel_type [TODO] TODO
-  # @return [TODO] TODO
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param state_code [String] State code from the HPXML file
+  # @param fuel_type [String] HPXML fuel type
+  # @return [Double] average rate for electricity or natural gas, and marginal rate for all other fuel types (USD/kWh or USD/therm, etc.)
   def self.get_eia_seds_rate(runner, state_code, fuel_type)
     msn_code_map = {
       HPXML::FuelTypeElectricity => 'ESRCD',

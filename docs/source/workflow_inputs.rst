@@ -1707,7 +1707,7 @@ If the skylight has a curb, additional information is entered in ``Skylight``.
   ===========================================  ========  ============  ===========  ========  ========  ========================================================
   Element                                      Type      Units         Constraints  Required  Default   Notes
   ===========================================  ========  ============  ===========  ========  ========  ========================================================
-  ``extension/Curb/Area``                      double    ft^2          > 0          Yes                 Total area including all sides
+  ``extension/Curb/Area``                      double    ft2           > 0          Yes                 Total area including all sides
   ``extension/Curb/AssemblyEffectiveRValue``   double    F-ft2-hr/Btu  > 0          Yes                 Assembly R-value [#]_
   ===========================================  ========  ============  ===========  ========  ========  ========================================================
 
@@ -1723,7 +1723,7 @@ If the skylight has a shaft, additional information is entered in ``Skylight``.
   ===========================================  ========  ============  ===========  ========  ========  ========================================================
   Element                                      Type      Units         Constraints  Required  Default   Notes
   ===========================================  ========  ============  ===========  ========  ========  ========================================================
-  ``extension/Shaft/Area``                     double    ft^2          > 0          Yes                 Total area including all sides
+  ``extension/Shaft/Area``                     double    ft2           > 0          Yes                 Total area including all sides
   ``extension/Shaft/AssemblyEffectiveRValue``  double    F-ft2-hr/Btu  > 0          Yes                 Assembly R-value [#]_
   ===========================================  ========  ============  ===========  ========  ========  ========================================================
 
@@ -2169,7 +2169,7 @@ Each central air conditioner is entered as a ``/HPXML/Building/BuildingDetails/S
   ``CoolingSystemFuel``                                             string                electricity              Yes                       Fuel type
   ``CoolingCapacity``                                               double   Btu/hr       >= 0                     No        autosized [#]_  Cooling output capacity
   ``CompressorType``                                                string                See [#]_                 No        See [#]_        Type of compressor
-  ``FractionCoolLoadServed``                                        double    frac        >= 0, <= 1 [#]_          Yes                       Fraction of cooling load served
+  ``FractionCoolLoadServed``                                        double   frac         >= 0, <= 1 [#]_          Yes                       Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value``  double   Btu/Wh or #  > 0                      Yes                       Rated efficiency [#]_
   ``SensibleHeatFraction``                                          double   frac         > 0.5, <= 1              No        See [#]_        Sensible heat fraction
   ``CoolingDetailedPerformanceData``                                element                                        No        <none>          Cooling detailed performance data [#]_
@@ -3506,7 +3506,7 @@ Each central fan integrated supply (CFIS) system is entered as a ``/HPXML/Buildi
   ``HoursInOperation``                                                                           double    hrs/day  >= 0, <= 24                    false     8                Hours per day of operation [#]_
   ``FanPower``                                                                                   double    W        >= 0                           No        See [#]_         Fan power
   ``AttachedToHVACDistributionSystem``                                                           idref              See [#]_                       Yes                        ID of attached distribution system
-  ``extension/VentilationOnlyModeAirflowFraction``                                               double             >= 0, <= 1                     No        1.0              Blower airflow rate fraction during ventilation only mode [#]_
+  ``extension/VentilationOnlyModeAirflowFraction``                                               double    frac     >= 0, <= 1                     No        1.0              Blower airflow rate fraction during ventilation only mode [#]_
   =============================================================================================  ========  =======  =============================  ========  ===============  =========================================
 
   .. [#] All other UsedFor... elements (i.e., ``UsedForLocalVentilation``, ``UsedForSeasonalCoolingLoadReduction``, ``UsedForGarageVentilation``) must be omitted or false.
@@ -4483,11 +4483,11 @@ If the RatedAnnualkWh or EnergyFactor is provided, a complete set of EnergyGuide
   ========================  =======  =======  ===========  ========  =======  ==================================
   Element                   Type     Units    Constraints  Required  Default  Notes
   ========================  =======  =======  ===========  ========  =======  ==================================
+  ``PlaceSettingCapacity``  integer  #        > 0          Yes                Number of place settings
   ``LabelElectricRate``     double   $/kWh    > 0          Yes                EnergyGuide label electricity rate
   ``LabelGasRate``          double   $/therm  > 0          Yes                EnergyGuide label natural gas rate
   ``LabelAnnualGasCost``    double   $        > 0          Yes                EnergyGuide label annual gas cost
   ``LabelUsage``            double   cyc/wk   > 0          Yes                EnergyGuide label number of cycles
-  ``PlaceSettingCapacity``  integer  #        > 0          Yes                Number of place settings
   ========================  =======  =======  ===========  ========  =======  ==================================
 
 Dishwasher energy use and hot water use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 Addendum A <https://www.resnet.us/wp-content/uploads/ANSI_RESNET_ICC-301-2019-Addendum-A-2019_7.16.20-1.pdf>`_.

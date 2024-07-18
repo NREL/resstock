@@ -243,7 +243,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
     # Get HPXML values
     vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
-    vent_fan_cfm = vent_fan.average_total_unit_flow_rate
+    vent_fan_cfm = vent_fan.average_unit_flow_rate
     vent_fan_power = vent_fan.fan_power
 
     # Check infiltration/ventilation program
@@ -267,7 +267,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
     # Get HPXML values
     vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
-    vent_fan_cfm = vent_fan.average_total_unit_flow_rate
+    vent_fan_cfm = vent_fan.average_unit_flow_rate
     vent_fan_power = vent_fan.fan_power
 
     # Check infiltration/ventilation program
@@ -291,7 +291,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
     # Get HPXML values
     vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
-    vent_fan_cfm = vent_fan.average_total_unit_flow_rate
+    vent_fan_cfm = vent_fan.average_unit_flow_rate
     vent_fan_power = vent_fan.fan_power
 
     # Check infiltration/ventilation program
@@ -315,7 +315,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
     # Get HPXML values
     vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
-    vent_fan_cfm = vent_fan.average_total_unit_flow_rate
+    vent_fan_cfm = vent_fan.average_unit_flow_rate
     vent_fan_power = vent_fan.fan_power
 
     # Check infiltration/ventilation program
@@ -339,7 +339,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
     # Get HPXML values
     vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
-    vent_fan_cfm = vent_fan.average_total_unit_flow_rate
+    vent_fan_cfm = vent_fan.average_unit_flow_rate
     vent_fan_power = vent_fan.fan_power
 
     # Check infiltration/ventilation program
@@ -458,7 +458,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    vent_fans = hpxml_bldg.ventilation_fans.select { |f| !f.is_cfis_supplemental_fan? }
+    vent_fans = hpxml_bldg.ventilation_fans.select { |f| !f.is_cfis_supplemental_fan }
     vent_fans.each do |vent_fan|
       vent_fan.hours_in_operation = 24.0 if vent_fan.hours_in_operation.nil?
     end
@@ -473,16 +473,16 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
 
     whole_fans = vent_fans.select { |f| f.used_for_whole_building_ventilation }
     vent_fan_sup = whole_fans.select { |f| f.fan_type == HPXML::MechVentTypeSupply }
-    vent_fan_cfm_sup = vent_fan_sup.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
+    vent_fan_cfm_sup = vent_fan_sup.map { |f| f.average_unit_flow_rate }.sum(0.0)
     vent_fan_power_sup = vent_fan_sup.map { |f| f.average_unit_fan_power }.sum(0.0)
     vent_fan_exh = whole_fans.select { |f| f.fan_type == HPXML::MechVentTypeExhaust }
-    vent_fan_cfm_exh = vent_fan_exh.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
+    vent_fan_cfm_exh = vent_fan_exh.map { |f| f.average_unit_flow_rate }.sum(0.0)
     vent_fan_power_exh = vent_fan_exh.map { |f| f.average_unit_fan_power }.sum(0.0)
     vent_fan_bal = whole_fans.select { |f| f.fan_type == HPXML::MechVentTypeBalanced }
-    vent_fan_cfm_bal = vent_fan_bal.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
+    vent_fan_cfm_bal = vent_fan_bal.map { |f| f.average_unit_flow_rate }.sum(0.0)
     vent_fan_power_bal = vent_fan_bal.map { |f| f.average_unit_fan_power }.sum(0.0)
     vent_fan_ervhrv = whole_fans.select { |f| [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include?(f.fan_type) }
-    vent_fan_cfm_ervhrv = vent_fan_ervhrv.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
+    vent_fan_cfm_ervhrv = vent_fan_ervhrv.map { |f| f.average_unit_flow_rate }.sum(0.0)
     vent_fan_power_ervhrv = vent_fan_ervhrv.map { |f| f.average_unit_fan_power }.sum(0.0)
     vent_fan_cfis = whole_fans.select { |f| f.fan_type == HPXML::MechVentTypeCFIS }
     vent_fan_cfm_cfis = vent_fan_cfis.map { |f| f.oa_unit_flow_rate }.sum(0.0)
@@ -534,9 +534,9 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     vent_fans_precool = hpxml_bldg.ventilation_fans.select { |f| (not f.precooling_fuel.nil?) }
     vent_fans_tot_pow_noncfis = hpxml_bldg.ventilation_fans.select { |f| f.fan_type != HPXML::MechVentTypeCFIS }.map { |f| f.average_unit_fan_power }.sum(0.0)
     # total cfms
-    vent_fans_cfm_tot_sup = hpxml_bldg.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeSupply }.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
-    vent_fans_cfm_tot_exh = hpxml_bldg.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeExhaust }.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
-    vent_fans_cfm_tot_ervhrvbal = hpxml_bldg.ventilation_fans.select { |f| [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV, HPXML::MechVentTypeBalanced].include? f.fan_type }.map { |f| f.average_total_unit_flow_rate }.sum(0.0)
+    vent_fans_cfm_tot_sup = hpxml_bldg.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeSupply }.map { |f| f.average_unit_flow_rate }.sum(0.0)
+    vent_fans_cfm_tot_exh = hpxml_bldg.ventilation_fans.select { |f| f.fan_type == HPXML::MechVentTypeExhaust }.map { |f| f.average_unit_flow_rate }.sum(0.0)
+    vent_fans_cfm_tot_ervhrvbal = hpxml_bldg.ventilation_fans.select { |f| [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV, HPXML::MechVentTypeBalanced].include? f.fan_type }.map { |f| f.average_unit_flow_rate }.sum(0.0)
     # preconditioned mech vent oa cfms
     vent_fans_cfm_oa_preheat_sup = vent_fans_preheat.select { |f| f.fan_type == HPXML::MechVentTypeSupply }.map { |f| f.average_oa_unit_flow_rate }.sum(0.0)
     vent_fans_cfm_oa_precool_sup = vent_fans_precool.select { |f| f.fan_type == HPXML::MechVentTypeSupply }.map { |f| f.average_oa_unit_flow_rate }.sum(0.0)

@@ -151,7 +151,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
   # Return a vector of IdfObject's to request EnergyPlus objects needed by the run method.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param user_arguments [OpenStudio::Measure::OSArgumentMap] OpenStudio measure arguments
   # @return [Array<OpenStudio::IdfObject>] array of OpenStudio IdfObject objects
   def energyPlusOutputRequests(runner, user_arguments)
@@ -227,7 +227,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
   # Register to the runner each warning.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param warnings [Array<String>] array of warnings
   # @return [Boolean] true if any warnings were registered
   def register_warnings(runner, warnings)
@@ -241,7 +241,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
   # Define what happens when the measure is run.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param user_arguments [OpenStudio::Measure::OSArgumentMap] OpenStudio measure arguments
   # @return [Boolean] true if successful
   def run(runner, user_arguments)
@@ -404,7 +404,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
   # Write and/or register to the runner the calculated runperiod utility bills.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param args [Hash] Map of :argument_name => value
   # @param utility_bills [Hash] Fuel type => UtilityRate object
   # @param annual_output_path [String] the file path containing annual utility bills
@@ -467,7 +467,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
   # Write and/or register to the runner the calculated monthly utility bills.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param args [Hash] Map of :argument_name => value
   # @param timestamps [Array<String>] array of monthly timestamps (e.g., 2007-01-01T00:00:00)
   # @param monthly_data [Array<String>] lines of monthly utility bill data

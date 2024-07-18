@@ -34,9 +34,9 @@ module XMLValidator
   #
   # @param hpxml_path [String] Path to the HPXML file
   # @param validator [OpenStudio::XMLValidator] OpenStudio XMLValidator object
-  # @param hpxml_doc [Oga::XML::Element] Root XML element of the HPXML document
+  # @param hpxml_element [Oga::XML::Element] Root XML element of the HPXML document
   # @return [Array<Array<String>, Array<String>>] list of error messages, list of warning messages
-  def self.validate_against_schematron(hpxml_path, validator, hpxml_doc)
+  def self.validate_against_schematron(hpxml_path, validator, hpxml_element)
     errors, warnings = [], []
     validator.validate(hpxml_path)
     if validator.fullValidationReport.is_initialized
@@ -60,7 +60,7 @@ module XMLValidator
           msg_txt = XMLHelper.get_value(n, 'svrl:text', :string)
 
           # Try to retrieve SystemIdentifier
-          context_element = hpxml_doc.xpath(current_context.gsub('h:', ''))[current_context_idx]
+          context_element = hpxml_element.xpath(current_context.gsub('h:', ''))[current_context_idx]
           if context_element.nil?
             fail "Could not find element at xpath '#{current_context}' with index #{current_context_idx}."
           end
