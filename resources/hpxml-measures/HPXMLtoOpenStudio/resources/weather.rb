@@ -1,29 +1,10 @@
 # frozen_string_literal: true
 
-# TODO
-class WeatherHeader
-  ATTRS ||= [:City, :StateProvinceRegion, :Latitude, :Longitude, :Elevation, :TimeZone, :WMONumber, :DSTStartDate, :DSTEndDate, :ActualYearStartDate, :RecordsPerHour, :NumRecords]
-  attr_accessor(*ATTRS)
-end
-
-# TODO
-class WeatherData
-  ATTRS ||= [:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :MonthlyAvgDrybulbs, :ShallowGroundAnnualTemp, :ShallowGroundMonthlyTemps,
-             :DeepGroundAnnualTemp, :DeepGroundSurfTempAmp1, :DeepGroundSurfTempAmp2, :DeepGroundPhaseShiftTempAmp1, :DeepGroundPhaseShiftTempAmp2,
-             :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs, :MainsAnnualTemp, :MainsDailyTemps, :MainsMonthlyTemps]
-  attr_accessor(*ATTRS)
-end
-
-# TODO
-class WeatherDesign
-  ATTRS ||= [:HeatingDrybulb, :CoolingDrybulb, :CoolingHumidityRatio, :DailyTemperatureRange]
-  attr_accessor(*ATTRS)
-end
-
-# TODO
+# Object that stores EnergyPlus weather information (either directly sourced from the EPW or
+# calculated based on the EPW data).
 class WeatherFile
   # @param epw_path [String] Path to the EPW weather file
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml [HPXML] HPXML object
   def initialize(epw_path:, runner:, hpxml: nil)
     @header = WeatherHeader.new
@@ -41,12 +22,12 @@ class WeatherFile
 
   private
 
-  # TODO
+  # Main method that processes the EPW file to extract any information we need.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param epw_path [String] Path to the EPW weather file
   # @param hpxml [HPXML] HPXML object
-  # @return [TODO] TODO
+  # @return [void]
   def process_epw(runner, epw_path, hpxml)
     epw_file = OpenStudio::EpwFile.new(epw_path, true)
 
@@ -120,30 +101,28 @@ class WeatherFile
     data.WSF = calc_ashrae_622_wsf(rowdata)
 
     if not epw_has_design_data
-      calc_design_info(runner, rowdata, data)
+      calc_design_info(runner, rowdata)
     end
   end
 
-  # TODO
+  # Calculates and stores heating/cooling degree days for different base temperatures.
   #
-  # @param dailydbs [TODO] TODO
-  # @return [TODO] TODO
+  # @param dailydbs [Array<Double>] Daily average drybulb temperatures (C)
+  # @return [void]
   def calc_heat_cool_degree_days(dailydbs)
-    # Calculates and stores heating/cooling degree days
     data.HDD65F = calc_degree_days(dailydbs, 65, true)
     data.HDD50F = calc_degree_days(dailydbs, 50, true)
     data.CDD65F = calc_degree_days(dailydbs, 65, false)
     data.CDD50F = calc_degree_days(dailydbs, 50, false)
   end
 
-  # TODO
+  # Calculates and returns degree days from a base temperature for either heating or cooling.
   #
-  # @param dailydbs [TODO] TODO
-  # @param base_temp_f [TODO] TODO
-  # @param is_heating [TODO] TODO
-  # @return [TODO] TODO
+  # @param dailydbs [Array<Double>] Daily average drybulb temperatures (C)
+  # @param base_temp_f [Double] Base drybulb temperature for the calculation (F)
+  # @param is_heating [Boolean] True if heating, false if cooling
+  # @return [Double] Degree days (deltaF)
   def calc_degree_days(daily_dbs, base_temp_f, is_heating)
-    # Calculates and returns degree days from a base temperature for either heating or cooling
     base_temp_c = UnitConversions.convert(base_temp_f, 'F', 'C')
 
     deg_days = []
@@ -165,16 +144,15 @@ class WeatherFile
     end
 
     deg_days = deg_days.sum(0.0)
-    return 1.8 * deg_days
+    return UnitConversions.convert(deg_days, 'deltac', 'deltaf')
   end
 
-  # TODO
+  # Calculates and stores avg daily highs and lows for each month.
   #
-  # @param daily_high_dbs [TODO] TODO
-  # @param daily_low_dbs [TODO] TODO
-  # @return [TODO] TODO
+  # @param daily_high_dbs [Array<Double>] Daily maximum drybulb temperatures (C)
+  # @param daily_low_dbs [Array<Double>] Daily minimum drybulb temperatures (C)
+  # @return [void]
   def calc_avg_monthly_highs_lows(daily_high_dbs, daily_low_dbs)
-    # Calculates and stores avg daily highs and lows for each month
     data.MonthlyAvgDailyHighDrybulbs = []
     data.MonthlyAvgDailyLowDrybulbs = []
 
@@ -199,10 +177,12 @@ class WeatherFile
     end
   end
 
-  # TODO
+  # Calculates the ASHRAE 62.2 Weather and Shielding Factor (WSF) value per report
+  # LBNL-5795E "Infiltration as Ventilation: Weather-Induced Dilution" if the value is
+  # not available in the ashrae_622_wsf.csv resource file.
   #
-  # @param rowdata [TODO] TODO
-  # @return [TODO] TODO
+  # @param rowdata [Array<Hash>] Weather data for each EPW record
+  # @return [Double] WSF value
   def calc_ashrae_622_wsf(rowdata)
     require 'csv'
     ashrae_csv = File.join(File.dirname(__FILE__), 'data', 'ashrae_622_wsf.csv')
@@ -215,23 +195,20 @@ class WeatherFile
     end
     return wsf unless wsf.nil?
 
-    # If not available in ashrae_622_wsf.csv...
-    # Calculates the wSF value per report LBNL-5795E "Infiltration as Ventilation: Weather-Induced Dilution"
-
     # Constants
-    c_d = 1.0       # unitless, discharge coefficient for ELA (at 4 Pa)
-    t_indoor = 22.0 # C, indoor setpoint year-round
-    n = 0.67        # unitless, pressure exponent
-    s = 0.7         # unitless, shelter class 4 for 1-story with flue, enhanced model
-    delta_p = 4.0   # Pa, pressure difference indoor-outdoor
-    u_min = 1.0     # m/s, minimum windspeed per hour
-    ela = 0.074     # m^2, effective leakage area (assumed)
-    cfa = 185.0     # m^2, conditioned floor area
-    h = 2.5         # m, single story height
-    g = 0.48        # unitless, wind speed multiplier for 1-story, enhanced model
-    c_s = 0.069     # (Pa/K)^n, stack coefficient, 1-story with flue, enhanced model
-    c_w = 0.142     # (Pa*s^2/m^2)^n, wind coefficient, bsmt slab 1-story with flue, enhanced model
-    roe = 1.2       # kg/m^3, air density (assumed at sea level)
+    c_d = 1.0       # discharge coefficient for ELA (at 4 Pa) (unitless)
+    t_indoor = 22.0 # indoor setpoint year-round (C)
+    n = 0.67        # pressure exponent (unitless)
+    s = 0.7         # shelter class 4 for 1-story with flue, enhanced model (unitless)
+    delta_p = 4.0   # pressure difference indoor-outdoor (Pa)
+    u_min = 1.0     # minimum windspeed per hour (m/s)
+    ela = 0.074     # effective leakage area (assumed) (m2)
+    cfa = 185.0     # conditioned floor area (m2)
+    h = 2.5         # single story height (m)
+    g = 0.48        # wind speed multiplier for 1-story, enhanced model (unitless)
+    c_s = 0.069     # stack coefficient, 1-story with flue, enhanced model ((Pa/K)^n)
+    c_w = 0.142     # wind coefficient, bsmt slab 1-story with flue, enhanced model ((Pa*s^2/m^2)^n)
+    roe = 1.2       # air density (assumed at sea level) (kg/m^3)
 
     c = c_d * ela * (2 / roe)**0.5 * delta_p**(0.5 - n) # m^3/(s*Pa^n), flow coefficient
 
@@ -252,10 +229,10 @@ class WeatherFile
     return wsf.round(2)
   end
 
-  # TODO
+  # Gets and stores various EPW header data.
   #
   # @param epw_file [OpenStudio::EpwFile] OpenStudio EpwFile object
-  # @return [TODO] TODO
+  # @return [void]
   def get_header_info_from_epw(epw_file)
     header.City = epw_file.city
     header.StateProvinceRegion = epw_file.stateProvinceRegion
@@ -271,7 +248,7 @@ class WeatherFile
       header.DSTEndDate = epw_file.daylightSavingEndDate.get
     end
     if epw_file.startDateActualYear.is_initialized
-      header.ActualYearStartDate = epw_file.startDateActualYear.get
+      header.ActualYear = epw_file.startDateActualYear.get
     end
     header.RecordsPerHour = epw_file.recordsPerHour
     header.NumRecords = epw_file.data.size
@@ -281,17 +258,15 @@ class WeatherFile
     end
   end
 
-  # TODO
+  # Stores design conditions from the EPW header if available. If there are multiple
+  # design conditions, retrieves the first one and issues a warning.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param epw_file [OpenStudio::EpwFile] OpenStudio EpwFile object
-  # @return [TODO] TODO
+  # @return [Boolean] True if the EPW file has design conditions in the header
   def get_design_info_from_epw(runner, epw_file)
-    # Retrieve design conditions from weather header
     epw_design_conditions = epw_file.designConditions
-    epw_has_design_data = false
     if epw_design_conditions.length > 0
-      epw_has_design_data = true
       epw_design_condition = epw_design_conditions[0]
       if epw_design_conditions.length > 1
         runner.registerWarning("Multiple EPW design conditions found; the first one (#{epw_design_condition.titleOfDesignCondition}) will be used.")
@@ -301,18 +276,18 @@ class WeatherFile
       design.DailyTemperatureRange = UnitConversions.convert(epw_design_condition.coolingDryBulbRange, 'deltaC', 'deltaF')
       press_psi = Psychrometrics.Pstd_fZ(header.Elevation)
       design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, UnitConversions.convert(epw_design_condition.coolingMeanCoincidentWetBulb1, 'C', 'F'), press_psi)
+      return true
     end
-    return epw_has_design_data
+    return false
   end
 
-  # TODO
+  # Calculates and stores design conditions from the EPW data. This is a fallback for
+  # when the EPW header does not have design conditions.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
-  # @param rowdata [TODO] TODO
-  # @param data [TODO] TODO
-  # @return [TODO] TODO
-  def calc_design_info(runner, rowdata, data)
-    # Calculate design conditions from weather data
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param rowdata [Array<Hash>] Weather data for each EPW record
+  # @return [void]
+  def calc_design_info(runner, rowdata)
     if not runner.nil?
       runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
     end
@@ -343,13 +318,11 @@ class WeatherFile
     design.HeatingDrybulb = UnitConversions.convert(heat99per_db, 'C', 'F')
   end
 
-  # TODO
+  # Calculates and stores shallow monthly/annual ground temperatures.
+  # This correlation is the same that is used in DOE-2's src\WTH.f file, subroutine GTEMP.
   #
-  # @return [TODO] TODO
+  # @return [void]
   def calc_shallow_ground_temperatures()
-    # Return shallow monthly/annual ground temperatures.
-    # This correlation is the same that is used in DOE-2's src\WTH.f file, subroutine GTEMP
-
     amon = [15.0, 46.0, 74.0, 95.0, 135.0, 166.0, 196.0, 227.0, 258.0, 288.0, 319.0, 349.0]
     po = 0.6
     dif = 0.025
@@ -378,14 +351,12 @@ class WeatherFile
     end
   end
 
-  # TODO
+  # Stores deep ground temperature data for Xing's model if there is a ground
+  # source heat pump in the building.
   #
   # @param hpxml [HPXML] HPXML object
-  # @return [TODO] TODO
+  # @return [void]
   def calc_deep_ground_temperatures(hpxml)
-    # Return deep annual ground temperature.
-    # Annual average ground temperature using Xing's model.
-
     # Avoid this lookup/calculation if there's no GSHP since there is a (small) runtime penalty.
     if !hpxml.nil?
       has_gshp = false
@@ -423,12 +394,12 @@ class WeatherFile
     data.DeepGroundPhaseShiftTempAmp2 = temperatures_amplitudes[4] # days
   end
 
-  # TODO
+  # Calculates and stores the mains water temperature using Burch & Christensen algorithm from
+  # "Towards Development of an Algorithm for Mains Water Temperature".
   #
-  # @param n_days [TODO] TODO
-  # @return [TODO] TODO
+  # @param n_days [Integer] Number of days (typically 365 or 366 if a leap year) in the EPW file
+  # @return [void]
   def calc_mains_temperatures(n_days)
-    # Algorithm based on Burch & Christensen "Towards Development of an Algorithm for Mains Water Temperature"
     deg_rad = Math::PI / 180
 
     tmains_ratio = 0.4 + 0.01 * (data.AnnualAvgDrybulb - 44)
@@ -456,4 +427,54 @@ class WeatherFile
     end
     data.MainsMonthlyTemps.map! { |temp| [32.0, temp].max } # ensure mains never gets below freezing. Algorithm will never provide water over boiling without a check
   end
+end
+
+# WeatherFile child object with EPW header data
+class WeatherHeader
+  attr_accessor(:City,                # [String] Weather station name of city
+                :StateProvinceRegion, # [String] Weather station state or province
+                :Latitude,            # [Double] Weather station latitude (+/- degrees.minutes)
+                :Longitude,           # [Double] Weather station longitude (+/- degrees.minutes)
+                :Elevation,           # [Double] Weather station elevation (ft)
+                :TimeZone,            # [Double] Weather station time zone (GTM +/-)
+                :WMONumber,           # [String] Weather station World Meteorological Organization (WMO) number
+                :DSTStartDate,        # [OpenStudio::Date] Daylight Saving start date
+                :DSTEndDate,          # [OpenStudio::Date] Daylight Saving end date
+                :ActualYear,          # [Integer] Calendar year if an AMY (Actual Meteorological Year) weather file
+                :RecordsPerHour,      # [Integer] Number of EPW datapoints per hour (typically 1)
+                :NumRecords)          # [Integer] Number of EPW datapoints (typically 8760 or 8784 if a leap year)
+end
+
+# WeatherFile child object with data calculated based on 8760 hourly EPW data or other sources
+class WeatherData
+  attr_accessor(:AnnualAvgDrybulb,             # [Double] Annual average drybulb temperature (F)
+                :AnnualMinDrybulb,             # [Double] Annual minimum drybulb temperature (F)
+                :AnnualMaxDrybulb,             # [Double] Annual maximum drybulb temperature (F)
+                :CDD50F,                       # [Double] Cooling degree days using 50 F base temperature (F-days)
+                :CDD65F,                       # [Double] Cooling degree days using 65 F base temperature (F-days)
+                :HDD50F,                       # [Double] Heating degree days using 50 F base temperature (F-days)
+                :HDD65F,                       # [Double] Heating degree days using 65 F base temperature (F-days)
+                :MonthlyAvgDrybulbs,           # [Array<Double>] Monthly average drybulb temperatures (F)
+                :ShallowGroundAnnualTemp,      # [Double] Shallow ground annual average drybulb temperature (F)
+                :ShallowGroundMonthlyTemps,    # [Array<Double>] Shallow ground monthly average drybulb temperatures (F)
+                :DeepGroundAnnualTemp,         # [Double] Deep ground annual average drybulb temperature (F)
+                :DeepGroundSurfTempAmp1,       # [Double] First ground temperature amplitude parameter for Xing model (deltaF)
+                :DeepGroundSurfTempAmp2,       # [Double] Second ground temperature amplitude parameter for Xing model (deltaF)
+                :DeepGroundPhaseShiftTempAmp1, # [Double] First phase shift of surface temperature amplitude for Xing model (days)
+                :DeepGroundPhaseShiftTempAmp2, # [Double] Second phase shift of surface temperature amplitude for Xing model (days)
+                :WSF,                          # [Double] Weather and Shielding Factor (WSF) from ASHRAE 62.2
+                :MonthlyAvgDailyHighDrybulbs,  # [Array<Double>] Average daily high drybulb temperatures for each month (F)
+                :MonthlyAvgDailyLowDrybulbs,   # [Array<Double>] Average daily low drybulb temperatures for each month (F)
+                :MainsAnnualTemp,              # [Double] Annual average mains water temperature (F)
+                :MainsDailyTemps,              # [Array<Double>] Daily average mains water temperatures (F)
+                :MainsMonthlyTemps)            # [Array<Double>] Monthly average mains water temperatures (F)
+end
+
+# WeatherFile child object with EPW data related to design load calculations
+# Either taken directly directly from the EPW header or calculated based on the 8760 hourly data
+class WeatherDesign
+  attr_accessor(:HeatingDrybulb,        # [Double] 99% heating design drybulb temperature (F)
+                :CoolingDrybulb,        # [Double] 1% cooling design drybulb temperature (F)
+                :CoolingHumidityRatio,  # [Double] Humidity ratio corresponding to cooling mean coincident wetbulb temperature (lbm/lbm)
+                :DailyTemperatureRange) # [Double] Difference between daily high/low outdoor drybulb temperatures during the hottest month (deltaF)
 end

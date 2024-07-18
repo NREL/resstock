@@ -5,7 +5,7 @@ module Geometry
   # Tear down the existing model if it exists.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @return [TODO] TODO
   def self.tear_down_model(model:,
                            runner:)
@@ -489,12 +489,12 @@ module Geometry
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param num_occ [TODO] TODO
   # @param space [OpenStudio::Model::Space] an OpenStudio::Model::Space object
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [void]
   def self.apply_occupants(model, runner, hpxml_bldg, num_occ, space, schedules_file, unavailable_periods)
     occ_gain, _hrs_per_day, sens_frac, _lat_frac = get_occupancy_default_values()

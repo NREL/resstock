@@ -5,13 +5,13 @@ module MiscLoads
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param plug_load [TODO] TODO
   # @param obj_name [String] Name for the OpenStudio object
   # @param conditioned_space [TODO] TODO
   # @param apply_ashrae140_assumptions [TODO] TODO
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [TODO] TODO
   def self.apply_plug(model, runner, plug_load, obj_name, conditioned_space, apply_ashrae140_assumptions, schedules_file, unavailable_periods)
     kwh = 0
@@ -74,12 +74,12 @@ module MiscLoads
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param fuel_load [TODO] TODO
   # @param obj_name [String] Name for the OpenStudio object
   # @param conditioned_space [TODO] TODO
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [TODO] TODO
   def self.apply_fuel(model, runner, fuel_load, obj_name, conditioned_space, schedules_file, unavailable_periods)
     therm = 0
@@ -133,12 +133,12 @@ module MiscLoads
 
   # TODO
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param pool_or_spa [TODO] TODO
   # @param conditioned_space [TODO] TODO
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [TODO] TODO
   def self.apply_pool_or_permanent_spa_heater(runner, model, pool_or_spa, conditioned_space, schedules_file, unavailable_periods)
     return if pool_or_spa.heater_type == HPXML::TypeNone
@@ -222,12 +222,12 @@ module MiscLoads
 
   # TODO
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param pool_or_spa [TODO] TODO
   # @param conditioned_space [TODO] TODO
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [TODO] TODO
   def self.apply_pool_or_permanent_spa_pump(runner, model, pool_or_spa, conditioned_space, schedules_file, unavailable_periods)
     pump_kwh = 0

@@ -5,7 +5,7 @@ module HotWaterAndAppliances
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
@@ -15,7 +15,7 @@ module HotWaterAndAppliances
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param plantloop_map [TODO] TODO
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @param unit_multiplier [Integer] Number of similar dwelling units
   # @param apply_ashrae140_assumptions [TODO] TODO
   # @return [TODO] TODO
@@ -891,7 +891,7 @@ module HotWaterAndAppliances
   # @param col_name [TODO] TODO
   # @param obj_name [String] Name for the OpenStudio object
   # @param refrigerator_or_freezer [TODO] TODO
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [TODO] TODO
   def self.refrigerator_or_freezer_coefficients_schedule(model, col_name, obj_name, refrigerator_or_freezer, unavailable_periods)
     # Create availability sensor
@@ -977,7 +977,7 @@ module HotWaterAndAppliances
       pe_ratio = hot_water_distribution.standard_piping_length / ref_pipe_l
     elsif hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
       ref_loop_l = get_default_recirc_loop_length(ref_pipe_l)
-      pe_ratio = hot_water_distribution.recirculation_piping_length / ref_loop_l
+      pe_ratio = hot_water_distribution.recirculation_piping_loop_length / ref_loop_l
     end
     e_waste = oew_fact * (1.0 - ocd_eff) + sew_fact * pe_ratio
     return (e_waste + 128.0) / 160.0

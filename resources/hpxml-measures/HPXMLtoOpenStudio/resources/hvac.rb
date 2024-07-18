@@ -11,7 +11,7 @@ module HVAC
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param cooling_system [TODO] TODO
   # @param heating_system [TODO] TODO
   # @param sequential_cool_load_fracs [TODO] TODO
@@ -323,7 +323,7 @@ module HVAC
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param heat_pump [TODO] TODO
   # @param sequential_heat_load_fracs [TODO] TODO
@@ -588,7 +588,7 @@ module HVAC
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param heating_system [TODO] TODO
   # @param sequential_heat_load_fracs [TODO] TODO
   # @param control_zone [OpenStudio::Model::ThermalZone] Conditioned space thermal zone
@@ -891,11 +891,11 @@ module HVAC
 
   # TODO
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param dehumidifiers [TODO] TODO
   # @param conditioned_space [TODO] TODO
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @param unit_multiplier [Integer] Number of similar dwelling units
   # @return [TODO] TODO
   def self.apply_dehumidifiers(runner, model, dehumidifiers, conditioned_space, unavailable_periods, unit_multiplier)
@@ -979,12 +979,12 @@ module HVAC
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param ceiling_fan [TODO] TODO
   # @param conditioned_space [TODO] TODO
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [TODO] TODO
   def self.apply_ceiling_fans(model, runner, weather, ceiling_fan, conditioned_space, schedules_file,
                               unavailable_periods)
@@ -1039,7 +1039,7 @@ module HVAC
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param hvac_control [TODO] TODO
   # @param conditioned_zone [TODO] TODO
@@ -1100,7 +1100,7 @@ module HVAC
 
   # TODO
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param heating_days [TODO] TODO
   # @param cooling_days [TODO] TODO
   # @param htg_weekday_setpoints [TODO] TODO
@@ -2179,7 +2179,7 @@ module HVAC
   # @param obj_name [String] Name for the OpenStudio object
   # @param heat_pump [TODO] TODO
   # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @return [TODO] TODO
   def self.create_supp_heating_coil(model, obj_name, heat_pump, hpxml_header = nil, runner = nil, hpxml_bldg = nil)
@@ -3745,7 +3745,7 @@ module HVAC
   # Creates EMS program to determine and control the stage that can reach the maximum power constraint.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param air_loop_unitary [OpenStudio::Model::AirLoopHVACUnitarySystem] Air loop for the HVAC system
   # @param control_zone [OpenStudio::Model::ThermalZone] Conditioned space thermal zone
   # @param heating_system [HPXML::HeatingSystem or HPXML::HeatPump] HPXML Heating System or HPXML Heat Pump object
@@ -4316,7 +4316,7 @@ module HVAC
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param fractions [TODO] TODO
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [TODO] TODO
   def self.get_sequential_load_schedule(model, fractions, unavailable_periods)
     if fractions.nil?
@@ -4396,7 +4396,7 @@ module HVAC
   # TODO
   #
   # @param heat_pump [TODO] TODO
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @return [TODO] TODO
   def self.set_heat_pump_temperatures(heat_pump, runner = nil)
     hp_ap = heat_pump.additional_properties

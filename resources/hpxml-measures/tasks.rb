@@ -331,7 +331,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
     # --------------------- #
 
     # General logic for all files
-    hpxml_bldg.site.fuels = [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas]
+    hpxml_bldg.site.available_fuels = [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas]
 
     # Logic that can only be applied based on the file name
     if ['base-schedules-simple.xml',
@@ -2036,7 +2036,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                                            related_hvac_idref: 'HeatingSystem1',
                                            temperature: 125.0)
       hpxml_bldg.solar_thermal_systems.add(id: "SolarThermalSystem#{hpxml_bldg.solar_thermal_systems.size + 1}",
-                                           system_type: HPXML::SolarThermalSystemType,
+                                           system_type: HPXML::SolarThermalSystemTypeHotWater,
                                            water_heating_system_idref: nil, # Apply to all water heaters
                                            solar_fraction: 0.65)
     end

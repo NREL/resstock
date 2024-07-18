@@ -59,7 +59,7 @@ module Psychrometrics
   #
   # Source: 2009 ASHRAE Handbook
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param p [Double] pressure (psia)
   # @return [Double] saturated vapor temperature (F)
   def self.Tsat_fP(runner, p)
@@ -98,7 +98,7 @@ module Psychrometrics
   #
   # Source: Based on TAIRSAT f77 code in ResAC (Brandemuehl)
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param h [Double] enthalpy (Btu/lbm)
   # @param p [Double] pressure (psia)
   # @return [Double] drybulb temperature (F)
@@ -201,7 +201,7 @@ module Psychrometrics
   #
   # Source: Based on WETBULB f77 code in ResAC (Brandemuehl)
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param tdb [Double] drybulb temperature (F)
   # @param w [Double] humidity ratio (lbm/lbm)
   # @param p [Double] pressure (psia)
@@ -408,7 +408,7 @@ module Psychrometrics
 
   # Calculate the wetbulb temperature at a given drybulb temperature, relative humidity, and pressure.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param tdb [Double] drybulb temperature (F)
   # @param r [Double] relative humidity (frac)
   # @param p [Double] pressure (psia)
@@ -419,7 +419,8 @@ module Psychrometrics
     return twb
   end
 
-  # Find the coil Ao factor at the given incoming air state (entering drybulb and wetbulb) and CFM, total capacity, and SHR.
+  # Calculate the coil Ao factor at the given incoming air state (entering drybulb and wetbulb) and CFM, total capacity, and SHR.
+  # The Ao factor is the effective coil surface area as calculated using the relation BF = exp(-NTU) where NTU = Ao/(m*cp).
   #
   # Source: EnergyPlus source code
   #
@@ -434,12 +435,13 @@ module Psychrometrics
     bf = self.CoilBypassFactor(dBin, p, qdot, cfm, shr, win)
     mfr = UnitConversions.convert(self.CalculateMassflowRate(dBin, p, cfm, win), 'lbm/min', 'kg/s')
 
-    ntu = -1.0 * Math.log(bf)
+    ntu = -1.0 * Math.log(bf) # Number of Transfer Units
     ao = ntu * mfr
     return ao
   end
 
-  # Find the coil bypass factor at the given incoming air state (entering drybulb and wetbulb) and CFM, total capacity, and SHR.
+  # Calculate the coil bypass factor at the given incoming air state (entering drybulb and wetbulb) and CFM, total capacity, and SHR.
+  # The bypass factor is analogous to the "ineffectiveness" (1-ε) of a heat exchanger.
   #
   # Source: EnergyPlus source code
   #
@@ -513,6 +515,8 @@ module Psychrometrics
   end
 
   # Calculate the coil SHR at the given incoming air state, CFM, total capacity, and coil Ao factor.
+  # Uses the apparatus dewpoint (ADP)/bypass factor (BF) approach described in the EnergyPlus
+  # Engineering Reference documentation.
   #
   # Source: EnergyPlus source code
   #

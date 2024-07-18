@@ -4,7 +4,7 @@
 module Lighting
   # TODO
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param spaces [Hash] keys are locations and values are OpenStudio::Model::Space objects
   # @param lighting_groups [TODO] TODO
@@ -12,7 +12,7 @@ module Lighting
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
-  # @param unavailable_periods [HPXML::UnavailablePeriods] HPXML UnavailablePeriods object
+  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @param unit_multiplier [Integer] Number of similar dwelling units
   # @return [TODO] TODO
   def self.apply(runner, model, spaces, lighting_groups, lighting, eri_version, schedules_file, cfa,

@@ -2366,7 +2366,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     solar_thermal_system_type_choices = OpenStudio::StringVector.new
     solar_thermal_system_type_choices << 'none'
-    solar_thermal_system_type_choices << HPXML::SolarThermalSystemType
+    solar_thermal_system_type_choices << HPXML::SolarThermalSystemTypeHotWater
 
     solar_thermal_collector_loop_type_choices = OpenStudio::StringVector.new
     solar_thermal_collector_loop_type_choices << HPXML::SolarThermalLoopTypeDirect
@@ -2374,10 +2374,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     solar_thermal_collector_loop_type_choices << HPXML::SolarThermalLoopTypeThermosyphon
 
     solar_thermal_collector_type_choices = OpenStudio::StringVector.new
-    solar_thermal_collector_type_choices << HPXML::SolarThermalTypeEvacuatedTube
-    solar_thermal_collector_type_choices << HPXML::SolarThermalTypeSingleGlazing
-    solar_thermal_collector_type_choices << HPXML::SolarThermalTypeDoubleGlazing
-    solar_thermal_collector_type_choices << HPXML::SolarThermalTypeICS
+    solar_thermal_collector_type_choices << HPXML::SolarThermalCollectorTypeEvacuatedTube
+    solar_thermal_collector_type_choices << HPXML::SolarThermalCollectorTypeSingleGlazing
+    solar_thermal_collector_type_choices << HPXML::SolarThermalCollectorTypeDoubleGlazing
+    solar_thermal_collector_type_choices << HPXML::SolarThermalCollectorTypeICS
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('solar_thermal_system_type', solar_thermal_system_type_choices, true)
     arg.setDisplayName('Solar Thermal: System Type')
@@ -2401,7 +2401,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('solar_thermal_collector_type', solar_thermal_collector_type_choices, true)
     arg.setDisplayName('Solar Thermal: Collector Type')
     arg.setDescription('The collector type of the solar thermal system.')
-    arg.setDefaultValue(HPXML::SolarThermalTypeEvacuatedTube)
+    arg.setDefaultValue(HPXML::SolarThermalCollectorTypeEvacuatedTube)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('solar_thermal_collector_azimuth', true)
@@ -3471,7 +3471,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
   # Define what happens when the measure is run.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param user_arguments [OpenStudio::Measure::OSArgumentMap] OpenStudio measure arguments
   # @return [Boolean] true if successful
   def run(model, runner, user_arguments)
@@ -3794,7 +3794,7 @@ end
 module HPXMLFile
   # Create the closed-form geometry, and then call individual set_xxx methods
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param args [Hash] Map of :argument_name => value
   # @param epw_path [String] Path to the EPW weather file
@@ -3923,7 +3923,7 @@ module HPXMLFile
 
   # Check for errors in hpxml, and validate hpxml_doc against hpxml_path
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml [HPXML] HPXML object
   # @param hpxml_doc [Oga::XML::Element] Root XML element of the HPXML document
   # @param hpxml_path [TODO] TODO
@@ -3964,7 +3964,7 @@ module HPXMLFile
 
   # Create 3D geometry (surface, subsurfaces) for a given unit type
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param args [Hash] Map of :argument_name => value
   # @return [Boolean] True if successful
@@ -4058,7 +4058,7 @@ module HPXMLFile
   # - emissions scenarios
   # - utility bill scenarios
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml [HPXML] HPXML object
   # @param args [Hash] Map of :argument_name => value
   # @return [Boolean] true if no errors, otherwise false
@@ -6571,7 +6571,7 @@ module HPXMLFile
       standard_piping_length = args[:hot_water_distribution_standard_piping_length]
     else
       recirculation_control_type = args[:hot_water_distribution_recirc_control_type]
-      recirculation_piping_length = args[:hot_water_distribution_recirc_piping_length]
+      recirculation_piping_loop_length = args[:hot_water_distribution_recirc_piping_length]
       recirculation_branch_piping_length = args[:hot_water_distribution_recirc_branch_piping_length]
       recirculation_pump_power = args[:hot_water_distribution_recirc_pump_power]
     end
@@ -6580,7 +6580,7 @@ module HPXMLFile
                                            system_type: args[:hot_water_distribution_system_type],
                                            standard_piping_length: standard_piping_length,
                                            recirculation_control_type: recirculation_control_type,
-                                           recirculation_piping_length: recirculation_piping_length,
+                                           recirculation_piping_loop_length: recirculation_piping_loop_length,
                                            recirculation_branch_piping_length: recirculation_branch_piping_length,
                                            recirculation_pump_power: recirculation_pump_power,
                                            pipe_r_value: args[:hot_water_distribution_pipe_r],
@@ -6632,8 +6632,8 @@ module HPXMLFile
       collector_azimuth = args[:solar_thermal_collector_azimuth]
       latitude = HPXMLDefaults.get_default_latitude(args[:site_latitude], weather) unless weather.nil?
       collector_tilt = Geometry.get_absolute_tilt(tilt_str: args[:solar_thermal_collector_tilt], roof_pitch: args[:geometry_roof_pitch], latitude: latitude)
-      collector_frta = args[:solar_thermal_collector_rated_optical_efficiency]
-      collector_frul = args[:solar_thermal_collector_rated_thermal_losses]
+      collector_rated_optical_efficiency = args[:solar_thermal_collector_rated_optical_efficiency]
+      collector_rated_thermal_losses = args[:solar_thermal_collector_rated_thermal_losses]
       storage_volume = args[:solar_thermal_storage_volume]
     end
 
@@ -6648,8 +6648,8 @@ module HPXMLFile
                                          collector_type: collector_type,
                                          collector_azimuth: collector_azimuth,
                                          collector_tilt: collector_tilt,
-                                         collector_frta: collector_frta,
-                                         collector_frul: collector_frul,
+                                         collector_rated_optical_efficiency: collector_rated_optical_efficiency,
+                                         collector_rated_thermal_losses: collector_rated_thermal_losses,
                                          storage_volume: storage_volume,
                                          water_heating_system_idref: hpxml_bldg.water_heating_systems[0].id,
                                          solar_fraction: solar_fraction)

@@ -18,12 +18,12 @@ The schedule CSV file contains the following columns:
 * `hot_water_dishwasher`
 * `hot_water_clothes_washer`
 * `hot_water_fixtures`
-* `sleep` (exported only when "debug" mode is enabled)
+* `sleeping` (exported only when "debug" mode is enabled)
 
 Each of the columns, except `occupants`, represent schedule values (kW for power schedules, and gallons per minute for water schedules) normalized using universal maximum values found in `constants.rb`.
 
 The `occupants` column represents the fractional percent of occupants present out of the total number of occupants assigned to the unit.
-The `sleep` column represents the fractional percent of the total number of occupants who are sleeping.
+The `sleeping` column represents the fractional percent of the total number of occupants who are sleeping.
 
 There are the same number of rows as the total simulation time-step (e.g., 35040 if 15-min, 8760 if hourly [8784, if leap year]).
 

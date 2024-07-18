@@ -4,7 +4,7 @@
 module Geometry
   # Create a 3D representation of a single-family detached home using the following arguments.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param geometry_unit_cfa [Double] conditioned floor area (ft2)
   # @param geometry_average_ceiling_height [Double] average ceiling height (ft)
@@ -1237,7 +1237,7 @@ module Geometry
 
   # Place a door subsurface on an exterior wall surface (with enough area) prioritized by front, then back, then left, then right, and lowest story.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param door_area [Double] the area of the opaque door(s) (ft2)
   # @return [Boolean] true if successful
@@ -1373,7 +1373,7 @@ module Geometry
 
   # Place window subsurfaces on exterior wall surfaces (or skylight subsurfaces on roof surfaces) using target facade areas based on either window to wall area ratios or window areas.
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param window_front_wwr [Double] ratio of window to wall area for the unit's front facade (frac)
   # @param window_back_wwr [Double] ratio of window to wall area for the unit's back facade (frac)
@@ -2279,7 +2279,7 @@ module Geometry
   # @param max_single_window_area [Double] maximum area for a single window (ft2)
   # @param facade [String] front, back, left, or right
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @return [Boolean] true if successful
   def self.add_windows_to_wall(surface:,
                                window_area:,

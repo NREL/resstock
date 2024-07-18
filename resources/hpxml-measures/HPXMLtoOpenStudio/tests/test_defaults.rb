@@ -3134,7 +3134,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
     # Test defaults w/ recirculation & conditioned basement
     hpxml, hpxml_bldg = _create_hpxml('base-dhw-recirc-demand.xml')
-    hpxml_bldg.hot_water_distributions[0].recirculation_piping_length = nil
+    hpxml_bldg.hot_water_distributions[0].recirculation_piping_loop_length = nil
     hpxml_bldg.hot_water_distributions[0].recirculation_branch_piping_length = nil
     hpxml_bldg.hot_water_distributions[0].recirculation_pump_power = nil
     hpxml_bldg.hot_water_distributions[0].pipe_r_value = nil
@@ -5210,7 +5210,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def _test_default_mech_vent_values(hpxml_bldg, is_shared_system, hours_in_operation, fan_power, flow_rate,
                                      cfis_vent_mode_airflow_fraction = nil, cfis_addtl_runtime_operating_mode = nil)
-    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation && !f.is_cfis_supplemental_fan? }
+    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation && !f.is_cfis_supplemental_fan }
 
     assert_equal(is_shared_system, vent_fan.is_shared_system)
     assert_equal(hours_in_operation, vent_fan.hours_in_operation)
@@ -5229,7 +5229,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
   end
 
   def _test_default_mech_vent_suppl_values(hpxml_bldg, is_shared_system, hours_in_operation, fan_power, flow_rate)
-    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation && f.is_cfis_supplemental_fan? }
+    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation && f.is_cfis_supplemental_fan }
 
     assert_equal(is_shared_system, vent_fan.is_shared_system)
     if hours_in_operation.nil?
@@ -5326,7 +5326,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
   end
 
   def _test_default_recirc_distribution_values(hot_water_distribution, piping_length, branch_piping_length, pump_power, pipe_r_value, weekday_sch, weekend_sch, monthly_mults)
-    assert_in_epsilon(piping_length, hot_water_distribution.recirculation_piping_length, 0.01)
+    assert_in_epsilon(piping_length, hot_water_distribution.recirculation_piping_loop_length, 0.01)
     assert_in_epsilon(branch_piping_length, hot_water_distribution.recirculation_branch_piping_length, 0.01)
     assert_in_epsilon(pump_power, hot_water_distribution.recirculation_pump_power, 0.01)
     assert_equal(pipe_r_value, hot_water_distribution.pipe_r_value)

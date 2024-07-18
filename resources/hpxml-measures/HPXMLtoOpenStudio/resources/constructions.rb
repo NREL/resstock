@@ -2370,7 +2370,7 @@ module Constructions
 
   # TODO
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param surfaces [Array<OpenStudio::Model::Surface>] array of OpenStudio::Model::Surface objects
   # @param wall_id [TODO] TODO
@@ -2584,7 +2584,7 @@ module Constructions
 
   # TODO
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param surface [OpenStudio::Model::Surface] an OpenStudio::Model::Surface object
   # @param floor_id [TODO] TODO
@@ -2933,7 +2933,7 @@ module Constructions
 
   # TODO
   #
-  # @param runner [OpenStudio::Measure::OSRunner] OpenStudio Runner object
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param surfaces [Array<OpenStudio::Model::Surface>] array of OpenStudio::Model::Surface objects
   # @param inside_film [TODO] TODO
   # @param outside_film [TODO] TODO
