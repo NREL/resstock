@@ -379,6 +379,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Whether to (a) set upper limits for autosized capacities and (b) adjust the blower fan efficiency.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_distribution_min_max_range', false)
+    arg.setDisplayName('HVAC Distribution: Min Max Range')
+    arg.setDescription('Fraction of range between upper limits for autosized capacities and MaxLoad.')
+    args << arg
+
     return args
   end
 

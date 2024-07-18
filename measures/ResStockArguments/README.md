@@ -5666,6 +5666,17 @@ Whether to (a) set upper limits for autosized capacities and (b) adjust the blow
 
 <br/>
 
+**HVAC Distribution: Min Max Range**
+
+Fraction of range between upper limits for autosized capacities and MaxLoad.
+
+- **Name:** ``hvac_distribution_min_max_range``
+- **Type:** ``Double``
+
+- **Required:** ``false``
+
+<br/>
+
 
 
 
