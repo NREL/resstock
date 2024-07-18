@@ -3,7 +3,7 @@ os_version: 3.8.0
 os_sha: f953b6fcaf
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory:  n_1000_20240628_2007_v1
+output_directory:  n_1000_20240718_2007_v1
 # weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
@@ -169,7 +169,7 @@ upgrades:
         costs: *dummy_cost_values
         lifetime: *dummy_lifetime_value
       - *hvac_cooling_efficiency_non_ducted_heat_pump
-      - &hvac_performance-data_mshp_case_7
+      - &hvac_performance_data_mshp_case_7
         option: HVAC Detailed Performance Data|CCHP Min Non-Ducted
         apply_logic: *nonducted_MSHP_apply_logic
         
@@ -195,9 +195,28 @@ upgrades:
         costs: *dummy_cost_values
         lifetime: *dummy_lifetime_value
       - *hvac_cooling_efficiency_non_ducted_heat_pump
-      - &hvac_performance-data_mshp_case_8
+      - &hvac_performance_data_mshp_case_8
         option: HVAC Detailed Performance Data|CCHP Non-Ducted
         apply_logic: *nonducted_MSHP_apply_logic
+
+  - upgrade_name: Case 14a - Heat Pump Sizing – Typical Cold Climate
+
+    package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+    options:
+      - *hvac_heating_efficiency_ashp_case_8
+      - *hvac_cooling_efficiency_ducted_heat_pump
+      - &hvac_distribution_ashp_25_min_max_range
+        option: HVAC Distribution|25 Min Max Range
+        apply_logic: *ducted_ASHP_apply_logic
+      - *hvac_performance_data_ashp_case_8
+
+      - *hvac_heating_efficiency_mshp_case_8
+      - *hvac_cooling_efficiency_non_ducted_heat_pump
+      - &hvac_distribution_mshp_50_min_max_range
+        option: HVAC Distribution|50 Min Max Range
+        apply_logic: *nonducted_MSHP_apply_logic
+      - *hvac_performance_data_mshp_case_8
 
 
 eagle:

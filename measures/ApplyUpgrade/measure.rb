@@ -639,8 +639,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
           return false
         end
         maximum_capacity = capacities['heat_pump_heating_capacity']
-
         heat_pump_capacity = minimum_capacity + Float(min_max_range) * (maximum_capacity - minimum_capacity)
+
         measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = heat_pump_capacity
         measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = heat_pump_capacity
         measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology'] = heat_pump_sizing_methodology
