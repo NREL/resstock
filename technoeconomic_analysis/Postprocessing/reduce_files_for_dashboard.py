@@ -10,6 +10,12 @@ from typing import Optional
 import pandas as pd
 
 
+def get_upgrade_cost_by_category_columns(df):
+    cols = [x for x in df.columns if 
+        "upgrade_cost_" in x
+    ]
+    return cols
+
 def get_metadata_columns(df):
     cols = [x for x in df.columns if 
         ("build_existing_model." in x) and ("simulation_control" not in x) and ("utility_bill" not in x)
@@ -58,7 +64,9 @@ def reduce_columns_in_files(csv_dir: Path):
 
         cols = get_metric_columns()
         if "results_up00" in file_name:
-            cols += get_metadata_columns(df) 
+            cols += get_metadata_columns(df)
+        else:
+            cols += get_upgrade_cost_by_category_columns(df)
 
         df[cols].to_csv(output_dir / (file_name+".csv"), index=False)
 
