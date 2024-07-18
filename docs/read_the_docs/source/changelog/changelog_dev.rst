@@ -10,7 +10,7 @@ Development Changelog
         :tags: workflow, refactor, bugfix
         :pullreq: 1253
 
-        **Date**: 2024-07-17
+        **Date**: 2024-07-18
 
         Title:
         Convert UpgradeCosts measure to ModelMeasure
