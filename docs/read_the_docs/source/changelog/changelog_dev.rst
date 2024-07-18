@@ -84,6 +84,22 @@ Development Changelog
 
 
     .. change::
+        :tags: bugfix, characteristics
+        :pullreq: 1265
+        :tickets: 1236
+
+        **Date**: 2024-07-08
+
+        Title:
+        Fix Hot Water Fixtures multipliers
+
+        Description:
+        Mean-shift hot water usage multipliers distribution by increasing weighted average from 0.8 to 1.0 in Hot Water Fixtures.tsv.
+
+        Assignees: Lixi Liu
+
+
+    .. change::
         :tags: documentation, changelog, feature
         :pullreq: 1244
 
