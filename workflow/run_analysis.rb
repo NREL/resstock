@@ -212,7 +212,8 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
     'timeseries_timestamp_convention' => 'end',
     'timeseries_num_decimal_places' => 3,
     'add_timeseries_dst_column' => true,
-    'add_timeseries_utc_column' => true
+    'add_timeseries_utc_column' => true,
+    'user_output_variables' => ''
   }
   sim_out_rep_args.update(workflow_args['simulation_output_report'])
 
@@ -285,6 +286,10 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
           'add_component_loads' => add_component_loads,
           'skip_validation' => true
         }
+      },
+      {
+        'measure_dir_name' => 'UpgradeCosts',
+        'arguments' => { 'debug' => debug }
       }
     ]
 
@@ -296,18 +301,10 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
         'arguments' => sim_out_rep_args
       },
       {
-        'measure_dir_name' => 'ReportHPXMLOutput',
-        'arguments' => { 'output_format' => 'csv' }
-      },
-      {
         'measure_dir_name' => 'ReportUtilityBills',
         'arguments' => { 'output_format' => 'csv',
                          'include_annual_bills' => true,
                          'include_monthly_bills' => false }
-      },
-      {
-        'measure_dir_name' => 'UpgradeCosts',
-        'arguments' => { 'debug' => debug }
       },
       {
         'measure_dir_name' => 'ServerDirectoryCleanup',

@@ -171,11 +171,13 @@ def _test_upgrade_contents(contents, testing = false)
   return false
 end
 
-def _test_timeseries_columns(timeseries, testing = false)
+def _test_timeseries_columns(actual_columns, testing = false)
   expected_columns = expected_timeseries_columns(testing)
 
-  return true if (expected_columns - timeseries).empty?
+  expected_extras = expected_columns - actual_columns
+  return true if expected_extras.empty?
 
+  puts "Timeseries Name, expected - actual: #{expected_extras}"
   return false
 end
 

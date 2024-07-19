@@ -669,8 +669,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
 
       # Infiltration adjustment for SFA/MF units
-      # Calculate exposed wall area ratio for the unit (unit exposed wall area
-      # divided by average unit exposed wall area)
+      # Calculate exposed wall area ratio for the unit (unit exposed wall area divided by average unit exposed wall area)
       if (n_units_per_floor <= 2) || (n_units_per_floor == 4 && has_rear_units) # No middle unit(s)
         exposed_wall_area_ratio = 1.0 # all units have same exterior wall area
       else # Has middle unit(s)
@@ -678,18 +677,14 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           n_end_units = 4 * n_floors
           n_mid_units = n_units - n_end_units
           n_bldg_fronts_backs = n_end_units + n_mid_units
-          n_bldg_sides = n_end_units
+          n_unit_fronts_backs = 1
         else
           n_end_units = 2 * n_floors
           n_mid_units = n_units - n_end_units
           n_bldg_fronts_backs = n_end_units * 2 + n_mid_units * 2
-          n_bldg_sides = n_end_units
-        end
-        if has_rear_units
-          n_unit_fronts_backs = 1
-        else
           n_unit_fronts_backs = 2
         end
+        n_bldg_sides = n_end_units
         if ['Middle'].include? horiz_location
           n_unit_sides = 0
         elsif ['Left', 'Right'].include? horiz_location
