@@ -809,6 +809,7 @@ class HVAC
       d.energy_factor, d.capacity = apply_dehumidifier_ief_to_ef_inputs(d.type, w_coeff, ef_coeff, d.integrated_energy_factor, d.capacity)
     end
 
+    # Combine HPXML dehumidifiers into a single EnergyPlus dehumidifier
     total_capacity = dehumidifiers.map { |d| d.capacity }.sum
     avg_energy_factor = dehumidifiers.map { |d| d.energy_factor * d.capacity }.sum / total_capacity
     total_fraction_served = dehumidifiers.map { |d| d.fraction_served }.sum
@@ -3625,9 +3626,9 @@ class HVAC
         supp_sys_power_level = [supp_sys_capacity, q_dot_defrost].min / supp_sys_efficiency # Assume perfect tempering
       end
     else
+      supp_sys_fuel = heat_pump.backup_heating_fuel
       is_ducted = !heat_pump.distribution_system_idref.nil?
       if is_ducted
-        supp_sys_fuel = heat_pump.backup_heating_fuel
         supp_sys_capacity = UnitConversions.convert(heat_pump.backup_heating_capacity, 'Btu/hr', 'W')
         supp_sys_efficiency = heat_pump.backup_heating_efficiency_percent
         supp_sys_efficiency = heat_pump.backup_heating_efficiency_afue if supp_sys_efficiency.nil?

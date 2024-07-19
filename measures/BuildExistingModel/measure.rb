@@ -5,10 +5,8 @@
 
 require 'openstudio'
 require 'pathname'
+require_relative '../../resources/buildstock'
 require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
-
-# in addition to the above requires, this measure is expected to run in an
-# environment with resstock/resources/buildstock.rb loaded
 
 # start the measure
 class BuildExistingModel < OpenStudio::Measure::ModelMeasure
@@ -235,13 +233,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    Version.check_buildstockbatch_version()
+
     # assign the user inputs to variables
     args = runner.getArgumentValues(arguments(model), user_arguments)
 
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources'))
     characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/housing_characteristics'))
-    buildstock_file = File.join(resources_dir, 'buildstock.rb')
     measures_dir = File.join(File.dirname(__FILE__), '../../measures')
     hpxml_measures_dir = File.join(File.dirname(__FILE__), '../../resources/hpxml-measures')
     lookup_file = File.join(resources_dir, 'options_lookup.tsv')
@@ -256,11 +255,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       hes_ruleset_measures_dir = File.join(os_hescore_directory, 'rulesets')
       run_hescore_workflow = true
     end
-
-    # Load buildstock_file
-    require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
-
-    Version.check_buildstockbatch_version()
 
     # Check file/dir paths exist
     check_dir_exists(resources_dir, runner)
@@ -369,6 +363,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       # Assign ResStockArgument's runner arguments to BuildResidentialHPXML
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
+        register_value(runner, step_value.name, value) if Constants.arguments_to_register.include?(step_value.name)
         next if value == ''
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
@@ -402,6 +397,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
+      # Get software program used and version
       measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
       measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version
 
