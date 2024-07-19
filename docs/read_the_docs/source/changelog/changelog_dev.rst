@@ -10,7 +10,7 @@ Development Changelog
         :tags: workflow, refactor, bugfix
         :pullreq: 1253
 
-        **Date**: 2024-07-18
+        **Date**: 2024-07-19
 
         Title:
         Convert UpgradeCosts measure to ModelMeasure
@@ -25,6 +25,9 @@ Development Changelog
         When using measure_only, the results.json file is not produced.
         Therefore, no registered values would show up in the results csv.
         Now we use data_point_out.json, which is produced when using measures_only.
+
+        Update buildstock.rb and sample yml files with workflow generator version tag.
+        This enables us to point to buildstockbatch's develop branch for CI tests.
 
         buildstockbatch: `pull request 458 <https://github.com/NREL/buildstockbatch/pull/458>`_
 
