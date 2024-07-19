@@ -40,8 +40,9 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
   cfg_upgrade_names = ['Baseline']
   cfg_upgrade_names += cfg['upgrades'].collect { |u| u['upgrade_name'] } if cfg.keys.include?('upgrades')
 
-  if !(upgrade_names - cfg_upgrade_names).empty?
-    puts 'Error: At least one invalid upgrade_name was specified.'
+  invalid_upgrade_names = upgrade_names - cfg_upgrade_names
+  if !invalid_upgrade_names.empty?
+    puts "Error: At least one invalid upgrade_name was specified: #{invalid_upgrade_names.join(', ')}.\nValid choices are: #{cfg_upgrade_names.join(', ')}."
     return false
   end
 

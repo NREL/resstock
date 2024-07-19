@@ -140,7 +140,7 @@ class TestRunAnalysis < Minitest::Test
     @command += ' -u "Fuondation Type" -u Walls'
 
     stdout_str, _stderr_str, _status = Open3.capture3(@command, unsetenv_others: true)
-    _assert_and_puts([stdout_str], 'Error: At least one invalid upgrade_name was specified.')
+    _assert_and_puts([stdout_str], 'Error: At least one invalid upgrade_name was specified: Fuondation Type.\nValid choices are: Baseline, Windows, Walls, Sheathing, Foundation Type.')
   end
 
   def test_measures_only
