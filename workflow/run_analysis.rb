@@ -14,7 +14,7 @@ require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_ids, keep_run_folders, samplingonly)
+def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_ids, upgrade_names, keep_run_folders, samplingonly)
   if !File.exist?(yml)
     puts "Error: YML file does not exist at '#{yml}'."
     return false
@@ -100,10 +100,17 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
   xml_dir = File.join(results_dir, 'xml')
   Dir.mkdir(xml_dir)
 
-  upgrade_names = ['Baseline']
+  upgrades = []
+  upgrades += ['Baseline'] if upgrade_names.empty? || upgrade_names.include?('Baseline')
   if cfg.keys.include?('upgrades')
     cfg['upgrades'].each do |upgrade|
-      upgrade_names << upgrade['upgrade_name'].gsub(/[^0-9A-Za-z]/, '')
+      upgrade_name = upgrade['upgrade_name']
+
+      if !upgrade_names.empty?
+        next if !upgrade_names.include?(upgrade_name)
+      end
+
+      upgrades << upgrade_name.gsub(/[^0-9A-Za-z]/, '')
     end
   end
 
@@ -223,7 +230,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
   end
 
   osw_paths = {}
-  upgrade_names.each_with_index do |upgrade_name, upgrade_idx|
+  upgrades.each do |upgrade_name|
     scenario_osw_dir = File.join(results_dir, 'osw', upgrade_name)
     Dir.mkdir(scenario_osw_dir)
 
@@ -315,13 +322,11 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
       }
     ]
 
-    if upgrade_idx > 0
-      measure_d = cfg['upgrades'][upgrade_idx - 1]
+    if upgrade_name != 'Baseline'
       apply_upgrade_measure = { 'measure_dir_name' => 'ApplyUpgrade',
                                 'arguments' => { 'run_measure' => 1 } }
-      if measure_d.include?('upgrade_name')
-        apply_upgrade_measure['arguments']['upgrade_name'] = measure_d['upgrade_name']
-      end
+      measure_d = cfg['upgrades'].find { |u| u['upgrade_name'].gsub(/[^0-9A-Za-z]/, '') == upgrade_name }
+      apply_upgrade_measure['arguments']['upgrade_name'] = measure_d['upgrade_name']
       measure_d['options'].each_with_index do |option, opt_num|
         opt_num += 1
         apply_upgrade_measure['arguments']["option_#{opt_num}"] = option['option']
@@ -366,7 +371,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
     File.open(osw_paths[upgrade_name], 'w') do |f|
       f.write(JSON.pretty_generate(osw))
     end
-  end # end upgrade_names.each_with_index do |upgrade_name, upgrade_idx|
+  end # end upgrades.each do |upgrade_name|
 
   measures = []
   cfg['workflow_generator']['args'].keys.each do |wfg_arg|
@@ -679,6 +684,11 @@ OptionParser.new do |opts|
     options[:building_ids] << t
   end
 
+  options[:upgrade_names] = []
+  opts.on('-u', '--upgrade_name NAME', 'Only run this upgrade; can be called multiple times') do |t|
+    options[:upgrade_names] << t
+  end
+
   options[:keep_run_folders] = false
   opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints; also populates run folder in cli_output.log and results-xxx.csv files') do |_t|
     options[:keep_run_folders] = true
@@ -724,7 +734,7 @@ else
   # Run analysis
   puts "YML: #{options[:yml]}"
   success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug], options[:overwrite],
-                         options[:building_ids], options[:keep_run_folders], options[:samplingonly])
+                         options[:building_ids], options[:upgrade_names], options[:keep_run_folders], options[:samplingonly])
 
   puts "\nCompleted in #{get_elapsed_time(Time.now, $start_time)}." if success
 end
