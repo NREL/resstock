@@ -42,7 +42,7 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
 
   invalid_upgrade_names = upgrade_names - cfg_upgrade_names
   if !invalid_upgrade_names.empty?
-    puts "Error: At least one invalid upgrade_name was specified: #{invalid_upgrade_names.join(', ')}.\nValid choices are: #{cfg_upgrade_names.join(', ')}."
+    puts "Error: At least one invalid upgrade_name was specified: #{invalid_upgrade_names.join(', ')}. Valid choices are: #{cfg_upgrade_names.join(', ')}."
     return false
   end
 
