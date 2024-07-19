@@ -10,7 +10,7 @@ Development Changelog
         :tags: workflow, feature, utility bills
         :pullreq: 1246
 
-        **Date**: 2024-07-17
+        **Date**: 2024-07-19
 
         Title:
         Latest OS-HPXML, v1.8.1
@@ -25,7 +25,7 @@ Development Changelog
         :tags: workflow, changed, utility bills
         :pullreq: 1246
 
-        **Date**: 2024-07-17
+        **Date**: 2024-07-19
 
         Title:
         Latest OS-HPXML, v1.8.1
@@ -40,7 +40,7 @@ Development Changelog
         :tags: workflow, bugfix, temperature capacitance multiplier
         :pullreq: 1246
 
-        **Date**: 2024-07-17
+        **Date**: 2024-07-19
 
         Title:
         Latest OS-HPXML, v1.8.1
