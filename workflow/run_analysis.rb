@@ -37,6 +37,21 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
     return false
   end
 
+  cfg_upgrade_names = ['Baseline']
+  cfg_upgrade_names += cfg['upgrades'].collect { |u| u['upgrade_name'] } if cfg.keys.include?('upgrades')
+
+  if !(upgrade_names - cfg_upgrade_names).empty?
+    puts 'Error: At least one invalid upgrade_name was specified.'
+    return false
+  end
+
+  if upgrade_names.empty?
+    upgrades = cfg_upgrade_names
+  else
+    upgrades = upgrade_names
+  end
+  upgrades = upgrades.map { |u| u.gsub(/[^0-9A-Za-z]/, '') }
+
   thisdir = File.dirname(__FILE__)
 
   buildstock_directory = cfg['buildstock_directory']
@@ -99,20 +114,6 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
 
   xml_dir = File.join(results_dir, 'xml')
   Dir.mkdir(xml_dir)
-
-  upgrades = []
-  upgrades += ['Baseline'] if upgrade_names.empty? || upgrade_names.include?('Baseline')
-  if cfg.keys.include?('upgrades')
-    cfg['upgrades'].each do |upgrade|
-      upgrade_name = upgrade['upgrade_name']
-
-      if !upgrade_names.empty?
-        next if !upgrade_names.include?(upgrade_name)
-      end
-
-      upgrades << upgrade_name.gsub(/[^0-9A-Za-z]/, '')
-    end
-  end
 
   workflow_args = { 'build_existing_model' => {},
                     'measures' => [],

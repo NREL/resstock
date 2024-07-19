@@ -134,6 +134,15 @@ class TestRunAnalysis < Minitest::Test
     _assert_and_puts(cli_output, 'Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: Extra Parameter.')
   end
 
+  def test_errors_invalid_upgrade_name
+    yml = ' -y test/tests_yml_files/yml_valid/testing_upgrades.yml'
+    @command += yml
+    @command += ' -u "Fuondation Type" -u Walls'
+
+    stdout_str, _stderr_str, _status = Open3.capture3(@command, unsetenv_others: true)
+    _assert_and_puts([stdout_str], 'Error: At least one invalid upgrade_name was specified.')
+  end
+
   def test_measures_only
     yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
     @command += yml
