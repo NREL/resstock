@@ -170,6 +170,20 @@ class TestRunAnalysis < Minitest::Test
     assert(!File.exist?(File.join(@testing_baseline, 'run2')))
   end
 
+  def test_upgrade_name
+    yml = ' -y test/tests_yml_files/yml_valid/testing_upgrades.yml'
+    @command += yml
+    @command += ' -u "Foundation Type" -u Walls'
+
+    system(@command)
+
+    _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-FoundationType.osw'))
+    assert(File.exist?(File.join(@testing_upgrades, 'results-FoundationType.csv')))
+    _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Walls.osw'))
+    assert(File.exist?(File.join(@testing_upgrades, 'results-Walls.csv')))
+    assert(!File.exist?(File.join(@testing_upgrades, 'results-Baseline.csv')))
+  end
+
   def test_threads_and_keep_run_folders
     yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
     @command += yml
