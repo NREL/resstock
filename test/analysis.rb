@@ -154,20 +154,24 @@ def _test_nonzero_columns(results, upgrade = false)
   return result
 end
 
-def _test_baseline_contents(contents, testing = false)
+def _test_baseline_contents(actual_contents, testing = false)
   expected_contents = expected_baseline_contents(testing)
 
-  return true if (expected_contents - contents).empty?
+  expected_extras = expected_contents - actual_contents
+  return true if expected_extras.empty?
 
+  puts "Baseline Contents, expected - actual: #{expected_extras}"
   return false
 end
 
-def _test_upgrade_contents(contents, testing = false)
+def _test_upgrade_contents(actual_contents, testing = false)
   expected_contents = expected_baseline_contents(testing)
   expected_contents += expected_upgrade_contents if testing
 
-  return true if (expected_contents - contents).empty?
+  expected_extras = expected_contents - actual_contents
+  return true if expected_extras.empty?
 
+  puts "Upgrade Contents, expected - actual: #{expected_extras}"
   return false
 end
 

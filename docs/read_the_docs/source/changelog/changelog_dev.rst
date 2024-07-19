@@ -7,6 +7,51 @@ Development Changelog
     :released: pending
 
     .. change::
+        :tags: workflow, feature, utility bills
+        :pullreq: 1246
+
+        **Date**: 2024-07-19
+
+        Title:
+        Latest OS-HPXML, v1.8.1
+
+        Description:
+        Add new project yml file arguments for reporting/controlling annual/monthly utility bill outputs.
+
+        Assignees: Joe Robertson
+
+
+    .. change::
+        :tags: workflow, changed, utility bills
+        :pullreq: 1246
+
+        **Date**: 2024-07-19
+
+        Title:
+        Latest OS-HPXML, v1.8.1
+
+        Description:
+        Updates default fuel prices to use 2022 EIA State Energy Data System (SEDS) instead of state-averages.
+
+        Assignees: Joe Robertson
+
+
+    .. change::
+        :tags: workflow, bugfix, temperature capacitance multiplier
+        :pullreq: 1246
+
+        **Date**: 2024-07-19
+
+        Title:
+        Latest OS-HPXML, v1.8.1
+
+        Description:
+        Update to use the new temperature capacitance multiplier of 7.0 after some resilience application investigation.
+
+        Assignees: Joe Robertson
+
+
+    .. change::
         :tags: workflow, refactor, bugfix
         :pullreq: 1253
 

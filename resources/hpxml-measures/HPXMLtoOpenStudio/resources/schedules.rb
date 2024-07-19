@@ -1328,7 +1328,7 @@ class Schedule
           if schedule_name == SchedulesFile::Columns[:HVAC].name
             runner.registerWarning('It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.')
           elsif schedule_name == SchedulesFile::Columns[:WaterHeater].name
-            runner.registerWarning('It is not possible to eliminate all water heater energy use (e.g. parasitics) in EnergyPlus during an unavailable period.')
+            runner.registerWarning('It is not possible to eliminate all DHW energy use (e.g. water heater parasitics) in EnergyPlus during an unavailable period.')
           end
         end
         return true
