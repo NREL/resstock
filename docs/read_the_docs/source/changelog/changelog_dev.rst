@@ -10,7 +10,7 @@ Development Changelog
         :tags: workflow, feature, utility bills
         :pullreq: 1246
 
-        **Date**: 2024-07-17
+        **Date**: 2024-07-19
 
         Title:
         Latest OS-HPXML, v1.8.1
@@ -25,7 +25,7 @@ Development Changelog
         :tags: workflow, changed, utility bills
         :pullreq: 1246
 
-        **Date**: 2024-07-17
+        **Date**: 2024-07-19
 
         Title:
         Latest OS-HPXML, v1.8.1
@@ -40,13 +40,41 @@ Development Changelog
         :tags: workflow, bugfix, temperature capacitance multiplier
         :pullreq: 1246
 
-        **Date**: 2024-07-17
+        **Date**: 2024-07-19
 
         Title:
         Latest OS-HPXML, v1.8.1
 
         Description:
         Update to use the new temperature capacitance multiplier of 7.0 after some resilience application investigation.
+
+        Assignees: Joe Robertson
+
+
+    .. change::
+        :tags: workflow, refactor, bugfix
+        :pullreq: 1253
+
+        **Date**: 2024-07-19
+
+        Title:
+        Convert UpgradeCosts measure to ModelMeasure
+
+        Description:
+        UpgradeCosts does not need to be a reporting measure; it doesn't actually report any simulation output.
+        ReportHPXMLOutput does not need to be its own measure; it can be pulled into UpgradeCosts.
+
+        If UpgradeCosts becomes a model measure, it gets applied before simulation time and therefore its registered values would show up in the results.csv when using the measures_only flag.
+
+        This also fixes a bug related to using the measure_only flag.
+        When using measure_only, the results.json file is not produced.
+        Therefore, no registered values would show up in the results csv.
+        Now we use data_point_out.json, which is produced when using measures_only.
+
+        Update buildstock.rb and sample yml files with workflow generator version tag.
+        This enables us to point to buildstockbatch's develop branch for CI tests.
+
+        buildstockbatch: `pull request 458 <https://github.com/NREL/buildstockbatch/pull/458>`_
 
         Assignees: Joe Robertson
 
