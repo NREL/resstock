@@ -448,12 +448,12 @@ class RunOSWs
     completed_at = out['completed_at']
     completed_status = out['completed_status']
 
-    results = File.join(parent_dir, 'run/results.json')
+    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
 
-    return started_at, completed_at, completed_status, result_output, run_output if measures_only || !File.exist?(results)
+    return started_at, completed_at, completed_status, result_output, run_output if !File.exist?(data_point_out)
 
     rows = {}
-    old_rows = JSON.parse(File.read(File.expand_path(results)))
+    old_rows = JSON.parse(File.read(File.expand_path(data_point_out)))
     old_rows.each do |measure, values|
       rows[measure] = {}
       values.each do |arg, val|
@@ -468,6 +468,7 @@ class RunOSWs
     measures.each do |measure|
       result_output = get_measure_results(rows, result_output, measure)
     end
+
     result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
     result_output = get_measure_results(rows, result_output, 'ReportUtilityBills')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
@@ -523,6 +524,7 @@ end
 module Version
   ResStock_Version = '3.2.0' # Version of ResStock
   BuildStockBatch_Version = '2023.10.0' # Minimum required version of BuildStockBatch
+  WorkflowGenerator_Version = '2024.07.20' # Version of buildstockbatch workflow generator
 
   def self.check_buildstockbatch_version
     if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed
