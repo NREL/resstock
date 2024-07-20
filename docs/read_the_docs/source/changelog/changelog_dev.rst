@@ -7,6 +7,21 @@ Development Changelog
     :released: pending
 
     .. change::
+        :tags: workflow, mechanics, feature
+        :pullreq: 1275
+
+        **Date**: 2024-07-20
+
+        Title:
+        Specify upgrade_names for run_analysis.rb
+
+        Description:
+        Introduce a new optional upgrade_name argument (can be called multiple times) to run_analysis.rb.
+
+        Assignees: Joe Robertson
+
+
+    .. change::
         :tags: workflow, feature, utility bills
         :pullreq: 1246
 
