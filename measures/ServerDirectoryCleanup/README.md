@@ -154,7 +154,7 @@ Present a bunch of bool arguments corresponding to EnergyPlus output files. "Fal
 
 <br/>
 
-**Retain eplusout.msgpack**
+**Retain eplusout*.msgpack**
 
 
 
@@ -187,7 +187,7 @@ Present a bunch of bool arguments corresponding to EnergyPlus output files. "Fal
 
 <br/>
 
-**Retain stdout-expandobject.**
+**Retain stdout-expandobject**
 
 
 
@@ -198,7 +198,7 @@ Present a bunch of bool arguments corresponding to EnergyPlus output files. "Fal
 
 <br/>
 
-**Retain schedules.csv.**
+**Retain *schedules.csv**
 
 
 
