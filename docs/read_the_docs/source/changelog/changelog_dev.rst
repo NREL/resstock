@@ -13,11 +13,11 @@ Development Changelog
         **Date**: 2024-07-22
 
         Title:
-        ServerDirectoryCleanup: catch *schedules.csv, refactor
+        ServerDirectoryCleanup: catch \*schedules.csv, refactor
 
         Description:
         Remove duplicate measure code.
-        Catch *schedules.csv since OS-HPXML generates in.schedules.csv.
+        Catch \*schedules.csv since OS-HPXML generates in.schedules.csv.
         Remove "retain_in_idf: false" from national project yml files; appears that even if you delete in.idf from ServerDirectoryCleanup, the file is still subsequently exported (by the openstudio workflow?).
 
         Assignees: Joe Robertson

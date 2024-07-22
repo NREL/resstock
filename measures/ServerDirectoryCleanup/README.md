@@ -6,7 +6,7 @@
 ## Description
 Optionally removes a significant portion of the saved results from each run, helping to alleviate memory problems.
 
-Present a bunch of bool arguments corresponding to EnergyPlus output files. "False" deletes the file, and "True" retains it. Most arguments default to not retaining the file. Only the in.idf and schedules.csv are retained by default.
+Present a bunch of bool arguments corresponding to EnergyPlus output files. "False" deletes the file, and "True" retains it. Most arguments default to not retaining the file. Only the in.idf and *schedules.csv are retained by default.
 
 ## Arguments
 
