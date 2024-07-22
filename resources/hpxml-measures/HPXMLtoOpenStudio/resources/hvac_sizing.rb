@@ -4742,7 +4742,7 @@ module HVACSizing
     # Zone results
     all_zone_loads.keys.each_with_index do |zone, i|
       results_out << [line_break]
-      results_out << ["Report: #{zone_col_names[i]}: Loads", 'Area (ft2)', 'Length (ft)', 'Wall Area Ratio', 'Heating (Btuh)', 'Cooling Sensible (Btuh)', 'Cooling Latent (Btuh)']
+      results_out << ["Report: #{zone_col_names[i]}: Loads", 'Area (ft^2)', 'Length (ft)', 'Wall Area Ratio', 'Heating (Btuh)', 'Cooling Sensible (Btuh)', 'Cooling Latent (Btuh)']
       windows(zone).each do |window|
         fj1 = window.additional_properties.detailed_output_values
         results_out << ["Windows: #{window.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
@@ -4781,7 +4781,7 @@ module HVACSizing
     # Space results
     all_space_loads.keys.each_with_index do |space, i|
       results_out << [line_break]
-      results_out << ["Report: #{space_col_names[i]}: Loads", 'Area (ft2)', 'Length (ft)', 'Wall Area Ratio', 'Heating (Btuh)', 'Cooling Sensible (Btuh)']
+      results_out << ["Report: #{space_col_names[i]}: Loads", 'Area (ft^2)', 'Length (ft)', 'Wall Area Ratio', 'Heating (Btuh)', 'Cooling Sensible (Btuh)']
       windows(space).select { |s| s.wall.space == space }.each do |window|
         fj1 = window.additional_properties.detailed_output_values
         results_out << ["Windows: #{window.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
