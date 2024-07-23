@@ -25,13 +25,13 @@ def main(
         nec_file = "postprocess_panel_new_load_nec.py"
         msg = "using 2023 NEC"
 
-    upgrade_files = sorted([x for x in directory.glob("results_up*") if "up00" not in str(x)])
-    baseline_file = [x for x in directory.glob("results_up*") if "up00" in str(x)][0]
+    upgrade_files = sorted([x for x in directory.glob("*results_up*") if "up00" not in str(x)])
+    baseline_file = [x for x in directory.glob("*results_up*") if "up00" in str(x)][0]
 
     completed_files = []
     output_filedir = directory / "nec_calculations"
     output_filedir.mkdir(exist_ok=True, parents=True)
-    for file in output_filedir.glob("results_up*"):
+    for file in output_filedir.glob("*results_up*"):
         completed_upgrade = file.stem[:12]
         completed_files.append(
             Path(str(baseline_file).replace("results_up00", completed_upgrade))

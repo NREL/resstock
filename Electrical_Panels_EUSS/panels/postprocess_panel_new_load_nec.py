@@ -485,6 +485,16 @@ def _special_load_evse(row):
     return EV_load
 
 
+def _special_load_heat_pump_backup(row):
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    heat_pump_backup = hvac_heating_conversion(
+        row["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"], 
+        system_type="Electric Resistance"
+        )
+    return heat_pump_backup
+
 ### -------- new load specs --------
 def _new_load_evse(row, option_columns):
     if row["completed_status"] != "Success":
@@ -587,7 +597,6 @@ def _new_load_space_conditioning(row, option_columns):
     for opt_col in option_columns:
         if ("HVAC Heating Efficiency" in row[opt_col]):
             heating_type = get_heating_type(row[opt_col])
-
         if ("HVAC Secondary Heating Efficiency" in row[opt_col]):
             secondary_heating_type = get_heating_type(row[opt_col])
 
@@ -800,7 +809,7 @@ def read_file(filename: str, low_memory: bool =True, sort_bldg_id: bool = False,
     if filename.suffix in [".csv", ".gz"]:
         df = pd.read_csv(filename, low_memory=low_memory, keep_default_na=False, **kwargs)
     elif filename.suffix == ".parquet":
-        df = pd.read_parquet(filename, **kwargs)
+        df = pd.read_parquet(filename)
     else:
         raise TypeError(f"Unsupported file type, cannot read file: {filename}")
 
@@ -965,7 +974,7 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
     option_cols = []
     upgrade_options = []
     for opt_col in option_columns:
-        upgrade_option = [x for x in dfu[opt_col].unique() if x not in [None, np.nan, ""]]
+        upgrade_option = [x for x in dfu[opt_col].unique() if x != "" and not pd.isna(x)]
         if upgrade_option:
             assert len(upgrade_option) == 1, f"{upgrade_option=} has more than one option."
             option_cols.append(opt_col)
@@ -1001,7 +1010,6 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
         "Single-Family Attached",
         "Mobile Home",
         ])
-    # df_up.loc[cond, "new_load_evse"] = EVSE_power_rating_level1
     df_up.loc[cond, "new_load_evse"] = max(EVSE_power_rating_level2, 7200)
 
     # Nullify 0 values
@@ -1023,6 +1031,7 @@ def get_upgrade_columns_and_options(option_columns, upgrade_options, parameter):
         if parameter in upgrade_option:
             options.append(upgrade_option.split("|")[1])
             columns.append(col)
+
     return columns, options
 
 
@@ -1048,6 +1057,7 @@ def calculate_new_load_total_220_83(dfi: pd.DataFrame, dfu: pd.DataFrame, n_kit:
     ## New loads
     df_new = calculate_new_loads(df, dfu, result_as_map=True)
     new_loads = [x for x in df_new.columns if "new_load" in x]
+    df_new_backup = dfu.apply(lambda x: _special_load_heat_pump_backup(x), axis=1).rename("new_load_hvac_hp_backup")
 
     # Existing loads
     existing_loads = existing_load_labels()
@@ -1056,6 +1066,7 @@ def calculate_new_load_total_220_83(dfi: pd.DataFrame, dfu: pd.DataFrame, n_kit:
         index = df.index, columns=existing_loads
         )
     df_loads = df_existing.copy() # for i/o accounting
+    df_backup = df.apply(lambda x: _special_load_heat_pump_backup(x), axis=1).rename("load_hvac_hp_backup")
 
     # Total pre-upgrade load based on no new hvac
     total_load_pre = "load_total_pre_upgrade_VA_220_83"
@@ -1090,8 +1101,10 @@ def calculate_new_load_total_220_83(dfi: pd.DataFrame, dfu: pd.DataFrame, n_kit:
         dfu["apply_upgrade.upgrade_name"],
         new_hvac,
         df_existing,
+        df_backup,
         loads_upgraded,
         df_new[new_loads],
+        df_new_backup,
         df_loads[[total_load_post, total_amp_post]],
         ], axis=1)
 
@@ -1194,9 +1207,9 @@ def main(
     if explode_result:
         ext = "_exploded"
     if result_as_map:
-        output_filename = output_filedir / (upgrade_filename.stem.split(".")[0] + f"__res_map__nec_new_load{ext}" + ".csv")
+        output_filename = output_filedir / (upgrade_filename.stem.split(".")[0] + f"__res_map__nec_new_load{ext}" + upgrade_filename.suffix)
     else:
-        output_filename = output_filedir / (upgrade_filename.stem.split(".")[0] + f"__nec_new_load{ext}" + ".csv")
+        output_filename = output_filedir / (upgrade_filename.stem.split(".")[0] + f"__nec_new_load{ext}" + upgrade_filename.suffix)
 
     upgrade_num = [x for x in 
         list(chain(*[x.split(".") for x in upgrade_filename.stem.split("_")]))
@@ -1227,6 +1240,12 @@ def main(
     dfu = dfu[dfu["completed_status"]=="Success"].reset_index(drop=True)
     df = df[df["completed_status"]=="Success"].reset_index(drop=True)
 
+    # Format
+    columns = [x for x in df.columns if "build_existing_model" in x]
+    df[columns] = df[columns].fillna("None")
+    columns = [x for x in dfu.columns if x.startswith("upgrade_costs.option") and x.endswith("name")]
+    dfu[columns] = dfu[columns].fillna("")
+
     # QC
     bldgs_no_bl = set(dfu["building_id"]) - set(df["building_id"])
     if bldgs_no_bl:
@@ -1248,7 +1267,10 @@ def main(
         dfo = calculate_new_load_total_220_87(df, dfu1)
 
     # --- save to file ---
-    dfo.to_csv(output_filename, index=False)
+    if output_filename.suffix == ".csv":
+        dfo.to_csv(output_filename, index=False)
+    elif output_filename.suffix == ".parquet":
+        dfo.to_parquet(output_filename)
     print(f"File output to: {output_filename}")
 
     if plot_later:
