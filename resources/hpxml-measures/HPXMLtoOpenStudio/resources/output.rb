@@ -342,7 +342,7 @@ class Outputs
         require 'json'
         File.open(output_file_path, mode) { |json| json.write(JSON.pretty_generate(h)) }
       elsif output_format == 'msgpack'
-        File.open(output_file_path, mode) { |json| h.to_msgpack(json) }
+        File.open(output_file_path, "#{mode}b") { |json| h.to_msgpack(json) }
       end
     end
   end

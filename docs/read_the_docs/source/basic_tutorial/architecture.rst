@@ -213,3 +213,7 @@ They process and report simulation output.
   .. include:: ../../../../measures/ServerDirectoryCleanup/measure.xml
      :start-after: <description>
      :end-before: <
+
+  .. include:: ../../../../measures/ServerDirectoryCleanup/measure.xml
+     :start-after: <modeler_description>
+     :end-before: <
