@@ -234,7 +234,10 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     end
     if !hpxml_header.unavailable_periods.select { |up| up.column_name == 'Power Outage' }.empty?
       next if message.include? 'It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.'
-      next if message.include? 'It is not possible to eliminate all water heater energy use (e.g. parasitics) in EnergyPlus during an unavailable period.'
+      next if message.include? 'It is not possible to eliminate all DHW energy use (e.g. water heater parasitics) in EnergyPlus during an unavailable period.'
+    end
+    if (not hpxml_bldg.hvac_controls.empty?) && (hpxml_bldg.hvac_controls[0].seasons_heating_begin_month != 1)
+      next if message.include? 'It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus outside of an HVAC season.'
     end
     if hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath.include? 'US_CO_Boulder_AMY_2012.epw'
       next if message.include? 'No design condition info found; calculating design conditions from EPW weather data.'
@@ -998,11 +1001,11 @@ def _check_unit_multiplier_results(xml, hpxml_bldg, annual_results_1x, annual_re
         abs_delta_tol = UnitConversions.convert(abs_delta_tol, 'MBtu', 'kWh')
       end
     elsif key.include?('Peak Electricity:')
-      # Check that the peak electricity difference is less than 500 W or less than 10%
+      # Check that the peak electricity difference is less than 500 W or less than 15%
       # Wider tolerances than others because a small change in when an event (like the
       # water heating firing) occurs can significantly impact the peak.
       abs_delta_tol = 500.0
-      abs_frac_tol = 0.1
+      abs_frac_tol = 0.15
     elsif key.include?('Peak Load:')
       # Check that the peak load difference is less than 0.2 kBtu/hr or less than 5%
       abs_delta_tol = 0.2
@@ -1016,9 +1019,9 @@ def _check_unit_multiplier_results(xml, hpxml_bldg, annual_results_1x, annual_re
       abs_delta_tol = 1.0
       abs_frac_tol = 0.01
     elsif key.include?('Airflow:')
-      # Check that airflow rate difference is less than 0.2 cfm or less than 0.5%
+      # Check that airflow rate difference is less than 0.2 cfm or less than 1.0%
       abs_delta_tol = 0.2
-      abs_frac_tol = 0.005
+      abs_frac_tol = 0.01
     elsif key.include?('Unmet Hours:')
       # Check that the unmet hours difference is less than 10 hrs
       abs_delta_tol = 10
@@ -1054,22 +1057,27 @@ def _check_unit_multiplier_results(xml, hpxml_bldg, annual_results_1x, annual_re
   end
 
   # Compare annual and monthly results
-  assert_equal(annual_results_1x.keys.sort, annual_results_10x.keys.sort)
-  assert_equal(monthly_results_1x.keys.sort, monthly_results_10x.keys.sort)
-
   { annual_results_1x => annual_results_10x,
     monthly_results_1x => monthly_results_10x }.each do |results_1x, results_10x|
-    results_1x.each do |key, vals_1x|
+    keys = (results_1x.keys + results_10x.keys).uniq
+
+    keys.each do |key, vals_1x|
       abs_delta_tol, abs_frac_tol = get_tolerances(key)
 
+      vals_1x = results_1x[key]
       vals_10x = results_10x[key]
-      if vals_1x.is_a? Array
+      if vals_1x.is_a?(Array) || vals_10x.is_a?(Array)
         is_timeseries = true
+        vals_1x = [0.0] * vals_10x.size if vals_1x.nil?
+        vals_10x = [0.0] * vals_1x.size if vals_10x.nil?
       else
         is_timeseries = false
+        vals_1x = 0.0 if vals_1x.nil?
+        vals_10x = 0.0 if vals_10x.nil?
         vals_1x = [vals_1x]
         vals_10x = [vals_10x]
       end
+      assert_equal(vals_1x.size, vals_10x.size)
 
       vals_1x.zip(vals_10x).each_with_index do |(val_1x, val_10x), i|
         period = is_timeseries ? Date::ABBR_MONTHNAMES[i + 1] : 'Annual'

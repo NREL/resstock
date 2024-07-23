@@ -247,7 +247,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('timeseries_num_decimal_places', false)
     arg.setDisplayName('Generate Timeseries Output: Number of Decimal Places')
-    arg.setDescription('Allows overriding the default number of decimal places for timeseries output. Does not apply if output format is msgpack, where no rounding is performed because there is no file size penalty to storing full precision.')
+    arg.setDescription('Allows overriding the default number of decimal places for timeseries output.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('add_timeseries_dst_column', false)
@@ -1599,11 +1599,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       fail "Unexpected timeseries_frequency: #{args[:timeseries_frequency]}."
     end
 
-    if args[:output_format] == 'msgpack'
+    if not args[:timeseries_num_decimal_places].nil?
+      n_digits = args[:timeseries_num_decimal_places]
+    elsif args[:output_format] == 'msgpack'
       # No need to round; no file size penalty to storing full precision
       n_digits = 100
-    elsif not args[:timeseries_num_decimal_places].nil?
-      n_digits = args[:timeseries_num_decimal_places]
     else
       # Set rounding precision for timeseries (e.g., hourly) outputs.
       # Note: Make sure to round outputs with sufficient resolution for the worst case -- i.e., 1 minute date instead of hourly data.
@@ -1832,7 +1832,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         require 'json'
         File.open(timeseries_output_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
       elsif args[:output_format] == 'msgpack'
-        File.open(timeseries_output_path, 'w') { |json| h.to_msgpack(json) }
+        File.open(timeseries_output_path, 'wb') { |json| h.to_msgpack(json) }
       end
     end
     runner.registerInfo("Wrote timeseries output results to #{timeseries_output_path}.")
@@ -1921,14 +1921,17 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     cols = timeseries_data['Cols']
     rows = timeseries_data['Rows']
     indexes = cols.each_index.select { |i| meter_names.include? cols[i]['Variable'] }
-    vals = []
-    rows.each_with_index do |row, _idx|
+    vals = [0.0] * rows.size
+    rows.each_with_index do |row, row_idx|
       row = row[row.keys[0]]
-      val = 0.0
-      indexes.each do |i|
-        val += row[i] * unit_conv + unit_adder
+      indexes.each_with_index do |i, idx|
+        if meter_names[idx].include?(Constants.ObjectNameWaterHeaterAdjustment) && apply_ems_shift(timeseries_frequency)
+          # Shift energy use adjustment to allow with hot water energy use
+          vals[row_idx - 1] += row[i] * unit_conv + unit_adder
+        else
+          vals[row_idx] += row[i] * unit_conv + unit_adder
+        end
       end
-      vals << val
     end
     return vals
   end
@@ -1960,27 +1963,34 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     cols = msgpack_data['Cols']
     rows = msgpack_data['Rows']
     indexes = cols.each_index.select { |i| keys_vars.include? cols[i]['Variable'] }
-    vals = []
-    rows.each_with_index do |row, _idx|
+    vals = [0.0] * rows.size
+    rows.each_with_index do |row, row_idx|
       row = row[row.keys[0]]
-      val = 0.0
       indexes.each do |i|
-        val += (row[i] * unit_conv + unit_adder) * neg
+        vals[row_idx] += (row[i] * unit_conv + unit_adder) * neg
       end
-      vals << val
     end
 
     return vals unless ems_shift
 
     # Remove this code if we ever figure out a better way to handle when EMS output should shift
-    if (key_values.size == 1) && (key_values[0] == 'EMS') && (@timestamps.size > 0)
-      if (timeseries_frequency == 'timestep' || (timeseries_frequency == 'hourly' && @model.getTimestep.numberOfTimestepsPerHour == 1))
-        # Shift all values by 1 timestep due to EMS reporting lag
-        return vals[1..-1] + [vals[0]]
-      end
+    if (key_values.size == 1) && (key_values[0] == 'EMS') && (@timestamps.size > 0) && apply_ems_shift(timeseries_frequency)
+      # Shift all values by 1 timestep due to EMS reporting lag
+      return vals[1..-1] + [vals[0]]
     end
 
     return vals
+  end
+
+  def apply_ems_shift(timeseries_frequency)
+    # Only shift if we reporting timestep values (i.e., not daily, monthly, or hourly w/ a sub-hourly timestep)
+    if (timeseries_frequency == 'timestep')
+      return true
+    elsif (timeseries_frequency == 'hourly') && (@model.getTimestep.numberOfTimestepsPerHour == 1)
+      return true
+    end
+
+    return false
   end
 
   def get_report_variable_data_timeseries_key_values_and_units(var)

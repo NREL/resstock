@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 class Fuel
-  def initialize(meters: [])
+  def initialize(meters: [], units:)
     @meters = meters
     @timeseries = []
+    @units = units
   end
   attr_accessor(:meters, :timeseries, :units)
 end

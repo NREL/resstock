@@ -105,10 +105,11 @@ These features may require shorter timesteps, allow more sophisticated simulatio
   ====================================  ========  =======  ================  ========  ========  ========================================================
   Element                               Type      Units    Constraints       Required  Default   Notes
   ====================================  ========  =======  ================  ========  ========  ========================================================
-  ``TemperatureCapacitanceMultiplier``  double             > 0               No        1.0       Multiplier on air heat capacitance [#]_
+  ``TemperatureCapacitanceMultiplier``  double             > 0               No        7.0 [#]_  Multiplier on air heat capacitance [#]_
   ``DefrostModelType``                  string             See [#]_          No        standard  Defrost model type for air source heat pumps [#]_
   ====================================  ========  =======  ================  ========  ========  ========================================================
 
+  .. [#] The default value of 7 is an average value found in the literature when calibrating timeseries EnergyPlus indoor temperatures to field data.
   .. [#] TemperatureCapacitanceMultiplier affects the transient calculation of indoor air temperatures.
          Values greater than 1.0 have the effect of smoothing or damping the rate of change in the indoor air temperature from timestep to timestep.
          This heat capacitance effect is modeled on top of any other individual mass inputs (e.g., furniture mass, partition wall mass, interior drywall, etc.) in the HPXML.
@@ -232,7 +233,7 @@ For simple utility rate structures, inputs can be entered using a fixed charge a
   ================================  ========  =======  ===========  ========  ========  ====================
 
   .. [#] If running :ref:`bldg_type_bldgs`, the fixed charge will apply to every dwelling unit in the building.
-  .. [#] If MarginalRate not provided, defaults to state, regional, or national average based on 2022 EIA data that can be found at ``ReportUtilityBills/resources/Data/UtilityRates/Average_retail_price_of_electricity.csv``.
+  .. [#] If MarginalRate not provided, defaults to state, regional, or national average based on 2022 EIA SEDS data that can be found at ``ReportUtilityBills/resources/simple_rates/pr_all_update.csv``.
 
 **Detailed**
 
@@ -268,15 +269,7 @@ For each scenario, fuel rates can be optionally entered as an ``/HPXML/SoftwareI
   .. [#] FuelType choices are "natural gas", "propane", "fuel oil", "coal", "wood", and "wood pellets".
   .. [#] FixedCharge defaults to $12/month for natural gas and $0/month for other fuels.
   .. [#] MarginalRate units are $/therm for natural gas, $/gallon for propane and fuel oil, and $/kBtu for other fuels.
-  .. [#] If MarginalRate not provided, defaults to state, regional, or national average based on 2022 EIA data that can be found at:
-         
-         \- **natural gas**: ``ReportUtilityBills/resources/Data/UtilityRates/NG_PRI_SUM_A_EPG0_PRS_DMCF_A.csv``
-         
-         \- **propane**: ``ReportUtilityBills/resources/Data/UtilityRates/PET_PRI_WFR_A_EPLLPA_PRS_DPGAL_W.csv``
-         
-         \- **fuel oil**: ``ReportUtilityBills/resources/Data/UtilityRates/PET_PRI_WFR_A_EPD2F_PRS_DPGAL_W.csv``
-         
-         or defaults to $0.015/kBtu for other fuels.
+  .. [#] If MarginalRate not provided, defaults to state, regional, or national average based on 2022 EIA SEDS data that can be found at ``ReportUtilityBills/resources/simple_rates/pr_all_update.csv`` (except for coal, which is based on 2007 EIA SEDS data as EIA assumes there is zero residential sector coal consumption in the United States for 2008 forward and  does not estimate a price).
 
 PV Compensation
 ~~~~~~~~~~~~~~~
@@ -2961,6 +2954,10 @@ If a heating and/or cooling season is defined, additional information is entered
   ``EndMonth``         integer          >= 1, <= 12  Yes                End month
   ``EndDayOfMonth``    integer          >= 1, <= 31  Yes                End day
   ===================  ========  =====  ===========  ========  =======  ===========
+
+.. warning::
+
+  It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus outside of an HVAC season.
 
 HPXML HVAC Setpoints
 ~~~~~~~~~~~~~~~~~~~~

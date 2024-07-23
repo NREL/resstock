@@ -1406,6 +1406,7 @@ class Waterheater
     # Program
     ec_adj_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     ec_adj_program.setName("#{heater.name} EC_adj")
+    ec_adj_program.addLine('If WarmupFlag == 0') # Prevent a non-zero adjustment in the first hour because of the warmup period
     if [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
       ec_adj_program.addLine("Set dhw_e_cons = #{ec_adj_oncyc_sensor.name} + #{ec_adj_offcyc_sensor.name}")
       ec_adj_program.addLine("If #{ec_adj_sensor_boiler.name} > 0")
@@ -1419,6 +1420,7 @@ class Waterheater
     # Since the water heater has been multiplied by the unit_multiplier, and this OtherEquipment object will be adding
     # load to a thermal zone with an E+ multiplier, we would double-count the multiplier if we didn't divide by it here.
     ec_adj_program.addLine("Set #{ec_adj_actuator.name} = #{adjustment} * dhw_e_cons / #{unit_multiplier}")
+    ec_adj_program.addLine('EndIf')
 
     # Program Calling Manager
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
