@@ -26,7 +26,7 @@ def download_epws
   exit!
 end
 
-command_list = [:update_measures, :integrity_check_national, :integrity_check_testing, :download_weather]
+command_list = [:update_measures, :update_resources, :integrity_check_national, :integrity_check_testing, :download_weather]
 
 def display_usage(command_list)
   puts "Usage: openstudio #{File.basename(__FILE__)} [COMMAND]\nCommands:\n  " + command_list.join("\n  ")
@@ -67,7 +67,6 @@ if ARGV[0].to_sym == :update_measures
           'Lint/UselessAssignment',
           'Style/AndOr',
           'Style/FrozenStringLiteralComment',
-          'Style/HashSyntax',
           'Style/Next',
           'Style/NilComparison',
           'Style/RedundantParentheses',
@@ -77,7 +76,8 @@ if ARGV[0].to_sym == :update_measures
           'Style/StringLiterals',
           'Style/StringLiteralsInInterpolation']
   commands = ["\"require 'rubocop/rake_task' \"",
-              "\"RuboCop::RakeTask.new(:rubocop) do |t| t.options = ['--auto-correct', '--format', 'simple', '--only', '#{cops.join(',')}'] end\"",
+              "\"require 'stringio' \"",
+              "\"RuboCop::RakeTask.new(:rubocop) do |t| t.options = ['--autocorrect', '--format', 'simple', '--only', '#{cops.join(',')}'] end\"",
               '"Rake.application[:rubocop].invoke"']
   command = "#{OpenStudio.getOpenStudioCLI} -e #{commands.join(' -e ')}"
   puts 'Applying rubocop auto-correct to measures...'
@@ -93,6 +93,14 @@ if ARGV[0].to_sym == :update_measures
   end
 
   puts 'Done.'
+end
+
+if ARGV[0].to_sym == :update_resources
+  prefix = 'resources/hpxml-measures'
+  repository = 'https://github.com/NREL/OpenStudio-HPXML.git'
+  branch_or_tag = 'v1.8.1'
+
+  system("git subtree pull --prefix #{prefix} #{repository} #{branch_or_tag} --squash")
 end
 
 if ARGV[0].to_sym == :integrity_check_national

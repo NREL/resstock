@@ -39,9 +39,13 @@ class Constants
     return 'AirFilm'
   end
 
+  def self.AutomaticallyAdded
+    return 'AutomaticallyAdded'
+  end
+
   def self.ERIVersions
     return ['2014', '2014A', '2014AE', '2014AEG', '2019', '2019A',
-            '2019AB', '2019ABC', '2019ABCD']
+            '2019AB', '2019ABC', '2019ABCD', '2022', '2022C']
   end
 
   def self.FacadeFront
@@ -84,6 +88,12 @@ class Constants
   def self.IECCZones
     return ['1A', '1B', '1C', '2A', '2B', '2C', '3A', '3B', '3C',
             '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8']
+  end
+
+  def self.MoistureTypes
+    return [HPXML::SiteSoilMoistureTypeDry,
+            HPXML::SiteSoilMoistureTypeMixed,
+            HPXML::SiteSoilMoistureTypeWet]
   end
 
   def self.ObjectNameAirSourceHeatPump
@@ -172,6 +182,18 @@ class Constants
 
   def self.ObjectNameFurnace
     return 'furnace'
+  end
+
+  def self.ObjectNameGeneralWaterUse
+    return 'general water use'
+  end
+
+  def self.ObjectNameGeneralWaterUseLatent
+    return 'general water use latent'
+  end
+
+  def self.ObjectNameGeneralWaterUseSensible
+    return 'general water use sensible'
   end
 
   def self.ObjectNameGroundSourceHeatPump
@@ -266,6 +288,10 @@ class Constants
     return 'packaged terminal air conditioner'
   end
 
+  def self.ObjectNameBackupSuppHeat
+    return 'back up supp heat'
+  end
+
   def self.ObjectNameMiscGrill
     return 'misc grill'
   end
@@ -354,14 +380,6 @@ class Constants
     return 'water heater setpoint'
   end
 
-  def self.ObjectNameWaterLatent
-    return 'water latent'
-  end
-
-  def self.ObjectNameWaterSensible
-    return 'water sensible'
-  end
-
   def self.ObjectNameWaterHeaterAdjustment
     return 'water heater energy adjustment'
   end
@@ -384,6 +402,16 @@ class Constants
 
   def self.ScheduleTypeLimitsTemperature
     return 'Temperature'
+  end
+
+  def self.SoilTypes
+    return [HPXML::SiteSoilTypeClay,
+            HPXML::SiteSoilTypeGravel,
+            HPXML::SiteSoilTypeLoam,
+            # HPXML::SiteSoilTypeOther,
+            HPXML::SiteSoilTypeSand,
+            HPXML::SiteSoilTypeSilt,
+            HPXML::SiteSoilTypeUnknown]
   end
 
   def self.StateCodesMap

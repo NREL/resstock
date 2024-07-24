@@ -12,13 +12,13 @@ class MiscLoads
     # Create schedule
     sch = nil
     if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
-      col_name = SchedulesFile::ColumnPlugLoadsOther
+      col_name = SchedulesFile::Columns[:PlugLoadsOther].name
     elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
-      col_name = SchedulesFile::ColumnPlugLoadsTV
+      col_name = SchedulesFile::Columns[:PlugLoadsTV].name
     elsif plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging
-      col_name = SchedulesFile::ColumnPlugLoadsVehicle
+      col_name = SchedulesFile::Columns[:PlugLoadsVehicle].name
     elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
-      col_name = SchedulesFile::ColumnPlugLoadsWellPump
+      col_name = SchedulesFile::Columns[:PlugLoadsWellPump].name
     end
     if not schedules_file.nil?
       space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: kwh)
@@ -70,11 +70,11 @@ class MiscLoads
     # Create schedule
     sch = nil
     if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
-      col_name = SchedulesFile::ColumnFuelLoadsGrill
+      col_name = SchedulesFile::Columns[:FuelLoadsGrill].name
     elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeLighting
-      col_name = SchedulesFile::ColumnFuelLoadsLighting
+      col_name = SchedulesFile::Columns[:FuelLoadsLighting].name
     elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeFireplace
-      col_name = SchedulesFile::ColumnFuelLoadsFireplace
+      col_name = SchedulesFile::Columns[:FuelLoadsFireplace].name
     end
     if not schedules_file.nil?
       space_design_level = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: therm)

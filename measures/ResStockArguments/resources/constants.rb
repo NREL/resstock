@@ -5,6 +5,7 @@ class Constants
     # don't make these BuildResidentialHPXML arguments into ResStockArguments arguments
     return ['hpxml_path',
             'existing_hpxml_path',
+            'whole_sfa_or_mf_building_sim',
             'software_info_program_used',
             'software_info_program_version',
             'schedules_filepaths',
@@ -13,31 +14,25 @@ class Constants
             'simulation_control_run_period_calendar_year',
             'simulation_control_daylight_saving_period',
             'simulation_control_temperature_capacitance_multiplier',
+            'simulation_control_defrost_model_type',
             'unit_multiplier',
             'geometry_unit_left_wall_is_adiabatic',
             'geometry_unit_right_wall_is_adiabatic',
             'geometry_unit_front_wall_is_adiabatic',
             'geometry_unit_back_wall_is_adiabatic',
             'geometry_unit_num_floors_above_grade',
-            'hvac_control_heating_weekday_setpoint',
-            'hvac_control_heating_weekend_setpoint',
-            'hvac_control_cooling_weekday_setpoint',
-            'hvac_control_cooling_weekend_setpoint',
-            'geometry_has_flue_or_chimney',
+            'air_leakage_has_flue_or_chimney_in_conditioned_space',
             'heating_system_airflow_defect_ratio',
             'cooling_system_airflow_defect_ratio',
             'cooling_system_charge_defect_ratio',
             'heat_pump_airflow_defect_ratio',
             'heat_pump_charge_defect_ratio',
-            'misc_plug_loads_television_annual_kwh',
-            'misc_plug_loads_television_usage_multiplier',
+            'hvac_control_heating_weekday_setpoint',
+            'hvac_control_heating_weekend_setpoint',
+            'hvac_control_cooling_weekday_setpoint',
+            'hvac_control_cooling_weekend_setpoint',
             'pv_system_num_bedrooms_served',
-            'occupancy_calculation_type',
-            'air_leakage_has_flue_or_chimney_in_conditioned_space',
-            'combine_like_surfaces',
-            'additional_properties',
-            'apply_defaults',
-            'apply_validation',
+            'battery_num_bedrooms_served',
             'emissions_scenario_names',
             'emissions_types',
             'emissions_electricity_units',
@@ -72,7 +67,11 @@ class Constants
             'utility_bill_pv_net_metering_annual_excess_sellback_rates',
             'utility_bill_pv_feed_in_tariff_rates',
             'utility_bill_pv_monthly_grid_connection_fee_units',
-            'utility_bill_pv_monthly_grid_connection_fees']
+            'utility_bill_pv_monthly_grid_connection_fees',
+            'additional_properties',
+            'combine_like_surfaces',
+            'apply_defaults',
+            'apply_validation']
   end
 
   def self.build_residential_schedule_file_excludes
@@ -82,6 +81,7 @@ class Constants
             'schedules_random_seed',
             'output_csv_path',
             'hpxml_output_path',
+            'append_output',
             'debug',
             'building_id']
   end
@@ -94,5 +94,10 @@ class Constants
 
   def self.Auto
     return 'auto'
+  end
+
+  def self.arguments_to_register
+    # list of resstock arguments; reported as build_existing_model.<argument_name>, ...
+    return []
   end
 end

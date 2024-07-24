@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>report_utility_bills</name>
   <uid>ca88a425-e59a-4bc4-af51-c7e7d1e960fe</uid>
-  <version_id>00195856-fc00-4476-b601-ab53286b33cf</version_id>
-  <version_modified>2023-11-17T15:16:06Z</version_modified>
+  <version_id>2d6b4393-2fe5-429a-a130-da41a8cb36f0</version_id>
+  <version_modified>2024-05-29T18:54:32Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>ReportUtilityBills</class_name>
   <display_name>Utility Bills Report</display_name>
@@ -37,7 +37,7 @@
     <argument>
       <name>include_annual_bills</name>
       <display_name>Generate Annual Utility Bills</display_name>
-      <description>Generates annual utility bills.</description>
+      <description>Generates output file containing annual utility bills.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -56,7 +56,7 @@
     <argument>
       <name>include_monthly_bills</name>
       <display_name>Generate Monthly Utility Bills</display_name>
-      <description>Generates monthly utility bills.</description>
+      <description>Generates output file containing monthly utility bills.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -107,6 +107,44 @@
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
+    <argument>
+      <name>register_annual_bills</name>
+      <display_name>Register Annual Utility Bills</display_name>
+      <description>Registers annual utility bills with the OpenStudio runner for downstream processing.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>register_monthly_bills</name>
+      <display_name>Register Monthly Utility Bills</display_name>
+      <description>Registers monthly utility bills with the OpenStudio runner for downstream processing.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs />
   <provenances />
@@ -125,7 +163,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>E137125B</checksum>
+      <checksum>13D965BE</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -142,7 +180,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>4A038500</checksum>
+      <checksum>99961E51</checksum>
     </file>
     <file>
       <filename>detailed_rates/Sample Flat Rate Min Annual Charge.json</filename>
@@ -241,46 +279,28 @@
       <checksum>56DDA6EC</checksum>
     </file>
     <file>
-      <filename>simple_rates/Average_retail_price_of_electricity.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>02EEEF39</checksum>
-    </file>
-    <file>
       <filename>simple_rates/HouseholdConsumption.csv</filename>
       <filetype>csv</filetype>
       <usage_type>resource</usage_type>
       <checksum>0BEECB93</checksum>
     </file>
     <file>
-      <filename>simple_rates/NG_PRI_SUM_A_EPG0_PRS_DMCF_A.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>C5FFF659</checksum>
-    </file>
-    <file>
-      <filename>simple_rates/PET_PRI_WFR_A_EPD2F_PRS_DPGAL_W.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>8C00508D</checksum>
-    </file>
-    <file>
-      <filename>simple_rates/PET_PRI_WFR_A_EPLLPA_PRS_DPGAL_W.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>614B155F</checksum>
-    </file>
-    <file>
       <filename>simple_rates/README.md</filename>
       <filetype>md</filetype>
       <usage_type>resource</usage_type>
-      <checksum>7832E08F</checksum>
+      <checksum>C7E1E1CB</checksum>
+    </file>
+    <file>
+      <filename>simple_rates/pr_all_update.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>CF6409BD</checksum>
     </file>
     <file>
       <filename>util.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>70347ABF</checksum>
+      <checksum>CD3334FF</checksum>
     </file>
     <file>
       <filename>Contains Demand Charges.json</filename>
@@ -322,7 +342,7 @@
       <filename>test_report_utility_bills.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>07F2D0DB</checksum>
+      <checksum>CDF8B24F</checksum>
     </file>
   </files>
 </measure>

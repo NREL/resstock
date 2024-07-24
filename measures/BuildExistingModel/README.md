@@ -11,6 +11,17 @@ Builds the OpenStudio Model using the sampling csv file, which contains the spec
 ## Arguments
 
 
+**Buildstock CSV File Path**
+
+Absolute/relative path of the buildstock CSV file. Relative is compared to the 'lib/housing_characteristics' directory.
+
+- **Name:** ``buildstock_csv_path``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
 **Building Unit ID**
 
 The building unit number (between 1 and the number of samples).

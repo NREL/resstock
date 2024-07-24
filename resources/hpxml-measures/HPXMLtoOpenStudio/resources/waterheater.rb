@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 class Waterheater
-  def self.apply_tank(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, eri_version, schedules_file, unavailable_periods, unit_multiplier)
+  def self.apply_tank(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, eri_version, schedules_file, unavailable_periods, unit_multiplier, nbeds)
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
     t_set_c = get_t_set_c(water_heating_system.temperature, water_heating_system.water_heater_type)
     loop = create_new_loop(model, t_set_c, eri_version, unit_multiplier)
 
     act_vol = calc_storage_tank_actual_vol(water_heating_system.tank_volume, water_heating_system.fuel_type)
-    u, ua, eta_c = calc_tank_UA(act_vol, water_heating_system, solar_fraction)
+    u, ua, eta_c = calc_tank_UA(act_vol, water_heating_system, solar_fraction, nbeds)
     new_heater = create_new_heater(name: Constants.ObjectNameWaterHeater,
                                    water_heating_system: water_heating_system,
                                    act_vol: act_vol,
@@ -30,14 +30,14 @@ class Waterheater
     return loop
   end
 
-  def self.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, eri_version, schedules_file, unavailable_periods, unit_multiplier)
+  def self.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, eri_version, schedules_file, unavailable_periods, unit_multiplier, nbeds)
     water_heating_system.heating_capacity = 100000000000.0 * unit_multiplier
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
     t_set_c = get_t_set_c(water_heating_system.temperature, water_heating_system.water_heater_type)
     loop = create_new_loop(model, t_set_c, eri_version, unit_multiplier)
 
     act_vol = 1.0 * unit_multiplier
-    _u, ua, eta_c = calc_tank_UA(act_vol, water_heating_system, solar_fraction)
+    _u, ua, eta_c = calc_tank_UA(act_vol, water_heating_system, solar_fraction, nbeds)
     new_heater = create_new_heater(name: Constants.ObjectNameWaterHeater,
                                    water_heating_system: water_heating_system,
                                    act_vol: act_vol,
@@ -60,7 +60,7 @@ class Waterheater
     return loop
   end
 
-  def self.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, eri_version, schedules_file, unavailable_periods, unit_multiplier)
+  def self.apply_heatpump(model, runner, loc_space, loc_schedule, elevation, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, eri_version, schedules_file, unavailable_periods, unit_multiplier, nbeds)
     obj_name_hpwh = Constants.ObjectNameWaterHeater
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
     t_set_c = get_t_set_c(water_heating_system.temperature, water_heating_system.water_heater_type)
@@ -87,7 +87,7 @@ class Waterheater
     if not schedules_file.nil?
       # To handle variable setpoints, need one schedule that gets sensed and a new schedule that gets actuated
       # Sensed schedule
-      setpoint_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnWaterHeaterSetpoint)
+      setpoint_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
       if not setpoint_schedule.nil?
         Schedule.set_schedule_type_limits(model, setpoint_schedule, Constants.ScheduleTypeLimitsTemperature)
 
@@ -102,7 +102,7 @@ class Waterheater
 
       control_setpoint_schedule = setpoint_schedule
     else
-      runner.registerWarning("Both '#{SchedulesFile::ColumnWaterHeaterSetpoint}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
+      runner.registerWarning("Both '#{SchedulesFile::Columns[:WaterHeaterSetpoint].name}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
     end
 
     airflow_rate = 181.0 # cfm
@@ -110,10 +110,10 @@ class Waterheater
     max_temp = 120.0 # F
 
     # Coil:WaterHeating:AirToWaterHeatPump:Wrapped
-    coil = setup_hpwh_dxcoil(model, runner, water_heating_system, weather, obj_name_hpwh, airflow_rate, unit_multiplier)
+    coil = setup_hpwh_dxcoil(model, runner, water_heating_system, elevation, obj_name_hpwh, airflow_rate, unit_multiplier)
 
     # WaterHeater:Stratified
-    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, bottom_element_setpoint_schedule, top_element_setpoint_schedule, unit_multiplier)
+    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, bottom_element_setpoint_schedule, top_element_setpoint_schedule, unit_multiplier, nbeds)
     loop.addSupplyBranchForComponent(tank)
 
     add_desuperheater(model, runner, water_heating_system, tank, loc_space, loc_schedule, loop, unit_multiplier)
@@ -144,7 +144,7 @@ class Waterheater
     return loop
   end
 
-  def self.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, eri_version, schedules_file, unavailable_periods, unit_multiplier)
+  def self.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, eri_version, schedules_file, unavailable_periods, unit_multiplier, nbeds)
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
 
     boiler, boiler_plant_loop = get_combi_boiler_and_plant_loop(model, water_heating_system.related_hvac_idref)
@@ -161,7 +161,7 @@ class Waterheater
 
       act_vol = calc_storage_tank_actual_vol(water_heating_system.tank_volume, nil)
       a_side = calc_tank_areas(act_vol)[1]
-      ua = calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction)
+      ua = calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction, nbeds)
     else
       ua = 0.0
       act_vol = 1.0
@@ -662,7 +662,7 @@ class Waterheater
     return hpwh
   end
 
-  def self.setup_hpwh_dxcoil(model, runner, water_heating_system, weather, obj_name_hpwh, airflow_rate, unit_multiplier)
+  def self.setup_hpwh_dxcoil(model, runner, water_heating_system, elevation, obj_name_hpwh, airflow_rate, unit_multiplier)
     # Curves
     hpwh_cap = OpenStudio::Model::CurveBiquadratic.new(model)
     hpwh_cap.setName('HPWH-Cap-fT')
@@ -701,7 +701,7 @@ class Waterheater
     rated_edb = UnitConversions.convert(rated_edb_F, 'F', 'C')
     w_rated = Psychrometrics.w_fT_Twb_P(rated_edb_F, rated_ewb_F, p_atm)
     dp_rated = Psychrometrics.Tdp_fP_w(runner, p_atm, w_rated)
-    p_atm = Psychrometrics.Pstd_fZ(weather.header.Altitude)
+    p_atm = Psychrometrics.Pstd_fZ(elevation)
     w_adj = Psychrometrics.w_fT_Twb_P(dp_rated, dp_rated, p_atm)
     twb_adj = Psychrometrics.Twb_fT_w_P(runner, rated_edb_F, w_adj, p_atm)
 
@@ -741,7 +741,7 @@ class Waterheater
     return coil
   end
 
-  def self.setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp, unit_multiplier)
+  def self.setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp, unit_multiplier, nbeds)
     # Calculate some geometry parameters for UA, the location of sensors and heat sources in the tank
     v_actual = calc_storage_tank_actual_vol(water_heating_system.tank_volume, water_heating_system.fuel_type) # gal
     a_tank, a_side = calc_tank_areas(v_actual, UnitConversions.convert(h_tank, 'm', 'ft')) # sqft
@@ -757,6 +757,7 @@ class Waterheater
       tank_ua = 4.7 # Btu/h-R
     end
     tank_ua = apply_tank_jacket(water_heating_system, tank_ua, a_side)
+    tank_ua = apply_shared_adjustment(water_heating_system, tank_ua, nbeds) # shared losses
     u_tank = ((5.678 * tank_ua) / a_tank) * (1.0 - solar_fraction)
 
     v_actual *= unit_multiplier
@@ -784,7 +785,7 @@ class Waterheater
     tank.setHeater2Height(h_LE)
     tank.setHeater2DeadbandTemperatureDifference(3.89)
     tank.setHeaterFuelType(EPlus::FuelTypeElectricity)
-    tank.setHeaterThermalEfficiency(1)
+    tank.setHeaterThermalEfficiency(1.0)
     tank.setOffCycleParasiticFuelConsumptionRate(parasitics)
     tank.setOffCycleParasiticFuelType(EPlus::FuelTypeElectricity)
     tank.setOnCycleParasiticFuelConsumptionRate(parasitics)
@@ -970,7 +971,7 @@ class Waterheater
 
     op_mode_schedule = nil
     if not schedules_file.nil?
-      op_mode_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnWaterHeaterOperatingMode)
+      op_mode_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterOperatingMode].name)
     end
 
     # Sensor on op_mode_schedule
@@ -981,7 +982,7 @@ class Waterheater
       op_mode_sensor.setName("#{obj_name_hpwh} op_mode")
       op_mode_sensor.setKeyName(op_mode_schedule.name.to_s)
 
-      runner.registerWarning("Both '#{SchedulesFile::ColumnWaterHeaterOperatingMode}' schedule file and operating mode provided; the latter will be ignored.") if !op_mode.nil?
+      runner.registerWarning("Both '#{SchedulesFile::Columns[:WaterHeaterOperatingMode].name}' schedule file and operating mode provided; the latter will be ignored.") if !op_mode.nil?
     end
 
     t_offset = 9.0 # deg-C
@@ -1313,7 +1314,7 @@ class Waterheater
     return 4.0 # feet, assumption from BEopt
   end
 
-  def self.calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction)
+  def self.calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction, nbeds = nil)
     standby_loss_units = water_heating_system.standby_loss_units
     standby_loss_value = water_heating_system.standby_loss_value
 
@@ -1333,6 +1334,9 @@ class Waterheater
 
     # jacket
     ua = apply_tank_jacket(water_heating_system, ua, a_side)
+
+    # shared losses
+    ua = apply_shared_adjustment(water_heating_system, ua, nbeds) if !nbeds.nil?
 
     ua *= (1.0 - solar_fraction)
     return ua
@@ -1402,6 +1406,7 @@ class Waterheater
     # Program
     ec_adj_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     ec_adj_program.setName("#{heater.name} EC_adj")
+    ec_adj_program.addLine('If WarmupFlag == 0') # Prevent a non-zero adjustment in the first hour because of the warmup period
     if [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
       ec_adj_program.addLine("Set dhw_e_cons = #{ec_adj_oncyc_sensor.name} + #{ec_adj_offcyc_sensor.name}")
       ec_adj_program.addLine("If #{ec_adj_sensor_boiler.name} > 0")
@@ -1415,6 +1420,7 @@ class Waterheater
     # Since the water heater has been multiplied by the unit_multiplier, and this OtherEquipment object will be adding
     # load to a thermal zone with an E+ multiplier, we would double-count the multiplier if we didn't divide by it here.
     ec_adj_program.addLine("Set #{ec_adj_actuator.name} = #{adjustment} * dhw_e_cons / #{unit_multiplier}")
+    ec_adj_program.addLine('EndIf')
 
     # Program Calling Manager
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
@@ -1444,12 +1450,12 @@ class Waterheater
 
   def self.get_default_location(hpxml_bldg, climate_zone_iecc)
     iecc_zone = (climate_zone_iecc.nil? ? nil : climate_zone_iecc.zone)
-    if ['1A', '1B', '1C', '2A', '2B', '2C', '3B', '3C'].include? iecc_zone
+    if ['1A', '1B', '1C', '2A', '2B', '2C', '3A', '3B', '3C'].include? iecc_zone
       location_hierarchy = [HPXML::LocationGarage,
                             HPXML::LocationConditionedSpace]
-    elsif ['3A', '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8'].include? iecc_zone
-      location_hierarchy = [HPXML::LocationBasementConditioned,
-                            HPXML::LocationBasementUnconditioned,
+    elsif ['4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8'].include? iecc_zone
+      location_hierarchy = [HPXML::LocationBasementUnconditioned,
+                            HPXML::LocationBasementConditioned,
                             HPXML::LocationConditionedSpace]
     elsif iecc_zone.nil?
       location_hierarchy = [HPXML::LocationBasementConditioned,
@@ -1489,7 +1495,7 @@ class Waterheater
     return act_vol
   end
 
-  def self.calc_tank_UA(act_vol, water_heating_system, solar_fraction)
+  def self.calc_tank_UA(act_vol, water_heating_system, solar_fraction, nbeds)
     # If using EF:
     #   Calculates the U value, UA of the tank and conversion efficiency (eta_c)
     #   based on the Energy Factor and recovery efficiency of the tank
@@ -1551,10 +1557,7 @@ class Waterheater
       ua = apply_tank_jacket(water_heating_system, ua, a_side)
     end
     ua *= (1.0 - solar_fraction)
-    if water_heating_system.is_shared_system
-      # Apportion shared water heater energy use due to tank losses to the dwelling unit
-      ua /= water_heating_system.number_of_units_served.to_f
-    end
+    ua = apply_shared_adjustment(water_heating_system, ua, nbeds) # shared losses
     u = ua / surface_area # Btu/hr-ft^2-F
     if eta_c > 1.0
       fail 'A water heater heat source (either burner or element) efficiency of > 1 has been calculated, double check water heater inputs.'
@@ -1591,6 +1594,14 @@ class Waterheater
       ua = ua_pre - water_heating_system.jacket_r_value / (1.0 / u_pre_skin + water_heating_system.jacket_r_value) * u_pre_skin * a_side
     else
       ua = ua_pre
+    end
+    return ua
+  end
+
+  def self.apply_shared_adjustment(water_heating_system, ua, nbeds)
+    if water_heating_system.is_shared_system
+      # Apportion shared water heater energy use due to tank losses to the dwelling unit
+      ua = ua * [nbeds.to_f, 1.0].max / water_heating_system.number_of_bedrooms_served.to_f
     end
     return ua
   end
@@ -1656,7 +1667,7 @@ class Waterheater
       new_heater.setHeater2Capacity(UnitConversions.convert(cap, 'kBtu/hr', 'W'))
       new_heater.setHeater2Height(UnitConversions.convert(h_tank * 0.733333333, 'ft', 'm')) # node 13; height of upper element based on TRNSYS assumptions for an ERWH
       new_heater.setHeater2DeadbandTemperatureDifference(5.556)
-      new_heater.setHeaterThermalEfficiency(1)
+      new_heater.setHeaterThermalEfficiency(1.0)
       new_heater.setNumberofNodes(12)
       new_heater.setAdditionalDestratificationConductivity(0)
       new_heater.setUseSideDesignFlowRate(UnitConversions.convert(act_vol, 'gal', 'm^3') / 60.1)
@@ -1733,9 +1744,6 @@ class Waterheater
     return new_heater
   end
 
-  def self.set_wh_parasitic_parameters(water_heating_system, water_heater, is_dsh_storage)
-  end
-
   def self.set_wh_ambient(loc_space, loc_schedule, wh_obj)
     if wh_obj.ambientTemperatureSchedule.is_initialized
       wh_obj.ambientTemperatureSchedule.get.remove
@@ -1753,13 +1761,13 @@ class Waterheater
   def self.configure_mixed_tank_setpoint_schedule(new_heater, schedules_file, t_set_c, model, runner, unavailable_periods)
     new_schedule = nil
     if not schedules_file.nil?
-      new_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnWaterHeaterSetpoint)
+      new_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
     end
     if new_schedule.nil? # constant
       new_schedule = ScheduleConstant.new(model, Constants.ObjectNameWaterHeaterSetpoint, t_set_c, Constants.ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
       new_schedule = new_schedule.schedule
     else
-      runner.registerWarning("Both '#{SchedulesFile::ColumnWaterHeaterSetpoint}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
+      runner.registerWarning("Both '#{SchedulesFile::Columns[:WaterHeaterSetpoint].name}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
     end
     if new_heater.setpointTemperatureSchedule.is_initialized
       new_heater.setpointTemperatureSchedule.get.remove
@@ -1770,13 +1778,13 @@ class Waterheater
   def self.configure_stratified_tank_setpoint_schedules(new_heater, schedules_file, t_set_c, model, runner, unavailable_periods)
     new_schedule = nil
     if not schedules_file.nil?
-      new_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnWaterHeaterSetpoint)
+      new_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
     end
     if new_schedule.nil? # constant
       new_schedule = ScheduleConstant.new(model, Constants.ObjectNameWaterHeaterSetpoint, t_set_c, Constants.ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
       new_schedule = new_schedule.schedule
     else
-      runner.registerWarning("Both '#{SchedulesFile::ColumnWaterHeaterSetpoint}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
+      runner.registerWarning("Both '#{SchedulesFile::Columns[:WaterHeaterSetpoint].name}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
     end
     new_heater.heater1SetpointTemperatureSchedule.remove
     new_heater.heater2SetpointTemperatureSchedule.remove

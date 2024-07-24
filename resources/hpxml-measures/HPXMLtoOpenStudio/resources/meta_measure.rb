@@ -24,14 +24,14 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
   report_measure_errors_warnings(runner, rundir, debug)
   report_os_warnings(os_log, rundir)
 
-  if run_measures_only
-    return { success: success, runner: runner }
-  end
-
   if not success
     print "#{print_prefix}Creating input unsuccessful.\n"
     print "#{print_prefix}See #{File.join(rundir, 'run.log')} for details.\n"
     return { success: false, runner: runner }
+  end
+
+  if run_measures_only
+    return { success: success, runner: runner }
   end
 
   # Apply any additional output variables
@@ -351,20 +351,6 @@ def get_value_from_workflow_step_value(step_value)
   end
 end
 
-def get_value_from_additional_properties(obj, feature_name)
-  additional_properties = obj.additionalProperties
-  feature_data_type = additional_properties.getFeatureDataType(feature_name).get if additional_properties.getFeatureDataType(feature_name).is_initialized
-  if feature_data_type == 'Boolean'
-    return additional_properties.getFeatureAsBoolean(feature_name).get if additional_properties.getFeatureAsBoolean(feature_name).is_initialized
-  elsif feature_data_type == 'Double'
-    return additional_properties.getFeatureAsDouble(feature_name).get if additional_properties.getFeatureAsDouble(feature_name).is_initialized
-  elsif feature_data_type == 'Integer'
-    return additional_properties.getFeatureAsInteger(feature_name).get if additional_properties.getFeatureAsInteger(feature_name).is_initialized
-  elsif feature_data_type == 'String'
-    return additional_properties.getFeatureAsString(feature_name).get if additional_properties.getFeatureAsString(feature_name).is_initialized
-  end
-end
-
 def run_measure(model, measure, argument_map, runner)
   begin
     # run the measure
@@ -421,14 +407,11 @@ def run_measure(model, measure, argument_map, runner)
 end
 
 def hash_to_string(hash, delim = '=', separator = ',')
-  hash_s = ''
+  vals = []
   hash.each do |k, v|
-    hash_s += "#{k}#{delim}#{v}#{separator}"
+    vals << "#{k}#{delim}#{v}"
   end
-  if hash_s.size > 0
-    hash_s = hash_s.chomp(separator.to_s)
-  end
-  return hash_s
+  return vals.join(separator.to_s)
 end
 
 def register_error(msg, runner = nil)
@@ -501,15 +484,14 @@ def report_os_warnings(os_log, rundir)
   File.open(File.join(rundir, 'run.log'), 'a') do |f|
     os_log.logMessages.each do |s|
       next if s.logMessage.include? 'Cannot find current Workflow Step'
-      next if s.logMessage.include? 'Data will be treated as typical (TMY)'
       next if s.logMessage.include? 'WorkflowStepResult value called with undefined stepResult'
-      next if s.logMessage.include?("Object of type 'Schedule:Constant' and named 'Always") && s.logMessage.include?('points to an object named') && s.logMessage.include?('but that object cannot be located')
       next if s.logMessage.include? 'Appears there are no design condition fields in the EPW file'
       next if s.logMessage.include? 'Volume calculation will be potentially inaccurate'
       next if s.logMessage.include? 'Valid instance'
       next if s.logMessage.include? 'xsdValidate'
       next if s.logMessage.include? 'xsltValidate'
       next if s.logLevel == 0 && s.logMessage.include?('not within the expected limits') # Ignore EpwFile warnings
+      next if s.logMessage.include? 'Error removing temporary directory at /tmp/xmlvalidation'
 
       f << "OS Message: #{s.logMessage}\n"
     end
@@ -543,39 +525,4 @@ class String
 
     return true
   end
-end
-
-def get_argument_values(runner, arguments, user_arguments)
-  args = {}
-  arguments.each do |argument|
-    key = argument.name.to_sym
-    if argument.required
-      case argument.type
-      when 'Choice'.to_OSArgumentType
-        args[key] = runner.getStringArgumentValue(argument.name, user_arguments)
-      when 'Boolean'.to_OSArgumentType
-        args[key] = runner.getBoolArgumentValue(argument.name, user_arguments)
-      when 'Double'.to_OSArgumentType
-        args[key] = runner.getDoubleArgumentValue(argument.name, user_arguments)
-      when 'Integer'.to_OSArgumentType
-        args[key] = runner.getIntegerArgumentValue(argument.name, user_arguments)
-      when 'String'.to_OSArgumentType
-        args[key] = runner.getStringArgumentValue(argument.name, user_arguments)
-      end
-    else
-      case argument.type
-      when 'Choice'.to_OSArgumentType
-        args[key] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
-      when 'Boolean'.to_OSArgumentType
-        args[key] = runner.getOptionalBoolArgumentValue(argument.name, user_arguments)
-      when 'Double'.to_OSArgumentType
-        args[key] = runner.getOptionalDoubleArgumentValue(argument.name, user_arguments)
-      when 'Integer'.to_OSArgumentType
-        args[key] = runner.getOptionalIntegerArgumentValue(argument.name, user_arguments)
-      when 'String'.to_OSArgumentType
-        args[key] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
-      end
-    end
-  end
-  return args
 end

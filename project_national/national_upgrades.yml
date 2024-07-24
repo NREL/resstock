@@ -1,6 +1,6 @@
-schema_version: '0.3'
-os_version: 3.7.0
-os_sha: d5269793f1
+schema_version: '0.4'
+os_version: 3.8.0
+os_sha: f953b6fcaf
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 output_directory: national_upgrades
@@ -14,6 +14,7 @@ sampler:
 
 workflow_generator:
   type: residential_hpxml
+  version: 2024.07.20
   args:
     build_existing_model:
       simulation_control_timestep: 60
@@ -26,7 +27,7 @@ workflow_generator:
     emissions:
       - scenario_name: LRMER_MidCase_15
         type: CO2e
-        elec_folder: data/cambium/2022/LRMER_MidCase_15
+        elec_folder: data/emissions/cambium/2022/LRMER_MidCase_15
 
     utility_bills:
       - scenario_name: Bills
@@ -52,7 +53,6 @@ workflow_generator:
       - measure_dir_name: QOIReport
 
     server_directory_cleanup:
-      retain_in_idf: false
       retain_schedules_csv: false
 
 baseline:
@@ -122,6 +122,7 @@ upgrades:
         option: Insulation Ceiling|R-60
         apply_logic:
           or:
+            - Insulation Ceiling|R-49
             - Insulation Ceiling|R-30
             - Insulation Ceiling|R-19
             - Insulation Ceiling|R-13
@@ -181,6 +182,8 @@ upgrades:
         option: HVAC Cooling Efficiency|Ducted Heat Pump
       - &heat_pump_backup_use_existing_system
         option: Heat Pump Backup|Use Existing System
+      - &hvac_detailed_performance_data_default
+        option: HVAC Detailed Performance Data|Default
 
   - upgrade_name: MSHP
     package_apply_logic:
@@ -210,6 +213,7 @@ upgrades:
       - &hvac_cooling_efficiency_non_ducted_heat_pump
         option: HVAC Cooling Efficiency|Non-Ducted Heat Pump
       - *heat_pump_backup_use_existing_system
+      - *hvac_detailed_performance_data_default
 
   - upgrade_name: GSHP
     package_apply_logic:
@@ -252,7 +256,7 @@ upgrades:
       - &power_outage_summer
         option: Power Outage|Summer
 
-  - upgrade_name: All Upgrades # except Foundation Type, MSHP, MSHP w/o Ducts, GSHP, Power Outage
+  - upgrade_name: Package Upgrade # except Foundation Type, HVAC, Power Outage
     options:
       - *windows_triple_low_e_non_metal_l_gain
       - *insulation_wall_wood_stud_r_13
@@ -266,9 +270,6 @@ upgrades:
       - *lighting_interior_use_100_percent_usage
       - *lighting_other_use_100_percent_usage
       - *holiday_lighting_no_exterior_use
-      - *hvac_heating_efficiency_ashp_seer_22_10_hspf
-      - *hvac_cooling_efficiency_ducted_heat_pump
-      - *heat_pump_backup_use_existing_system
       - *water_heater_efficiency_electric_heat_pump_66_gal_3_pt_35_uef
       - *solar_hot_water_40_sqft_south_roof_pitch
       - *has_pv_yes

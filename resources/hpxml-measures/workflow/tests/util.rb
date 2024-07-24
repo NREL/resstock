@@ -1,33 +1,33 @@
 # frozen_string_literal: true
 
+require 'csv'
+
 def run_simulation_tests(xmls)
   # Run simulations
   puts "Running #{xmls.size} HPXML files..."
-  all_results = {}
-  all_results_bills = {}
+  all_annual_results = {}
   Parallel.map(xmls, in_threads: Parallel.processor_count) do |xml|
     next if xml.end_with? '-10x.xml'
-    next if xml.include? 'base-multiple-sfd-buildings' # Separate tests cover this
-    next if xml.include? 'base-multiple-mf-units' # Separate tests cover this
 
     xml_name = File.basename(xml)
     results = _run_xml(xml, Parallel.worker_number)
-    all_results[xml_name], all_results_bills[xml_name], timeseries_results = results
+    all_annual_results[xml_name], monthly_results = results
 
-    next unless xml.include?('sample_files') || xml.include?('real_homes')
+    next unless xml.include?('sample_files') || xml.include?('real_homes') # Exclude e.g. ASHRAE 140 files
+    next if xml.include? 'base-bldgtype-mf-whole-building' # Already has multiple dwelling units
 
     # Also run with a 10x unit multiplier (2 identical dwelling units each with a 5x
     # unit multiplier) and check how the results compare to the original run
-    _run_xml(xml, Parallel.worker_number, true, all_results[xml_name], timeseries_results)
+    _run_xml(xml, Parallel.worker_number, true, all_annual_results[xml_name], monthly_results)
   end
 
-  return all_results, all_results_bills
+  return all_annual_results
 end
 
-def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, timeseries_results_1x = nil)
+def _run_xml(xml, worker_num, apply_unit_multiplier = false, annual_results_1x = nil, monthly_results_1x = nil)
   unit_multiplier = 1
   if apply_unit_multiplier
-    hpxml = HPXML.new(hpxml_path: xml, building_id: 'ALL')
+    hpxml = HPXML.new(hpxml_path: xml)
     hpxml.buildings.each do |hpxml_bldg|
       next unless hpxml_bldg.building_construction.number_of_units.nil?
 
@@ -46,6 +46,9 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, t
       elsif hpxml_bldg.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
         # FUTURE: GSHPs currently don't give desired results w/ unit multipliers
         # https://github.com/NREL/OpenStudio-HPXML/issues/1499
+      elsif xml.include? 'max-power-ratio-schedule'
+        # FUTURE: Maximum power ratio schedule currently gives inconsistent component load results w/ unit multipliers
+        # https://github.com/NREL/OpenStudio-HPXML/issues/1610
       elsif hpxml_bldg.batteries.size > 0
         # FUTURE: Batteries currently don't work with whole SFA/MF buildings
         # https://github.com/NREL/OpenStudio-HPXML/issues/1499
@@ -55,23 +58,23 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, t
       end
       hpxml.buildings << hpxml_bldg.dup
     end
+    unit_multiplier = hpxml.buildings.map { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units }.sum / orig_multiplier
+    if unit_multiplier > 1
+      hpxml.header.whole_sfa_or_mf_building_sim = true
+    end
     xml.gsub!('.xml', '-10x.xml')
     hpxml_doc = hpxml.to_doc()
     hpxml.set_unique_hpxml_ids(hpxml_doc)
     XMLHelper.write_file(hpxml_doc, xml)
-    unit_multiplier = hpxml.buildings.map { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units }.sum / orig_multiplier
   end
 
   print "Testing #{File.basename(xml)}...\n"
-  rundir = File.join(File.dirname(__FILE__), "test#{worker_num}")
 
+  rundir = File.join(File.dirname(__FILE__), "run#{worker_num}")
   # Uses 'monthly' to verify timeseries results match annual results via error-checking
   # inside the ReportSimulationOutput measure.
   cli_path = OpenStudio.getOpenStudioCLI
   command = "\"#{cli_path}\" \"#{File.join(File.dirname(__FILE__), '../run_simulation.rb')}\" -x \"#{xml}\" --add-component-loads -o \"#{rundir}\" --debug --monthly ALL"
-  if unit_multiplier > 1
-    command += ' -b ALL'
-  end
   success = system(command)
 
   if unit_multiplier > 1
@@ -88,16 +91,16 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, t
 
   # Check for output files
   annual_csv_path = File.join(rundir, 'results_annual.csv')
-  timeseries_csv_path = File.join(rundir, 'results_timeseries.csv')
+  monthly_csv_path = File.join(rundir, 'results_timeseries.csv')
   bills_csv_path = File.join(rundir, 'results_bills.csv')
   assert(File.exist? annual_csv_path)
-  assert(File.exist? timeseries_csv_path)
+  assert(File.exist? monthly_csv_path)
 
   # Check outputs
   hpxml_defaults_path = File.join(rundir, 'in.xml')
   schema_validator = XMLValidator.get_schema_validator(File.join(File.dirname(__FILE__), '..', '..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd'))
   schematron_validator = XMLValidator.get_schematron_validator(File.join(File.dirname(__FILE__), '..', '..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schematron', 'EPvalidator.xml'))
-  hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, schema_validator: schema_validator, schematron_validator: schematron_validator, building_id: 'ALL') # Validate in.xml to ensure it can be run back through OS-HPXML
+  hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, schema_validator: schema_validator, schematron_validator: schematron_validator) # Validate in.xml to ensure it can be run back through OS-HPXML
   if not hpxml.errors.empty?
     puts 'ERRORS:'
     hpxml.errors.each do |error|
@@ -105,18 +108,17 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, results_1x = nil, t
     end
     flunk "EPvalidator.xml error in #{hpxml_defaults_path}."
   end
-  bill_results = _get_bill_results(bills_csv_path)
-  results = _get_simulation_results(annual_csv_path)
-  timeseries_results = _get_simulation_timeseries_results(timeseries_csv_path)
-  _verify_outputs(rundir, xml, results, hpxml, unit_multiplier)
+  annual_results = _get_simulation_annual_results(annual_csv_path, bills_csv_path)
+  monthly_results = _get_simulation_monthly_results(monthly_csv_path)
+  _verify_outputs(rundir, xml, annual_results, hpxml, unit_multiplier)
   if unit_multiplier > 1
-    _check_unit_multiplier_results(hpxml.buildings[0], results_1x, results, timeseries_results_1x, timeseries_results, unit_multiplier)
+    _check_unit_multiplier_results(xml, hpxml.buildings[0], annual_results_1x, annual_results, monthly_results_1x, monthly_results, unit_multiplier)
   end
 
-  return results, bill_results, timeseries_results
+  return annual_results, monthly_results
 end
 
-def _get_simulation_results(annual_csv_path)
+def _get_simulation_annual_results(annual_csv_path, bills_csv_path)
   # Grab all outputs from reporting measure CSV annual results
   results = {}
   CSV.foreach(annual_csv_path) do |row|
@@ -125,13 +127,23 @@ def _get_simulation_results(annual_csv_path)
     results[row[0]] = Float(row[1])
   end
 
+  # Grab all outputs (except monthly) from reporting measure CSV bill results
+  if File.exist? bills_csv_path
+    CSV.foreach(bills_csv_path) do |row|
+      next if row.nil? || (row.size < 2)
+      next if (1..12).to_a.any? { |month| row[0].include?(": Month #{month}:") }
+
+      results["Utility Bills: #{row[0]}"] = Float(row[1])
+    end
+  end
+
   return results
 end
 
-def _get_simulation_timeseries_results(timeseries_csv_path)
+def _get_simulation_monthly_results(monthly_csv_path)
   results = {}
   headers = nil
-  CSV.foreach(timeseries_csv_path).with_index do |row, i|
+  CSV.foreach(monthly_csv_path).with_index do |row, i|
     row = row[1..-1] # Skip time column
     if i == 0 # Header row
       headers = row
@@ -144,21 +156,6 @@ def _get_simulation_timeseries_results(timeseries_csv_path)
     for i in 0..row.size - 1
       results[headers[i]] = [] if results[headers[i]].nil?
       results[headers[i]] << Float(row[i])
-    end
-  end
-
-  return results
-end
-
-def _get_bill_results(bill_csv_path)
-  # Grab all outputs (except monthly) from reporting measure CSV bill results
-  results = {}
-  if File.exist? bill_csv_path
-    CSV.foreach(bill_csv_path) do |row|
-      next if row.nil? || (row.size < 2)
-      next if (1..12).to_a.any? { |month| row[0].include?(": Month #{month}:") }
-
-      results[row[0]] = Float(row[1])
     end
   end
 
@@ -179,7 +176,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
   hpxml_bldg.collapse_enclosure_surfaces()
   hpxml_bldg.delete_adiabatic_subsurfaces()
 
-  # Check run.log warnings
+  # Check for unexpected run.log messages
   File.readlines(File.join(rundir, 'run.log')).each do |message|
     next if message.strip.empty?
     next if message.start_with? 'Info: '
@@ -237,13 +234,22 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     end
     if !hpxml_header.unavailable_periods.select { |up| up.column_name == 'Power Outage' }.empty?
       next if message.include? 'It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.'
-      next if message.include? 'It is not possible to eliminate all water heater energy use (e.g. parasitics) in EnergyPlus during an unavailable period.'
+      next if message.include? 'It is not possible to eliminate all DHW energy use (e.g. water heater parasitics) in EnergyPlus during an unavailable period.'
     end
-    if hpxml_path.include? 'base-location-AMY-2012.xml'
+    if (not hpxml_bldg.hvac_controls.empty?) && (hpxml_bldg.hvac_controls[0].seasons_heating_begin_month != 1)
+      next if message.include? 'It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus outside of an HVAC season.'
+    end
+    if hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath.include? 'US_CO_Boulder_AMY_2012.epw'
       next if message.include? 'No design condition info found; calculating design conditions from EPW weather data.'
     end
     if hpxml_bldg.building_construction.number_of_units > 1
       next if message.include? 'NumberofUnits is greater than 1, indicating that the HPXML Building represents multiple dwelling units; simulation outputs will reflect this unit multiplier.'
+    end
+    if hpxml_path.include? 'base-hvac-multiple.xml'
+      next if message.include? 'Reached a minimum of 1 borehole; setting bore depth to the minimum'
+    end
+    if hpxml_path.include? 'base-zones'
+      next if message.include? 'While multiple conditioned zones are specified, the EnergyPlus model will only include a single conditioned thermal zone.'
     end
 
     # FUTURE: Revert this eventually
@@ -251,7 +257,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     if hpxml_header.utility_bill_scenarios.has_detailed_electric_rates
       uses_unit_multipliers = hpxml.buildings.select { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units > 1 }.size > 0
       if uses_unit_multipliers || hpxml.buildings.size > 1
-        next if message.include? 'Cannot currently calculate utility bills based on detailed electric rates for an HPXML with unit multipliers or multiple Building elements'
+        next if message.include? 'Cannot currently calculate utility bills based on detailed electric rates for an HPXML with unit multipliers.'
       end
     end
 
@@ -282,6 +288,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     next if message.include? 'Pump nominal power or motor efficiency is set to 0'
     next if message.include? 'volume flow rate per watt of rated total cooling capacity is out of range'
     next if message.include? 'volume flow rate per watt of rated total heating capacity is out of range'
+    next if message.include? 'volume flow rate per watt of rated total water heating capacity is out of range'
     next if message.include? 'The Standard Ratings is calculated for'
     next if message.include?('WetBulb not converged after') && message.include?('iterations(PsyTwbFnTdbWPb)')
     next if message.include? 'Inside surface heat balance did not converge with Max Temp Difference'
@@ -308,7 +315,6 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     if hpxml_bldg.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
       next if message.include? 'Recovery Efficiency and Energy Factor could not be calculated during the test for standard ratings'
       next if message.include? 'SimHVAC: Maximum iterations (20) exceeded for all HVAC loops'
-      next if message.include? 'Rated air volume flow rate per watt of rated total water heating capacity is out of range'
       next if message.include? 'For object = Coil:WaterHeating:AirToWaterHeatPump:Wrapped'
       next if message.include? 'Enthalpy out of range (PsyTsatFnHPb)'
       next if message.include?('CheckWarmupConvergence: Loads Initialization') && message.include?('did not converge after 25 warmup days')
@@ -373,9 +379,17 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     if timestep > 15
       next if message.include?('Timestep: Requested number') && message.include?('is less than the suggested minimum')
     end
+    # Location doesn't match EPW station
+    if hpxml_path.include? 'base-location-detailed.xml'
+      next if message.include? 'Weather file location will be used rather than entered (IDF) Location object.'
+    end
     # TODO: Check why this house produces this warning
     if hpxml_path.include? 'house044.xml'
       next if message.include? 'FixViewFactors: View factors not complete. Check for bad surface descriptions or unenclosed zone'
+    end
+    # TODO: Check why this warning occurs
+    if hpxml_path.include? 'base-bldgtype-mf-whole-building'
+      next if message.include? 'SHR adjusted to achieve valid outlet air properties and the simulation continues.'
     end
 
     flunk "Unexpected eplusout.err message found for #{File.basename(hpxml_path)}: #{message}"
@@ -470,12 +484,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
     # Net area
-    hpxml_value = roof.area
-    hpxml_bldg.skylights.each do |subsurface|
-      next if subsurface.roof_idref.upcase != roof_id
-
-      hpxml_value -= subsurface.area
-    end
+    hpxml_value = roof.net_area
     query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{roof_id}' OR RowName LIKE '#{roof_id}:%') AND ColumnName='Net Area' AND Units='m2'"
     sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
     assert_operator(sql_value, :>, 0.01)
@@ -669,7 +678,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
     # Area
-    hpxml_value = floor.area
+    hpxml_value = floor.net_area
     query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{floor_id}' AND ColumnName='Net Area' AND Units='m2'"
     sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
     assert_operator(sql_value, :>, 0.01)
@@ -746,12 +755,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
       sql_value = sqlFile.execAndReturnFirstDouble(query).get
       assert_in_epsilon(90.0, sql_value, 0.01)
     elsif subsurface.is_a? HPXML::Skylight
-      hpxml_value = nil
-      hpxml_bldg.roofs.each do |roof|
-        next if roof.id != subsurface.roof_idref
-
-        hpxml_value = UnitConversions.convert(Math.atan(roof.pitch / 12.0), 'rad', 'deg')
-      end
+      hpxml_value = UnitConversions.convert(Math.atan(subsurface.roof.pitch / 12.0), 'rad', 'deg')
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='Tilt' AND Units='deg'"
       sql_value = sqlFile.execAndReturnFirstDouble(query).get
       assert_in_epsilon(hpxml_value, sql_value, 0.01)
@@ -776,29 +780,33 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{door_id}' AND ColumnName='Gross Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
-      assert_in_epsilon(hpxml_value, sql_value, 0.1)
+      assert_in_delta(hpxml_value, sql_value, 0.1)
     end
 
     # R-Value
     next if door.r_value.nil?
 
+    hpxml_value = door.r_value
     if door.is_exterior
       col_name = 'U-Factor with Film'
     else
       col_name = 'U-Factor no Film'
-    end
-    hpxml_value = door.r_value
-    if door.is_interior
-      hpxml_value -= Material.AirFilmVertical.rvalue
-      hpxml_value -= Material.AirFilmVertical.rvalue
+      hpxml_value -= 2 * Material.AirFilmVertical.rvalue
     end
     query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{door_id}' AND ColumnName='#{col_name}' AND Units='W/m2-K'"
     sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
-    assert_in_epsilon(hpxml_value, sql_value, 0.1)
+    assert_in_delta(hpxml_value, sql_value, 0.2)
+  end
+
+  is_warm_climate = false
+  if ['USA_FL_Miami.Intl.AP.722020_TMY3.epw',
+      'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw',
+      'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw'].include? hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath
+    is_warm_climate = true
   end
 
   # HVAC Load Fractions
-  if (not hpxml_path.include? 'location-miami') && (not hpxml_path.include? 'location-honolulu') && (not hpxml_path.include? 'location-phoenix')
+  if not is_warm_climate
     htg_energy = results.select { |k, _v| (k.include?(': Heating (MBtu)') || k.include?(': Heating Fans/Pumps (MBtu)')) && !k.include?('Load') }.values.sum(0.0)
     assert_equal(hpxml_bldg.total_fraction_heat_load_served > 0, htg_energy > 0)
   end
@@ -907,13 +915,6 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     end
   end
 
-  is_warm_climate = false
-  if ['USA_FL_Miami.Intl.AP.722020_TMY3.epw',
-      'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw',
-      'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw'].include? hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath
-    is_warm_climate = true
-  end
-
   # Fuel consumption checks
   [HPXML::FuelTypeNaturalGas,
    HPXML::FuelTypeOil,
@@ -970,12 +971,12 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     if hpxml_bldg.total_fraction_heat_load_served == 0
       assert_equal(0, unmet_hours_htg)
     else
-      assert_operator(unmet_hours_htg, :<, 400)
+      assert_operator(unmet_hours_htg, :<, 500)
     end
     if hpxml_bldg.total_fraction_cool_load_served == 0
       assert_equal(0, unmet_hours_clg)
     else
-      assert_operator(unmet_hours_clg, :<, 400)
+      assert_operator(unmet_hours_clg, :<, 500)
     end
   end
 
@@ -986,7 +987,7 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
   GC.start()
 end
 
-def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results_10x, timeseries_results_1x, timeseries_results_10x, unit_multiplier)
+def _check_unit_multiplier_results(xml, hpxml_bldg, annual_results_1x, annual_results_10x, monthly_results_1x, monthly_results_10x, unit_multiplier)
   # Check that results_10x are expected compared to results_1x
 
   def get_tolerances(key)
@@ -1000,11 +1001,11 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
         abs_delta_tol = UnitConversions.convert(abs_delta_tol, 'MBtu', 'kWh')
       end
     elsif key.include?('Peak Electricity:')
-      # Check that the peak electricity difference is less than 500 W or less than 2%
+      # Check that the peak electricity difference is less than 500 W or less than 15%
       # Wider tolerances than others because a small change in when an event (like the
       # water heating firing) occurs can significantly impact the peak.
       abs_delta_tol = 500.0
-      abs_frac_tol = 0.02
+      abs_frac_tol = 0.15
     elsif key.include?('Peak Load:')
       # Check that the peak load difference is less than 0.2 kBtu/hr or less than 5%
       abs_delta_tol = 0.2
@@ -1018,17 +1019,21 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
       abs_delta_tol = 1.0
       abs_frac_tol = 0.01
     elsif key.include?('Airflow:')
-      # Check that airflow rate difference is less than 0.1 cfm or less than 0.5%
-      abs_delta_tol = 0.1
-      abs_frac_tol = 0.005
+      # Check that airflow rate difference is less than 0.2 cfm or less than 1.0%
+      abs_delta_tol = 0.2
+      abs_frac_tol = 0.01
     elsif key.include?('Unmet Hours:')
       # Check that the unmet hours difference is less than 10 hrs
       abs_delta_tol = 10
       abs_frac_tol = nil
-    elsif key.include?('HVAC Capacity:') || key.include?('HVAC Design Load:') || key.include?('HVAC Design Temperature:') || key.include?('Weather:')
+    elsif key.include?('HVAC Capacity:') || key.include?('HVAC Design Load:') || key.include?('HVAC Design Temperature:') || key.include?('Weather:') || key.include?('HVAC Geothermal Loop:')
       # Check that there is no difference
       abs_delta_tol = 0
       abs_frac_tol = nil
+    elsif key.include?('Emissions:')
+      # Check that the emissions difference is less than 100 lb or less than 5%
+      abs_delta_tol = 100
+      abs_frac_tol = 0.05
     else
       fail "Unexpected results key: #{key}."
     end
@@ -1038,33 +1043,49 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
 
   # Number of systems and thermal zones change between the 1x and 10x runs,
   # so remove these from the comparison
-  ['System Use:', 'Temperature:'].each do |key|
+  annual_results_1x = annual_results_1x.dup
+  annual_results_10x = annual_results_10x.dup
+  ['System Use:',
+   'Temperature:',
+   'Utility Bills:',
+   'HVAC Zone Design Load:',
+   'HVAC Space Design Load:'].each do |key|
     annual_results_1x.delete_if { |k, _v| k.start_with? key }
     annual_results_10x.delete_if { |k, _v| k.start_with? key }
-    timeseries_results_1x.delete_if { |k, _v| k.start_with? key }
-    timeseries_results_10x.delete_if { |k, _v| k.start_with? key }
+    monthly_results_1x.delete_if { |k, _v| k.start_with? key }
+    monthly_results_10x.delete_if { |k, _v| k.start_with? key }
   end
 
-  # Compare annual and timeseries results
-  assert_equal(annual_results_1x.keys.sort, annual_results_10x.keys.sort)
-  assert_equal(timeseries_results_1x.keys.sort, timeseries_results_10x.keys.sort)
-
+  # Compare annual and monthly results
   { annual_results_1x => annual_results_10x,
-    timeseries_results_1x => timeseries_results_10x }.each do |results_1x, results_10x|
-    results_1x.each do |key, vals_1x|
+    monthly_results_1x => monthly_results_10x }.each do |results_1x, results_10x|
+    keys = (results_1x.keys + results_10x.keys).uniq
+
+    keys.each do |key, vals_1x|
       abs_delta_tol, abs_frac_tol = get_tolerances(key)
 
+      vals_1x = results_1x[key]
       vals_10x = results_10x[key]
-      if not vals_1x.is_a? Array
+      if vals_1x.is_a?(Array) || vals_10x.is_a?(Array)
+        is_timeseries = true
+        vals_1x = [0.0] * vals_10x.size if vals_1x.nil?
+        vals_10x = [0.0] * vals_1x.size if vals_10x.nil?
+      else
+        is_timeseries = false
+        vals_1x = 0.0 if vals_1x.nil?
+        vals_10x = 0.0 if vals_10x.nil?
         vals_1x = [vals_1x]
         vals_10x = [vals_10x]
       end
+      assert_equal(vals_1x.size, vals_10x.size)
 
-      vals_1x.zip(vals_10x).each do |val_1x, val_10x|
+      vals_1x.zip(vals_10x).each_with_index do |(val_1x, val_10x), i|
+        period = is_timeseries ? Date::ABBR_MONTHNAMES[i + 1] : 'Annual'
         if not (key.include?('Unmet Hours') ||
                 key.include?('HVAC Design Temperature') ||
-                key.include?('Weather'))
-          # These outputs shouldn't change based on the unit multiplier
+                key.include?('Weather') ||
+                key.include?('HVAC Geothermal Loop: Borehole/Trench Length'))
+          # The above output types shouldn't change based on the unit multiplier
           val_1x *= unit_multiplier
         end
 
@@ -1083,17 +1104,27 @@ def _check_unit_multiplier_results(hpxml_bldg, annual_results_1x, annual_results
           next if key.include?('Hot Water')
         end
 
-        # Uncomment these lines to debug:
-        # if val_1x != 0 or val_10x != 0
-        #   puts "[#{key}] 1x=#{val_1x} 10x=#{val_10x}"
-        # end
+        debug_str = "#{File.basename(xml)}: [#{key}, #{period}] 1x=#{val_1x}, 10x=#{val_10x}"
         if abs_frac_tol.nil?
           if abs_delta_tol == 0
+            if val_1x != val_10x
+              puts "#{debug_str}, abs_delta_tol=#{abs_delta_tol}"
+            end
             assert_equal(val_1x, val_10x)
           else
+            if (val_1x - val_10x).abs > abs_delta_tol
+              puts "#{debug_str}, abs_delta_tol=#{abs_delta_tol}"
+            end
             assert_in_delta(val_1x, val_10x, abs_delta_tol)
           end
         else
+          if not ((abs_val_delta <= abs_delta_tol) || (!abs_val_frac.nil? && abs_val_frac <= abs_frac_tol))
+            if abs_val_frac.nil?
+              puts "#{debug_str}, abs_delta_tol=#{abs_delta_tol}"
+            else
+              puts "#{debug_str}, abs_delta_tol=#{abs_delta_tol}, abs_frac_tol=#{abs_frac_tol}"
+            end
+          end
           assert((abs_val_delta <= abs_delta_tol) || (!abs_val_frac.nil? && abs_val_frac <= abs_frac_tol))
         end
       end
@@ -1104,33 +1135,425 @@ end
 def _write_results(results, csv_out)
   require 'csv'
 
-  output_keys = []
-  results.values.each do |xml_results|
-    # Don't include emissions and system uses in output file/CI results
-    xml_results.delete_if { |k, _v| k.start_with? 'Emissions:' }
-    xml_results.delete_if { |k, _v| k.start_with? 'System Use:' }
+  output_groups = {
+    'energy' => ['Energy Use', 'Fuel Use', 'End Use'],
+    'loads' => ['Load', 'Component Load'],
+    'hvac' => ['HVAC Design Temperature', 'HVAC Capacity', 'HVAC Design Load'],
+    'misc' => ['Unmet Hours', 'Hot Water', 'Peak Electricity', 'Peak Load', 'Resilience'],
+    'bills' => ['Utility Bills'],
+  }
 
-    xml_results.keys.each do |key|
-      next if output_keys.include? key
+  output_groups.each do |output_group, key_types|
+    output_keys = []
+    key_types.each do |key_type|
+      results.values.each do |xml_results|
+        xml_results.keys.each do |key|
+          next if output_keys.include? key
+          next if key_type != key.split(':')[0]
 
-      output_keys << key
-    end
-  end
-
-  CSV.open(csv_out, 'w') do |csv|
-    csv << ['HPXML'] + output_keys
-    results.sort.each do |xml, xml_results|
-      csv_row = [xml]
-      output_keys.each do |key|
-        if xml_results[key].nil?
-          csv_row << 0
-        else
-          csv_row << xml_results[key]
+          output_keys << key
         end
       end
-      csv << csv_row
+    end
+
+    this_csv_out = csv_out.gsub('.csv', "_#{output_group}.csv")
+
+    CSV.open(this_csv_out, 'w') do |csv|
+      csv << ['HPXML'] + output_keys
+      results.sort.each do |xml, xml_results|
+        csv_row = [xml]
+        output_keys.each do |key|
+          if xml_results[key].nil?
+            csv_row << 0
+          else
+            csv_row << xml_results[key]
+          end
+        end
+        csv << csv_row
+      end
     end
   end
 
-  puts "Wrote results to #{csv_out}."
+  puts "Wrote results to #{csv_out.gsub('.csv', '_*.csv')}."
+end
+
+# NOTE: Methods below are used by both OS-HPXML & OS-ERI
+
+def _write_ashrae_140_results(all_results, test_results_csv)
+  # Write results to csv
+  all_results = all_results.sort_by { |k, _v| k.downcase }.to_h
+  htg_loads = {}
+  clg_loads = {}
+  CSV.open(test_results_csv, 'w') do |csv|
+    csv << ['Test Case', 'Annual Heating Load [MMBtu]', 'Annual Cooling Load [MMBtu]']
+    all_results.each do |xml, results|
+      next unless xml.include? 'C.xml'
+
+      csv << [xml] + results
+      test_name = File.basename(xml, File.extname(xml))
+      htg_loads[test_name] = results[0]
+    end
+    all_results.each do |xml, results|
+      next unless xml.include? 'L.xml'
+
+      csv << [xml] + results
+      test_name = File.basename(xml, File.extname(xml))
+      clg_loads[test_name] = results[1]
+    end
+  end
+  puts "Wrote results to #{test_results_csv}."
+
+  return htg_loads, clg_loads
+end
+
+def _write_hers_hvac_results(all_results, test_results_csv)
+  # Write results to csv
+  all_results = all_results.sort_by { |k, _v| k.downcase }.to_h
+  hvac_energy = {}
+  CSV.open(test_results_csv, 'w') do |csv|
+    csv << ['Test Case', 'HVAC (kWh or therm)', 'HVAC Fan (kWh)']
+    all_results.each do |xml, results|
+      csv << [xml, results[0], results[1]]
+      test_name = File.basename(xml, File.extname(xml))
+      if xml.include?('HVAC2a') || xml.include?('HVAC2b')
+        hvac_energy[test_name] = results[0] / 10.0 + results[1] / 293.08
+      else
+        hvac_energy[test_name] = results[0] + results[1]
+      end
+    end
+  end
+  puts "Wrote results to #{test_results_csv}."
+
+  return hvac_energy
+end
+
+def _write_hers_dse_results(all_results, test_results_csv)
+  # Write results to csv
+  all_results = all_results.sort_by { |k, _v| k.downcase }.to_h
+  dhw_energy = {}
+  CSV.open(test_results_csv, 'w') do |csv|
+    csv << ['Test Case', 'Heat/Cool (kWh or therm)', 'HVAC Fan (kWh)']
+    all_results.each do |xml, results|
+      next unless ['HVAC3a.xml', 'HVAC3e.xml'].include? xml
+
+      csv << [xml, results[0], results[1]]
+      test_name = File.basename(xml, File.extname(xml))
+      dhw_energy[test_name] = results[0] / 10.0 + results[1] / 293.08
+    end
+    all_results.each do |xml, results|
+      next if ['HVAC3a.xml', 'HVAC3e.xml'].include? xml
+
+      csv << [xml, results[0], results[1]]
+      test_name = File.basename(xml, File.extname(xml))
+      dhw_energy[test_name] = results[0] / 10.0 + results[1] / 293.08
+    end
+  end
+  puts "Wrote results to #{test_results_csv}."
+
+  return dhw_energy
+end
+
+def _write_hers_hot_water_results(all_results, test_results_csv)
+  # Write results to csv
+  all_results = all_results.sort_by { |k, _v| k.downcase }.to_h
+  dhw_energy = {}
+  CSV.open(test_results_csv, 'w') do |csv|
+    csv << ['Test Case', 'DHW Energy (therms)', 'Recirc Pump (kWh)']
+    all_results.each do |xml, result|
+      wh_energy, recirc_energy = result
+      csv << [xml, (wh_energy * 10.0).round(1), (recirc_energy * 293.08).round(1)]
+      test_name = File.basename(xml, File.extname(xml))
+      dhw_energy[test_name] = wh_energy + recirc_energy
+    end
+  end
+  puts "Wrote results to #{test_results_csv}."
+
+  return dhw_energy
+end
+
+def _get_simulation_load_results(results)
+  htg_load = results['Load: Heating: Delivered (MBtu)'].round(2)
+  clg_load = results['Load: Cooling: Delivered (MBtu)'].round(2)
+
+  return htg_load, clg_load
+end
+
+def _get_simulation_hvac_energy_results(results, is_heat, is_electric_heat)
+  if not is_heat
+    hvac = UnitConversions.convert(results["End Use: #{FT::Elec}: #{EUT::Cooling} (MBtu)"], 'MBtu', 'kwh').round(2)
+    hvac_fan = UnitConversions.convert(results["End Use: #{FT::Elec}: #{EUT::CoolingFanPump} (MBtu)"], 'MBtu', 'kwh').round(2)
+  else
+    if is_electric_heat
+      hvac = UnitConversions.convert(results["End Use: #{FT::Elec}: #{EUT::Heating} (MBtu)"], 'MBtu', 'kwh').round(2)
+    else
+      hvac = UnitConversions.convert(results["End Use: #{FT::Gas}: #{EUT::Heating} (MBtu)"], 'MBtu', 'therm').round(2)
+    end
+    hvac_fan = UnitConversions.convert(results["End Use: #{FT::Elec}: #{EUT::HeatingFanPump} (MBtu)"], 'MBtu', 'kwh').round(2)
+  end
+
+  assert_operator(hvac, :>, 0)
+  assert_operator(hvac_fan, :>, 0)
+
+  return hvac.round(2), hvac_fan.round(2)
+end
+
+def _get_simulation_hot_water_results(results)
+  dhw_energy = (results["End Use: #{FT::Gas}: #{EUT::HotWater} (MBtu)"] +
+                results["End Use: #{FT::Elec}: #{EUT::HotWater} (MBtu)"]).round(2)
+  recirc_energy = results["End Use: #{FT::Elec}: #{EUT::HotWaterRecircPump} (MBtu)"].round(2)
+  return dhw_energy, recirc_energy
+end
+
+def _check_ashrae_140_results(htg_loads, clg_loads)
+  # Pub 002-2024
+  htg_min = [48.07, 74.30, 35.98, 39.74, 45.72, 39.13, 42.17, 48.30, 58.15, 121.76, 126.71, 24.59, 27.72, 57.57, 48.33]
+  htg_max = [61.35, 82.96, 48.09, 49.95, 51.97, 55.54, 58.15, 63.40, 74.24, 137.68, 146.84, 81.73, 70.27, 91.66, 56.47]
+  htg_dt_min = [17.53, -16.08, -12.92, -12.14, -10.90, -0.56, -1.96, 8.15, 71.16, 3.20, -25.78, -3.14, 7.79, 5.49]
+  htg_dt_max = [29.62, -9.44, -5.89, 0.24, -3.37, 6.42, 4.54, 15.14, 79.06, 11.26, 22.68, 11.47, 32.01, 38.95]
+  clg_min = [42.50, 47.72, 41.15, 31.54, 21.03, 50.55, 36.63, 52.26, 34.16, 57.07, 50.19]
+  clg_max = [58.66, 61.33, 51.69, 41.85, 29.35, 73.48, 59.72, 68.60, 47.58, 73.51, 60.72]
+  clg_dt_min = [0.69, -8.24, -18.53, -30.58, 7.51, -16.52, 6.75, -12.95, 11.62, 5.12]
+  clg_dt_max = [6.91, -0.22, -9.74, -20.48, 15.77, -11.15, 12.76, -6.58, 17.59, 14.14]
+
+  # Annual Heating Loads
+  assert_operator(htg_loads['L100AC'], :<=, htg_max[0])
+  assert_operator(htg_loads['L100AC'], :>=, htg_min[0])
+  assert_operator(htg_loads['L110AC'], :<=, htg_max[1])
+  assert_operator(htg_loads['L110AC'], :>=, htg_min[1])
+  assert_operator(htg_loads['L120AC'], :<=, htg_max[2])
+  assert_operator(htg_loads['L120AC'], :>=, htg_min[2])
+  assert_operator(htg_loads['L130AC'], :<=, htg_max[3])
+  assert_operator(htg_loads['L130AC'], :>=, htg_min[3])
+  assert_operator(htg_loads['L140AC'], :<=, htg_max[4])
+  assert_operator(htg_loads['L140AC'], :>=, htg_min[4])
+  assert_operator(htg_loads['L150AC'], :<=, htg_max[5])
+  assert_operator(htg_loads['L150AC'], :>=, htg_min[5])
+  assert_operator(htg_loads['L155AC'], :<=, htg_max[6])
+  assert_operator(htg_loads['L155AC'], :>=, htg_min[6])
+  assert_operator(htg_loads['L160AC'], :<=, htg_max[7])
+  assert_operator(htg_loads['L160AC'], :>=, htg_min[7])
+  assert_operator(htg_loads['L170AC'], :<=, htg_max[8])
+  assert_operator(htg_loads['L170AC'], :>=, htg_min[8])
+  assert_operator(htg_loads['L200AC'], :<=, htg_max[9])
+  assert_operator(htg_loads['L200AC'], :>=, htg_min[9])
+  assert_operator(htg_loads['L202AC'], :<=, htg_max[10])
+  assert_operator(htg_loads['L202AC'], :>=, htg_min[10])
+  assert_operator(htg_loads['L302XC'], :<=, htg_max[11])
+  assert_operator(htg_loads['L302XC'], :>=, htg_min[11])
+  assert_operator(htg_loads['L304XC'], :<=, htg_max[12])
+  assert_operator(htg_loads['L304XC'], :>=, htg_min[12])
+  assert_operator(htg_loads['L322XC'], :<=, htg_max[13])
+  assert_operator(htg_loads['L322XC'], :>=, htg_min[13])
+  assert_operator(htg_loads['L324XC'], :<=, htg_max[14])
+  assert_operator(htg_loads['L324XC'], :>=, htg_min[14])
+
+  # Annual Heating Load Deltas
+  assert_operator(htg_loads['L110AC'] - htg_loads['L100AC'], :<=, htg_dt_max[0])
+  assert_operator(htg_loads['L110AC'] - htg_loads['L100AC'], :>=, htg_dt_min[0])
+  assert_operator(htg_loads['L120AC'] - htg_loads['L100AC'], :<=, htg_dt_max[1])
+  assert_operator(htg_loads['L120AC'] - htg_loads['L100AC'], :>=, htg_dt_min[1])
+  assert_operator(htg_loads['L130AC'] - htg_loads['L100AC'], :<=, htg_dt_max[2])
+  assert_operator(htg_loads['L130AC'] - htg_loads['L100AC'], :>=, htg_dt_min[2])
+  assert_operator(htg_loads['L140AC'] - htg_loads['L100AC'], :<=, htg_dt_max[3])
+  assert_operator(htg_loads['L140AC'] - htg_loads['L100AC'], :>=, htg_dt_min[3])
+  assert_operator(htg_loads['L150AC'] - htg_loads['L100AC'], :<=, htg_dt_max[4])
+  assert_operator(htg_loads['L150AC'] - htg_loads['L100AC'], :>=, htg_dt_min[4])
+  assert_operator(htg_loads['L155AC'] - htg_loads['L150AC'], :<=, htg_dt_max[5])
+  assert_operator(htg_loads['L155AC'] - htg_loads['L150AC'], :>=, htg_dt_min[5])
+  assert_operator(htg_loads['L160AC'] - htg_loads['L100AC'], :<=, htg_dt_max[6])
+  assert_operator(htg_loads['L160AC'] - htg_loads['L100AC'], :>=, htg_dt_min[6])
+  assert_operator(htg_loads['L170AC'] - htg_loads['L100AC'], :<=, htg_dt_max[7])
+  assert_operator(htg_loads['L170AC'] - htg_loads['L100AC'], :>=, htg_dt_min[7])
+  assert_operator(htg_loads['L200AC'] - htg_loads['L100AC'], :<=, htg_dt_max[8])
+  assert_operator(htg_loads['L200AC'] - htg_loads['L100AC'], :>=, htg_dt_min[8])
+  assert_operator(htg_loads['L202AC'] - htg_loads['L200AC'], :<=, htg_dt_max[9])
+  assert_operator(htg_loads['L202AC'] - htg_loads['L200AC'], :>=, htg_dt_min[9])
+  assert_operator(htg_loads['L302XC'] - htg_loads['L100AC'], :<=, htg_dt_max[10])
+  assert_operator(htg_loads['L302XC'] - htg_loads['L100AC'], :>=, htg_dt_min[10])
+  assert_operator(htg_loads['L302XC'] - htg_loads['L304XC'], :<=, htg_dt_max[11])
+  assert_operator(htg_loads['L302XC'] - htg_loads['L304XC'], :>=, htg_dt_min[11])
+  assert_operator(htg_loads['L322XC'] - htg_loads['L100AC'], :<=, htg_dt_max[12])
+  assert_operator(htg_loads['L322XC'] - htg_loads['L100AC'], :>=, htg_dt_min[12])
+  assert_operator(htg_loads['L322XC'] - htg_loads['L324XC'], :<=, htg_dt_max[13])
+  assert_operator(htg_loads['L322XC'] - htg_loads['L324XC'], :>=, htg_dt_min[13])
+
+  # Annual Cooling Loads
+  assert_operator(clg_loads['L100AL'], :<=, clg_max[0])
+  assert_operator(clg_loads['L100AL'], :>=, clg_min[0])
+  assert_operator(clg_loads['L110AL'], :<=, clg_max[1])
+  assert_operator(clg_loads['L110AL'], :>=, clg_min[1])
+  assert_operator(clg_loads['L120AL'], :<=, clg_max[2])
+  assert_operator(clg_loads['L120AL'], :>=, clg_min[2])
+  assert_operator(clg_loads['L130AL'], :<=, clg_max[3])
+  assert_operator(clg_loads['L130AL'], :>=, clg_min[3])
+  assert_operator(clg_loads['L140AL'], :<=, clg_max[4])
+  assert_operator(clg_loads['L140AL'], :>=, clg_min[4])
+  assert_operator(clg_loads['L150AL'], :<=, clg_max[5])
+  assert_operator(clg_loads['L150AL'], :>=, clg_min[5])
+  assert_operator(clg_loads['L155AL'], :<=, clg_max[6])
+  assert_operator(clg_loads['L155AL'], :>=, clg_min[6])
+  assert_operator(clg_loads['L160AL'], :<=, clg_max[7])
+  assert_operator(clg_loads['L160AL'], :>=, clg_min[7])
+  assert_operator(clg_loads['L170AL'], :<=, clg_max[8])
+  assert_operator(clg_loads['L170AL'], :>=, clg_min[8])
+  assert_operator(clg_loads['L200AL'], :<=, clg_max[9])
+  assert_operator(clg_loads['L200AL'], :>=, clg_min[9])
+  assert_operator(clg_loads['L202AL'], :<=, clg_max[10])
+  assert_operator(clg_loads['L202AL'], :>=, clg_min[10])
+
+  # Annual Cooling Load Deltas
+  assert_operator(clg_loads['L110AL'] - clg_loads['L100AL'], :<=, clg_dt_max[0])
+  assert_operator(clg_loads['L110AL'] - clg_loads['L100AL'], :>=, clg_dt_min[0])
+  assert_operator(clg_loads['L120AL'] - clg_loads['L100AL'], :<=, clg_dt_max[1])
+  assert_operator(clg_loads['L120AL'] - clg_loads['L100AL'], :>=, clg_dt_min[1])
+  assert_operator(clg_loads['L130AL'] - clg_loads['L100AL'], :<=, clg_dt_max[2])
+  assert_operator(clg_loads['L130AL'] - clg_loads['L100AL'], :>=, clg_dt_min[2])
+  assert_operator(clg_loads['L140AL'] - clg_loads['L100AL'], :<=, clg_dt_max[3])
+  assert_operator(clg_loads['L140AL'] - clg_loads['L100AL'], :>=, clg_dt_min[3])
+  assert_operator(clg_loads['L150AL'] - clg_loads['L100AL'], :<=, clg_dt_max[4])
+  assert_operator(clg_loads['L150AL'] - clg_loads['L100AL'], :>=, clg_dt_min[4])
+  assert_operator(clg_loads['L155AL'] - clg_loads['L150AL'], :<=, clg_dt_max[5])
+  assert_operator(clg_loads['L155AL'] - clg_loads['L150AL'], :>=, clg_dt_min[5])
+  assert_operator(clg_loads['L160AL'] - clg_loads['L100AL'], :<=, clg_dt_max[6])
+  assert_operator(clg_loads['L160AL'] - clg_loads['L100AL'], :>=, clg_dt_min[6])
+  assert_operator(clg_loads['L170AL'] - clg_loads['L100AL'], :<=, clg_dt_max[7])
+  assert_operator(clg_loads['L170AL'] - clg_loads['L100AL'], :>=, clg_dt_min[7])
+  assert_operator(clg_loads['L200AL'] - clg_loads['L100AL'], :<=, clg_dt_max[8])
+  assert_operator(clg_loads['L200AL'] - clg_loads['L100AL'], :>=, clg_dt_min[8])
+  assert_operator(clg_loads['L200AL'] - clg_loads['L202AL'], :<=, clg_dt_max[9])
+  assert_operator(clg_loads['L200AL'] - clg_loads['L202AL'], :>=, clg_dt_min[9])
+end
+
+def _check_hvac_test_results(energy)
+  # Pub 002-2024
+  min = [-24.59, -13.13, -42.73, 59.35]
+  max = [-18.18, -12.60, -15.88, 110.25]
+
+  # Cooling cases
+  assert_operator((energy['HVAC1b'] - energy['HVAC1a']) / energy['HVAC1a'] * 100, :>, min[0])
+  assert_operator((energy['HVAC1b'] - energy['HVAC1a']) / energy['HVAC1a'] * 100, :<, max[0])
+
+  # Gas heating cases
+  assert_operator((energy['HVAC2b'] - energy['HVAC2a']) / energy['HVAC2a'] * 100, :>, min[1])
+  assert_operator((energy['HVAC2b'] - energy['HVAC2a']) / energy['HVAC2a'] * 100, :<, max[1])
+
+  # Electric heating cases
+  assert_operator((energy['HVAC2d'] - energy['HVAC2c']) / energy['HVAC2c'] * 100, :>, min[2])
+  assert_operator((energy['HVAC2d'] - energy['HVAC2c']) / energy['HVAC2c'] * 100, :<, max[2])
+  assert_operator((energy['HVAC2e'] - energy['HVAC2c']) / energy['HVAC2c'] * 100, :>, min[3])
+  assert_operator((energy['HVAC2e'] - energy['HVAC2c']) / energy['HVAC2c'] * 100, :<, max[3])
+end
+
+def _check_dse_test_results(energy)
+  # Pub 002-2024
+  htg_min = [9.45, 3.11, 7.40]
+  htg_max = [25.72, 6.53, 19.77]
+  clg_min = [18.69, 5.23, 16.32]
+  clg_max = [29.39, 8.79, 27.47]
+
+  # Heating cases
+  assert_operator((energy['HVAC3b'] - energy['HVAC3a']) / energy['HVAC3a'] * 100, :>, htg_min[0])
+  assert_operator((energy['HVAC3b'] - energy['HVAC3a']) / energy['HVAC3a'] * 100, :<, htg_max[0])
+  assert_operator((energy['HVAC3c'] - energy['HVAC3a']) / energy['HVAC3a'] * 100, :>, htg_min[1])
+  assert_operator((energy['HVAC3c'] - energy['HVAC3a']) / energy['HVAC3a'] * 100, :<, htg_max[1])
+  assert_operator((energy['HVAC3d'] - energy['HVAC3a']) / energy['HVAC3a'] * 100, :>, htg_min[2])
+  assert_operator((energy['HVAC3d'] - energy['HVAC3a']) / energy['HVAC3a'] * 100, :<, htg_max[2])
+
+  # Cooling cases
+  assert_operator((energy['HVAC3f'] - energy['HVAC3e']) / energy['HVAC3e'] * 100, :>, clg_min[0])
+  assert_operator((energy['HVAC3f'] - energy['HVAC3e']) / energy['HVAC3e'] * 100, :<, clg_max[0])
+  assert_operator((energy['HVAC3g'] - energy['HVAC3e']) / energy['HVAC3e'] * 100, :>, clg_min[1])
+  assert_operator((energy['HVAC3g'] - energy['HVAC3e']) / energy['HVAC3e'] * 100, :<, clg_max[1])
+  assert_operator((energy['HVAC3h'] - energy['HVAC3e']) / energy['HVAC3e'] * 100, :>, clg_min[2])
+  assert_operator((energy['HVAC3h'] - energy['HVAC3e']) / energy['HVAC3e'] * 100, :<, clg_max[2])
+end
+
+def _check_hot_water(energy)
+  # Pub 002-2024
+  mn_min = [19.34, 25.76, 17.20, 24.94, 55.93, 22.61, 20.51]
+  mn_max = [19.88, 26.55, 17.70, 25.71, 57.58, 23.28, 21.09]
+  fl_min = [10.74, 13.37, 8.83, 13.06, 30.84, 12.09, 11.84]
+  fl_max = [11.24, 13.87, 9.33, 13.56, 31.55, 12.59, 12.34]
+  mn_dt_min = [-6.77, 1.92, 0.58, -31.03, 2.95, 5.09]
+  mn_dt_max = [-6.27, 2.42, 1.08, -30.17, 3.45, 5.59]
+  fl_dt_min = [-2.88, 1.67, 0.07, -17.82, 1.04, 1.28]
+  fl_dt_max = [-2.38, 2.17, 0.57, -17.32, 1.54, 1.78]
+  mn_fl_dt_min = [8.37, 12.26, 8.13, 11.75, 25.05, 10.35, 8.46]
+  mn_fl_dt_max = [8.87, 12.77, 8.63, 12.25, 26.04, 10.85, 8.96]
+
+  # Duluth MN cases
+  assert_operator(energy['L100AD-HW-01'], :>, mn_min[0])
+  assert_operator(energy['L100AD-HW-01'], :<, mn_max[0])
+  assert_operator(energy['L100AD-HW-02'], :>, mn_min[1])
+  assert_operator(energy['L100AD-HW-02'], :<, mn_max[1])
+  assert_operator(energy['L100AD-HW-03'], :>, mn_min[2])
+  assert_operator(energy['L100AD-HW-03'], :<, mn_max[2])
+  assert_operator(energy['L100AD-HW-04'], :>, mn_min[3])
+  assert_operator(energy['L100AD-HW-04'], :<, mn_max[3])
+  assert_operator(energy['L100AD-HW-05'], :>, mn_min[4])
+  assert_operator(energy['L100AD-HW-05'], :<, mn_max[4])
+  assert_operator(energy['L100AD-HW-06'], :>, mn_min[5])
+  assert_operator(energy['L100AD-HW-06'], :<, mn_max[5])
+  assert_operator(energy['L100AD-HW-07'], :>, mn_min[6])
+  assert_operator(energy['L100AD-HW-07'], :<, mn_max[6])
+
+  # Miami FL cases
+  assert_operator(energy['L100AM-HW-01'], :>, fl_min[0])
+  assert_operator(energy['L100AM-HW-01'], :<, fl_max[0])
+  assert_operator(energy['L100AM-HW-02'], :>, fl_min[1])
+  assert_operator(energy['L100AM-HW-02'], :<, fl_max[1])
+  assert_operator(energy['L100AM-HW-03'], :>, fl_min[2])
+  assert_operator(energy['L100AM-HW-03'], :<, fl_max[2])
+  assert_operator(energy['L100AM-HW-04'], :>, fl_min[3])
+  assert_operator(energy['L100AM-HW-04'], :<, fl_max[3])
+  assert_operator(energy['L100AM-HW-05'], :>, fl_min[4])
+  assert_operator(energy['L100AM-HW-05'], :<, fl_max[4])
+  assert_operator(energy['L100AM-HW-06'], :>, fl_min[5])
+  assert_operator(energy['L100AM-HW-06'], :<, fl_max[5])
+  assert_operator(energy['L100AM-HW-07'], :>, fl_min[6])
+  assert_operator(energy['L100AM-HW-07'], :<, fl_max[6])
+
+  # MN Delta cases
+  assert_operator(energy['L100AD-HW-01'] - energy['L100AD-HW-02'], :>, mn_dt_min[0])
+  assert_operator(energy['L100AD-HW-01'] - energy['L100AD-HW-02'], :<, mn_dt_max[0])
+  assert_operator(energy['L100AD-HW-01'] - energy['L100AD-HW-03'], :>, mn_dt_min[1])
+  assert_operator(energy['L100AD-HW-01'] - energy['L100AD-HW-03'], :<, mn_dt_max[1])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-04'], :>, mn_dt_min[2])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-04'], :<, mn_dt_max[2])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-05'], :>, mn_dt_min[3])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-05'], :<, mn_dt_max[3])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-06'], :>, mn_dt_min[4])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-06'], :<, mn_dt_max[4])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-07'], :>, mn_dt_min[5])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AD-HW-07'], :<, mn_dt_max[5])
+
+  # FL Delta cases
+  assert_operator(energy['L100AM-HW-01'] - energy['L100AM-HW-02'], :>, fl_dt_min[0])
+  assert_operator(energy['L100AM-HW-01'] - energy['L100AM-HW-02'], :<, fl_dt_max[0])
+  assert_operator(energy['L100AM-HW-01'] - energy['L100AM-HW-03'], :>, fl_dt_min[1])
+  assert_operator(energy['L100AM-HW-01'] - energy['L100AM-HW-03'], :<, fl_dt_max[1])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-04'], :>, fl_dt_min[2])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-04'], :<, fl_dt_max[2])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-05'], :>, fl_dt_min[3])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-05'], :<, fl_dt_max[3])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-06'], :>, fl_dt_min[4])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-06'], :<, fl_dt_max[4])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-07'], :>, fl_dt_min[5])
+  assert_operator(energy['L100AM-HW-02'] - energy['L100AM-HW-07'], :<, fl_dt_max[5])
+
+  # MN-FL Delta cases
+  assert_operator(energy['L100AD-HW-01'] - energy['L100AM-HW-01'], :>, mn_fl_dt_min[0])
+  assert_operator(energy['L100AD-HW-01'] - energy['L100AM-HW-01'], :<, mn_fl_dt_max[0])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AM-HW-02'], :>, mn_fl_dt_min[1])
+  assert_operator(energy['L100AD-HW-02'] - energy['L100AM-HW-02'], :<, mn_fl_dt_max[1])
+  assert_operator(energy['L100AD-HW-03'] - energy['L100AM-HW-03'], :>, mn_fl_dt_min[2])
+  assert_operator(energy['L100AD-HW-03'] - energy['L100AM-HW-03'], :<, mn_fl_dt_max[2])
+  assert_operator(energy['L100AD-HW-04'] - energy['L100AM-HW-04'], :>, mn_fl_dt_min[3])
+  assert_operator(energy['L100AD-HW-04'] - energy['L100AM-HW-04'], :<, mn_fl_dt_max[3])
+  assert_operator(energy['L100AD-HW-05'] - energy['L100AM-HW-05'], :>, mn_fl_dt_min[4])
+  assert_operator(energy['L100AD-HW-05'] - energy['L100AM-HW-05'], :<, mn_fl_dt_max[4])
+  assert_operator(energy['L100AD-HW-06'] - energy['L100AM-HW-06'], :>, mn_fl_dt_min[5])
+  assert_operator(energy['L100AD-HW-06'] - energy['L100AM-HW-06'], :<, mn_fl_dt_max[5])
+  assert_operator(energy['L100AD-HW-07'] - energy['L100AM-HW-07'], :>, mn_fl_dt_min[6])
+  assert_operator(energy['L100AD-HW-07'] - energy['L100AM-HW-07'], :<, mn_fl_dt_max[6])
 end
