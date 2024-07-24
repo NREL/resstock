@@ -4,7 +4,7 @@ Development Changelog
 
 .. changelog::
     :version: v3.3.0
-    :released: 2024-07-23
+    :released: 2024-07-24
 
     .. change::
         :tags: workflow, refactor, bugfix
