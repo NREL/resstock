@@ -1,6 +1,6 @@
-=====================
-Development Changelog
-=====================
+================
+v3.3.0 Changelog
+================
 
 .. changelog::
     :version: v3.3.0
