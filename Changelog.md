@@ -23,6 +23,7 @@ __Bugfixes__
 - Fixes utility bill calculations if there is battery storage or a generator.
 - BuildResidentialScheduleFile measure: Fixes possible divide by zero error during generation of stochastic clothes washer and dishwasher schedules.
 - Allows negative values for `Building/Site/Elevation`.
+- Fixes zero ventilation design load for "supply only" mechanical ventilation.
 
 ## OpenStudio-HPXML v1.8.1
 
