@@ -3,6 +3,7 @@ from typing import List
 from setpoint_helper import HVACSetpoints, BuildingInfo
 import pandas as pd
 import numpy as np
+import math
 from datetime import datetime
 from dataclasses import dataclass, fields
 
@@ -46,8 +47,10 @@ def get_prepeak_and_peak_start_end(year_index, total_indices, on_peak_hour_weekd
 
     if setpoint_type == 'heating':
         pre_peak_duration = OffsetTimingData.heating_pre_peak_duration
+        on_peak_duration = OffsetTimingData.heating_on_peak_duration
     if setpoint_type == 'cooling':
         pre_peak_duration = OffsetTimingData.cooling_pre_peak_duration
+        on_peak_duration = OffsetTimingData.cooling_on_peak_duration
 
     if day_type == 'weekday':
         row = on_peak_hour_weekday_dict[month]
@@ -59,12 +62,18 @@ def get_prepeak_and_peak_start_end(year_index, total_indices, on_peak_hour_weekd
 
     offset_time = peak_time_default()
     if 1 in row_morning:
-        offset_time.peak_start_morning = row_morning.index(1)
-        offset_time.peak_end_morning = len(row_morning) - row_morning[::-1].index(1) - 1
+        on_peak_start_index = row_morning.index(1)
+        on_peak_end_index = len(row_morning) - row_morning[::-1].index(1) - 1
+        on_peak_mid_index = math.ceil((on_peak_start_index + on_peak_end_index)/2)
+        offset_time.peak_start_morning = math.ceil(on_peak_mid_index - on_peak_duration/2)
+        offset_time.peak_end_morning = math.ceil(on_peak_mid_index + on_peak_duration/2)-1
         offset_time.pre_peak_start_morning = offset_time.peak_start_morning - pre_peak_duration
     if 1 in row_afternoon:
-        offset_time.peak_start_afternoon = row_afternoon.index(1) + 11
-        offset_time.peak_end_afternoon = len(row_afternoon) - row_afternoon[::-1].index(1) - 1 + 11
+        on_peak_start_index = row_afternoon.index(1) + 11
+        on_peak_end_index = len(row_afternoon) - row_afternoon[::-1].index(1) - 1 + 11
+        on_peak_mid_index = math.ceil((on_peak_start_index + on_peak_end_index)/2)
+        offset_time.peak_start_afternoon = math.ceil(on_peak_mid_index - on_peak_duration/2)
+        offset_time.peak_end_afternoon =  math.ceil(on_peak_mid_index + on_peak_duration/2)-1
         offset_time.pre_peak_start_afternoon = offset_time.peak_start_afternoon - pre_peak_duration
             
     return offset_time
