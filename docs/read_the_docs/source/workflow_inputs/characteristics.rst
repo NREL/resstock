@@ -1112,7 +1112,7 @@ Arguments
      - Total number of ceiling fans. If not provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
    * - ``ceiling_fan_cooling_setpoint_temp_offset``
      - false
-     - deg-F
+     - F
      - Double
      - auto
      - The cooling setpoint temperature offset during months when the ceiling fans are operating. Only applies if ceiling fan quantity is greater than zero. If not provided, the OS-HPXML default (see `HPXML Ceiling Fans <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-ceiling-fans>`_) is used.
@@ -38637,7 +38637,7 @@ Arguments
      - The output heating capacity of the heat pump at a user-specified temperature (e.g., 17F or 5F) divided by the above nominal heating capacity. Applies to all heat pump types except ground-to-air. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_) is used.
    * - ``heat_pump_heating_capacity_retention_temp``
      - false
-     - deg-F
+     - F
      - Double
      -
      - The user-specified temperature (e.g., 17F or 5F) for the above heating capacity retention fraction. Applies to all heat pump types except ground-to-air. Required if the Heating Capacity Retention Fraction is provided.
@@ -38667,7 +38667,7 @@ Arguments
      - The cooling load served by the heat pump.
    * - ``heat_pump_compressor_lockout_temp``
      - false
-     - deg-F
+     - F
      - Double
      - auto
      - The temperature below which the heat pump compressor is disabled. If both this and Backup Heating Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies to all heat pump types other than ground-to-air. If not provided, the OS-HPXML default (see `Air-to-Air Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#air-to-air-heat-pump>`_, `Mini-Split Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#mini-split-heat-pump>`_, `Packaged Terminal Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#packaged-terminal-heat-pump>`_, `Room Air Conditioner w/ Reverse Cycle <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#room-air-conditioner-w-reverse-cycle>`_) is used.
@@ -38703,7 +38703,7 @@ Arguments
      - The backup output heating capacity of the heat pump. If not provided, the OS-HPXML autosized default (see `Backup <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#backup>`_) is used. Only applies if Backup Type is 'integrated'.
    * - ``heat_pump_backup_heating_lockout_temp``
      - false
-     - deg-F
+     - F
      - Double
      - auto
      - The temperature above which the heat pump backup system is disabled. If both this and Compressor Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies for both Backup Type of 'integrated' and 'separate'. If not provided, the OS-HPXML default (see `Backup <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#backup>`_) is used.
@@ -42794,30 +42794,36 @@ Arguments
      - Choice
      - auto, exposed, normal, well-shielded
      - Presence of nearby buildings, trees, obstructions for infiltration model. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
-   * - ``air_leakage_units``
-     - true
+   * - ``air_leakage_leakiness_description``
+     - false
      - 
      - Choice
-     - ACH, CFM, ACHnatural, CFMnatural, EffectiveLeakageArea
-     - The unit of measure for the air leakage.
+     - auto, very tight, tight, average, leaky, very leaky
+     - Qualitative description of infiltration. If provided, the Year Built of the home is required. Either provide this input or provide a numeric air leakage value below.
+   * - ``air_leakage_units``
+     - false
+     - 
+     - Choice
+     - auto, ACH, CFM, ACHnatural, CFMnatural, EffectiveLeakageArea
+     - The unit of measure for the air leakage if providing a numeric air leakage value.
    * - ``air_leakage_house_pressure``
-     - true
+     - false
      - Pa
      - Double
      -
-     - The house pressure relative to outside. Required when units are ACH or CFM.
+     - The house pressure relative to outside if providing a numeric air leakage value. Required when units are ACH or CFM.
    * - ``air_leakage_value``
-     - true
+     - false
      - 
      - Double
      -
-     - Air exchange rate value. For 'EffectiveLeakageArea', provide value in sq. in.
+     - Numeric air leakage value. For 'EffectiveLeakageArea', provide value in sq. in. If provided, overrides Leakiness Description input.
    * - ``air_leakage_type``
      - false
      - 
      - Choice
      - auto, unit total, unit exterior only
-     - Type of air leakage. If 'unit total', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'unit exterior only', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is single-family attached or apartment unit.
+     - Type of air leakage if providing a numeric air leakage value. If 'unit total', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'unit exterior only', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is single-family attached or apartment unit.
 
 Options
 *******
@@ -42832,6 +42838,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Option name
      - Stock saturation
      - ``site_shielding_of_home``
+     - ``air_leakage_leakiness_description``
      - ``air_leakage_units``
      - ``air_leakage_house_pressure``
      - ``air_leakage_value``
@@ -42840,6 +42847,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 1 ACH50
      - 0.064%
      - normal
+     - auto
      - ACH
      - 50
      - 1
@@ -42847,6 +42855,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 2 ACH50
      - 0.66%
      - normal
+     - auto
      - ACH
      - 50
      - 2
@@ -42854,6 +42863,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 3 ACH50
      - 1.4%
      - normal
+     - auto
      - ACH
      - 50
      - 3
@@ -42861,6 +42871,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 4 ACH50
      - 2.3%
      - normal
+     - auto
      - ACH
      - 50
      - 4
@@ -42868,6 +42879,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 5 ACH50
      - 3.4%
      - normal
+     - auto
      - ACH
      - 50
      - 5
@@ -42875,6 +42887,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 6 ACH50
      - 4.3%
      - normal
+     - auto
      - ACH
      - 50
      - 6
@@ -42882,6 +42895,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 7 ACH50
      - 4.9%
      - normal
+     - auto
      - ACH
      - 50
      - 7
@@ -42889,6 +42903,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 8 ACH50
      - 5.3%
      - normal
+     - auto
      - ACH
      - 50
      - 8
@@ -42896,6 +42911,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 10 ACH50
      - 11%
      - normal
+     - auto
      - ACH
      - 50
      - 10
@@ -42903,6 +42919,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 15 ACH50
      - 24%
      - normal
+     - auto
      - ACH
      - 50
      - 15
@@ -42910,6 +42927,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 20 ACH50
      - 17%
      - normal
+     - auto
      - ACH
      - 50
      - 20
@@ -42917,6 +42935,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 25 ACH50
      - 10%
      - normal
+     - auto
      - ACH
      - 50
      - 25
@@ -42924,6 +42943,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 30 ACH50
      - 6.1%
      - normal
+     - auto
      - ACH
      - 50
      - 30
@@ -42931,6 +42951,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 40 ACH50
      - 5.7%
      - normal
+     - auto
      - ACH
      - 50
      - 40
@@ -42938,6 +42959,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 50 ACH50
      - 3.2%
      - normal
+     - auto
      - ACH
      - 50
      - 50
@@ -43527,7 +43549,7 @@ Arguments
      - Double
      -
      - Nominal R-value of the vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
-   * - ``slab_perimeter_depth``
+   * - ``slab_perimeter_insulation_depth``
      - true
      - ft
      - Double
@@ -43539,7 +43561,7 @@ Arguments
      - Double
      -
      - Nominal R-value of the horizontal under slab insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
-   * - ``slab_under_width``
+   * - ``slab_under_insulation_width``
      - true
      - ft
      - Double
@@ -43577,9 +43599,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Option name
      - Stock saturation
      - ``slab_perimeter_insulation_r``
-     - ``slab_perimeter_depth``
+     - ``slab_perimeter_insulation_depth``
      - ``slab_under_insulation_r``
-     - ``slab_under_width``
+     - ``slab_under_insulation_width``
      - ``slab_thickness``
      - ``slab_carpet_fraction``
      - ``slab_carpet_r``
@@ -46451,7 +46473,7 @@ Arguments
      - kWh/yr
      - Double
      - auto
-     - The EnergyGuide rated annual energy consumption for an extra rrefrigerator. If not provided, the OS-HPXML default (see `HPXML Refrigerators <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-refrigerators>`_) is used.
+     - The EnergyGuide rated annual energy consumption for an extra refrigerator. If not provided, the OS-HPXML default (see `HPXML Refrigerators <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-refrigerators>`_) is used.
    * - ``extra_refrigerator_usage_multiplier``
      - false
      - 
@@ -62542,7 +62564,7 @@ Arguments
      - Heating capacity. Only applies to storage water heater. If not provided, the OS-HPXML default (see `Conventional Storage <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage>`_) is used.
    * - ``water_heater_standby_loss``
      - false
-     - deg-F/hr
+     - F/hr
      - Double
      - auto
      - The standby loss of water heater. Only applies to space-heating boilers. If not provided, the OS-HPXML default (see `Combi Boiler w/ Storage <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#combi-boiler-w-storage>`_) is used.
@@ -62554,7 +62576,7 @@ Arguments
      - The jacket R-value of water heater. Doesn't apply to instantaneous water heater or space-heating boiler with tankless coil. If not provided, defaults to no jacket insulation.
    * - ``water_heater_setpoint_temperature``
      - false
-     - deg-F
+     - F
      - Double
      - auto
      - The setpoint temperature of water heater. If not provided, the OS-HPXML default (see `HPXML Water Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-water-heating-systems>`_) is used.

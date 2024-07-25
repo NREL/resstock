@@ -25,10 +25,12 @@
           <SiteType>suburban</SiteType>
           <ShieldingofHome>normal</ShieldingofHome>
           <Soil>
-            <Conductivity>0.5</Conductivity>
+            <SoilType>unknown</SoilType>
+            <MoistureType>dry</MoistureType>
           </Soil>
         </Site>
         <BuildingConstruction>
+          <YearBuilt>2000</YearBuilt>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
           <NumberofConditionedFloors>1.0</NumberofConditionedFloors>
           <NumberofConditionedFloorsAboveGrade>1.0</NumberofConditionedFloorsAboveGrade>
@@ -182,11 +184,7 @@
         <AirInfiltration>
           <AirInfiltrationMeasurement>
             <SystemIdentifier id='AirInfiltrationMeasurement1'/>
-            <HousePressure>50.0</HousePressure>
-            <BuildingAirLeakage>
-              <UnitofMeasure>ACH</UnitofMeasure>
-              <AirLeakage>1.9</AirLeakage>
-            </BuildingAirLeakage>
+            <LeakinessDescription>very tight</LeakinessDescription>
           </AirInfiltrationMeasurement>
         </AirInfiltration>
         <Roofs>
@@ -1042,6 +1040,27 @@
             <AttachedToWall idref='WallDiningNorthwest'/>
           </Window>
         </Windows>
+        <Skylights>
+          <Skylight>
+            <SystemIdentifier id='SkylightFamilyRoom'/>
+            <Area>32.0</Area>
+            <Azimuth>225</Azimuth>
+            <UFactor>0.64</UFactor>
+            <SHGC>0.63</SHGC>
+            <AttachedToRoof idref='Roof1'/>
+            <AttachedToFloor idref='CeilingFamilyRoom'/>
+            <extension>
+              <Curb>
+                <Area>16.0</Area>
+                <AssemblyEffectiveRValue>6.67</AssemblyEffectiveRValue>
+              </Curb>
+              <Shaft>
+                <Area>120.0</Area>
+                <AssemblyEffectiveRValue>12.5</AssemblyEffectiveRValue>
+              </Shaft>
+            </extension>
+          </Skylight>
+        </Skylights>
         <Doors>
           <Door>
             <SystemIdentifier id='Door1'/>
@@ -1103,7 +1122,7 @@
                   <DuctType>supply</DuctType>
                   <DuctLeakage>
                     <Units>CFM25</Units>
-                    <Value>23.64</Value>
+                    <Value>0.0</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>
@@ -1111,25 +1130,30 @@
                   <DuctType>return</DuctType>
                   <DuctLeakage>
                     <Units>CFM25</Units>
-                    <Value>15.36</Value>
+                    <Value>12.5</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>
                 <Ducts>
                   <SystemIdentifier id='Ducts1'/>
                   <DuctType>supply</DuctType>
-                  <DuctEffectiveRValue>1.5</DuctEffectiveRValue>
+                  <DuctInsulationRValue>0.0</DuctInsulationRValue>
                   <DuctLocation>under slab</DuctLocation>
-                  <DuctSurfaceArea>197.0</DuctSurfaceArea>
+                  <DuctSurfaceArea>306.0</DuctSurfaceArea>
                 </Ducts>
                 <Ducts>
                   <SystemIdentifier id='Ducts2'/>
                   <DuctType>return</DuctType>
-                  <DuctEffectiveRValue>9.0</DuctEffectiveRValue>
+                  <DuctInsulationRValue>8.0</DuctInsulationRValue>
                   <DuctLocation>attic - vented</DuctLocation>
-                  <DuctSurfaceArea>64.0</DuctSurfaceArea>
+                  <DuctSurfaceArea>52.0</DuctSurfaceArea>
                 </Ducts>
                 <NumberofReturnRegisters>1</NumberofReturnRegisters>
+                <extension>
+                  <ManualJInputs>
+                    <BlowerFanHeatBtuh>1707.0</BlowerFanHeatBtuh>
+                  </ManualJInputs>
+                </extension>
               </AirDistribution>
             </DistributionSystemType>
           </HVACDistribution>

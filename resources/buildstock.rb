@@ -521,8 +521,8 @@ class RunOSWs
   end
 end
 
-class Version
-  ResStock_Version = '3.2.0' # Version of ResStock
+module Version
+  ResStock_Version = '3.3.0' # Version of ResStock
   BuildStockBatch_Version = '2023.10.0' # Minimum required version of BuildStockBatch
   WorkflowGenerator_Version = '2024.07.20' # Version of buildstockbatch workflow generator
 

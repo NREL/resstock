@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
-class TE
+# TODO
+module TE
   # Total Energy
   Total = 'Total'
   Net = 'Net'
 end
 
-class FT
+# TODO
+module FT
   # Fuel Types
   Elec = 'Electricity'
   Gas = 'Natural Gas'
@@ -17,7 +19,8 @@ class FT
   Coal = 'Coal'
 end
 
-class EUT
+# TODO
+module EUT
   # End Use Types
   Heating = 'Heating'
   HeatingFanPump = 'Heating Fans/Pumps'
@@ -59,7 +62,8 @@ class EUT
   Battery = 'Battery'
 end
 
-class HWT
+# TODO
+module HWT
   # Hot Water Types
   ClothesWasher = 'Clothes Washer'
   Dishwasher = 'Dishwasher'
@@ -67,7 +71,8 @@ class HWT
   DistributionWaste = 'Distribution Waste'
 end
 
-class LT
+# TODO
+module LT
   # Load Types
   Heating = 'Heating: Delivered'
   HeatingHeatPumpBackup = 'Heating: Heat Pump Backup' # Needed for ERI calculation for dual-fuel heat pumps
@@ -78,7 +83,8 @@ class LT
   HotWaterSolarThermal = 'Hot Water: Solar Thermal'
 end
 
-class CLT
+# TODO
+module CLT
   # Component Load Types
   Roofs = 'Roofs'
   Ceilings = 'Ceilings'
@@ -102,31 +108,36 @@ class CLT
   Lighting = 'Lighting'
 end
 
-class UHT
+# TODO
+module UHT
   # Unmet Hours Types
   Heating = 'Heating'
   Cooling = 'Cooling'
 end
 
-class RT
+# TODO
+module RT
   # Resilience Types
   Battery = 'Battery'
 end
 
-class PLT
+# TODO
+module PLT
   # Peak Load Types
   Heating = 'Heating: Delivered'
   Cooling = 'Cooling: Delivered'
 end
 
-class PFT
+# TODO
+module PFT
   # Peak Fuel Types
   Summer = 'Summer'
   Winter = 'Winter'
   Annual = 'Annual'
 end
 
-class AFT
+# TODO
+module AFT
   # Airflow Types
   Infiltration = 'Infiltration'
   MechanicalVentilation = 'Mechanical Ventilation'
@@ -134,7 +145,8 @@ class AFT
   WholeHouseFan = 'Whole House Fan'
 end
 
-class WT
+# TODO
+module WT
   # Weather Types
   DrybulbTemp = 'Drybulb Temperature'
   WetbulbTemp = 'Wetbulb Temperature'
@@ -144,7 +156,12 @@ class WT
   DirectSolar = 'Direct Solar Radiation'
 end
 
-class Outputs
+# TODO
+module Outputs
+  # TODO
+  #
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [TODO] TODO
   def self.get_total_hvac_capacities(hpxml_bldg)
     htg_cap, clg_cap, hp_backup_cap = 0.0, 0.0, 0.0
     unit_multiplier = hpxml_bldg.building_construction.number_of_units
@@ -171,6 +188,10 @@ class Outputs
     return htg_cap, clg_cap, hp_backup_cap
   end
 
+  # TODO
+  #
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [TODO] TODO
   def self.get_total_hvac_airflows(hpxml_bldg)
     htg_cfm, clg_cfm = 0.0, 0.0
     unit_multiplier = hpxml_bldg.building_construction.number_of_units
@@ -190,6 +211,11 @@ class Outputs
     return htg_cfm, clg_cfm
   end
 
+  # TODO
+  #
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param results_out [TODO] TODO
+  # @return [TODO] TODO
   def self.append_sizing_results(hpxml_bldgs, results_out)
     line_break = nil
 
@@ -217,6 +243,7 @@ class Outputs
     results_out << ['HVAC Design Load: Heating: Ceilings (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_ceilings * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
     results_out << ['HVAC Design Load: Heating: Infiltration (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_infil * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
     results_out << ['HVAC Design Load: Heating: Ventilation (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_vent * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
+    results_out << ['HVAC Design Load: Heating: Piping (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.hdl_piping * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
     results_out << ['HVAC Design Load: Cooling Sensible: Total (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_total * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
     results_out << ['HVAC Design Load: Cooling Sensible: Ducts (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_ducts * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
     results_out << ['HVAC Design Load: Cooling Sensible: Windows (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_windows * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
@@ -230,6 +257,7 @@ class Outputs
     results_out << ['HVAC Design Load: Cooling Sensible: Infiltration (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_infil * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
     results_out << ['HVAC Design Load: Cooling Sensible: Ventilation (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_vent * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
     results_out << ['HVAC Design Load: Cooling Sensible: Internal Gains (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_intgains * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
+    results_out << ['HVAC Design Load: Cooling Sensible: Blower Heat (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_blowerheat * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
     results_out << ['HVAC Design Load: Cooling Sensible: AED Excursion (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_sens_aedexcursion * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
     results_out << ['HVAC Design Load: Cooling Latent: Total (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_lat_total * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
     results_out << ['HVAC Design Load: Cooling Latent: Ducts (Btu/h)', hpxml_bldgs.map { |hpxml_bldg| hpxml_bldg.hvac_plant.cdl_lat_ducts * hpxml_bldg.building_construction.number_of_units }.sum(0.0).round(1)]
@@ -255,6 +283,7 @@ class Outputs
         results_out << ["HVAC Zone Design Load: #{zone.id}: Heating: Ceilings (Btu/h)", zone.hdl_ceilings.round(1)]
         results_out << ["HVAC Zone Design Load: #{zone.id}: Heating: Infiltration (Btu/h)", zone.hdl_infil.round(1)]
         results_out << ["HVAC Zone Design Load: #{zone.id}: Heating: Ventilation (Btu/h)", zone.hdl_vent.round(1)]
+        results_out << ["HVAC Zone Design Load: #{zone.id}: Heating: Piping (Btu/h)", zone.hdl_piping.round(1)]
         results_out << ["HVAC Zone Design Load: #{zone.id}: Cooling Sensible: Total (Btu/h)", zone.cdl_sens_total.round(1)]
         results_out << ["HVAC Zone Design Load: #{zone.id}: Cooling Sensible: Ducts (Btu/h)", zone.cdl_sens_ducts.round(1)]
         results_out << ["HVAC Zone Design Load: #{zone.id}: Cooling Sensible: Windows (Btu/h)", zone.cdl_sens_windows.round(1)]
@@ -268,6 +297,7 @@ class Outputs
         results_out << ["HVAC Zone Design Load: #{zone.id}: Cooling Sensible: Infiltration (Btu/h)", zone.cdl_sens_infil.round(1)]
         results_out << ["HVAC Zone Design Load: #{zone.id}: Cooling Sensible: Ventilation (Btu/h)", zone.cdl_sens_vent.round(1)]
         results_out << ["HVAC Zone Design Load: #{zone.id}: Cooling Sensible: Internal Gains (Btu/h)", zone.cdl_sens_intgains.round(1)]
+        results_out << ["HVAC Zone Design Load: #{zone.id}: Cooling Sensible: Blower Heat (Btu/h)", zone.cdl_sens_blowerheat.round(1)]
         results_out << ["HVAC Zone Design Load: #{zone.id}: Cooling Sensible: AED Excursion (Btu/h)", zone.cdl_sens_aedexcursion.round(1)]
         results_out << ["HVAC Zone Design Load: #{zone.id}: Cooling Latent: Total (Btu/h)", zone.cdl_lat_total.round(1)]
         results_out << ["HVAC Zone Design Load: #{zone.id}: Cooling Latent: Ducts (Btu/h)", zone.cdl_lat_ducts.round(1)]
@@ -320,6 +350,13 @@ class Outputs
     return results_out
   end
 
+  # TODO
+  #
+  # @param results_out [TODO] TODO
+  # @param output_format [TODO] TODO
+  # @param output_file_path [TODO] TODO
+  # @param mode [TODO] TODO
+  # @return [TODO] TODO
   def self.write_results_out_to_file(results_out, output_format, output_file_path, mode = 'w')
     line_break = nil
     if ['csv'].include? output_format

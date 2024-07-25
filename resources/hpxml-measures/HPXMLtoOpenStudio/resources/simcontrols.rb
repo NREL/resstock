@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
-class SimControls
+# Collection of helper methods related to setting simulation controls.
+module SimControls
+  # Applies various high-level simulation controls/settings to the OpenStudio model.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @return [void]
   def self.apply(model, hpxml_header)
     sim = model.getSimulationControl
     sim.setRunSimulationforSizingPeriods(false)
@@ -10,23 +16,20 @@ class SimControls
 
     shad = model.getShadowCalculation
     shad.setMaximumFiguresInShadowOverlapCalculations(200)
-    # Use EnergyPlus default of 20 days for update frequency; it is a reasonable balance
-    # between speed and accuracy (e.g., sun position, picking up any change in window
-    # interior shading transmittance, etc.).
-    shad.setShadingCalculationUpdateFrequency(20)
+    shad.setShadingCalculationUpdateFrequency(20) # EnergyPlus default
 
     outsurf = model.getOutsideSurfaceConvectionAlgorithm
-    outsurf.setAlgorithm('DOE-2')
+    outsurf.setAlgorithm('DOE-2') # EnergyPlus default
 
     insurf = model.getInsideSurfaceConvectionAlgorithm
-    insurf.setAlgorithm('TARP')
+    insurf.setAlgorithm('TARP') # EnergyPlus default
 
     zonecap = model.getZoneCapacitanceMultiplierResearchSpecial
     zonecap.setTemperatureCapacityMultiplier(hpxml_header.temperature_capacitance_multiplier)
-    zonecap.setHumidityCapacityMultiplier(15)
+    zonecap.setHumidityCapacityMultiplier(15) # Per Hugh Henderson ACEEE 2008 Summer Study Paper
 
     convlim = model.getConvergenceLimits
-    convlim.setMinimumSystemTimestep(0)
+    convlim.setMinimumSystemTimestep(0) # Speed improvement with minimal effect on results
 
     run_period = model.getRunPeriod
     run_period.setBeginMonth(hpxml_header.sim_begin_month)
@@ -35,6 +38,6 @@ class SimControls
     run_period.setEndDayOfMonth(hpxml_header.sim_end_day)
 
     ppt = model.getPerformancePrecisionTradeoffs
-    ppt.setZoneRadiantExchangeAlgorithm('CarrollMRT')
+    ppt.setZoneRadiantExchangeAlgorithm('CarrollMRT') # Speed improvement with minimal effect on results
   end
 end

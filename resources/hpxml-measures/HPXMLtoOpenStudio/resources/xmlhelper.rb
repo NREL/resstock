@@ -1,8 +1,16 @@
 # frozen_string_literal: true
 
-class XMLHelper
+# TODO
+module XMLHelper
   # Adds the child element with 'element_name' and sets its value. Returns the
   # child element.
+  #
+  # @param parent [TODO] TODO
+  # @param element_name [TODO] TODO
+  # @param value [TODO] TODO
+  # @param datatype [TODO] TODO
+  # @param defaulted [TODO] TODO
+  # @return [TODO] TODO
   def self.add_element(parent, element_name, value = nil, datatype = nil, defaulted = false)
     added = XMLHelper.insert_element(parent, element_name, -1, value, datatype, defaulted)
     return added
@@ -10,6 +18,14 @@ class XMLHelper
 
   # Inserts the child element with 'element_name' and sets its value. Returns the
   # child element.
+  #
+  # @param parent [TODO] TODO
+  # @param element_name [TODO] TODO
+  # @param index [TODO] TODO
+  # @param value [TODO] TODO
+  # @param datatype [TODO] TODO
+  # @param defaulted [TODO] TODO
+  # @return [TODO] TODO
   def self.insert_element(parent, element_name, index = 0, value = nil, datatype = nil, defaulted = false)
     added = Oga::XML::Element.new(name: element_name)
     if index == -1
@@ -38,6 +54,13 @@ class XMLHelper
 
   # Adds the child element with 'element_name' to a single extension element and
   # sets its value. Returns the extension element.
+  #
+  # @param parent [TODO] TODO
+  # @param element_name [TODO] TODO
+  # @param value [TODO] TODO
+  # @param datatype [TODO] TODO
+  # @param defaulted [TODO] TODO
+  # @return [TODO] TODO
   def self.add_extension(parent, element_name, value = nil, datatype = nil, defaulted = false)
     extension = XMLHelper.create_elements_as_needed(parent, ['extension'])
     return XMLHelper.add_element(extension, element_name, value, datatype, defaulted)
@@ -46,6 +69,10 @@ class XMLHelper
   # Creates a hierarchy of elements under the parent element based on the supplied
   # list of element names. If a given child element already exists, it is reused.
   # Returns the final element.
+  #
+  # @param parent [TODO] TODO
+  # @param element_names [TODO] TODO
+  # @return [TODO] TODO
   def self.create_elements_as_needed(parent, element_names)
     this_parent = parent
     element_names.each do |element_name|
@@ -58,6 +85,10 @@ class XMLHelper
   end
 
   # Deletes the child element with element_name. Returns the deleted element.
+  #
+  # @param parent [TODO] TODO
+  # @param element_name [TODO] TODO
+  # @return [TODO] TODO
   def self.delete_element(parent, element_name)
     element = nil
     while !parent.at_xpath(element_name).nil?
@@ -68,6 +99,11 @@ class XMLHelper
   end
 
   # Returns the value of 'element_name' in the parent element or nil.
+  #
+  # @param parent [TODO] TODO
+  # @param element_name [TODO] TODO
+  # @param datatype [TODO] TODO
+  # @return [TODO] TODO
   def self.get_value(parent, element_name, datatype)
     element = parent.at_xpath(element_name)
     if element.nil?
@@ -90,6 +126,11 @@ class XMLHelper
   end
 
   # Returns the value(s) of 'element_name' in the parent element or [].
+  #
+  # @param parent [TODO] TODO
+  # @param element_name [TODO] TODO
+  # @param datatype [TODO] TODO
+  # @return [TODO] TODO
   def self.get_values(parent, element_name, datatype)
     values = []
     parent.xpath(element_name).each do |value|
@@ -112,17 +153,29 @@ class XMLHelper
   end
 
   # Returns the element in the parent element.
+  #
+  # @param parent [TODO] TODO
+  # @param element_name [TODO] TODO
+  # @return [TODO] TODO
   def self.get_element(parent, element_name)
     return parent.at_xpath(element_name)
   end
 
   # Returns the element in the parent element.
+  #
+  # @param parent [TODO] TODO
+  # @param element_name [TODO] TODO
+  # @return [TODO] TODO
   def self.get_elements(parent, element_name)
     return parent.xpath(element_name)
   end
 
   # Returns the name of the first child element of the 'element_name'
   # element on the parent element.
+  #
+  # @param parent [TODO] TODO
+  # @param element_name [TODO] TODO
+  # @return [TODO] TODO
   def self.get_child_name(parent, element_name)
     element = parent.at_xpath(element_name)
     return if element.nil? || element.children.nil?
@@ -135,41 +188,74 @@ class XMLHelper
   end
 
   # Returns true if the element exists.
+  #
+  # @param parent [TODO] TODO
+  # @param element_name [TODO] TODO
+  # @return [TODO] TODO
   def self.has_element(parent, element_name)
     element = parent.at_xpath(element_name)
     return !element.nil?
   end
 
   # Returns the attribute added
+  #
+  # @param element [TODO] TODO
+  # @param attr_name [TODO] TODO
+  # @param attr_val [TODO] TODO
+  # @return [TODO] TODO
   def self.add_attribute(element, attr_name, attr_val)
     added = element.set(attr_name, attr_val)
     return added
   end
 
   # Returns the value of the attribute
+  #
+  # @param element [TODO] TODO
+  # @param attr_name [TODO] TODO
+  # @return [TODO] TODO
   def self.get_attribute_value(element, attr_name)
     return if element.nil?
 
     return element.get(attr_name)
   end
 
+  # TODO
+  #
+  # @param element [TODO] TODO
+  # @param attr_name [TODO] TODO
+  # @return [TODO] TODO
   def self.delete_attribute(element, attr_name)
     return if element.nil?
 
     element.unset(attr_name)
   end
 
+  # TODO
+  #
+  # @param version [TODO] TODO
+  # @param encoding [TODO] TODO
+  # @param standalone [TODO] TODO
+  # @return [TODO] TODO
   def self.create_doc(version = nil, encoding = nil, standalone = nil)
     doc = Oga::XML::Document.new(xml_declaration: Oga::XML::XmlDeclaration.new(version: version, encoding: encoding, standalone: standalone)) # Oga.parse_xml
     return doc
   end
 
+  # TODO
+  #
+  # @param hpxml_path [TODO] TODO
+  # @return [TODO] TODO
   def self.parse_file(hpxml_path)
     file_read = File.read(hpxml_path)
     hpxml_doc = Oga.parse_xml(file_read)
     return hpxml_doc
   end
 
+  # TODO
+  #
+  # @param doc [Oga::XML::Document] Oga XML Document object
+  # @param out_path [TODO] TODO
+  # @return [TODO] TODO
   def self.write_file(doc, out_path)
     doc_s = doc.to_xml.delete("\r")
 
@@ -223,6 +309,12 @@ class XMLHelper
   end
 end
 
+# TODO
+#
+# @param value [TODO] TODO
+# @param parent [TODO] TODO
+# @param element_name [TODO] TODO
+# @return [TODO] TODO
 def to_float(value, parent, element_name)
   begin
     return Float(value)
@@ -231,6 +323,12 @@ def to_float(value, parent, element_name)
   end
 end
 
+# TODO
+#
+# @param value [TODO] TODO
+# @param parent [TODO] TODO
+# @param element_name [TODO] TODO
+# @return [TODO] TODO
 def to_integer(value, parent, element_name)
   begin
     value = Float(value)
@@ -244,6 +342,12 @@ def to_integer(value, parent, element_name)
   end
 end
 
+# TODO
+#
+# @param value [TODO] TODO
+# @param parent [TODO] TODO
+# @param element_name [TODO] TODO
+# @return [TODO] TODO
 def to_boolean(value, parent, element_name)
   if value.is_a? TrueClass
     return true
@@ -258,18 +362,36 @@ def to_boolean(value, parent, element_name)
   fail "Cannot convert '#{value}' to boolean for #{parent.name}/#{element_name}."
 end
 
+# TODO
+#
+# @param value [TODO] TODO
+# @param parent [TODO] TODO
+# @param element_name [TODO] TODO
+# @return [TODO] TODO
 def to_float_or_nil(value, parent, element_name)
   return if value.nil?
 
   return to_float(value, parent, element_name)
 end
 
+# TODO
+#
+# @param value [TODO] TODO
+# @param parent [TODO] TODO
+# @param element_name [TODO] TODO
+# @return [TODO] TODO
 def to_integer_or_nil(value, parent, element_name)
   return if value.nil?
 
   return to_integer(value, parent, element_name)
 end
 
+# TODO
+#
+# @param value [TODO] TODO
+# @param parent [TODO] TODO
+# @param element_name [TODO] TODO
+# @return [TODO] TODO
 def to_boolean_or_nil(value, parent, element_name)
   return if value.nil?
 
