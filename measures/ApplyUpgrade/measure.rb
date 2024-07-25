@@ -499,13 +499,49 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
             return false
           end
 
+          heat_pump_sizing_methodology = measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology']
+
           air_distribution_airflows = air_distribution_airflows[0]
           baseline_max_airflow_cfm = air_distribution_airflows.max
           minimum_capacity = UnitConversions.convert(baseline_max_airflow_cfm / cfm_per_ton, 'ton', 'Btu/hr')
-
+        else
           heat_pump_sizing_methodology = measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology']
-          measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology'] = HPXML::HeatPumpSizingMaxLoad
-        end
+
+          measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology'] = HPXML::HeatPumpSizingACCA
+          measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
+          measures['BuildResidentialHPXML'][0]['apply_validation'] = true
+          measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
+          if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+            register_logs(runner, new_runner)
+            return false
+          end
+
+          if File.exist?(hpxml_path)
+            hpxml = HPXML.new(hpxml_path: hpxml_path)
+          else
+            runner.registerWarning("ApplyUpgrade measure could not find '#{hpxml_path}'.")
+            return true
+          end
+
+          hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
+            unit_number += 1
+
+            if unit_number == 1
+              measures['BuildResidentialHPXML'][0].delete('existing_hpxml_path')
+            else
+              measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
+            end
+
+            capacities, _, _ = get_hvac_system_values(hpxml_bldg, [])
+            if capacities['heat_pump_heating_capacity'] != capacities['heat_pump_cooling_capacity']
+              runner.registerError("Heat pump heating capacity not equal to cooling capacity for #{measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology']}.")
+              return false
+            end
+            minimum_capacity = capacities['heat_pump_heating_capacity']
+          end
+        end # if !air_distribution_airflows.empty?
+
+        measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology'] = HPXML::HeatPumpSizingMaxLoad
       end
 
       # Get software program used and version
@@ -635,7 +671,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
         capacities, _, _ = get_hvac_system_values(hpxml_bldg, [])
         if capacities['heat_pump_heating_capacity'] != capacities['heat_pump_cooling_capacity']
-          runner.registerError('Heat pump heating capacity not equal to cooling capacity for MaxLoad.')
+          runner.registerError("Heat pump heating capacity not equal to cooling capacity for #{measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology']}.")
           return false
         end
         maximum_capacity = capacities['heat_pump_heating_capacity']
