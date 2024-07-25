@@ -395,16 +395,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args = runner.getArgumentValues(arguments(model), user_arguments)
     args = convert_args(args)
 
-    # create EpwFile object
-    epw_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../weather', File.basename(args[:weather_station_epw_filepath])))
-    if not File.exist? epw_path
-      runner.registerError("ResStockArguments: Could not find EPW file at '#{epw_path}'.")
-      return false
-    end
-
-    epw_file = OpenStudio::EpwFile.new(epw_path)
-    weather = WeatherProcess.new(epw_path: epw_path, runner: nil)
-
     # collect arguments for deletion
     arg_names = []
     { @build_residential_hpxml_measure_arguments => Constants.build_residential_hpxml_excludes,
@@ -539,7 +529,16 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Seasons
     if (!args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].include?('Unavailable')) || (!args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].include?('Unavailable'))
-      heating_months, cooling_months, sim_calendar_year = get_heating_and_cooling_seasons(args, epw_file, weather)
+      # create EpwFile object
+      epw_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../weather', File.basename(args[:weather_station_epw_filepath])))
+      if not File.exist? epw_path
+        runner.registerError("ResStockArguments: Could not find EPW file at '#{epw_path}'.")
+        return false
+      end
+
+      weather = WeatherFile.new(epw_path: epw_path, runner: nil)
+
+      heating_months, cooling_months, sim_calendar_year = get_heating_and_cooling_seasons(args, weather)
     end
 
     if args[:use_auto_heating_season]
@@ -864,13 +863,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     return schedule
   end
 
-  def get_heating_and_cooling_seasons(args, epw_file, weather)
+  def get_heating_and_cooling_seasons(args, weather)
     latitude = args[:site_latitude]
     latitude = nil if latitude == Constants.Auto
-    latitude = HPXMLDefaults.get_default_latitude(latitude, epw_file)
+    latitude = HPXMLDefaults.get_default_latitude(latitude, weather)
 
     heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, latitude)
-    sim_calendar_year = Location.get_sim_calendar_year(nil, epw_file)
+    sim_calendar_year = Location.get_sim_calendar_year(nil, weather)
 
     return heating_months, cooling_months, sim_calendar_year
   end
