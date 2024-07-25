@@ -10,9 +10,6 @@
     <extension>
       <SimulationControl>
         <Timestep>60</Timestep>
-        <AdvancedResearchFeatures>
-          <DefrostModelType>advanced</DefrostModelType>
-        </AdvancedResearchFeatures>
       </SimulationControl>
       <UtilityBillScenarios>
         <UtilityBillScenario>
@@ -45,6 +42,7 @@
           </FuelTypesAvailable>
         </Site>
         <BuildingConstruction>
+          <YearBuilt>1988</YearBuilt>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
           <NumberofConditionedFloors>2.0</NumberofConditionedFloors>
           <NumberofConditionedFloorsAboveGrade>1.0</NumberofConditionedFloorsAboveGrade>
@@ -72,11 +70,7 @@
         <AirInfiltration>
           <AirInfiltrationMeasurement>
             <SystemIdentifier id='AirInfiltrationMeasurement1'/>
-            <HousePressure>50.0</HousePressure>
-            <BuildingAirLeakage>
-              <UnitofMeasure>ACH</UnitofMeasure>
-              <AirLeakage>3.0</AirLeakage>
-            </BuildingAirLeakage>
+            <LeakinessDescription>leaky</LeakinessDescription>
             <InfiltrationVolume>21600.0</InfiltrationVolume>
           </AirInfiltrationMeasurement>
         </AirInfiltration>
@@ -320,42 +314,37 @@
         <HVAC>
           <HVACPlant>
             <PrimarySystems>
-              <PrimaryHeatingSystem idref='HeatPump1'/>
-              <PrimaryCoolingSystem idref='HeatPump1'/>
+              <PrimaryHeatingSystem idref='HeatingSystem1'/>
+              <PrimaryCoolingSystem idref='CoolingSystem1'/>
             </PrimarySystems>
-            <HeatPump>
-              <SystemIdentifier id='HeatPump1'/>
+            <HeatingSystem>
+              <SystemIdentifier id='HeatingSystem1'/>
               <DistributionSystem idref='HVACDistribution1'/>
-              <HeatPumpType>air-to-air</HeatPumpType>
-              <HeatPumpFuel>electricity</HeatPumpFuel>
+              <HeatingSystemType>
+                <Furnace/>
+              </HeatingSystemType>
+              <HeatingSystemFuel>natural gas</HeatingSystemFuel>
               <HeatingCapacity>36000.0</HeatingCapacity>
-              <CoolingCapacity>36000.0</CoolingCapacity>
-              <CompressorType>variable speed</CompressorType>
-              <CoolingSensibleHeatFraction>0.78</CoolingSensibleHeatFraction>
-              <BackupType>integrated</BackupType>
-              <BackupSystemFuel>electricity</BackupSystemFuel>
-              <BackupAnnualHeatingEfficiency>
-                <Units>Percent</Units>
-                <Value>1.0</Value>
-              </BackupAnnualHeatingEfficiency>
-              <BackupHeatingCapacity>36000.0</BackupHeatingCapacity>
+              <AnnualHeatingEfficiency>
+                <Units>AFUE</Units>
+                <Value>0.92</Value>
+              </AnnualHeatingEfficiency>
               <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
+            </HeatingSystem>
+            <CoolingSystem>
+              <SystemIdentifier id='CoolingSystem1'/>
+              <DistributionSystem idref='HVACDistribution1'/>
+              <CoolingSystemType>central air conditioner</CoolingSystemType>
+              <CoolingSystemFuel>electricity</CoolingSystemFuel>
+              <CoolingCapacity>24000.0</CoolingCapacity>
+              <CompressorType>single stage</CompressorType>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
                 <Units>SEER</Units>
-                <Value>22.0</Value>
+                <Value>13.0</Value>
               </AnnualCoolingEfficiency>
-              <AnnualHeatingEfficiency>
-                <Units>HSPF</Units>
-                <Value>10.0</Value>
-              </AnnualHeatingEfficiency>
-              <extension>
-                <HeatingCapacityRetention>
-                  <Fraction>0.6</Fraction>
-                  <Temperature>17.0</Temperature>
-                </HeatingCapacityRetention>
-              </extension>
-            </HeatPump>
+              <SensibleHeatFraction>0.73</SensibleHeatFraction>
+            </CoolingSystem>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>
