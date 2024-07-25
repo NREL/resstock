@@ -820,7 +820,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
 
         osm_fwalls = model.getSurfaces.select { |s| s.outsideBoundaryCondition == 'Foundation' && s.adjacentFoundation.get == foundation && s.surfaceType == 'Wall' }
         if not osm_fwalls.empty?
-          osm_fwalls_length = osm_fwalls.map { |s| Geometry.get_surface_length(s) }.sum
+          osm_fwalls_length = osm_fwalls.map { |s| Geometry.get_surface_length(surface: s) }.sum
           assert_in_epsilon(osm_exposed_perimeter, osm_fwalls_length, 0.01)
         end
       end
@@ -847,11 +847,11 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
       ext_fwall_int_adj_tos.each do |int_adj_to, fwalls|
         osm_fwalls = model.getSurfaces.select { |s| s.surfaceType == 'Wall' && s.outsideBoundaryCondition == 'Foundation' && s.space.get.name.to_s.start_with?(int_adj_to) }
 
-        osm_heights = osm_fwalls.map { |s| Geometry.get_surface_height(s) }.uniq.sort
+        osm_heights = osm_fwalls.map { |s| Geometry.get_surface_height(surface: s) }.uniq.sort
         hpxml_heights = fwalls.map { |fw| fw.height }.uniq.sort
         assert_equal(hpxml_heights, osm_heights)
 
-        osm_bgdepths = osm_fwalls.map { |s| -1 * Geometry.get_surface_z_values([s]).min }.uniq.sort
+        osm_bgdepths = osm_fwalls.map { |s| -1 * Geometry.get_surface_z_values(surfaceArray: [s]).min }.uniq.sort
         if hpxml_name == 'base-foundation-walkout-basement.xml'
           # All foundation walls similar: single foundation wall w/ effective below-grade depth
           hpxml_bgdepths = [4.5]
@@ -866,13 +866,13 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
 
       # Check interior foundation wall heights & below-grade depths
       int_fwall_int_adj_tos.each do |int_adj_to, fwalls|
-        osm_fwalls = model.getSurfaces.select { |s| s.surfaceType == 'Wall' && s.outsideBoundaryCondition != 'Foundation' && Geometry.get_surface_z_values([s]).min < 0 && s.space.get.name.to_s.start_with?(int_adj_to) }
+        osm_fwalls = model.getSurfaces.select { |s| s.surfaceType == 'Wall' && s.outsideBoundaryCondition != 'Foundation' && Geometry.get_surface_z_values(surfaceArray: [s]).min < 0 && s.space.get.name.to_s.start_with?(int_adj_to) }
 
-        osm_heights = osm_fwalls.map { |s| Geometry.get_surface_z_values([s]).max - Geometry.get_surface_z_values([s]).min }.uniq.sort
+        osm_heights = osm_fwalls.map { |s| Geometry.get_surface_z_values(surfaceArray: [s]).max - Geometry.get_surface_z_values(surfaceArray: [s]).min }.uniq.sort
         hpxml_heights = fwalls.map { |fw| fw.height - fw.depth_below_grade }.uniq.sort
         assert_equal(hpxml_heights, osm_heights)
 
-        osm_bgdepths = osm_fwalls.map { |s| -1 * Geometry.get_surface_z_values([s]).min }.uniq.sort
+        osm_bgdepths = osm_fwalls.map { |s| -1 * Geometry.get_surface_z_values(surfaceArray: [s]).min }.uniq.sort
         hpxml_bgdepths = fwalls.map { |fw| fw.height - fw.depth_below_grade }.uniq.sort
         assert_equal(hpxml_bgdepths, osm_bgdepths)
       end

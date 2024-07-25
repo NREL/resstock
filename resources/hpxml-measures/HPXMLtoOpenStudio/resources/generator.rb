@@ -1,6 +1,14 @@
 # frozen_string_literal: true
 
-class Generator
+# TODO
+module Generator
+  # TODO
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
+  # @param generator [TODO] TODO
+  # @param unit_multiplier [Integer] Number of similar dwelling units
+  # @return [TODO] TODO
   def self.apply(model, nbeds, generator, unit_multiplier)
     obj_name = generator.id
 
@@ -49,6 +57,10 @@ class Generator
     elcd.setElectricalBussType('AlternatingCurrent')
   end
 
+  # TODO
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @return [TODO] TODO
   def self.create_curve_cubic_constant(model)
     constant_cubic = OpenStudio::Model::CurveCubic.new(model)
     constant_cubic.setName('ConstantCubic')
@@ -61,6 +73,10 @@ class Generator
     return constant_cubic
   end
 
+  # TODO
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @return [TODO] TODO
   def self.create_curve_biquadratic_constant(model)
     const_biquadratic = OpenStudio::Model::CurveBiquadratic.new(model)
     const_biquadratic.setName('ConstantBiquadratic')

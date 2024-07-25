@@ -24,6 +24,15 @@ jobs:
           sudo apt update
           sudo -E apt-get install -y wget unzip python3-sphinx-rtd-theme
 
+      - name: Check measures
+        shell: bash
+        run: |
+          out=$(openstudio tasks.rb update_measures 2>&1)
+          if [[ "$out" == *"RuboCop failed"* ]]; then echo "$out" && exit 1; fi
+          echo "Checking for file differences..."
+          git config --global --add safe.directory $(realpath .)
+          git diff --exit-code --ignore-cr-at-eol *.rb
+
       - name: Check HPXMLs
         shell: bash
         run: |
@@ -31,7 +40,7 @@ jobs:
           openstudio tasks.rb update_hpxmls
           echo "Checking for HPXML differences..."
           git config --global --add safe.directory $(realpath .)
-          git diff --exit-code --ignore-cr-at-eol *.xml
+          git diff --exit-code --ignore-cr-at-eol workflow/*.xml
 
       - name: Run measure unit tests
         run: |
