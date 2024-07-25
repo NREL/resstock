@@ -529,13 +529,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Seasons
     if (!args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].include?('Unavailable')) || (!args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].include?('Unavailable'))
-      # create EpwFile object
       epw_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../weather', File.basename(args[:weather_station_epw_filepath])))
       if not File.exist? epw_path
         runner.registerError("ResStockArguments: Could not find EPW file at '#{epw_path}'.")
         return false
       end
-
       weather = WeatherFile.new(epw_path: epw_path, runner: nil)
 
       heating_months, cooling_months, sim_calendar_year = get_heating_and_cooling_seasons(args, weather)
@@ -545,33 +543,36 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args[:hvac_control_heating_season_period] = HPXML::BuildingAmerica
     else
       if args[:hvac_control_heating_season_period].include?('Unavailable')
-        begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(heating_months, sim_calendar_year)
-        begin_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
-        end_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
-
-        if args[:hvac_control_heating_season_period] == 'Unavailable 1 Day'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 1, begin_day_num, end_day_num, sim_calendar_year)
-        elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Week'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 7, begin_day_num, end_day_num, sim_calendar_year)
-        elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Month'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 30, begin_day_num, end_day_num, sim_calendar_year)
-        elsif args[:hvac_control_heating_season_period] == 'Unavailable 2 Weeks'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 14, begin_day_num, end_day_num, sim_calendar_year)
-        elsif args[:hvac_control_heating_season_period] == 'Unavailable 3 Days'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 3, begin_day_num, end_day_num, sim_calendar_year)
-        elsif args[:hvac_control_heating_season_period] == 'Unavailable 3 Months'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 90, begin_day_num, end_day_num, sim_calendar_year)
-        elsif args[:hvac_control_heating_season_period] == 'Unavailable All Days'
-          unavail_begin_day_num = 182 # Jul 1
-          unavail_end_day_num = 182 # Jul 1
+        if args[:hvac_control_heating_season_period].include?('All Days')
+          args[:heating_system_type] = 'none'
+          args[:heat_pump_fraction_heat_load_served] = 0
         else
-          runner.registerError("ResStockArguments: Undefined number of Heating Unavailable Days for sampled option '#{args[:hvac_control_heating_season_period]}'.")
-          return false
-        end
-        begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year) # begin the heating season period at the end of unavailability
-        end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year) # end the heating season period at the beginning of unavailability
+          begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(heating_months, sim_calendar_year)
+          begin_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
+          end_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
 
-        args[:hvac_control_heating_season_period] = "#{begin_date} - #{end_date}"
+          if args[:hvac_control_heating_season_period] == 'Unavailable 1 Day'
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 1, begin_day_num, end_day_num, sim_calendar_year)
+          elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Week'
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 7, begin_day_num, end_day_num, sim_calendar_year)
+          elsif args[:hvac_control_heating_season_period] == 'Unavailable 1 Month'
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 30, begin_day_num, end_day_num, sim_calendar_year)
+          elsif args[:hvac_control_heating_season_period] == 'Unavailable 2 Weeks'
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 14, begin_day_num, end_day_num, sim_calendar_year)
+          elsif args[:hvac_control_heating_season_period] == 'Unavailable 3 Days'
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 3, begin_day_num, end_day_num, sim_calendar_year)
+          elsif args[:hvac_control_heating_season_period] == 'Unavailable 3 Months'
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 90, begin_day_num, end_day_num, sim_calendar_year)
+          else
+            runner.registerError("ResStockArguments: Undefined number of Heating Unavailable Days for sampled option '#{args[:hvac_control_heating_season_period]}'.")
+            return false
+          end
+
+          begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year) # begin the heating season period at the end of unavailability
+          end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year) # end the heating season period at the beginning of unavailability
+
+          args[:hvac_control_heating_season_period] = "#{begin_date} - #{end_date}"
+        end
       end
     end
 
@@ -579,34 +580,41 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args[:hvac_control_cooling_season_period] = HPXML::BuildingAmerica
     else
       if args[:hvac_control_cooling_season_period].include?('Unavailable')
-        begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(cooling_months, sim_calendar_year)
-        begin_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
-        end_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
-
-        if args[:hvac_control_cooling_season_period] == 'Unavailable 1 Day'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 1, begin_day_num, end_day_num, sim_calendar_year)
-        elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Week'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 7, begin_day_num, end_day_num, sim_calendar_year)
-        elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Month'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 30, begin_day_num, end_day_num, sim_calendar_year)
-        elsif args[:hvac_control_cooling_season_period] == 'Unavailable 2 Weeks'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 14, begin_day_num, end_day_num, sim_calendar_year)
-        elsif args[:hvac_control_cooling_season_period] == 'Unavailable 3 Days'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 3, begin_day_num, end_day_num, sim_calendar_year)
-        elsif args[:hvac_control_cooling_season_period] == 'Unavailable 3 Months'
-          unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 90, begin_day_num, end_day_num, sim_calendar_year)
-        elsif args[:hvac_control_cooling_season_period] == 'Unavailable All Days'
-          unavail_begin_day_num = 1 # Jan 1
-          unavail_end_day_num = 1 # Jan 1
+        if args[:hvac_control_cooling_season_period].include?('All Days')
+          args[:cooling_system_type] = 'none'
+          args[:heat_pump_fraction_cool_load_served] = 0
         else
-          runner.registerError("ResStockArguments: Undefined number of Cooling Unavailable Days for sampled option '#{args[:hvac_control_cooling_season_period]}'.")
-          return false
-        end
-        begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year) # begin the cooling season period at the end of unavailability
-        end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year) # end the cooling season period at the beginning of unavailability
+          begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(cooling_months, sim_calendar_year)
+          begin_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
+          end_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
 
-        args[:hvac_control_cooling_season_period] = "#{begin_date} - #{end_date}"
+          if args[:hvac_control_cooling_season_period] == 'Unavailable 1 Day'
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 1, begin_day_num, end_day_num, sim_calendar_year)
+          elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Week'
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 7, begin_day_num, end_day_num, sim_calendar_year)
+          elsif args[:hvac_control_cooling_season_period] == 'Unavailable 1 Month'
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 30, begin_day_num, end_day_num, sim_calendar_year)
+          elsif args[:hvac_control_cooling_season_period] == 'Unavailable 2 Weeks'
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 14, begin_day_num, end_day_num, sim_calendar_year)
+          elsif args[:hvac_control_cooling_season_period] == 'Unavailable 3 Days'
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 3, begin_day_num, end_day_num, sim_calendar_year)
+          elsif args[:hvac_control_cooling_season_period] == 'Unavailable 3 Months'
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], 90, begin_day_num, end_day_num, sim_calendar_year)
+          else
+            runner.registerError("ResStockArguments: Undefined number of Cooling Unavailable Days for sampled option '#{args[:hvac_control_cooling_season_period]}'.")
+            return false
+          end
+
+          begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year) # begin the cooling season period at the end of unavailability
+          end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year) # end the cooling season period at the beginning of unavailability
+
+          args[:hvac_control_cooling_season_period] = "#{begin_date} - #{end_date}"
+        end
       end
+    end
+
+    if (args[:heat_pump_fraction_heat_load_served] == 0) && (args[:heat_pump_fraction_cool_load_served] == 0)
+      args[:heat_pump_type] = 'none'
     end
 
     # Flue or Chimney
