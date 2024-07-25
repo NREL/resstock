@@ -25,7 +25,8 @@
           <SiteType>rural</SiteType>
           <ShieldingofHome>exposed</ShieldingofHome>
           <Soil>
-            <Conductivity>0.8</Conductivity>
+            <SoilType>unknown</SoilType>
+            <MoistureType>wet</MoistureType>
           </Soil>
         </Site>
         <BuildingConstruction>
@@ -192,7 +193,6 @@
           <AirInfiltrationMeasurement>
             <SystemIdentifier id='AirInfiltrationMeasurement1'/>
             <EffectiveLeakageArea>62.0</EffectiveLeakageArea>
-            <InfiltrationVolume>20355.0</InfiltrationVolume>
           </AirInfiltrationMeasurement>
         </AirInfiltration>
         <Roofs>
@@ -1214,6 +1214,46 @@
             <AttachedToWall idref='WallRecRoomNorth'/>
           </Window>
         </Windows>
+        <Skylights>
+          <Skylight>
+            <SystemIdentifier id='SkylightKitchenStairwell'/>
+            <Area>8.0</Area>
+            <Azimuth>0</Azimuth>
+            <UFactor>0.52</UFactor>
+            <SHGC>0.35</SHGC>
+            <AttachedToRoof idref='Roof1'/>
+            <AttachedToFloor idref='CeilingKitchenStairwell'/>
+            <extension>
+              <Curb>
+                <Area>4.0</Area>
+                <AssemblyEffectiveRValue>2.86</AssemblyEffectiveRValue>
+              </Curb>
+              <Shaft>
+                <Area>60.0</Area>
+                <AssemblyEffectiveRValue>12.5</AssemblyEffectiveRValue>
+              </Shaft>
+            </extension>
+          </Skylight>
+          <Skylight>
+            <SystemIdentifier id='SkylightLivingDining'/>
+            <Area>32.0</Area>
+            <Azimuth>180</Azimuth>
+            <UFactor>0.52</UFactor>
+            <SHGC>0.35</SHGC>
+            <AttachedToRoof idref='Roof1'/>
+            <AttachedToFloor idref='CeilingLivingDining'/>
+            <extension>
+              <Curb>
+                <Area>8.0</Area>
+                <AssemblyEffectiveRValue>2.86</AssemblyEffectiveRValue>
+              </Curb>
+              <Shaft>
+                <Area>120.0</Area>
+                <AssemblyEffectiveRValue>12.5</AssemblyEffectiveRValue>
+              </Shaft>
+            </extension>
+          </Skylight>
+        </Skylights>
         <Doors>
           <Door>
             <SystemIdentifier id='Door1'/>
@@ -1273,7 +1313,7 @@
                   <DuctType>supply</DuctType>
                   <DuctLeakage>
                     <Units>CFM25</Units>
-                    <Value>95.2</Value>
+                    <Value>25.5</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>
@@ -1281,25 +1321,44 @@
                   <DuctType>return</DuctType>
                   <DuctLeakage>
                     <Units>CFM25</Units>
-                    <Value>60.2</Value>
+                    <Value>15.1</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>
                 <Ducts>
                   <SystemIdentifier id='Ducts1'/>
                   <DuctType>supply</DuctType>
-                  <DuctEffectiveRValue>3.0</DuctEffectiveRValue>
+                  <DuctInsulationRValue>4.0</DuctInsulationRValue>
                   <DuctLocation>crawlspace - unvented</DuctLocation>
-                  <DuctSurfaceArea>272.0</DuctSurfaceArea>
+                  <DuctSurfaceArea>72.9</DuctSurfaceArea>
                 </Ducts>
                 <Ducts>
                   <SystemIdentifier id='Ducts2'/>
                   <DuctType>return</DuctType>
-                  <DuctEffectiveRValue>3.0</DuctEffectiveRValue>
+                  <DuctInsulationRValue>4.0</DuctInsulationRValue>
                   <DuctLocation>crawlspace - unvented</DuctLocation>
-                  <DuctSurfaceArea>86.0</DuctSurfaceArea>
+                  <DuctSurfaceArea>21.5</DuctSurfaceArea>
+                </Ducts>
+                <Ducts>
+                  <SystemIdentifier id='Ducts3'/>
+                  <DuctType>supply</DuctType>
+                  <DuctInsulationRValue>0.0</DuctInsulationRValue>
+                  <DuctLocation>conditioned space</DuctLocation>
+                  <DuctSurfaceArea>413.1</DuctSurfaceArea>
+                </Ducts>
+                <Ducts>
+                  <SystemIdentifier id='Ducts4'/>
+                  <DuctType>return</DuctType>
+                  <DuctInsulationRValue>0.0</DuctInsulationRValue>
+                  <DuctLocation>conditioned space</DuctLocation>
+                  <DuctSurfaceArea>121.6</DuctSurfaceArea>
                 </Ducts>
                 <NumberofReturnRegisters>1</NumberofReturnRegisters>
+                <extension>
+                  <ManualJInputs>
+                    <BlowerFanHeatBtuh>1707.0</BlowerFanHeatBtuh>
+                  </ManualJInputs>
+                </extension>
               </AirDistribution>
             </DistributionSystemType>
           </HVACDistribution>

@@ -98,7 +98,7 @@ end
 if ARGV[0].to_sym == :update_resources
   prefix = 'resources/hpxml-measures'
   repository = 'https://github.com/NREL/OpenStudio-HPXML.git'
-  branch_or_tag = 'v1.8.1'
+  branch_or_tag = 'master'
 
   system("git subtree pull --prefix #{prefix} #{repository} #{branch_or_tag} --squash")
 end

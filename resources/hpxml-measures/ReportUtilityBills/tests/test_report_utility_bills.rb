@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'oga'
-require_relative '../../HPXMLtoOpenStudio/resources/utility_bills'
 require_relative '../../HPXMLtoOpenStudio/resources/constants'
 require_relative '../../HPXMLtoOpenStudio/resources/energyplus'
 require_relative '../../HPXMLtoOpenStudio/resources/hpxml'
@@ -9,6 +8,7 @@ require_relative '../../HPXMLtoOpenStudio/resources/hpxml_defaults'
 require_relative '../../HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../HPXMLtoOpenStudio/resources/schedules'
 require_relative '../../HPXMLtoOpenStudio/resources/unit_conversions'
+require_relative '../../HPXMLtoOpenStudio/resources/utility_bills'
 require_relative '../../HPXMLtoOpenStudio/resources/xmlhelper'
 require_relative '../../HPXMLtoOpenStudio/resources/version'
 require_relative '../resources/util.rb'
@@ -78,8 +78,8 @@ class ReportUtilityBillsTest < Minitest::Test
                                              fuel_oil_marginal_rate: 3.495346153846154)
 
     # Check for presence of fuels once
-    has_fuel = @hpxml_bldg.has_fuels(Constants.FossilFuels, @hpxml.to_doc)
-    HPXMLDefaults.apply_header(@hpxml_header, nil, @hpxml_bldg)
+    has_fuel = @hpxml_bldg.has_fuels(@hpxml.to_doc)
+    HPXMLDefaults.apply_header(@hpxml_header, @hpxml_bldg, nil)
     HPXMLDefaults.apply_utility_bill_scenarios(nil, @hpxml_header, @hpxml_bldg, has_fuel)
 
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
@@ -257,6 +257,18 @@ class ReportUtilityBillsTest < Minitest::Test
     _check_monthly_bills(actual_bills, actual_monthly_bills)
   end
 
+  def test_workflow_detailed_calculations_scheduled_battery
+    # Detailed Rate.json was renamed from Jackson Electric Member Corp - A Residential Service Senior Citizen Low Income Assistance (Effective 2017-01-01).json
+    # See https://github.com/NREL/OpenStudio-HPXML/issues/1444
+    @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-battery-scheduled.xml'))
+    hpxml.header.utility_bill_scenarios.add(name: 'Test 1', elec_tariff_filepath: '../../ReportUtilityBills/tests/Detailed Rate.json')
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    actual_bills, actual_monthly_bills = _test_measure()
+    assert_operator(actual_bills['Test 1: Total (USD)'], :>, 0)
+    _check_monthly_bills(actual_bills, actual_monthly_bills)
+  end
+
   def test_workflow_detailed_calculations_all_electric
     # Detailed Rate.json was renamed from Jackson Electric Member Corp - A Residential Service Senior Citizen Low Income Assistance (Effective 2017-01-01).json
     # See https://github.com/NREL/OpenStudio-HPXML/issues/1444
@@ -272,24 +284,62 @@ class ReportUtilityBillsTest < Minitest::Test
   def test_auto_marginal_rate
     fuel_types = [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas, HPXML::FuelTypeOil, HPXML::FuelTypeCoal, HPXML::FuelTypePropane, HPXML::FuelTypeWoodCord, HPXML::FuelTypeWoodPellets]
 
-    # Check that we can successfully look up "auto" rates for every state
-    # and every fuel type.
+    # Check that we can successfully look up "auto" rates for every state and every fuel type.
     Constants.StateCodesMap.keys.each do |state_code|
       fuel_types.each do |fuel_type|
-        flatratebuy, _ = UtilityBills.get_rates_from_eia_data(nil, state_code, fuel_type, 0)
+        flatratebuy, average_rate = UtilityBills.get_rates_from_eia_data(nil, state_code, fuel_type, 1) # fixed_charge > 0 ensures marginal_rate != average_rate
         refute_nil(flatratebuy)
+        if [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas].include? fuel_type
+          assert_operator(flatratebuy, :<, average_rate)
+        else
+          assert_nil(average_rate)
+        end
       end
     end
 
     # Check that we can successfully look up "auto" rates for the US too.
     fuel_types.each do |fuel_type|
-      flatratebuy, _ = UtilityBills.get_rates_from_eia_data(nil, 'US', fuel_type, 0)
+      flatratebuy, average_rate = UtilityBills.get_rates_from_eia_data(nil, 'US', fuel_type, 1) # fixed_charge > 0 ensures marginal_rate != average_rate
       refute_nil(flatratebuy)
+      if [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas].include? fuel_type
+        assert_operator(flatratebuy, :<, average_rate)
+      else
+        assert_nil(average_rate)
+      end
     end
 
     # Check that any other state code is gracefully handled (no error)
     fuel_types.each do |fuel_type|
       UtilityBills.get_rates_from_eia_data(nil, 'XX', fuel_type, 0)
+    end
+  end
+
+  def test_specified_marginal_rate
+    fuel_types = [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas, HPXML::FuelTypeOil, HPXML::FuelTypeCoal, HPXML::FuelTypePropane, HPXML::FuelTypeWoodCord, HPXML::FuelTypeWoodPellets]
+    marginal_rate = 0.1
+
+    # Check that we can successfully provide rates for every state and every fuel type.
+    Constants.StateCodesMap.keys.each do |state_code|
+      fuel_types.each do |fuel_type|
+        flatratebuy, average_rate = UtilityBills.get_rates_from_eia_data(nil, state_code, fuel_type, 1, marginal_rate) # fixed_charge > 0 ensures marginal_rate != average_rate
+        assert_equal(flatratebuy, marginal_rate)
+        if [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas].include? fuel_type
+          assert_operator(flatratebuy, :<, average_rate)
+        else
+          assert_nil(average_rate)
+        end
+      end
+    end
+
+    # Check that we can successfully provide rates for the US too.
+    fuel_types.each do |fuel_type|
+      flatratebuy, average_rate = UtilityBills.get_rates_from_eia_data(nil, 'US', fuel_type, 1, marginal_rate) # fixed_charge > 0 ensures marginal_rate != average_rate
+      assert_equal(flatratebuy, marginal_rate)
+      if [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas].include? fuel_type
+        assert_operator(flatratebuy, :<, average_rate)
+      else
+        assert_nil(average_rate)
+      end
     end
   end
 
