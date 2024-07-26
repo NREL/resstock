@@ -18,6 +18,7 @@ def get_month_day(year_index, total_indices, year=2007):
     hour_num = year_index // num_timsteps_per_hour
     day_num = int(hour_num // 24 + 1)
     month = datetime.strptime(str(year) + "-" + str(day_num), "%Y-%j").strftime("%m")
+    month = int(month)
 
     # need to modify based on the simulation year what the first day is
     # the first day in 2007 is Monday
@@ -46,11 +47,11 @@ def get_prepeak_and_peak_start_end(year_index, total_indices, on_peak_hour_weekd
     month, day_type = get_month_day(year_index, total_indices)
 
     if setpoint_type == 'heating':
-        pre_peak_duration = OffsetTimingData.heating_pre_peak_duration
-        on_peak_duration = OffsetTimingData.heating_on_peak_duration
+        pre_peak_duration = OffsetTimingData.heating_pre_peak_duration.default
+        on_peak_duration = OffsetTimingData.heating_on_peak_duration.default
     if setpoint_type == 'cooling':
-        pre_peak_duration = OffsetTimingData.cooling_pre_peak_duration
-        on_peak_duration = OffsetTimingData.cooling_on_peak_duration
+        pre_peak_duration = OffsetTimingData.cooling_pre_peak_duration.default
+        on_peak_duration = OffsetTimingData.cooling_on_peak_duration.default
 
     if day_type == 'weekday':
         row = on_peak_hour_weekday_dict[month]
@@ -102,13 +103,13 @@ def get_setpoint_offset(year_index, total_indices, on_peak_hour_weekday_dict, on
             setattr(offset_time, f.name, value)
     
     if setpoint_type == 'heating':
-        pre_peak_offset = RelativeOffsetData.heating_pre_peak_offset
-        on_peak_offset = RelativeOffsetData.heating_on_peak_offset
+        pre_peak_offset = RelativeOffsetData.heating_pre_peak_offset.default
+        on_peak_offset = - RelativeOffsetData.heating_on_peak_offset.default
     if setpoint_type == 'cooling':
-        pre_peak_offset = RelativeOffsetData.cooling_pre_peak_offset
-        on_peak_offset = RelativeOffsetData.cooling_on_peak_offset
+        pre_peak_offset = - RelativeOffsetData.cooling_pre_peak_offset.default
+        on_peak_offset = RelativeOffsetData.cooling_on_peak_offset.default
 
-    day_index = int(year_index % (24*num_timsteps_per_hour))    
+    day_index = int(year_index % (24*num_timsteps_per_hour)) 
     if (offset_time.pre_peak_start_morning <= day_index < offset_time.peak_start_morning)\
         or (offset_time.pre_peak_start_afternoon <= day_index < offset_time.peak_start_afternoon):
         setpoint_offset = pre_peak_offset
@@ -139,11 +140,11 @@ def get_setpoint_absolute_value(year_index,  total_indices, on_peak_hour_weekday
             setattr(offset_time, f.name, value)
     
     if setpoint_type == 'heating':
-        pre_peak_setpoint = AbsoluteOffsetData.heating_pre_peak_setpoint
-        on_peak_setpoint = AbsoluteOffsetData.heating_on_peak_setpoint
+        pre_peak_setpoint = AbsoluteOffsetData.heating_pre_peak_setpoint.default
+        on_peak_setpoint = AbsoluteOffsetData.heating_on_peak_setpoint.default
     if setpoint_type == 'cooling':
-        pre_peak_setpoint = AbsoluteOffsetData.cooling_pre_peak_setpoint
-        on_peak_setpoint = AbsoluteOffsetData.cooling_on_peak_setpoint
+        pre_peak_setpoint = AbsoluteOffsetData.cooling_pre_peak_setpoint.default
+        on_peak_setpoint = AbsoluteOffsetData.cooling_on_peak_setpoint.default
 
     day_index = int(year_index % (24*num_timsteps_per_hour))    
     if (offset_time.pre_peak_start_morning <= day_index < offset_time.peak_start_morning)\
@@ -165,11 +166,11 @@ def clip_setpoints(setpoint, setpoint_type):
     """
 
     if setpoint_type == 'heating':
-        setpoint_max = RelativeOffsetData.heating_max
-        setpoint_min = RelativeOffsetData.heating_min
+        setpoint_max = RelativeOffsetData.heating_max.default
+        setpoint_min = RelativeOffsetData.heating_min.default
     elif setpoint_type == 'cooling':
-        setpoint_max = RelativeOffsetData.cooling_max
-        setpoint_min = RelativeOffsetData.cooling_min
+        setpoint_max = RelativeOffsetData.cooling_max.default
+        setpoint_min = RelativeOffsetData.cooling_min.default
         
     if setpoint > setpoint_max:
         setpoint = setpoint_max
