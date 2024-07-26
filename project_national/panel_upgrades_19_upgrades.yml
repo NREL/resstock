@@ -9,12 +9,9 @@ weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIP
 
 
 sampler:
-  type: residential_quota_downselect
+  type: precomputed
   args:
-    n_datapoints: 550000
-    logic:
-      - not: State|HI
-    resample: true
+    sample_file: ../technoeconomic_analysis/Postprocessing/data_/buildstock_30k_control.csv
 
 workflow_generator:
   type: residential_hpxml
@@ -253,7 +250,7 @@ references:
         costs:
         # assume the same as Boiler Baseboards Heating Only, Fuel
             - value: 85.42
-            multiplier: Size, Heating System Primary (kBtu/h)
+              multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 24
 
     #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
@@ -685,12 +682,9 @@ references:
             multiplier: Fixed (1)
         lifetime: 13 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=279&actionId=2204&bcId=6961
                      # 17 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
-    - &120v_cooking
+      - &120v_cooking
         option: Cooking Range|Electric Induction, 120V, battery powered
-        apply_logic: &logic_cooking
-          - or:
-            - Cooking Range|Gas
-            - Cooking Range|Propane
+        apply_logic: *logic_cooking
         costs:
           - value: 5450 
             multiplier: Fixed (1)
@@ -711,10 +705,7 @@ references:
         lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
       - &120v_clothes_dryer 
         option: Clothes Dryer|Electric Heat Pump, 120V
-        apply_logic: &logic_dryer
-          - or:
-            - Clothes Dryer|Gas
-            - Clothes Dryer|Propane
+        apply_logic: *logic_dryer
         costs:
           - value: 1611 
             multiplier: Fixed (1)
