@@ -39,11 +39,11 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     # Get defaulted hpxml
-    hpxml_path = File.expand_path('../existing.xml') # this is the defaulted hpxml
+    hpxml_path = File.expand_path('../home.xml') # this is the defaulted hpxml
     if File.exist?(hpxml_path)
-      hpxml = HPXML.new(hpxml_path: hpxml_path, building_id: 'ALL')
+      hpxml = HPXML.new(hpxml_path: hpxml_path)
     else
-      runner.registerWarning("ApplyUpgrade measure could not find '#{hpxml_path}'.")
+      runner.registerWarning("AddSharedHPWH measure could not find '#{hpxml_path}'.")
       return true
     end
 
@@ -204,8 +204,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     # Remove Existing
-    remove_loops(model, shared_hpwh_type)
-    remove_ems(model, shared_hpwh_type)
+    remove_loops(runner, model, shared_hpwh_type)
+    remove_ems(runner, model, shared_hpwh_type)
 
     return true
   end
@@ -550,7 +550,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     heat_pump_loop_hw.addDemandBranchForComponent(storage_tank)
   end
 
-  def remove_loops(model, shared_hpwh_type)
+  def remove_loops(runner, model, shared_hpwh_type)
     plant_loop_to_remove = [
       'dhw loop',
       'solar hot water loop'
@@ -558,15 +558,14 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     plant_loop_to_remove += ['boiler hydronic heat loop'] if shared_hpwh_type == 'space-heating hpwh'
     plant_loop_to_remove += plant_loop_to_remove.map { |p| p.gsub(' ', '_') }
     model.getPlantLoops.each do |plant_loop|
-      if plant_loop_to_remove.select { |p| plant_loop.name.to_s.include?(p) }.size == 0
-        next
-      end
+      next if plant_loop_to_remove.select { |p| plant_loop.name.to_s.include?(p) }.size == 0
 
+      runner.registerInfo("#{plant_loop.class} '#{plant_loop.name}' removed.")
       plant_loop.remove
     end
   end
 
-  def remove_ems(model, shared_hpwh_type)
+  def remove_ems(runner, model, shared_hpwh_type)
     # ProgramCallingManagers / Programs
     ems_pcm_to_remove = [
       'water heater EC_adj ProgramManager',
@@ -580,13 +579,13 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     ] if shared_hpwh_type == 'space-heating hpwh'
     ems_pcm_to_remove += ems_pcm_to_remove.map { |e| e.gsub(' ', '_') }
     model.getEnergyManagementSystemProgramCallingManagers.each do |ems_pcm|
-      if ems_pcm_to_remove.select { |e| ems_pcm.name.to_s.include?(e) }.size == 0
-        next
-      end
+      next if ems_pcm_to_remove.select { |e| ems_pcm.name.to_s.include?(e) }.size == 0
 
       ems_pcm.programs.each do |program|
+        runner.registerInfo("#{program.class} '#{program.name}' removed.")
         program.remove
       end
+      runner.registerInfo("#{ems_pcm.class} '#{ems_pcm.name}' removed.")
       ems_pcm.remove
     end
 
@@ -611,10 +610,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     ] if shared_hpwh_type == 'space-heating hpwh'
     ems_sensor_to_remove += ems_sensor_to_remove.map { |e| e.gsub(' ', '_') }
     model.getEnergyManagementSystemSensors.each do |ems_sensor|
-      if ems_sensor_to_remove.select { |e| ems_sensor.name.to_s.include?(e) }.size == 0
-        next
-      end
+      next if ems_sensor_to_remove.select { |e| ems_sensor.name.to_s.include?(e) }.size == 0
 
+      runner.registerInfo("#{ems_sensor.class} '#{ems_sensor.name}' removed.")
       ems_sensor.remove
     end
 
@@ -625,10 +623,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     ] if shared_hpwh_type == 'space-heating hpwh'
     ems_outvar_to_remove += ems_outvar_to_remove.map { |e| e.gsub(' ', '_') } if !ems_outvar_to_remove.empty?
     model.getEnergyManagementSystemOutputVariables.each do |ems_output_variable|
-      if ems_outvar_to_remove.select { |e| ems_output_variable.name.to_s.include?(e) }.size == 0
-        next
-      end
+      next if ems_outvar_to_remove.select { |e| ems_output_variable.name.to_s.include?(e) }.size == 0
 
+      runner.registerInfo("#{ems_output_variable.class} '#{ems_output_variable.name}' removed.")
       ems_output_variable.remove
     end
 
@@ -639,10 +636,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     ] if shared_hpwh_type == 'space-heating hpwh'
     ems_intvar_to_remove += ems_intvar_to_remove.map { |e| e.gsub(' ', '_') } if !ems_intvar_to_remove.empty?
     model.getEnergyManagementSystemInternalVariables.each do |ems_internal_variable|
-      if ems_intvar_to_remove.select { |e| ems_internal_variable.name.to_s.include?(e) }.size == 0
-        next
-      end
+      next if ems_intvar_to_remove.select { |e| ems_internal_variable.name.to_s.include?(e) }.size == 0
 
+      runner.registerInfo("#{ems_internal_variable.class} '#{ems_internal_variable.name}' removed.")
       ems_internal_variable.remove
     end
   end

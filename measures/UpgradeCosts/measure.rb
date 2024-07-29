@@ -218,10 +218,10 @@ class UpgradeCosts < OpenStudio::Measure::ModelMeasure
   def retrieve_hpxmls(existing_hpxml, upgraded_hpxml)
     if existing_hpxml.nil? && upgraded_hpxml.nil?
       existing_path = File.expand_path('../existing.xml')
-      existing_hpxml = HPXML.new(hpxml_path: existing_path, building_id: 'ALL') if File.exist?(existing_path)
+      existing_hpxml = HPXML.new(hpxml_path: existing_path) if File.exist?(existing_path)
 
       upgraded_path = File.expand_path('../upgraded.xml')
-      upgraded_hpxml = HPXML.new(hpxml_path: upgraded_path, building_id: 'ALL') if File.exist?(upgraded_path)
+      upgraded_hpxml = HPXML.new(hpxml_path: upgraded_path) if File.exist?(upgraded_path)
     end
 
     return existing_hpxml, upgraded_hpxml
