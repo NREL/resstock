@@ -1,19 +1,23 @@
 # frozen_string_literal: true
 
+require 'csv'
+require 'parallel'
 require 'openstudio'
+require_relative '../../../resources/buildstock'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/hpxml'
 require_relative '../measure.rb'
-require 'csv'
 
 class ResStockArgumentsTest < Minitest::Test
-  def test_options_lookup_assignment
+  def setup
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../../resources'))
     lookup_file = File.join(resources_dir, 'options_lookup.tsv')
-    lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
+    @lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
+  end
 
+  def test_options_lookup_assignment
     lookup_arguments = []
-    lookup_csv_data.each do |lookup_row|
+    @lookup_csv_data.each do |lookup_row|
       next if lookup_row[2] != 'ResStockArguments'
 
       lookup_row[3..-1].each do |argument_value|

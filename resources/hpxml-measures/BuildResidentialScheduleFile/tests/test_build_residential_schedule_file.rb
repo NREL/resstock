@@ -511,6 +511,8 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(error_msgs.any? { |error_msg| error_msg.include?('Invalid number of rows (52561) in file.csv. Expected 8761 rows (including the header row).') })
   end
 
+  private
+
   def _test_measure(expect_fail: false)
     # create an instance of the measure
     measure = BuildResidentialScheduleFile.new

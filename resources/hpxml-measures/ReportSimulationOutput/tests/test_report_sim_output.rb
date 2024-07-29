@@ -218,6 +218,7 @@ class ReportSimulationOutputTest < Minitest::Test
     'HVAC Design Load: Heating: Ceilings (Btu/h)',
     'HVAC Design Load: Heating: Infiltration (Btu/h)',
     'HVAC Design Load: Heating: Ventilation (Btu/h)',
+    'HVAC Design Load: Heating: Piping (Btu/h)',
     'HVAC Design Load: Cooling Sensible: Total (Btu/h)',
     'HVAC Design Load: Cooling Sensible: Ducts (Btu/h)',
     'HVAC Design Load: Cooling Sensible: Windows (Btu/h)',
@@ -232,6 +233,7 @@ class ReportSimulationOutputTest < Minitest::Test
     'HVAC Design Load: Cooling Sensible: Infiltration (Btu/h)',
     'HVAC Design Load: Cooling Sensible: Ventilation (Btu/h)',
     'HVAC Design Load: Cooling Sensible: Internal Gains (Btu/h)',
+    'HVAC Design Load: Cooling Sensible: Blower Heat (Btu/h)',
     'HVAC Design Load: Cooling Latent: Total (Btu/h)',
     'HVAC Design Load: Cooling Latent: Ducts (Btu/h)',
     'HVAC Design Load: Cooling Latent: Infiltration (Btu/h)',
@@ -798,6 +800,8 @@ class ReportSimulationOutputTest < Minitest::Test
     _check_for_zero_timeseries_values(timeseries_csv, ["End Use: #{FT::Elec}: #{EUT::PlugLoads}"], 0, 31 * 24 - 1) # Jan
     _check_for_zero_timeseries_values(timeseries_csv, ["End Use: #{FT::Elec}: #{EUT::PlugLoads}"], (31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30) * 24 + 1, -1) # Dec
     _check_for_nonzero_timeseries_values(timeseries_csv, ["End Use: #{FT::Elec}: #{EUT::Refrigerator}"])
+    positive_cols = actual_timeseries_cols.select { |col| col.start_with?('End Use:') }
+    _check_for_positive_timeseries_values(timeseries_csv, positive_cols)
   end
 
   def test_timeseries_hourly_system_uses
@@ -1051,6 +1055,10 @@ class ReportSimulationOutputTest < Minitest::Test
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
     _check_for_nonzero_avg_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
     _check_for_nonzero_timeseries_values(timeseries_csv, ["End Use: #{FT::Elec}: #{EUT::Refrigerator}"])
+    negative_cols = ["End Use: #{FT::Elec}: #{EUT::PV}"]
+    positive_cols = actual_timeseries_cols.select { |col| col.start_with?('End Use:') } - negative_cols - ["End Use: #{FT::Elec}: #{EUT::Battery}"]
+    _check_for_negative_timeseries_values(timeseries_csv, negative_cols)
+    _check_for_positive_timeseries_values(timeseries_csv, positive_cols)
   end
 
   def test_timeseries_daily_ALL
@@ -1337,6 +1345,8 @@ class ReportSimulationOutputTest < Minitest::Test
     assert_equal(315.0, actual_annual_rows['HVAC Geothermal Loop: Borehole/Trench Length (ft)'])
   end
 
+  private
+
   def _test_measure(args_hash, expect_success: true)
     # Run measure via OSW
     require 'json'
@@ -1438,12 +1448,26 @@ class ReportSimulationOutputTest < Minitest::Test
   end
 
   def _check_for_nonzero_timeseries_values(timeseries_csv, timeseries_cols)
-    # check that every day has non zero values for baseload equipment (e.g., refrigerator)
     values = _get_timeseries_values(timeseries_csv, timeseries_cols)
 
     timeseries_cols.each do |col|
-      has_no_zero_timeseries_value = !values[col].include?(0.0)
-      assert(has_no_zero_timeseries_value)
+      refute(values[col].include?(0.0))
+    end
+  end
+
+  def _check_for_positive_timeseries_values(timeseries_csv, timeseries_cols)
+    values = _get_timeseries_values(timeseries_csv, timeseries_cols)
+
+    timeseries_cols.each do |col|
+      assert_operator(values[col].min, :>=, 0)
+    end
+  end
+
+  def _check_for_negative_timeseries_values(timeseries_csv, timeseries_cols)
+    values = _get_timeseries_values(timeseries_csv, timeseries_cols)
+
+    timeseries_cols.each do |col|
+      assert_operator(values[col].max, :<=, 0)
     end
   end
 
