@@ -1,12 +1,22 @@
 # frozen_string_literal: true
 
-class XMLValidator
-  def self.get_schema_validator(schema_path)
-    return OpenStudio::XMLValidator.new(schema_path)
+# Collection of helper methods related to XML validation.
+module XMLValidator
+  # Gets an OpenStudio::XMLValidator object for the supplied XSD schema or Schematron path.
+  #
+  # @param schema_or_schematron_path [String] Path to the XSD schema or Schematron file
+  # @return [OpenStudio::XMLValidator] OpenStudio XMLValidator object
+  def self.get_xml_validator(schema_or_schematron_path)
+    return OpenStudio::XMLValidator.new(schema_or_schematron_path)
   end
 
-  def self.validate_against_schema(hpxml_path, validator, errors = [], warnings = [])
-    # Validate against XSD
+  # Validates an HPXML file against a XSD schema file.
+  #
+  # @param hpxml_path [String] Path to the HPXML file
+  # @param validator [OpenStudio::XMLValidator] OpenStudio XMLValidator object
+  # @return [Array<Array<String>, Array<String>>] list of error messages, list of warning messages
+  def self.validate_against_schema(hpxml_path, validator)
+    errors, warnings = [], []
     validator.validate(hpxml_path)
     validator.errors.each do |e|
       next unless e.logMessage.count(':') >= 2
@@ -20,12 +30,14 @@ class XMLValidator
     return errors, warnings
   end
 
-  def self.get_schematron_validator(schematron_path)
-    return OpenStudio::XMLValidator.new(schematron_path)
-  end
-
-  def self.validate_against_schematron(hpxml_path, validator, hpxml_doc, errors = [], warnings = [])
-    # Validate against Schematron doc
+  # Validates an HPXML file against a Schematron file.
+  #
+  # @param hpxml_path [String] Path to the HPXML file
+  # @param validator [OpenStudio::XMLValidator] OpenStudio XMLValidator object
+  # @param hpxml_element [Oga::XML::Element] Root XML element of the HPXML document
+  # @return [Array<Array<String>, Array<String>>] list of error messages, list of warning messages
+  def self.validate_against_schematron(hpxml_path, validator, hpxml_element)
+    errors, warnings = [], []
     validator.validate(hpxml_path)
     if validator.fullValidationReport.is_initialized
       report_doc = Oga.parse_xml(validator.fullValidationReport.get)
@@ -48,7 +60,7 @@ class XMLValidator
           msg_txt = XMLHelper.get_value(n, 'svrl:text', :string)
 
           # Try to retrieve SystemIdentifier
-          context_element = hpxml_doc.xpath(current_context.gsub('h:', ''))[current_context_idx]
+          context_element = hpxml_element.xpath(current_context.gsub('h:', ''))[current_context_idx]
           if context_element.nil?
             fail "Could not find element at xpath '#{current_context}' with index #{current_context_idx}."
           end
@@ -75,6 +87,10 @@ class XMLValidator
     return errors, warnings
   end
 
+  # Gets the ID of the specified HPXML element
+  #
+  # @param element [Oga::XML::Element] XML element of interest
+  # @return [String] ID of the HPXML element
   def self.get_element_id(element)
     if element.name.to_s == 'Building'
       return XMLHelper.get_attribute_value(XMLHelper.get_element(element, 'BuildingID'), 'id')

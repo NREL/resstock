@@ -5870,7 +5870,7 @@
 						<xs:element maxOccurs="unbounded" minOccurs="0" ref="ExternalResource"/>
 						<xs:element name="Address" type="AddressInformation" minOccurs="0"/>
 						<xs:element minOccurs="0" name="GeoLocation" type="GeoLocationInformation"/>
-						<xs:element minOccurs="0" name="Elevation" type="ElevationType">
+						<xs:element minOccurs="0" name="Elevation" type="HPXMLDouble">
 							<xs:annotation>
 								<xs:documentation>[ft]</xs:documentation>
 							</xs:annotation>
@@ -11325,18 +11325,6 @@
 	<xs:complexType name="MoisureType">
 		<xs:simpleContent>
 			<xs:extension base="MoistureType_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="ElevationType_simple">
-		<xs:restriction base="xs:double">
-			<xs:minInclusive value="0"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="ElevationType">
-		<xs:simpleContent>
-			<xs:extension base="ElevationType_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
