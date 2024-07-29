@@ -499,7 +499,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args[:battery_num_bedrooms_served] = 0
     end
 
-    # Setpoints
+    # HVAC Control Setpoints
     weekday_heating_setpoints = [args[:hvac_control_heating_weekday_setpoint_temp]] * 24
     weekend_heating_setpoints = [args[:hvac_control_heating_weekend_setpoint_temp]] * 24
 
@@ -527,7 +527,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:hvac_control_cooling_weekday_setpoint] = weekday_cooling_setpoints.join(', ')
     args[:hvac_control_cooling_weekend_setpoint] = weekend_cooling_setpoints.join(', ')
 
-    # Seasons
+    # HVAC Control Seasons
     if (!args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].include?('Unavailable')) || (!args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].include?('Unavailable'))
       epw_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../weather', File.basename(args[:weather_station_epw_filepath])))
       if not File.exist? epw_path
@@ -542,6 +542,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if args[:use_auto_heating_season]
       args[:hvac_control_heating_season_period] = HPXML::BuildingAmerica
     else
+      # args[:hvac_control_heating_season_period] = Constants.Auto # FIXME
       if args[:hvac_control_heating_season_period].include?('Unavailable')
         if args[:hvac_control_heating_season_period].include?('All Days')
           args[:heating_system_type] = 'none'
@@ -584,6 +585,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if args[:use_auto_cooling_season]
       args[:hvac_control_cooling_season_period] = HPXML::BuildingAmerica
     else
+      # args[:hvac_control_cooling_season_period] = Constants.Auto # FIXME
       if args[:hvac_control_cooling_season_period].include?('Unavailable')
         if args[:hvac_control_cooling_season_period].include?('All Days')
           args[:cooling_system_type] = 'none'
