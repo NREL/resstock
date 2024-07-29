@@ -788,27 +788,14 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Detailed Schedules
     schedules_filepaths = []
+    schedules_filepaths << args[:heating_setpoint_schedule] if !args[:heating_setpoint_schedule].nil?
+    schedules_filepaths << args[:cooling_setpoint_schedule] if !args[:cooling_setpoint_schedule].nil?
+    schedules_filepaths << args[:water_heater_setpoint_schedule] if !args[:water_heater_setpoint_schedule].nil?
+    schedules_filepaths << args[:battery_schedule] if !args[:battery_schedule].nil?
 
-    if args[:heating_setpoint_schedule].is_initialized
-      schedules_filepaths << args[:heating_setpoint_schedule].get
-    end
+    args[:schedules_filepaths] = schedules_filepaths.join(',') if !schedules_filepaths.empty?
 
-    if args[:cooling_setpoint_schedule].is_initialized
-      schedules_filepaths << args[:cooling_setpoint_schedule].get
-    end
-
-    if args[:water_heater_setpoint_schedule].is_initialized
-      schedules_filepaths << args[:water_heater_setpoint_schedule].get
-    end
-
-    if args[:battery_schedule].is_initialized
-      schedules_filepaths << args[:battery_schedule].get
-    end
-
-    if !schedules_filepaths.empty?
-      args[:schedules_filepaths] = schedules_filepaths.join(',')
-    end
-
+    # Register argument values
     args.each do |arg_name, arg_value|
       if args_to_delete.include?(arg_name) || (arg_value == Constants.Auto)
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
