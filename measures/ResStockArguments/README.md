@@ -5666,6 +5666,50 @@ Whether the heat pump uses the existing system as backup.
 
 <br/>
 
+**Heating Setpoint: Schedule CSV File Path**
+
+Absolute/relative path of csv file containing user-specified detailed heating setpoint schedule.
+
+- **Name:** ``heating_setpoint_schedule``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Cooling Setpoint: Schedule CSV File Path**
+
+Absolute/relative path of csv file containing user-specified detailed cooling setpoint schedule.
+
+- **Name:** ``cooling_setpoint_schedule``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Water Heater Setpoint: Schedule CSV File Path**
+
+Absolute/relative path of csv file containing user-specified detailed water heater setpoint schedule.
+
+- **Name:** ``water_heater_setpoint_schedule``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Battery: Schedule CSV File Path**
+
+Absolute/relative path of csv file containing user-specified detailed battery schedule.
+
+- **Name:** ``battery_schedule``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
 
 
 

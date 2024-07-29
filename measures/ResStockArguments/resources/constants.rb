@@ -90,7 +90,10 @@ module Constants
 
   def self.other_excludes
     # these are ResStockArguments that haven't made their way into options_lookup.tsv yet
-    return ['heating_system_actual_cfm_per_ton',
+    return ['heating_setpoint_schedule',
+            'cooling_setpoint_schedule',
+            'water_heater_setpoint_schedule',
+            'heating_system_actual_cfm_per_ton',
             'heating_system_rated_cfm_per_ton']
   end
 
