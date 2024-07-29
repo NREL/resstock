@@ -525,21 +525,25 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     ['heating', 'cooling'].each do |htg_or_clg|
+      hvac_control_season_period = "hvac_control_#{htg_or_clg}_season_period".to_sym
+
       if args["use_auto_#{htg_or_clg}_season".to_sym]
-        args["hvac_control_#{htg_or_clg}_season_period".to_sym] = HPXML::BuildingAmerica
+        args[hvac_control_season_period] = HPXML::BuildingAmerica
       else
-        # args["hvac_control_#{htg_or_clg}_season_period".to_sym] = Constants.Auto # FIXME
-        if args["hvac_control_#{htg_or_clg}_season_period".to_sym].include?('Unavailable')
-          if args["hvac_control_#{htg_or_clg}_season_period".to_sym].include?('All Days') # year-round unavailability
+        # args[hvac_control_season_period] = 'Jan 1 - Dec 31' # FIXME
+        if args[hvac_control_season_period].include?('Unavailable')
+          if args[hvac_control_season_period].include?('All Days') # year-round unavailability; set heating or cooling system to none
             args["#{htg_or_clg}_system_type".to_sym] = 'none'
             args[:heat_pump_fraction_heat_load_served] = 0 if htg_or_clg == 'heating'
             args[:heat_pump_fraction_cool_load_served] = 0 if htg_or_clg == 'cooling'
+            args[hvac_control_season_period] = 'None'
           else # partial-year unavailability
             if htg_or_clg == 'heating'
               months = heating_months
             elsif htg_or_clg == 'cooling'
               months = cooling_months
             end
+
             if months.sum > 0.0 # has defined BA heating/cooling months
               begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(months, sim_calendar_year)
               begin_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
@@ -551,9 +555,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
                                    'Unavailable 2 Weeks' => 14,
                                    'Unavailable 3 Days' => 3,
                                    'Unavailable 3 Months' => 90 }
-              n_days = unavailable_days[args["hvac_control_#{htg_or_clg}_season_period".to_sym]]
+              n_days = unavailable_days[args[hvac_control_season_period]]
               if n_days.nil?
-                runner.registerError("ResStockArguments: Undefined number of #{htg_or_clg} unavailable days for sampled option '#{args["hvac_control_#{htg_or_clg}_season_period".to_sym]}'.")
+                runner.registerError("ResStockArguments: Undefined number of #{htg_or_clg} unavailable days for sampled option '#{args[hvac_control_season_period]}'.")
                 return false
               end
               unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], n_days, begin_day_num, end_day_num, sim_calendar_year)
@@ -561,10 +565,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
               begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year) # begin the htg_or_clg season period at the end of unavailability
               end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year) # end the htg_or_clg season period at the beginning of unavailability
 
-              args["hvac_control_#{htg_or_clg}_season_period".to_sym] = "#{begin_date} - #{end_date}"
-            else # no defined BA heating/cooling months
-              args["hvac_control_#{htg_or_clg}_season_period".to_sym] = "No BA #{htg_or_clg} months"
-              runner.registerWarning("ResStockArguments: Sampled option '#{args["hvac_control_#{htg_or_clg}_season_period".to_sym]}' for #{htg_or_clg} unavailable days but there are no BA #{htg_or_clg} months.")
+              args[hvac_control_season_period] = "#{begin_date} - #{end_date}"
+            else # no defined BA heating/cooling months; set heating or cooling system to none?
+              args["#{htg_or_clg}_system_type".to_sym] = 'none'
+              args[:heat_pump_fraction_heat_load_served] = 0 if htg_or_clg == 'heating'
+              args[:heat_pump_fraction_cool_load_served] = 0 if htg_or_clg == 'cooling'
+              args[hvac_control_season_period] = 'None'
+              runner.registerWarning("ResStockArguments: Sampled option '#{args[hvac_control_season_period]}' for #{htg_or_clg} unavailable days but there are no BA #{htg_or_clg} months.")
             end
           end
         end
