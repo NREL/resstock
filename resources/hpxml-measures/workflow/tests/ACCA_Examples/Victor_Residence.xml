@@ -9,6 +9,13 @@
   <SoftwareInfo/>
   <Building>
     <BuildingID id='MyBuilding'/>
+    <Site>
+      <SiteID id='SiteID'/>
+      <GeoLocation>
+        <Latitude>40.0</Latitude>
+      </GeoLocation>
+      <Elevation>607.0</Elevation>
+    </Site>
     <ProjectStatus>
       <EventType>proposed workscope</EventType>
     </ProjectStatus>
@@ -16,14 +23,33 @@
       <BuildingSummary>
         <Site>
           <SiteType>suburban</SiteType>
+          <ShieldingofHome>normal</ShieldingofHome>
         </Site>
         <BuildingConstruction>
+          <YearBuilt>2000</YearBuilt>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
           <NumberofConditionedFloors>1.0</NumberofConditionedFloors>
           <NumberofConditionedFloorsAboveGrade>1.0</NumberofConditionedFloorsAboveGrade>
+          <AverageCeilingHeight>14.5</AverageCeilingHeight>
           <NumberofBedrooms>3</NumberofBedrooms>
           <ConditionedFloorArea>1800.0</ConditionedFloorArea>
         </BuildingConstruction>
+        <extension>
+          <HVACSizingControl>
+            <ManualJInputs>
+              <HeatingDesignTemperature>3.0</HeatingDesignTemperature>
+              <CoolingDesignTemperature>90.0</CoolingDesignTemperature>
+              <DailyTemperatureRange>medium</DailyTemperatureRange>
+              <HeatingSetpoint>70.0</HeatingSetpoint>
+              <CoolingSetpoint>75.0</CoolingSetpoint>
+              <HumiditySetpoint>0.5</HumiditySetpoint>
+              <HumidityDifference>45.0</HumidityDifference>
+              <InternalLoadsSensible>2400.0</InternalLoadsSensible>
+              <InternalLoadsLatent>0.0</InternalLoadsLatent>
+              <NumberofOccupants>4</NumberofOccupants>
+            </ManualJInputs>
+          </HVACSizingControl>
+        </extension>
       </BuildingSummary>
       <ClimateandRiskZones>
         <WeatherStation>
@@ -38,12 +64,7 @@
         <AirInfiltration>
           <AirInfiltrationMeasurement>
             <SystemIdentifier id='AirInfiltrationMeasurement1'/>
-            <HousePressure>50.0</HousePressure>
-            <BuildingAirLeakage>
-              <UnitofMeasure>ACH</UnitofMeasure>
-              <AirLeakage>8.5</AirLeakage>
-            </BuildingAirLeakage>
-            <InfiltrationVolume>26100.0</InfiltrationVolume>
+            <LeakinessDescription>leaky</LeakinessDescription>
           </AirInfiltrationMeasurement>
         </AirInfiltration>
         <Roofs>
@@ -143,6 +164,10 @@
             <Azimuth>0</Azimuth>
             <UFactor>0.57</UFactor>
             <SHGC>0.56</SHGC>
+            <ExteriorShading>
+              <SystemIdentifier id='Window1ExteriorShading'/>
+              <SummerShadingCoefficient>0.9</SummerShadingCoefficient>
+            </ExteriorShading>
             <InteriorShading>
               <SystemIdentifier id='Window1InteriorShading'/>
               <SummerShadingCoefficient>0.6</SummerShadingCoefficient>
@@ -155,6 +180,10 @@
             <Azimuth>0</Azimuth>
             <UFactor>0.56</UFactor>
             <SHGC>0.66</SHGC>
+            <ExteriorShading>
+              <SystemIdentifier id='Window2ExteriorShading'/>
+              <SummerShadingCoefficient>1.0</SummerShadingCoefficient>
+            </ExteriorShading>
             <InteriorShading>
               <SystemIdentifier id='Window2InteriorShading'/>
               <SummerShadingCoefficient>0.6</SummerShadingCoefficient>
@@ -167,6 +196,10 @@
             <Azimuth>0</Azimuth>
             <UFactor>0.87</UFactor>
             <SHGC>0.67</SHGC>
+            <ExteriorShading>
+              <SystemIdentifier id='Window3ExteriorShading'/>
+              <SummerShadingCoefficient>0.9</SummerShadingCoefficient>
+            </ExteriorShading>
             <InteriorShading>
               <SystemIdentifier id='Window3InteriorShading'/>
               <SummerShadingCoefficient>0.6</SummerShadingCoefficient>
@@ -179,6 +212,10 @@
             <Azimuth>90</Azimuth>
             <UFactor>0.57</UFactor>
             <SHGC>0.56</SHGC>
+            <ExteriorShading>
+              <SystemIdentifier id='Window4ExteriorShading'/>
+              <SummerShadingCoefficient>0.9</SummerShadingCoefficient>
+            </ExteriorShading>
             <InteriorShading>
               <SystemIdentifier id='Window4InteriorShading'/>
               <SummerShadingCoefficient>0.6</SummerShadingCoefficient>
@@ -196,6 +233,10 @@
             <Azimuth>270</Azimuth>
             <UFactor>0.57</UFactor>
             <SHGC>0.56</SHGC>
+            <ExteriorShading>
+              <SystemIdentifier id='Window5ExteriorShading'/>
+              <SummerShadingCoefficient>0.9</SummerShadingCoefficient>
+            </ExteriorShading>
             <InteriorShading>
               <SystemIdentifier id='Window5InteriorShading'/>
               <SummerShadingCoefficient>0.6</SummerShadingCoefficient>
@@ -213,6 +254,10 @@
             <Azimuth>180</Azimuth>
             <UFactor>0.56</UFactor>
             <SHGC>0.66</SHGC>
+            <ExteriorShading>
+              <SystemIdentifier id='Window6ExteriorShading'/>
+              <SummerShadingCoefficient>1.0</SummerShadingCoefficient>
+            </ExteriorShading>
             <InteriorShading>
               <SystemIdentifier id='Window6InteriorShading'/>
               <SummerShadingCoefficient>0.6</SummerShadingCoefficient>
@@ -230,17 +275,29 @@
             <SystemIdentifier id='Skylight1'/>
             <Area>2.0</Area>
             <Azimuth>0</Azimuth>
-            <UFactor>0.74</UFactor>
+            <UFactor>0.56</UFactor>
             <SHGC>0.66</SHGC>
             <AttachedToRoof idref='Roof1'/>
+            <extension>
+              <Curb>
+                <Area>0.7</Area>
+                <AssemblyEffectiveRValue>1.96</AssemblyEffectiveRValue>
+              </Curb>
+            </extension>
           </Skylight>
           <Skylight>
             <SystemIdentifier id='Skylight2'/>
             <Area>7.5</Area>
             <Azimuth>180</Azimuth>
-            <UFactor>0.74</UFactor>
+            <UFactor>0.56</UFactor>
             <SHGC>0.66</SHGC>
             <AttachedToRoof idref='Roof1'/>
+            <extension>
+              <Curb>
+                <Area>2.63</Area>
+                <AssemblyEffectiveRValue>1.96</AssemblyEffectiveRValue>
+              </Curb>
+            </extension>
           </Skylight>
         </Skylights>
         <Doors>
@@ -329,6 +386,11 @@
                   <DuctSurfaceArea>125.0</DuctSurfaceArea>
                 </Ducts>
                 <NumberofReturnRegisters>1</NumberofReturnRegisters>
+                <extension>
+                  <ManualJInputs>
+                    <BlowerFanHeatBtuh>1707.0</BlowerFanHeatBtuh>
+                  </ManualJInputs>
+                </extension>
               </AirDistribution>
             </DistributionSystemType>
           </HVACDistribution>
@@ -338,7 +400,7 @@
             <VentilationFan>
               <SystemIdentifier id='VentilationFan1'/>
               <FanType>balanced</FanType>
-              <RatedFlowRate>30.0</RatedFlowRate>
+              <RatedFlowRate>20.0</RatedFlowRate>
               <UsedForWholeBuildingVentilation>true</UsedForWholeBuildingVentilation>
             </VentilationFan>
           </VentilationFans>
@@ -361,9 +423,14 @@
       </Appliances>
       <MiscLoads>
         <PlugLoad>
-          <SystemIdentifier id='PlugLoad2'/>
+          <SystemIdentifier id='PlugLoad1'/>
           <PlugLoadType>other</PlugLoadType>
         </PlugLoad>
+        <FuelLoad>
+          <SystemIdentifier id='FuelLoad1'/>
+          <FuelLoadType>fireplace</FuelLoadType>
+          <FuelType>natural gas</FuelType>
+        </FuelLoad>
       </MiscLoads>
     </BuildingDetails>
   </Building>

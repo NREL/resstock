@@ -2,6 +2,20 @@
 
 require 'fileutils'
 
+# TODO
+#
+# @param rundir [TODO] TODO
+# @param measures [TODO] TODO
+# @param measures_dir [TODO] TODO
+# @param debug [TODO] TODO
+# @param output_vars [TODO] TODO
+# @param output_meters [TODO] TODO
+# @param run_measures_only [TODO] TODO
+# @param print_prefix [TODO] TODO
+# @param ep_input_format [TODO] TODO
+# @param skip_simulation [TODO] TODO
+# @param suppress_print [TODO] TODO
+# @return [TODO] TODO
 def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars: [],
                        output_meters: [], run_measures_only: false, print_prefix: '',
                        ep_input_format: 'idf', skip_simulation: false, suppress_print: false)
@@ -24,14 +38,14 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
   report_measure_errors_warnings(runner, rundir, debug)
   report_os_warnings(os_log, rundir)
 
-  if run_measures_only
-    return { success: success, runner: runner }
-  end
-
   if not success
     print "#{print_prefix}Creating input unsuccessful.\n"
     print "#{print_prefix}See #{File.join(rundir, 'run.log')} for details.\n"
     return { success: false, runner: runner }
+  end
+
+  if run_measures_only
+    return { success: success, runner: runner }
   end
 
   # Apply any additional output variables
@@ -171,6 +185,16 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
   return { success: true, runner: runner, sim_time: sim_time }
 end
 
+# TODO
+#
+# @param measures_dir [TODO] TODO
+# @param measures [TODO] TODO
+# @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+# @param model [OpenStudio::Model::Model] OpenStudio Model object
+# @param show_measure_calls [TODO] TODO
+# @param measure_type [TODO] TODO
+# @param osw_out [TODO] TODO
+# @return [TODO] TODO
 def apply_measures(measures_dir, measures, runner, model, show_measure_calls = true, measure_type = 'OpenStudio::Measure::ModelMeasure', osw_out = nil)
   if not osw_out.nil?
     # Create a workflow based on the measures we're going to call. Convenient for debugging.
@@ -217,6 +241,14 @@ def apply_measures(measures_dir, measures, runner, model, show_measure_calls = t
   return true
 end
 
+# TODO
+#
+# @param measures_dir [TODO] TODO
+# @param measures [TODO] TODO
+# @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+# @param model [OpenStudio::Model::Model] OpenStudio Model object
+# @param workspace [TODO] TODO
+# @return [TODO] TODO
 def apply_energyplus_output_requests(measures_dir, measures, runner, model, workspace)
   # Call each measure in the specified order
   measures.keys.each do |measure_subdir|
@@ -239,6 +271,12 @@ def apply_energyplus_output_requests(measures_dir, measures, runner, model, work
   return true
 end
 
+# TODO
+#
+# @param measure_args [TODO] TODO
+# @param measure_dir [TODO] TODO
+# @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+# @return [TODO] TODO
 def print_measure_call(measure_args, measure_dir, runner)
   if measure_args.nil? || measure_dir.nil?
     return
@@ -252,6 +290,10 @@ def print_measure_call(measure_args, measure_dir, runner)
   end
 end
 
+# TODO
+#
+# @param measure_rb_path [TODO] TODO
+# @return [TODO] TODO
 def get_measure_instance(measure_rb_path)
   # Parse XML file for class name
   # Avoid REXML for performance reasons
@@ -268,6 +310,14 @@ def get_measure_instance(measure_rb_path)
   return measure
 end
 
+# TODO
+#
+# @param measure_args [TODO] TODO
+# @param provided_args [TODO] TODO
+# @param lookup_file [TODO] TODO
+# @param measure_name [TODO] TODO
+# @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+# @return [TODO] TODO
 def validate_measure_args(measure_args, provided_args, lookup_file, measure_name, runner = nil)
   measure_arg_names = measure_args.map { |arg| arg.name }
   lookup_file_str = ''
@@ -322,6 +372,15 @@ def validate_measure_args(measure_args, provided_args, lookup_file, measure_name
   return provided_args
 end
 
+# TODO
+#
+# @param model [OpenStudio::Model::Model] OpenStudio Model object
+# @param measure [TODO] TODO
+# @param provided_args [TODO] TODO
+# @param lookup_file [TODO] TODO
+# @param measure_name [TODO] TODO
+# @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+# @return [TODO] TODO
 def get_argument_map(model, measure, provided_args, lookup_file, measure_name, runner = nil)
   measure_args = measure.arguments(model)
   provided_args = validate_measure_args(measure_args, provided_args, lookup_file, measure_name, runner)
@@ -338,6 +397,10 @@ def get_argument_map(model, measure, provided_args, lookup_file, measure_name, r
   return argument_map
 end
 
+# TODO
+#
+# @param step_value [TODO] TODO
+# @return [TODO] TODO
 def get_value_from_workflow_step_value(step_value)
   variant_type = step_value.variantType
   if variant_type == 'Boolean'.to_VariantType
@@ -351,20 +414,13 @@ def get_value_from_workflow_step_value(step_value)
   end
 end
 
-def get_value_from_additional_properties(obj, feature_name)
-  additional_properties = obj.additionalProperties
-  feature_data_type = additional_properties.getFeatureDataType(feature_name).get if additional_properties.getFeatureDataType(feature_name).is_initialized
-  if feature_data_type == 'Boolean'
-    return additional_properties.getFeatureAsBoolean(feature_name).get if additional_properties.getFeatureAsBoolean(feature_name).is_initialized
-  elsif feature_data_type == 'Double'
-    return additional_properties.getFeatureAsDouble(feature_name).get if additional_properties.getFeatureAsDouble(feature_name).is_initialized
-  elsif feature_data_type == 'Integer'
-    return additional_properties.getFeatureAsInteger(feature_name).get if additional_properties.getFeatureAsInteger(feature_name).is_initialized
-  elsif feature_data_type == 'String'
-    return additional_properties.getFeatureAsString(feature_name).get if additional_properties.getFeatureAsString(feature_name).is_initialized
-  end
-end
-
+# TODO
+#
+# @param model [OpenStudio::Model::Model] OpenStudio Model object
+# @param measure [TODO] TODO
+# @param argument_map [TODO] TODO
+# @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+# @return [TODO] TODO
 def run_measure(model, measure, argument_map, runner)
   begin
     # run the measure
@@ -420,17 +476,25 @@ def run_measure(model, measure, argument_map, runner)
   return true
 end
 
+# TODO
+#
+# @param hash [TODO] TODO
+# @param delim [TODO] TODO
+# @param separator [TODO] TODO
+# @return [TODO] TODO
 def hash_to_string(hash, delim = '=', separator = ',')
-  hash_s = ''
+  vals = []
   hash.each do |k, v|
-    hash_s += "#{k}#{delim}#{v}#{separator}"
+    vals << "#{k}#{delim}#{v}"
   end
-  if hash_s.size > 0
-    hash_s = hash_s.chomp(separator.to_s)
-  end
-  return hash_s
+  return vals.join(separator.to_s)
 end
 
+# TODO
+#
+# @param msg [TODO] TODO
+# @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+# @return [TODO] TODO
 def register_error(msg, runner = nil)
   if not runner.nil?
     runner.registerError(msg)
@@ -440,18 +504,35 @@ def register_error(msg, runner = nil)
   end
 end
 
+# TODO
+#
+# @param full_path [TODO] TODO
+# @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+# @return [TODO] TODO
 def check_file_exists(full_path, runner = nil)
   if not File.exist?(full_path)
     register_error("Cannot find file #{full_path}.", runner)
   end
 end
 
+# TODO
+#
+# @param full_path [TODO] TODO
+# @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+# @return [TODO] TODO
 def check_dir_exists(full_path, runner = nil)
   if not Dir.exist?(full_path)
     register_error("Cannot find directory #{full_path}.", runner)
   end
 end
 
+# TODO
+#
+# @param hash [TODO] TODO
+# @param key [TODO] TODO
+# @param args [TODO] TODO
+# @param add_new [TODO] TODO
+# @return [TODO] TODO
 def update_args_hash(hash, key, args, add_new = true)
   if not hash.keys.include? key
     hash[key] = [args]
@@ -464,6 +545,12 @@ def update_args_hash(hash, key, args, add_new = true)
   end
 end
 
+# TODO
+#
+# @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+# @param rundir [TODO] TODO
+# @param debug [TODO] TODO
+# @return [TODO] TODO
 def report_measure_errors_warnings(runner, rundir, debug)
   # Report warnings/errors
   File.open(File.join(rundir, 'run.log'), 'a') do |f|
@@ -482,6 +569,11 @@ def report_measure_errors_warnings(runner, rundir, debug)
   runner.reset
 end
 
+# TODO
+#
+# @param forward_translator [TODO] TODO
+# @param rundir [TODO] TODO
+# @return [TODO] TODO
 def report_ft_errors_warnings(forward_translator, rundir)
   # Report warnings/errors
   success = true
@@ -497,19 +589,23 @@ def report_ft_errors_warnings(forward_translator, rundir)
   return success
 end
 
+# TODO
+#
+# @param os_log [TODO] TODO
+# @param rundir [TODO] TODO
+# @return [TODO] TODO
 def report_os_warnings(os_log, rundir)
   File.open(File.join(rundir, 'run.log'), 'a') do |f|
     os_log.logMessages.each do |s|
       next if s.logMessage.include? 'Cannot find current Workflow Step'
-      next if s.logMessage.include? 'Data will be treated as typical (TMY)'
       next if s.logMessage.include? 'WorkflowStepResult value called with undefined stepResult'
-      next if s.logMessage.include?("Object of type 'Schedule:Constant' and named 'Always") && s.logMessage.include?('points to an object named') && s.logMessage.include?('but that object cannot be located')
       next if s.logMessage.include? 'Appears there are no design condition fields in the EPW file'
       next if s.logMessage.include? 'Volume calculation will be potentially inaccurate'
       next if s.logMessage.include? 'Valid instance'
       next if s.logMessage.include? 'xsdValidate'
       next if s.logMessage.include? 'xsltValidate'
       next if s.logLevel == 0 && s.logMessage.include?('not within the expected limits') # Ignore EpwFile warnings
+      next if s.logMessage.include? 'Error removing temporary directory at /tmp/xmlvalidation'
 
       f << "OS Message: #{s.logMessage}\n"
     end
@@ -517,6 +613,10 @@ def report_os_warnings(os_log, rundir)
   os_log.resetStringStream
 end
 
+# TODO
+#
+# @param path [TODO] TODO
+# @return [TODO] TODO
 def rm_path(path)
   if Dir.exist?(path)
     FileUtils.rm_r(path)
@@ -528,11 +628,18 @@ def rm_path(path)
   end
 end
 
+# TODO
 class String
+  # TODO
+  #
+  # @return [TODO] TODO
   def is_number?
     true if Float(self) rescue false
   end
 
+  # TODO
+  #
+  # @return [TODO] TODO
   def is_integer?
     if not is_number?
       return false
@@ -543,39 +650,4 @@ class String
 
     return true
   end
-end
-
-def get_argument_values(runner, arguments, user_arguments)
-  args = {}
-  arguments.each do |argument|
-    key = argument.name.to_sym
-    if argument.required
-      case argument.type
-      when 'Choice'.to_OSArgumentType
-        args[key] = runner.getStringArgumentValue(argument.name, user_arguments)
-      when 'Boolean'.to_OSArgumentType
-        args[key] = runner.getBoolArgumentValue(argument.name, user_arguments)
-      when 'Double'.to_OSArgumentType
-        args[key] = runner.getDoubleArgumentValue(argument.name, user_arguments)
-      when 'Integer'.to_OSArgumentType
-        args[key] = runner.getIntegerArgumentValue(argument.name, user_arguments)
-      when 'String'.to_OSArgumentType
-        args[key] = runner.getStringArgumentValue(argument.name, user_arguments)
-      end
-    else
-      case argument.type
-      when 'Choice'.to_OSArgumentType
-        args[key] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
-      when 'Boolean'.to_OSArgumentType
-        args[key] = runner.getOptionalBoolArgumentValue(argument.name, user_arguments)
-      when 'Double'.to_OSArgumentType
-        args[key] = runner.getOptionalDoubleArgumentValue(argument.name, user_arguments)
-      when 'Integer'.to_OSArgumentType
-        args[key] = runner.getOptionalIntegerArgumentValue(argument.name, user_arguments)
-      when 'String'.to_OSArgumentType
-        args[key] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
-      end
-    end
-  end
-  return args
 end

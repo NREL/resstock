@@ -1,13 +1,18 @@
 # frozen_string_literal: true
 
+# Object that stores collections of EnergyPlus meter names, units, and timeseries data.
 class Fuel
-  def initialize(meters: [])
+  # @param meters [Array<String>] array of EnergyPlus meter names
+  # @param units [String] fuel units (HPXML::FuelTypeXXX)
+  def initialize(meters: [], units:)
     @meters = meters
     @timeseries = []
+    @units = units
   end
   attr_accessor(:meters, :timeseries, :units)
 end
 
+# Object that stores collections of fixed monthly rates, marginal rates, real-time rates, minimum monthly/annual charges, net metering and feed-in tariff information, and detailed tariff file information.
 class UtilityRate
   def initialize()
     @fixedmonthlycharge = nil
@@ -33,6 +38,7 @@ class UtilityRate
                 :energyratestructure, :energyweekdayschedule, :energyweekendschedule)
 end
 
+# Object that stores collections of monthly/annual/total fixed/energy charges, as well as monthly/annual production credit.
 class UtilityBill
   def initialize()
     @annual_energy_charge = 0.0
@@ -51,7 +57,18 @@ class UtilityBill
                 :monthly_production_credit, :annual_production_credit)
 end
 
-class CalculateUtilityBill
+# Collection of methods for calculating simple bills for all fuel types, as well as detailed bills for electricity.
+module CalculateUtilityBill
+  # Method for calculating utility bills based on simple utility rate structures.
+  #
+  # @param fuel_type [String] fuel type defined in the FT class
+  # @param header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param fuel_time_series [Array<Double>] reported timeseries data from the fuel meters
+  # @param is_production [Boolean] fuel meters are PV production or not
+  # @param rate [UtilityRate] UtilityRate object
+  # @param bill [UtilityBill] UtilityBill object
+  # @param net_elec [Double] net electricity production tallied by month
+  # @return [Double] net electricity production for the run period
   def self.simple(fuel_type, header, fuel_time_series, is_production, rate, bill, net_elec)
     if fuel_time_series.size > 12
       # Must be no more than 12 months worth of simulation data
@@ -81,7 +98,6 @@ class CalculateUtilityBill
       else
         bill.monthly_energy_charge[month_ix] = monthly_fuel_cost[month_ix]
         if not rate.fixedmonthlycharge.nil?
-          # If the run period doesn't span the entire month, prorate the fixed charges
           prorate_fraction = calculate_monthly_prorate(header, month_ix + 1)
           bill.monthly_fixed_charge[month_ix] = rate.fixedmonthlycharge * prorate_fraction
         end
@@ -105,11 +121,18 @@ class CalculateUtilityBill
     return net_elec
   end
 
+  # Method for calculating electric utility bills based on detailed utility rate structures.
+  #
+  # @param header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param fuels [Hash] Fuel type, is_production => Fuel object
+  # @param rate [UtilityRate] UtilityRate object
+  # @param bill [UtilityBill] UtilityBill object
+  # @return [void]
   def self.detailed_electric(header, fuels, rate, bill)
     fuel_time_series = fuels[[FT::Elec, false]].timeseries
-    pv_fuel_time_series = fuels[[FT::Elec, true]].timeseries
+    production_fuel_time_series = fuels[[FT::Elec, true]].timeseries
 
-    if fuel_time_series.size < 24 || pv_fuel_time_series.size < 24
+    if fuel_time_series.size < 24 || production_fuel_time_series.size < 24
       # Must be at least 24 hours worth of simulation data
       fail 'Incorrect timeseries data.'
     end
@@ -120,7 +143,9 @@ class CalculateUtilityBill
 
     net_monthly_energy_charge = [0] * 12
     production_fit_month = [0] * 12
-    has_pv = (pv_fuel_time_series.sum != 0)
+
+    has_production = (production_fuel_time_series.sum > 0)
+
     elec_month = [0] * 12
     net_elec_month = [0] * 12
 
@@ -141,7 +166,7 @@ class CalculateUtilityBill
       net_tier = 0
       elec_period = [0] * num_periods
       elec_tier = [0] * num_tiers
-      if has_pv
+      if has_production
         net_elec_period = [0] * num_periods
         net_elec_tier = [0] * num_tiers
       end
@@ -155,8 +180,8 @@ class CalculateUtilityBill
       elec_hour = fuel_time_series[hour]
       elec_month[month] += elec_hour
 
-      if has_pv
-        pv_hour = pv_fuel_time_series[hour]
+      if has_production
+        pv_hour = production_fuel_time_series[hour]
         net_elec_hour = elec_hour - pv_hour
         net_elec_month[month] += net_elec_hour
       end
@@ -165,7 +190,7 @@ class CalculateUtilityBill
         # Real-Time Pricing
         bill.monthly_energy_charge[month] += elec_hour * rate.realtimeprice[hour]
 
-        if has_pv
+        if has_production
           if rate.feed_in_tariff_rate
             production_fit_month[month] += pv_hour * rate.feed_in_tariff_rate
           else
@@ -226,7 +251,7 @@ class CalculateUtilityBill
           bill.monthly_energy_charge[month] += elec_hour * rate.energyratestructure[0][0][:rate]
         end
 
-        if has_pv
+        if has_production
           if rate.feed_in_tariff_rate
             production_fit_month[month] += pv_hour * rate.feed_in_tariff_rate
           else
@@ -311,7 +336,7 @@ class CalculateUtilityBill
           tier = 0
         end
 
-        if has_pv && !rate.feed_in_tariff_rate # has PV
+        if has_production && !rate.feed_in_tariff_rate # has PV
           if (num_periods > 1) || (num_tiers > 1) # tiered or TOU
 
             if num_periods > 1 && num_tiers > 1 # tiered and TOU
@@ -332,7 +357,7 @@ class CalculateUtilityBill
           end
         end
 
-        if has_pv
+        if has_production
           if rate.feed_in_tariff_rate
             bill.monthly_production_credit[month] = production_fit_month[month]
           else
@@ -347,7 +372,8 @@ class CalculateUtilityBill
 
     annual_total_charge = bill.monthly_energy_charge.sum + bill.monthly_fixed_charge.sum
 
-    if has_pv && !rate.feed_in_tariff_rate # Net metering calculations
+    if has_production && !rate.feed_in_tariff_rate # Net metering calculations
+
       annual_payments, monthly_min_charges, end_of_year_bill_credit = apply_min_charges(bill.monthly_fixed_charge, net_monthly_energy_charge, rate.minannualcharge, rate.minmonthlycharge)
       end_of_year_bill_credit, excess_sellback = apply_excess_sellback(end_of_year_bill_credit, rate.net_metering_excess_sellback_type, rate.net_metering_user_excess_sellback_rate, net_elec_month.sum(0.0))
 
@@ -377,8 +403,14 @@ class CalculateUtilityBill
     bill.annual_energy_charge = bill.monthly_energy_charge.sum
   end
 
+  # For net metering calculations, calculate monthly payments, rollover, and min charges.
+  #
+  # @param monthly_fixed_charge [Double] the sum of monthly fixed electricity charges (USD)
+  # @param net_monthly_energy_charge [Array<Double>] array of monthly net energy charges (USD)
+  # @param annual_min_charge [Double] the minimum annual electricity charge (USD)
+  # @param monthly_min_charge [Double] the minimum monthly electricity charge  (USD)
+  # @return [Array<Double, Array<Double>, Double>] annual payments, array of monthly minimum charges, end of year bill credit (USD)
   def self.apply_min_charges(monthly_fixed_charge, net_monthly_energy_charge, annual_min_charge, monthly_min_charge)
-    # Calculate monthly payments, rollover, and min charges
     monthly_min_charges = [0] * 12
     if annual_min_charge.nil?
       monthly_payments = [0] * 12
@@ -409,6 +441,13 @@ class CalculateUtilityBill
     return annual_payments, monthly_min_charges, end_of_year_bill_credit
   end
 
+  # For net metering calculations, apply the excess sellback.
+  #
+  # @param end_of_year_bill_credit [Double] end of year bill credit (USD)
+  # @param net_metering_excess_sellback_type [String] net metering annual excess sellback rate type
+  # @param net_metering_user_excess_sellback_rate [Double] user-specified net metering annual excess sellback rate
+  # @param net_elec [Double] net electricity production for the run period
+  # @return [Array<Double, Double>] end of year bill credit, excess sellback
   def self.apply_excess_sellback(end_of_year_bill_credit, net_metering_excess_sellback_type, net_metering_user_excess_sellback_rate, net_elec)
     # Note: Annual excess sellback can only be calculated at the end of the year on the net electricity consumption.
     if net_metering_excess_sellback_type == HPXML::PVAnnualExcessSellbackRateTypeRetailElectricityCost
@@ -421,6 +460,11 @@ class CalculateUtilityBill
     return end_of_year_bill_credit, excess_sellback
   end
 
+  # If the run period doesn't span the entire month, prorate the fixed charges
+  #
+  # @param header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param month [Integer] the month index
+  # @return [Double] for partial month bills, the fraction of days in the run period
   def self.calculate_monthly_prorate(header, month)
     begin_month = header.sim_begin_month
     begin_day = header.sim_begin_day
@@ -448,12 +492,20 @@ class CalculateUtilityBill
   end
 end
 
+# String handling for fields in the usurdb.csv file.
+#
+# @param x [String] the utility/name contained in the usurdb.csv file
+# @return [String] the utility/name after having removed non-alphanumeric characteristics and multiple spaces
 def valid_filename(x)
   x = "#{x}".gsub(/[^0-9A-Za-z\s]/, '') # remove non-alphanumeric
   x = "#{x}".gsub(/\s+/, ' ').strip # remove multiple spaces
   return x
 end
 
+# Parse the usurdb csv, select residential rates, and export into individual json files.
+#
+# @param filepath [String] path to the usurdb.csv file downloaded from openei
+# @return [Integer] the number of exported utility rate json files
 def process_usurdb(filepath)
   # Map csv found at https://openei.org/apps/USURDB/download/usurdb.csv.gz to
   # https://openei.org/services/doc/rest/util_rates/?version=7#response-fields

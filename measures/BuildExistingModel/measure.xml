@@ -3,14 +3,23 @@
   <schema_version>3.1</schema_version>
   <name>build_existing_model</name>
   <uid>dedf59bb-3b88-4f16-8755-2c1ff5519cbf</uid>
-  <version_id>e2f8f2af-f6ea-4f22-a3b9-c42d986f5d35</version_id>
-  <version_modified>2023-11-01T17:32:43Z</version_modified>
+  <version_id>c92de960-090b-4e46-8680-be2f43f37012</version_id>
+  <version_modified>2024-07-19T19:54:38Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildExistingModel</class_name>
   <display_name>Build Existing Model</display_name>
   <description>Builds the OpenStudio Model for an existing building.</description>
   <modeler_description>Builds the OpenStudio Model using the sampling csv file, which contains the specified parameters for each existing building. Based on the supplied building number, those parameters are used to run the OpenStudio measures with appropriate arguments and build up the OpenStudio model.</modeler_description>
   <arguments>
+    <argument>
+      <name>buildstock_csv_path</name>
+      <display_name>Buildstock CSV File Path</display_name>
+      <description>Absolute/relative path of the buildstock CSV file. Relative is compared to the 'lib/housing_characteristics' directory.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>buildstock.csv</default_value>
+    </argument>
     <argument>
       <name>building_id</name>
       <display_name>Building Unit ID</display_name>
@@ -320,6 +329,18 @@
   </attributes>
   <files>
     <file>
+      <filename>README.md</filename>
+      <filetype>md</filetype>
+      <usage_type>readme</usage_type>
+      <checksum>52F0E677</checksum>
+    </file>
+    <file>
+      <filename>README.md.erb</filename>
+      <filetype>erb</filetype>
+      <usage_type>readmeerb</usage_type>
+      <checksum>513F28E9</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.6.1</identifier>
@@ -328,7 +349,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>6231E134</checksum>
+      <checksum>5DA69C07</checksum>
     </file>
   </files>
 </measure>

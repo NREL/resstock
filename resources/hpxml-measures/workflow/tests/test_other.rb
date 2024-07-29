@@ -23,6 +23,7 @@ class WorkflowOtherTest < Minitest::Test
       assert(File.exist? File.join(File.dirname(xml), 'run', "results_annual.#{output_format}"))
       assert(File.exist? File.join(File.dirname(xml), 'run', "results_timeseries.#{output_format}"))
       assert(File.exist?(File.join(File.dirname(xml), 'run', "results_bills.#{output_format}")))
+      assert(File.exist?(File.join(File.dirname(xml), 'run', "results_design_load_details.#{output_format}")))
 
       # Check for debug files
       osm_path = File.join(File.dirname(xml), 'run', 'in.osm')
@@ -114,9 +115,9 @@ class WorkflowOtherTest < Minitest::Test
       # Check stochastic.csv headers
       schedules = CSV.read(File.join(File.dirname(xml), 'run', 'stochastic.csv'), headers: true)
       if debug
-        assert(schedules.headers.include?(SchedulesFile::ColumnSleeping))
+        assert(schedules.headers.include?(SchedulesFile::Columns[:Sleeping].name))
       else
-        refute(schedules.headers.include?(SchedulesFile::ColumnSleeping))
+        refute(schedules.headers.include?(SchedulesFile::Columns[:Sleeping].name))
       end
 
       # Cleanup
@@ -132,24 +133,26 @@ class WorkflowOtherTest < Minitest::Test
       command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\""
       if not invalid_variable_only
         command += ' --hourly ALL'
-        command += " --add-timeseries-output-variable 'Zone People Occupant Count'"
-        command += " --add-timeseries-output-variable 'Zone People Total Heating Energy'"
+        command += " --hourly 'Zone People Occupant Count'"
+        command += " --hourly 'Zone People Total Heating Energy'"
       end
-      command += " --add-timeseries-output-variable 'Foobar Variable'" # Test invalid output variable request
+      command += " --hourly 'Foobar Variable'" # Test invalid output variable request
       system(command, err: File::NULL)
 
       # Check for output files
       assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
       assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
+
+      timeseries_output_path = File.join(File.dirname(xml), 'run', 'results_timeseries.csv')
       if not invalid_variable_only
-        assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
+        assert(File.exist? timeseries_output_path)
         # Check timeseries columns exist
-        timeseries_rows = CSV.read(File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
+        timeseries_rows = CSV.read(timeseries_output_path)
         assert_equal(1, timeseries_rows[0].select { |r| r == 'Time' }.size)
         assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Occupant Count: Conditioned Space' }.size)
         assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Total Heating Energy: Conditioned Space' }.size)
       else
-        refute(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
+        refute(File.exist? timeseries_output_path)
       end
 
       # Check run.log has warning about missing Foobar Variable
@@ -157,6 +160,52 @@ class WorkflowOtherTest < Minitest::Test
       log_lines = File.readlines(File.join(File.dirname(xml), 'run', 'run.log')).map(&:strip)
       assert(log_lines.include? "Warning: Request for output variable 'Foobar Variable' returned no key values.")
     end
+  end
+
+  def test_run_simulation_mixed_timeseries_frequencies
+    # Check that we can correctly skip the EnergyPlus simulation and reporting measures
+    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+    xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
+    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --timestep weather --hourly enduses --daily temperatures --monthly ALL --monthly 'Zone People Total Heating Energy'"
+    system(command, err: File::NULL)
+
+    # Check for output files
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries_timestep.csv'))
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries_hourly.csv'))
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries_daily.csv'))
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries_monthly.csv'))
+
+    # Check timeseries columns exist
+    { 'timestep' => ['Weather:'],
+      'hourly' => ['End Use:'],
+      'daily' => ['Temperature:'],
+      'monthly' => ['End Use:', 'Fuel Use:', 'Zone People Total Heating Energy:'] }.each do |freq, col_names|
+      timeseries_rows = CSV.read(File.join(File.dirname(xml), 'run', "results_timeseries_#{freq}.csv"))
+      assert_equal(1, timeseries_rows[0].select { |r| r == 'Time' }.size)
+      col_names.each do |col_name|
+        assert(timeseries_rows[0].select { |r| r.start_with? col_name }.size > 0)
+      end
+    end
+  end
+
+  def test_run_simulation_skip_simulation
+    # Check that we can correctly skip the EnergyPlus simulation and reporting measures
+    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+    xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
+    command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --skip-simulation"
+    system(command, err: File::NULL)
+
+    # Check for in.xml HPXML file
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'in.xml'))
+
+    # Check for annual results (design load/capacities only)
+    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
+
+    # Check for no idf or output file
+    refute(File.exist? File.join(File.dirname(xml), 'run', 'in.idf'))
+    refute(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
   end
 
   def test_run_defaulted_in_xml
@@ -231,56 +280,68 @@ class WorkflowOtherTest < Minitest::Test
     end
   end
 
-  def test_multiple_buildings
+  def test_mf_building_simulations
+    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+    sample_files_path = File.join(File.dirname(__FILE__), '..', 'sample_files')
+    csv_output_path = File.join(sample_files_path, 'run', 'results_annual.csv')
+    bills_csv_path = File.join(sample_files_path, 'run', 'results_bills.csv')
+    run_log = File.join(sample_files_path, 'run', 'run.log')
     dryer_warning_msg = 'Warning: No clothes dryer specified, the model will not include clothes dryer energy use.'
 
-    ['base-multiple-sfd-buildings.xml',
-     'base-multiple-mf-units.xml'].each do |hpxml_name|
-      xml = File.join(File.dirname(__FILE__), '..', 'sample_files', hpxml_name)
-      rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
-      csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
-      bills_csv_path = File.join(File.dirname(xml), 'run', 'results_bills.csv')
-      run_log = File.join(File.dirname(xml), 'run', 'run.log')
+    [true, false].each do |whole_sfa_or_mf_building_sim|
+      tmp_hpxml_path = File.join(sample_files_path, 'tmp.xml')
+      hpxml = HPXML.new(hpxml_path: File.join(sample_files_path, 'base-bldgtype-mf-whole-building.xml'))
+      hpxml.header.whole_sfa_or_mf_building_sim = whole_sfa_or_mf_building_sim
+      XMLHelper.write_file(hpxml.to_doc, tmp_hpxml_path)
 
-      # Check successful simulation when providing correct building ID
-      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyBuilding_2"
+      # Check for when building-id argument is not provided
+      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{tmp_hpxml_path}\""
       system(command, err: File::NULL)
-      assert_equal(true, File.exist?(csv_output_path))
-      assert_equal(true, File.exist?(bills_csv_path))
+      if whole_sfa_or_mf_building_sim
+        # Simulation should be successful
+        assert_equal(true, File.exist?(csv_output_path))
+        assert_equal(true, File.exist?(bills_csv_path))
 
-      if hpxml_name == 'base-multiple-sfd-buildings.xml'
-        # Check that we have exactly one warning (i.e., check we are only validating a single Building element against schematron)
-        assert_equal(1, File.readlines(run_log).select { |l| l.include? dryer_warning_msg }.size)
+        # Check that we have multiple warnings, one for each Building element
+        assert_equal(6, File.readlines(run_log).select { |l| l.include? dryer_warning_msg }.size)
       else
-        assert_equal(0, File.readlines(run_log).select { |l| l.include? dryer_warning_msg }.size)
+        # Simulation should be unsuccessful (building_id or WholeSFAorMFBuildingSimulation=true is required)
+        assert_equal(false, File.exist?(csv_output_path))
+        assert_equal(false, File.exist?(bills_csv_path))
+        assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file; provide Building ID argument or set WholeSFAorMFBuildingSimulation=true.' }.size)
       end
 
-      # Check unsuccessful simulation when providing incorrect building ID
-      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id MyFoo"
+      # Check for when building-id argument is provided
+      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{tmp_hpxml_path}\" --building-id MyBuilding_2"
+      system(command, err: File::NULL)
+      if whole_sfa_or_mf_building_sim
+        # Simulation should be successful (WholeSFAorMFBuildingSimulation is true, so building-id argument is ignored)
+        # Note: We don't want to override WholeSFAorMFBuildingSimulation because we may have Schematron validation based on it, and it would be wrong to
+        # validate the HPXML for one use case (whole building model) while running it for a different unit case (individual dwelling unit model).
+        assert_equal(true, File.exist?(csv_output_path))
+        assert_equal(true, File.exist?(bills_csv_path))
+        assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file and WholeSFAorMFBuildingSimulation=true; Building ID argument will be ignored.' }.size)
+      else
+        # Simulation should be successful
+        assert_equal(true, File.exist?(csv_output_path))
+        assert_equal(true, File.exist?(bills_csv_path))
+
+        # Check that we have exactly one warning (i.e., check we are only validating a single Building element against schematron)
+        assert_equal(1, File.readlines(run_log).select { |l| l.include? dryer_warning_msg }.size)
+      end
+
+      next unless not whole_sfa_or_mf_building_sim
+
+      # Check for when building-id argument is invalid (incorrect building ID)
+      # Simulation should be unsuccessful
+      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{tmp_hpxml_path}\" --building-id MyFoo"
       system(command, err: File::NULL)
       assert_equal(false, File.exist?(csv_output_path))
       assert_equal(false, File.exist?(bills_csv_path))
       assert_equal(1, File.readlines(run_log).select { |l| l.include? "Could not find Building element with ID 'MyFoo'." }.size)
 
-      # Check unsuccessful simulation when not providing building ID
-      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\""
-      system(command, err: File::NULL)
-      assert_equal(false, File.exist?(csv_output_path))
-      assert_equal(false, File.exist?(bills_csv_path))
-      assert_equal(1, File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file; Building ID argument must be provided.' }.size)
-
-      # Check successful simulation when running whole building
-      command = "\"#{OpenStudio.getOpenStudioCLI}\" \"#{rb_path}\" -x \"#{xml}\" --building-id ALL"
-      system(command, err: File::NULL)
-      assert_equal(true, File.exist?(csv_output_path))
-      assert_equal(true, File.exist?(bills_csv_path))
-
-      if hpxml_name == 'base-multiple-sfd-buildings.xml'
-        # Check that we now have three warnings, one for each Building element
-        assert_equal(3, File.readlines(run_log).select { |l| l.include? dryer_warning_msg }.size)
-      else
-        assert_equal(0, File.readlines(run_log).select { |l| l.include? dryer_warning_msg }.size)
-      end
+      # Cleanup
+      File.delete(tmp_hpxml_path) if File.exist? tmp_hpxml_path
     end
   end
 

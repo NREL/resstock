@@ -1,12 +1,23 @@
 # frozen_string_literal: true
 
-class Battery
-  def self.apply(runner, model, pv_systems, battery, schedules_file, unit_multiplier)
+# TODO
+module Battery
+  # TODO
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
+  # @param pv_systems [TODO] TODO
+  # @param battery [TODO] TODO
+  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
+  # @param unit_multiplier [Integer] Number of similar dwelling units
+  # @return [TODO] TODO
+  def self.apply(runner, model, nbeds, pv_systems, battery, schedules_file, unit_multiplier)
     charging_schedule = nil
     discharging_schedule = nil
     if not schedules_file.nil?
-      charging_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnBatteryCharging)
-      discharging_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::ColumnBatteryDischarging)
+      charging_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:BatteryCharging].name)
+      discharging_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:BatteryDischarging].name)
     end
 
     if pv_systems.empty? && charging_schedule.nil? && discharging_schedule.nil?
@@ -36,6 +47,15 @@ class Battery
     end
 
     return if rated_power_output <= 0 || nominal_capacity_kwh <= 0 || battery.nominal_voltage <= 0
+
+    if battery.is_shared_system
+      # Apportion to single dwelling unit by # bedrooms
+      fail if battery.number_of_bedrooms_served.to_f <= nbeds.to_f # EPvalidator.xml should prevent this
+
+      nominal_capacity_kwh = nominal_capacity_kwh * nbeds.to_f / battery.number_of_bedrooms_served.to_f
+      usable_capacity_kwh = usable_capacity_kwh * nbeds.to_f / battery.number_of_bedrooms_served.to_f
+      rated_power_output = rated_power_output * nbeds.to_f / battery.number_of_bedrooms_served.to_f
+    end
 
     nominal_capacity_kwh *= unit_multiplier
     usable_capacity_kwh *= unit_multiplier
@@ -79,6 +99,7 @@ class Battery
     elcs.setNumberofStringsinParallel(number_of_strings_in_parallel)
     elcs.setInitialFractionalStateofCharge(0.0)
     elcs.setBatteryMass(battery_mass)
+    elcs.setDCtoDCChargingEfficiency(battery.round_trip_efficiency) # Note: This is currently unused in E+, so we use an EMS program below instead
     elcs.setBatterySurfaceArea(battery_surface_area)
     elcs.setDefaultNominalCellVoltage(default_nominal_cell_voltage)
     elcs.setFullyChargedCellCapacity(default_cell_capacity)
@@ -174,6 +195,10 @@ class Battery
     elcs.additionalProperties.setFeature('UsableCapacity_kWh', Float(usable_capacity_kwh))
   end
 
+  # TODO
+  #
+  # @param has_garage [TODO] TODO
+  # @return [TODO] TODO
   def self.get_battery_default_values(has_garage = false)
     if has_garage
       location = HPXML::LocationGarage
@@ -188,22 +213,33 @@ class Battery
              usable_fraction: 0.9 } # Fraction of usable capacity to nominal capacity
   end
 
+  # TODO
+  #
+  # @param nominal_capacity_kwh [TODO] TODO
+  # @param nominal_voltage [TODO] TODO
+  # @return [TODO] TODO
   def self.get_Ah_from_kWh(nominal_capacity_kwh, nominal_voltage)
     return nominal_capacity_kwh * 1000.0 / nominal_voltage
   end
 
+  # TODO
+  #
+  # @param nominal_capacity_ah [TODO] TODO
+  # @param nominal_voltage [TODO] TODO
+  # @return [TODO] TODO
   def self.get_kWh_from_Ah(nominal_capacity_ah, nominal_voltage)
     return nominal_capacity_ah * nominal_voltage / 1000.0
   end
 
+  # TODO
+  #
+  # @param battery [TODO] TODO
+  # @return [TODO] TODO
   def self.get_usable_capacity_kWh(battery)
     usable_capacity_kwh = battery.usable_capacity_kwh
     if usable_capacity_kwh.nil?
       usable_capacity_kwh = get_kWh_from_Ah(battery.usable_capacity_ah, battery.nominal_voltage) # kWh
     end
     return usable_capacity_kwh
-  end
-
-  def self.get_min_max_state_of_charge()
   end
 end

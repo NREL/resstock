@@ -4,9 +4,9 @@
 # Schedule File Builder
 
 ## Description
-Builds a residential schedule file.
+Builds a residential stochastic occupancy schedule file.
 
-Generates a CSV of schedules at the specified file path, and inserts the CSV schedule file path into the output HPXML file (or overwrites it if one already exists). Stochastic schedules are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data.
+Generates a CSV of schedules at the specified file path, and inserts the CSV schedule file path into the output HPXML file (or overwrites it if one already exists). Stochastic schedules are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data. See <a href='https://www.sciencedirect.com/science/article/pii/S0306261922011540'>Stochastic simulation of occupant-driven energy use in a bottom-up residential building stock model</a> for a more complete description of the methodology.
 
 ## Arguments
 
@@ -35,7 +35,7 @@ A comma-separated list of the column names to generate. If not provided, default
 
 **Schedules: Random Seed**
 
-This numeric field is the seed for the random number generator. Only applies if the schedules type is 'stochastic'.
+This numeric field is the seed for the random number generator.
 
 - **Name:** ``schedules_random_seed``
 - **Type:** ``Integer``
@@ -68,9 +68,20 @@ Absolute/relative output path of the HPXML file. This HPXML file will include th
 
 <br/>
 
+**Append Output?**
+
+If true and the output CSV file already exists, appends columns to the file rather than overwriting it. The existing output CSV file must have the same number of rows (i.e., timeseries frequency) as the new columns being appended.
+
+- **Name:** ``append_output``
+- **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
 **Debug Mode?**
 
-Applicable when schedules type is stochastic. If true: Write extra state column(s).
+If true, writes extra column(s) for informational purposes.
 
 - **Name:** ``debug``
 - **Type:** ``Boolean``

@@ -153,9 +153,7 @@ class RunSampling
       return tsvfile.rows[0]
     end
 
-    key_s = hash_to_string(dep_hash)
-    key_s_downcase = key_s.downcase
-    rownum = tsvfile.rows_keys_s[key_s_downcase]
+    rownum = tsvfile.rows_keys_s[dep_hash]
 
     if rownum.nil?
       register_error("Could not find row in #{tsvfile.filename} with dependency values: #{dep_hash}.", nil)

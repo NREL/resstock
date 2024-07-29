@@ -32,42 +32,18 @@ class TestTools < Minitest::Test
 
   def test_upgrades_columns
     ['national', 'testing'].each do |project|
-      buildstockbatch_path = File.join(@buildstock_directory, "buildstockbatch/project_#{project}/#{project}_upgrades/results_csvs/results_up16.csv")
+      results_csvs = Dir[File.join(@buildstock_directory, "buildstockbatch/project_#{project}/#{project}_upgrades/results_csvs/results_up*.csv")]
+      assert_equal(1, results_csvs.size)
+      buildstockbatch_path = results_csvs[0]
       buildstockbatch = CSV.read(buildstockbatch_path, headers: true)
 
-      run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-AllUpgrades.csv")
+      run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-PackageUpgrade.csv")
       run_analysis = CSV.read(run_analysis_path, headers: true)
 
       buildstockbatch_extras = buildstockbatch.headers - run_analysis.headers
       buildstockbatch_extras -= ['apply_upgrade.reference_scenario']
       buildstockbatch_extras -= ['simulation_output_report.applicable'] # buildstockbatch contains simulation_output_report.applicable (old workflow)
-      buildstockbatch_extras -= ['upgrade_costs.option_04_name'] # buildstockbatch writes this because another upgrade (Lighting) has 4 options; see https://github.com/NREL/buildstockbatch/pull/271
-      if project == 'national'
-        # buildstockbatch has these column even though it's all null (because of join with baseline?)
-        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_heating_lb']
-        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_hot_water_lb']
-      elsif project == 'testing'
-        # buildstockbatch has these column even though it's all null (because of join with baseline?)
-        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_fuel_oil_heating_lb']
-        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_fuel_oil_total_lb']
-        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_heating_lb']
-        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_hot_water_lb']
-        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_propane_heating_lb']
-        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_propane_hot_water_lb']
-        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_propane_total_lb']
-        buildstockbatch_extras -= ['report_utility_bills.bills_fuel_oil_energy_usd']
-        buildstockbatch_extras -= ['report_utility_bills.bills_fuel_oil_total_usd']
-        buildstockbatch_extras -= ['report_utility_bills.bills_propane_energy_usd']
-        buildstockbatch_extras -= ['report_utility_bills.bills_propane_total_usd']
-        buildstockbatch_extras -= ['report_utility_bills.bills_2_fuel_oil_energy_usd']
-        buildstockbatch_extras -= ['report_utility_bills.bills_2_fuel_oil_total_usd']
-        buildstockbatch_extras -= ['report_utility_bills.bills_2_propane_energy_usd']
-        buildstockbatch_extras -= ['report_utility_bills.bills_2_propane_total_usd']
-        buildstockbatch_extras -= ['report_utility_bills.bills_3_fuel_oil_energy_usd']
-        buildstockbatch_extras -= ['report_utility_bills.bills_3_fuel_oil_total_usd']
-        buildstockbatch_extras -= ['report_utility_bills.bills_3_propane_energy_usd']
-        buildstockbatch_extras -= ['report_utility_bills.bills_3_propane_total_usd']
-      end
+
       puts "#{project}_upgrades, buildstockbatch - run_analysis: #{buildstockbatch_extras}" if !buildstockbatch_extras.empty?
 
       run_analysis_extras = run_analysis.headers - buildstockbatch.headers
@@ -102,10 +78,12 @@ class TestTools < Minitest::Test
     columns = ['report_simulation_output.energy_use_total_m_btu']
 
     ['national', 'testing'].each do |project|
-      buildstockbatch_path = File.join(@buildstock_directory, "buildstockbatch/project_#{project}/#{project}_upgrades/results_csvs/results_up16.csv")
+      results_csvs = Dir[File.join(@buildstock_directory, "buildstockbatch/project_#{project}/#{project}_upgrades/results_csvs/results_up*.csv")]
+      assert_equal(1, results_csvs.size)
+      buildstockbatch_path = results_csvs[0]
       buildstockbatch = CSV.read(buildstockbatch_path, headers: true)
 
-      run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-AllUpgrades.csv")
+      run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-PackageUpgrade.csv")
       run_analysis = CSV.read(run_analysis_path, headers: true)
 
       columns.each do |col|

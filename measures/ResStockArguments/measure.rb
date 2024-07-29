@@ -11,7 +11,6 @@ require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/met
 class ResStockArguments < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
-    # Measure name should be the title case of the class name.
     return 'ResStock Arguments'
   end
 
@@ -27,15 +26,15 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
   # define the arguments that the user will input
   def arguments(model)
-    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # BuildResidentialHPXML
 
+    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     full_measure_path = File.join(measures_dir, 'BuildResidentialHPXML', 'measure.rb')
-    measure = get_measure_instance(full_measure_path)
+    @build_residential_hpxml_measure_arguments = get_measure_instance(full_measure_path).arguments(model)
 
-    measure.arguments(model).each do |arg|
+    @build_residential_hpxml_measure_arguments.each do |arg|
       next if Constants.build_residential_hpxml_excludes.include? arg.name
 
       # Following are arguments with the same name but different options
@@ -43,7 +42,21 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       # Convert optional arguments to string arguments that allow Constants.Auto for defaulting
       if !arg.required
-        args << OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
+        case arg.type.valueName.downcase
+        when 'choice'
+          choices = arg.choiceValues.map(&:to_s)
+          choices.unshift(Constants.Auto)
+          new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
+        when 'boolean'
+          choices = [Constants.Auto, 'true', 'false']
+          new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
+        else
+          new_arg = OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
+        end
+        new_arg.setDisplayName(arg.displayName.to_s)
+        new_arg.setDescription(arg.description.to_s)
+        new_arg.setUnits(arg.units.to_s)
+        args << new_arg
       else
         args << arg
       end
@@ -52,9 +65,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # BuildResidentialScheduleFile
 
     full_measure_path = File.join(measures_dir, 'BuildResidentialScheduleFile', 'measure.rb')
-    measure = get_measure_instance(full_measure_path)
+    @build_residential_schedule_file_measure_arguments = get_measure_instance(full_measure_path).arguments(model)
 
-    measure.arguments(model).each do |arg|
+    @build_residential_schedule_file_measure_arguments.each do |arg|
       next if Constants.build_residential_schedule_file_excludes.include? arg.name
 
       args << arg
@@ -172,6 +185,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('air_leakage_percent_reduction', false)
     arg.setDisplayName('Air Leakage: Value Reduction')
     arg.setDescription('Reduction (%) on the air exchange rate value.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_television_2_usage_multiplier', true)
+    arg.setDisplayName('Plug Loads: Television Usage Multiplier 2')
+    arg.setDescription('Additional multiplier on the television energy usage that can reflect, e.g., high/low usage occupants.')
+    arg.setDefaultValue(1.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_other_2_usage_multiplier', true)
@@ -304,41 +323,49 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_rated_cfm_per_ton', false)
     arg.setDisplayName('Heating System: Rated CFM Per Ton')
+    arg.setDescription('The rated cfm per ton of the heating system.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_actual_cfm_per_ton', false)
     arg.setDisplayName('Heating System: Actual CFM Per Ton')
+    arg.setDescription('The actual cfm per ton of the heating system.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_rated_cfm_per_ton', false)
     arg.setDisplayName('Cooling System: Rated CFM Per Ton')
+    arg.setDescription('The rated cfm per ton of the cooling system.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_actual_cfm_per_ton', false)
     arg.setDisplayName('Cooling System: Actual CFM Per Ton')
+    arg.setDescription('The actual cfm per ton of the cooling system.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_frac_manufacturer_charge', false)
     arg.setDisplayName('Cooling System: Fraction of Manufacturer Recommended Charge')
+    arg.setDescription('The fraction of manufacturer recommended charge of the cooling system.')
     arg.setUnits('Frac')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_rated_cfm_per_ton', false)
     arg.setDisplayName('Heat Pump: Rated CFM Per Ton')
+    arg.setDescription('The rated cfm per ton of the heat pump.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_actual_cfm_per_ton', false)
     arg.setDisplayName('Heat Pump: Actual CFM Per Ton')
+    arg.setDescription('The actual cfm per ton of the heat pump.')
     arg.setUnits('cfm/ton')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_frac_manufacturer_charge', false)
     arg.setDisplayName('Heat Pump: Fraction of Manufacturer Recommended Charge')
+    arg.setDescription('The fraction of manufacturer recommended charge of the heat pump.')
     arg.setUnits('Frac')
     args << arg
 
@@ -380,16 +407,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
-    args = get_argument_values(runner, arguments(model), user_arguments)
+    args = runner.getArgumentValues(arguments(model), user_arguments)
+    args = convert_args(args)
 
-    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     arg_names = []
-    { 'BuildResidentialHPXML' => Constants.build_residential_hpxml_excludes,
-      'BuildResidentialScheduleFile' => Constants.build_residential_schedule_file_excludes }.each do |measure_name, measure_excludes|
-      full_measure_path = File.join(measures_dir, measure_name, 'measure.rb')
-      measure = get_measure_instance(full_measure_path)
-
-      measure.arguments(model).each do |arg|
+    { @build_residential_hpxml_measure_arguments => Constants.build_residential_hpxml_excludes,
+      @build_residential_schedule_file_measure_arguments => Constants.build_residential_schedule_file_excludes }.each do |measure_arguments, measure_excludes|
+      measure_arguments.each do |arg|
         next if measure_excludes.include? arg.name
 
         arg_names << arg.name.to_sym
@@ -400,33 +424,43 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Conditioned floor area
     if args[:geometry_unit_cfa] == Constants.Auto
+      # TODO: Disaggregate detached and mobile home
       cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 298, # AHS 2021, 1 detached and mobile home weighted average
-               ['0-499', HPXML::ResidentialTypeSFA] => 273, # AHS 2021, 1 detached and mobile home weighted average
+               ['0-499', HPXML::ResidentialTypeSFA] => 273, # AHS 2021, 1 attached
                ['0-499', HPXML::ResidentialTypeApartment] => 322, # AHS 2021, multi-family weighted average
+               ['0-499', HPXML::ResidentialTypeManufactured] => 298, # AHS 2021, 1 detached and mobile home weighted average
                ['500-749', HPXML::ResidentialTypeSFD] => 634, # AHS 2021, 1 detached and mobile home weighted average
                ['500-749', HPXML::ResidentialTypeSFA] => 625, # AHS 2021, 1 attached
                ['500-749', HPXML::ResidentialTypeApartment] => 623, # AHS 2021, multi-family weighted average
+               ['500-749', HPXML::ResidentialTypeManufactured] => 634, # AHS 2021, 1 detached and mobile home weighted average
                ['750-999', HPXML::ResidentialTypeSFD] => 881, # AHS 2021, 1 detached and mobile home weighted average
                ['750-999', HPXML::ResidentialTypeSFA] => 872, # AHS 2021, 1 attached
                ['750-999', HPXML::ResidentialTypeApartment] => 854, # AHS 2021, multi-family weighted average
+               ['750-999', HPXML::ResidentialTypeManufactured] => 881, # AHS 2021, 1 detached and mobile home weighted average
                ['1000-1499', HPXML::ResidentialTypeSFD] => 1228, # AHS 2021, 1 detached and mobile home weighted average
                ['1000-1499', HPXML::ResidentialTypeSFA] => 1207, # AHS 2021, 1 attached
                ['1000-1499', HPXML::ResidentialTypeApartment] => 1138, # AHS 2021, multi-family weighted average
+               ['1000-1499', HPXML::ResidentialTypeManufactured] => 1228, # AHS 2021, 1 detached and mobile home weighted average
                ['1500-1999', HPXML::ResidentialTypeSFD] => 1698, # AHS 2021, 1 detached and mobile home weighted average
                ['1500-1999', HPXML::ResidentialTypeSFA] => 1678, # AHS 2021, 1 attached
                ['1500-1999', HPXML::ResidentialTypeApartment] => 1682, # AHS 2021, multi-family weighted average
+               ['1500-1999', HPXML::ResidentialTypeManufactured] => 1698, # AHS 2021, 1 detached and mobile home weighted average
                ['2000-2499', HPXML::ResidentialTypeSFD] => 2179, # AHS 2021, 1 detached and mobile home weighted average
                ['2000-2499', HPXML::ResidentialTypeSFA] => 2152, # AHS 2021, 1 attached
                ['2000-2499', HPXML::ResidentialTypeApartment] => 2115, # AHS 2021, multi-family weighted average
+               ['2000-2499', HPXML::ResidentialTypeManufactured] => 2179, # AHS 2021, 1 detached and mobile home weighted average
                ['2500-2999', HPXML::ResidentialTypeSFD] => 2678, # AHS 2021, 1 detached and mobile home weighted average
                ['2500-2999', HPXML::ResidentialTypeSFA] => 2663, # AHS 2021, 1 attached
                ['2500-2999', HPXML::ResidentialTypeApartment] => 2648, # AHS 2021, multi-family weighted average
+               ['2500-2999', HPXML::ResidentialTypeManufactured] => 2678, # AHS 2021, 1 detached and mobile home weighted average
                ['3000-3999', HPXML::ResidentialTypeSFD] => 3310, # AHS 2021, 1 detached and mobile home weighted average
                ['3000-3999', HPXML::ResidentialTypeSFA] => 3228, # AHS 2021, 1 attached
                ['3000-3999', HPXML::ResidentialTypeApartment] => 3171, # AHS 2021, multi-family weighted average
+               ['3000-3999', HPXML::ResidentialTypeManufactured] => 3310, # AHS 2021, 1 detached and mobile home weighted average
                ['4000+', HPXML::ResidentialTypeSFD] => 5587, # AHS 2021, 1 detached and mobile home weighted average
                ['4000+', HPXML::ResidentialTypeSFA] => 7414, # AHS 2019, 1 attached
-               ['4000+', HPXML::ResidentialTypeApartment] => 6348 } # AHS 2021, 4,000 or more all unit average
+               ['4000+', HPXML::ResidentialTypeApartment] => 6348, # AHS 2021, 4,000 or more all unit average
+               ['4000+', HPXML::ResidentialTypeManufactured] => 5587 } # AHS 2021, 1 detached and mobile home weighted average
       cfa = cfas[[args[:geometry_unit_cfa_bin], args[:geometry_unit_type]]]
       if cfa.nil?
         runner.registerError("ResStockArguments: Could not look up conditioned floor area for '#{args[:geometry_unit_cfa_bin]}' and '#{args[:geometry_unit_type]}'.")
@@ -434,43 +468,49 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
       args[:geometry_unit_cfa] = Float(cfa)
     else
-      args[:geometry_unit_cfa] = Float(args[:geometry_unit_cfa])
+      args[:geometry_unit_cfa] = args[:geometry_unit_cfa]
     end
 
     # Vintage
-    if args[:vintage].is_initialized
-      args[:year_built] = Integer(Float(args[:vintage].get.gsub(/[^0-9]/, ''))) # strip non-numeric
+    if !args[:vintage].nil? && args[:year_built] == Constants.Auto
+      args[:year_built] = Integer(Float(args[:vintage].gsub(/[^0-9]/, ''))) # strip non-numeric
     end
 
     # Num Occupants
-    if args[:geometry_unit_num_occupants].to_s == Constants.Auto
+    if args[:geometry_unit_num_occupants] == Constants.Auto
       args[:geometry_unit_num_occupants] = Geometry.get_occupancy_default_num(args[:geometry_unit_num_bedrooms])
-    else
-      args[:geometry_unit_num_occupants] = Integer(args[:geometry_unit_num_occupants].to_s)
     end
 
     # Plug Loads
-    args[:misc_plug_loads_television_annual_kwh] = 0.0 # "other" now accounts for television
-    args[:misc_plug_loads_television_usage_multiplier] = 0.0 # "other" now accounts for television
-    args[:misc_plug_loads_other_usage_multiplier] = Float(args[:misc_plug_loads_other_usage_multiplier].to_s) * args[:misc_plug_loads_other_2_usage_multiplier]
-    args[:misc_plug_loads_well_pump_usage_multiplier] = Float(args[:misc_plug_loads_well_pump_usage_multiplier].to_s) * args[:misc_plug_loads_well_pump_2_usage_multiplier]
-    args[:misc_plug_loads_vehicle_usage_multiplier] = Float(args[:misc_plug_loads_vehicle_usage_multiplier].to_s) * args[:misc_plug_loads_vehicle_2_usage_multiplier]
+    args[:misc_plug_loads_television_usage_multiplier] = args[:misc_plug_loads_television_usage_multiplier] * args[:misc_plug_loads_television_2_usage_multiplier]
+    args[:misc_plug_loads_other_usage_multiplier] = args[:misc_plug_loads_other_usage_multiplier] * args[:misc_plug_loads_other_2_usage_multiplier]
+    args[:misc_plug_loads_well_pump_usage_multiplier] = args[:misc_plug_loads_well_pump_usage_multiplier] * args[:misc_plug_loads_well_pump_2_usage_multiplier]
+    args[:misc_plug_loads_vehicle_usage_multiplier] = args[:misc_plug_loads_vehicle_usage_multiplier] * args[:misc_plug_loads_vehicle_2_usage_multiplier]
 
-    if args[:misc_plug_loads_other_annual_kwh].to_s == Constants.Auto
-      if [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type])
-        args[:misc_plug_loads_other_annual_kwh] = 1146.95 + 296.94 * args[:geometry_unit_num_occupants] + 0.3 * args[:geometry_unit_cfa] # RECS 2015
+    # Other
+    if args[:misc_plug_loads_other_annual_kwh] == Constants.Auto
+      # TODO: Disaggregate detached and mobile home
+      if [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include?(args[:geometry_unit_type])
+        args[:misc_plug_loads_other_annual_kwh] = 863.26 + 219.26 * args[:geometry_unit_num_occupants] + 0.33 * args[:geometry_unit_cfa] # RECS 2020
       elsif [HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type])
-        args[:misc_plug_loads_other_annual_kwh] = 1395.84 + 136.53 * args[:geometry_unit_num_occupants] + 0.16 * args[:geometry_unit_cfa] # RECS 2015
+        args[:misc_plug_loads_other_annual_kwh] = 654.92 + 206.52 * args[:geometry_unit_num_occupants] + 0.21 * args[:geometry_unit_cfa] # RECS 2020
       elsif [HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type])
-        args[:misc_plug_loads_other_annual_kwh] = 875.22 + 184.11 * args[:geometry_unit_num_occupants] + 0.38 * args[:geometry_unit_cfa] # RECS 2015
+        args[:misc_plug_loads_other_annual_kwh] = 706.6 + 149.27 * args[:geometry_unit_num_occupants] + 0.1 * args[:geometry_unit_cfa] # RECS 2020
       end
     end
 
     # PV
-    if args[:pv_system_module_type] != 'none'
-      args[:pv_system_num_bedrooms_served] = Integer(args[:geometry_unit_num_bedrooms])
+    if args[:pv_system_present] == 'true'
+      args[:pv_system_num_bedrooms_served] = args[:geometry_unit_num_bedrooms]
     else
       args[:pv_system_num_bedrooms_served] = 0
+    end
+
+    # Battery
+    if args[:battery_present] == 'true'
+      args[:battery_num_bedrooms_served] = args[:geometry_unit_num_bedrooms]
+    else
+      args[:battery_num_bedrooms_served] = 0
     end
 
     # Setpoints
@@ -502,11 +542,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:hvac_control_cooling_weekend_setpoint] = weekend_cooling_setpoints.join(', ')
 
     # Seasons
-    if args[:use_auto_heating_season]
+    if args[:use_auto_heating_season] && args[:hvac_control_heating_season_period] == Constants.Auto
       args[:hvac_control_heating_season_period] = HPXML::BuildingAmerica
     end
 
-    if args[:use_auto_cooling_season]
+    if args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period] == Constants.Auto
       args[:hvac_control_cooling_season_period] = HPXML::BuildingAmerica
     end
 
@@ -541,29 +581,29 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # HVAC Faults
-    if args[:heating_system_rated_cfm_per_ton].is_initialized && args[:heating_system_actual_cfm_per_ton].is_initialized
-      args[:heating_system_airflow_defect_ratio] = (args[:heating_system_actual_cfm_per_ton].get - args[:heating_system_rated_cfm_per_ton].get) / args[:heating_system_rated_cfm_per_ton].get
+    if !args[:heating_system_rated_cfm_per_ton].nil? && !args[:heating_system_actual_cfm_per_ton].nil?
+      args[:heating_system_airflow_defect_ratio] = (args[:heating_system_actual_cfm_per_ton] - args[:heating_system_rated_cfm_per_ton]) / args[:heating_system_rated_cfm_per_ton]
     end
 
-    if args[:cooling_system_rated_cfm_per_ton].is_initialized && args[:cooling_system_actual_cfm_per_ton].is_initialized
-      args[:cooling_system_airflow_defect_ratio] = (args[:cooling_system_actual_cfm_per_ton].get - args[:cooling_system_rated_cfm_per_ton].get) / args[:cooling_system_rated_cfm_per_ton].get
+    if !args[:cooling_system_rated_cfm_per_ton].nil? && !args[:cooling_system_actual_cfm_per_ton].nil?
+      args[:cooling_system_airflow_defect_ratio] = (args[:cooling_system_actual_cfm_per_ton] - args[:cooling_system_rated_cfm_per_ton]) / args[:cooling_system_rated_cfm_per_ton]
     end
 
-    if args[:cooling_system_frac_manufacturer_charge].is_initialized
-      args[:cooling_system_charge_defect_ratio] = args[:cooling_system_frac_manufacturer_charge].get - 1.0
+    if !args[:cooling_system_frac_manufacturer_charge].nil?
+      args[:cooling_system_charge_defect_ratio] = args[:cooling_system_frac_manufacturer_charge] - 1.0
     end
 
-    if args[:heat_pump_rated_cfm_per_ton].is_initialized && args[:heat_pump_actual_cfm_per_ton].is_initialized
-      args[:heat_pump_airflow_defect_ratio] = (args[:heat_pump_actual_cfm_per_ton].get - args[:heat_pump_rated_cfm_per_ton].get) / args[:cooling_system_rated_cfm_per_ton].get
+    if !args[:heat_pump_rated_cfm_per_ton].nil? && !args[:heat_pump_actual_cfm_per_ton].nil?
+      args[:heat_pump_airflow_defect_ratio] = (args[:heat_pump_actual_cfm_per_ton] - args[:heat_pump_rated_cfm_per_ton]) / args[:heat_pump_rated_cfm_per_ton]
     end
 
-    if args[:heat_pump_frac_manufacturer_charge].is_initialized
-      args[:heat_pump_charge_defect_ratio] = args[:heat_pump_frac_manufacturer_charge].get - 1.0
+    if !args[:heat_pump_frac_manufacturer_charge].nil?
+      args[:heat_pump_charge_defect_ratio] = args[:heat_pump_frac_manufacturer_charge] - 1.0
     end
 
     # Error check geometry inputs
     corridor_width = args[:geometry_corridor_width]
-    corridor_position = args[:geometry_corridor_position].to_s
+    corridor_position = args[:geometry_corridor_position]
 
     if (corridor_width == 0) && (corridor_position != 'None')
       corridor_position = 'None'
@@ -583,11 +623,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:geometry_unit_back_wall_is_adiabatic] = false
 
     # Map corridor arguments to adiabatic walls and shading
-    n_floors = Float(args[:geometry_num_floors_above_grade].to_s)
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args[:geometry_unit_type]
-      n_units = Float(args[:geometry_building_num_units].to_s)
-      horiz_location = args[:geometry_unit_horizontal_location].to_s
-      aspect_ratio = Float(args[:geometry_unit_aspect_ratio].to_s)
+      n_floors = Float(args[:geometry_num_floors_above_grade])
+      n_units = Float(args[:geometry_building_num_units])
+      horiz_location = args[:geometry_unit_horizontal_location]
+      aspect_ratio = args[:geometry_unit_aspect_ratio]
 
       if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
@@ -648,8 +688,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
 
       # Infiltration adjustment for SFA/MF units
-      # Calculate exposed wall area ratio for the unit (unit exposed wall area
-      # divided by average unit exposed wall area)
+      # Calculate exposed wall area ratio for the unit (unit exposed wall area divided by average unit exposed wall area)
       if (n_units_per_floor <= 2) || (n_units_per_floor == 4 && has_rear_units) # No middle unit(s)
         exposed_wall_area_ratio = 1.0 # all units have same exterior wall area
       else # Has middle unit(s)
@@ -657,18 +696,14 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           n_end_units = 4 * n_floors
           n_mid_units = n_units - n_end_units
           n_bldg_fronts_backs = n_end_units + n_mid_units
-          n_bldg_sides = n_end_units
+          n_unit_fronts_backs = 1
         else
           n_end_units = 2 * n_floors
           n_mid_units = n_units - n_end_units
           n_bldg_fronts_backs = n_end_units * 2 + n_mid_units * 2
-          n_bldg_sides = n_end_units
-        end
-        if has_rear_units
-          n_unit_fronts_backs = 1
-        else
           n_unit_fronts_backs = 2
         end
+        n_bldg_sides = n_end_units
         if ['Middle'].include? horiz_location
           n_unit_sides = 0
         elsif ['Left', 'Right'].include? horiz_location
@@ -693,27 +728,27 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Infiltration Reduction
-    if args[:air_leakage_percent_reduction].is_initialized
-      args[:air_leakage_value] *= (1.0 - args[:air_leakage_percent_reduction].get / 100.0)
+    if not args[:air_leakage_percent_reduction].nil?
+      args[:air_leakage_value] *= (1.0 - args[:air_leakage_percent_reduction] / 100.0)
     end
 
     # Num Floors
     if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
       args[:geometry_unit_num_floors_above_grade] = 1
     else
-      args[:geometry_unit_num_floors_above_grade] = Integer(args[:geometry_num_floors_above_grade])
+      args[:geometry_unit_num_floors_above_grade] = args[:geometry_num_floors_above_grade]
     end
 
     # Adiabatic Floor/Ceiling
-    if args[:geometry_unit_level].is_initialized
-      if args[:geometry_unit_level].get == 'Bottom'
+    if not args[:geometry_unit_level].nil?
+      if args[:geometry_unit_level] == 'Bottom'
         if args[:geometry_num_floors_above_grade] > 1 # this could be "bottom" of a 1-story building
           args[:geometry_attic_type] = HPXML::AtticTypeBelowApartment
         end
-      elsif args[:geometry_unit_level].get == 'Middle'
+      elsif args[:geometry_unit_level] == 'Middle'
         args[:geometry_foundation_type] = HPXML::FoundationTypeAboveApartment
         args[:geometry_attic_type] = HPXML::AtticTypeBelowApartment
-      elsif args[:geometry_unit_level].get == 'Top'
+      elsif args[:geometry_unit_level] == 'Top'
         args[:geometry_foundation_type] = HPXML::FoundationTypeAboveApartment
       end
     end
@@ -721,13 +756,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # Wall Assembly R-Value
     args[:wall_assembly_r] += args[:exterior_finish_r]
 
-    if args[:wall_continuous_exterior_r].is_initialized
-      args[:wall_assembly_r] += args[:wall_continuous_exterior_r].get
+    if not args[:wall_continuous_exterior_r].nil?
+      args[:wall_assembly_r] += args[:wall_continuous_exterior_r]
     end
 
     # Rim Joist Assembly R-Value
     rim_joist_assembly_r = 0
-    if Float(args[:geometry_rim_joist_height].to_s) > 0
+    if args[:geometry_rim_joist_height] > 0
       drywall_assembly_r = 0.9
       uninsulated_wall_assembly_r = 3.4
 
@@ -775,15 +810,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     args.each do |arg_name, arg_value|
-      begin
-        if arg_value.is_initialized
-          arg_value = arg_value.get
-        else
-          next
-        end
-      rescue
-      end
-
       if args_to_delete.include?(arg_name) || (arg_value == Constants.Auto)
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
       end
@@ -799,6 +825,23 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       schedule[i] += offset_magnitude * direction
     end
     return schedule
+  end
+
+  def convert_args(args)
+    measure_arguments = @build_residential_hpxml_measure_arguments
+    measure_arguments.each do |arg|
+      arg_name = arg.name.to_sym
+      value = args[arg_name]
+      next if value.nil? || (value == Constants.Auto)
+
+      case arg.type.valueName.downcase
+      when 'double'
+        args[arg_name] = Float(value)
+      when 'integer'
+        args[arg_name] = Integer(value)
+      end
+    end
+    return args
   end
 end
 

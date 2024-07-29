@@ -5,7 +5,8 @@
 [![Documentation Status](https://readthedocs.org/projects/openstudio-hpxml/badge/?version=latest)](https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest)
 
 OpenStudio-HPXML allows running residential EnergyPlus simulations using an [HPXML file](https://hpxml.nrel.gov/) for the building description.
-It is intended to be used by user interfaces or other automated software workflows that automatically produce the HPXML file. A [Schematron](http://schematron.com/) document for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
+It is intended to be used by user interfaces or other automated software workflows that automatically produce the HPXML file.
+A [Schematron](http://schematron.com/) document for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
 
 OpenStudio-HPXML can accommodate a wide range of different building technologies and geometries.
 End-to-end simulations typically run in 3-10 seconds, depending on complexity, computer platform and speed, etc.
@@ -18,6 +19,19 @@ A simple `run_simulation.rb` script is provided to run a residential EnergyPlus 
 See the [Usage Instructions](https://openstudio-hpxml.readthedocs.io/en/latest/usage_instructions.html) for documentation on running the workflow.
 
 Since [OpenStudio measures](http://nrel.github.io/OpenStudio-user-documentation/getting_started/about_measures/) are used for model generation, additional OpenStudio-based workflows and interfaces can instead be used if desired.
+
+## Capabilities
+
+OpenStudio-HPXML capabilities include:
+- Modeling individual dwelling units or whole multifamily buildings
+- Modeling a wide range of building technologies
+- HVAC design load calculations and equipment autosizing
+- Occupancy schedules (smooth or stochastic)
+- Utility bill calculations (flat, tiered, time-of-use, real-time pricing, etc.)
+- Emissions calculations (CO2e, etc.)
+- Annual and timeseries outputs (energy, loads, temperatures, etc.)
+- Optional HPXML inputs with transparent defaults
+- Schematron and XSD Schema input validation
 
 ## Measures
 
