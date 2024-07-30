@@ -443,6 +443,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     storage_tank.setOffCycleParasiticFuelConsumptionRate(0.0)
     storage_tank.setOnCycleParasiticFuelConsumptionRate(0.0)
     storage_tank.setNumberofNodes(6)
+    storage_tank.setUseSideDesignFlowRate(UnitConversions.convert(volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
     storage_tank.setEndUseSubcategory(name)
 
     if prev_storage_tank.nil?
@@ -485,6 +486,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     swing_tank.setOffCycleParasiticFuelConsumptionRate(0.0)
     swing_tank.setOnCycleParasiticFuelConsumptionRate(0.0)
     swing_tank.setNumberofNodes(6)
+    swing_tank.setUseSideDesignFlowRate(UnitConversions.convert(volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
     swing_tank.setEndUseSubcategory(name)
 
     swing_tank.addToNode(last_storage_tank.useSideOutletModelObject.get.to_Node.get) # in series
