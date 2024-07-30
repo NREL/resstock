@@ -5117,6 +5117,17 @@ Multiplier on the permanent spa heater energy usage that can reflect, e.g., high
 
 <br/>
 
+**Building Unit ID**
+
+The building unit number (between 1 and the number of samples).
+
+- **Name:** ``building_id``
+- **Type:** ``Integer``
+
+- **Required:** ``false``
+
+<br/>
+
 **Geometry: Unit Conditioned Floor Area Bin**
 
 E.g., '2000-2499'.

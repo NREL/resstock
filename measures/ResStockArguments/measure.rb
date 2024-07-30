@@ -75,6 +75,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Additional arguments
 
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('building_id', false)
+    arg.setDisplayName('Building Unit ID')
+    arg.setDescription('The building unit number (between 1 and the number of samples).')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_unit_cfa_bin', true)
     arg.setDisplayName('Geometry: Unit Conditioned Floor Area Bin')
     arg.setDescription("E.g., '2000-2499'.")
@@ -390,6 +395,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args = runner.getArgumentValues(arguments(model), user_arguments)
     args = convert_args(args)
 
+    # collect arguments for deletion
     arg_names = []
     { @build_residential_hpxml_measure_arguments => Constants.build_residential_hpxml_excludes,
       @build_residential_schedule_file_measure_arguments => Constants.build_residential_schedule_file_excludes }.each do |measure_arguments, measure_excludes|
@@ -493,41 +499,96 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args[:battery_num_bedrooms_served] = 0
     end
 
-    # Setpoints
-    weekday_heating_setpoints = [args[:hvac_control_heating_weekday_setpoint_temp]] * 24
-    weekend_heating_setpoints = [args[:hvac_control_heating_weekend_setpoint_temp]] * 24
+    # HVAC Control Setpoints
+    ['heating', 'cooling'].each do |htg_or_clg|
+      ['weekday', 'weekend'].each do |wkdy_or_wked|
+        setpoints = [args["hvac_control_#{htg_or_clg}_#{wkdy_or_wked}_setpoint_temp".to_sym]] * 24
 
-    weekday_cooling_setpoints = [args[:hvac_control_cooling_weekday_setpoint_temp]] * 24
-    weekend_cooling_setpoints = [args[:hvac_control_cooling_weekend_setpoint_temp]] * 24
+        hvac_control_setpoint_offset_magnitude = args["hvac_control_#{htg_or_clg}_#{wkdy_or_wked}_setpoint_offset_magnitude".to_sym]
+        hvac_control_setpoint_schedule = args["hvac_control_#{htg_or_clg}_#{wkdy_or_wked}_setpoint_schedule".to_sym].split(',').map { |i| Float(i) }
+        setpoints = modify_setpoint_schedule(setpoints, hvac_control_setpoint_offset_magnitude, hvac_control_setpoint_schedule)
 
-    hvac_control_heating_weekday_setpoint_offset_magnitude = args[:hvac_control_heating_weekday_setpoint_offset_magnitude]
-    hvac_control_heating_weekday_setpoint_schedule = args[:hvac_control_heating_weekday_setpoint_schedule].split(',').map { |i| Float(i) }
-    weekday_heating_setpoints = modify_setpoint_schedule(weekday_heating_setpoints, hvac_control_heating_weekday_setpoint_offset_magnitude, hvac_control_heating_weekday_setpoint_schedule)
-
-    hvac_control_heating_weekend_setpoint_offset_magnitude = args[:hvac_control_heating_weekend_setpoint_offset_magnitude]
-    hvac_control_heating_weekend_setpoint_schedule = args[:hvac_control_heating_weekend_setpoint_schedule].split(',').map { |i| Float(i) }
-    weekend_heating_setpoints = modify_setpoint_schedule(weekend_heating_setpoints, hvac_control_heating_weekend_setpoint_offset_magnitude, hvac_control_heating_weekend_setpoint_schedule)
-
-    hvac_control_cooling_weekday_setpoint_offset_magnitude = args[:hvac_control_cooling_weekday_setpoint_offset_magnitude]
-    hvac_control_cooling_weekday_setpoint_schedule = args[:hvac_control_cooling_weekday_setpoint_schedule].split(',').map { |i| Float(i) }
-    weekday_cooling_setpoints = modify_setpoint_schedule(weekday_cooling_setpoints, hvac_control_cooling_weekday_setpoint_offset_magnitude, hvac_control_cooling_weekday_setpoint_schedule)
-
-    hvac_control_cooling_weekend_setpoint_offset_magnitude = args[:hvac_control_cooling_weekend_setpoint_offset_magnitude]
-    hvac_control_cooling_weekend_setpoint_schedule = args[:hvac_control_cooling_weekend_setpoint_schedule].split(',').map { |i| Float(i) }
-    weekend_cooling_setpoints = modify_setpoint_schedule(weekend_cooling_setpoints, hvac_control_cooling_weekend_setpoint_offset_magnitude, hvac_control_cooling_weekend_setpoint_schedule)
-
-    args[:hvac_control_heating_weekday_setpoint] = weekday_heating_setpoints.join(', ')
-    args[:hvac_control_heating_weekend_setpoint] = weekend_heating_setpoints.join(', ')
-    args[:hvac_control_cooling_weekday_setpoint] = weekday_cooling_setpoints.join(', ')
-    args[:hvac_control_cooling_weekend_setpoint] = weekend_cooling_setpoints.join(', ')
-
-    # Seasons
-    if args[:use_auto_heating_season] && args[:hvac_control_heating_season_period] == Constants.Auto
-      args[:hvac_control_heating_season_period] = HPXML::BuildingAmerica
+        args["hvac_control_#{htg_or_clg}_#{wkdy_or_wked}_setpoint".to_sym] = setpoints.join(', ')
+      end
     end
 
-    if args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period] == Constants.Auto
-      args[:hvac_control_cooling_season_period] = HPXML::BuildingAmerica
+    # HVAC Control Seasons
+    if (!args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].include?('Unavailable')) || (!args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].include?('Unavailable'))
+      epw_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../weather', File.basename(args[:weather_station_epw_filepath])))
+      if not File.exist? epw_path
+        runner.registerError("ResStockArguments: Could not find EPW file at '#{epw_path}'.")
+        return false
+      end
+      weather = WeatherFile.new(epw_path: epw_path, runner: nil)
+
+      heating_months, cooling_months, sim_calendar_year = get_heating_and_cooling_seasons(args, weather)
+    end
+
+    ['heating', 'cooling'].each do |htg_or_clg|
+      hvac_control_season_period = "hvac_control_#{htg_or_clg}_season_period".to_sym
+
+      if args["use_auto_#{htg_or_clg}_season".to_sym]
+        args[hvac_control_season_period] = HPXML::BuildingAmerica
+      else
+        # args[hvac_control_season_period] = 'Jan 1 - Dec 31' # FIXME
+        if args[hvac_control_season_period].include?('Unavailable')
+          if args[hvac_control_season_period].include?('All Days') # year-round unavailability; set heating or cooling system to none
+            args["#{htg_or_clg}_system_type".to_sym] = 'none'
+            args[:heat_pump_fraction_heat_load_served] = 0 if htg_or_clg == 'heating'
+            args[:heat_pump_fraction_cool_load_served] = 0 if htg_or_clg == 'cooling'
+            args[hvac_control_season_period] = 'None'
+          else # partial-year unavailability
+            if htg_or_clg == 'heating'
+              months = heating_months
+            elsif htg_or_clg == 'cooling'
+              months = cooling_months
+            end
+
+            if months.sum > 0.0 # has defined BA heating/cooling months
+              begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(months, sim_calendar_year)
+            else # no defined BA heating/cooling months
+              runner.registerWarning("ResStockArguments: Sampled option '#{args[hvac_control_season_period]}' for #{htg_or_clg} unavailable days but there are no BA #{htg_or_clg} months.")
+              if htg_or_clg == 'heating' # Dec/Jan/Feb
+                begin_month = 12
+                begin_day = 1
+                end_month = 2
+                end_day = 28
+                end_day += 1 if Date.leap?(sim_calendar_year)
+              elsif htg_or_clg == 'cooling' # Jun/Jul/Aug
+                begin_month = 6
+                begin_day = 1
+                end_month = 8
+                end_day = 31
+              end
+            end
+
+            begin_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
+            end_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
+
+            unavailable_days = { 'Unavailable 1 Day' => 1,
+                                 'Unavailable 1 Week' => 7,
+                                 'Unavailable 1 Month' => 30,
+                                 'Unavailable 2 Weeks' => 14,
+                                 'Unavailable 3 Days' => 3,
+                                 'Unavailable 3 Months' => 90 }
+            n_days = unavailable_days[args[hvac_control_season_period]]
+            if n_days.nil?
+              runner.registerError("ResStockArguments: Undefined number of #{htg_or_clg} unavailable days for sampled option '#{args[hvac_control_season_period]}'.")
+              return false
+            end
+            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], n_days, begin_day_num, end_day_num, sim_calendar_year)
+
+            begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year) # begin the htg_or_clg season period at the end of unavailability
+            end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year) # end the htg_or_clg season period at the beginning of unavailability
+
+            args[hvac_control_season_period] = "#{begin_date} - #{end_date}"
+          end
+        end
+      end
+    end
+
+    if (args[:heat_pump_fraction_heat_load_served] == 0) && (args[:heat_pump_fraction_cool_load_served] == 0)
+      args[:heat_pump_type] = 'none'
     end
 
     # Flue or Chimney
@@ -782,6 +843,45 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       schedule[i] += offset_magnitude * direction
     end
     return schedule
+  end
+
+  def get_heating_and_cooling_seasons(args, weather)
+    latitude = args[:site_latitude]
+    latitude = nil if latitude == Constants.Auto
+    latitude = HPXMLDefaults.get_default_latitude(latitude, weather)
+
+    heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, latitude)
+    sim_calendar_year = Location.get_sim_calendar_year(nil, weather)
+
+    return heating_months, cooling_months, sim_calendar_year
+  end
+
+  def get_subset_begin_end_day_num(building_id, n_days, begin_day_num, end_day_num, year)
+    if begin_day_num > end_day_num
+      num_days = Constants.NumDaysInYear(year)
+      day_nums = (begin_day_num..num_days).to_a + (1..end_day_num).to_a
+    else
+      day_nums = (begin_day_num..end_day_num).to_a
+    end
+
+    begin_day_nums = day_nums[0...(-n_days - 1)]
+    if begin_day_nums.empty? # if n_days is longer than the season, set equal to the whole season
+      subset_begin_day_num = day_nums[0]
+      subset_end_day_num = day_nums[-1]
+    else
+      subset_begin_day_num = begin_day_nums.sample(1, random: Random.new(building_id))
+      subset_begin_day_num = subset_begin_day_num[0]
+      subset_end_day_num = day_nums[day_nums.index(subset_begin_day_num) + n_days + 1]
+    end
+
+    return subset_begin_day_num, subset_end_day_num
+  end
+
+  def get_month_day_from_day_num(day_num, year)
+    date = OpenStudio::Date::fromDayOfYear(day_num, year)
+    month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    month_day = "#{month_names[date.monthOfYear.value - 1]} #{date.dayOfMonth}"
+    return month_day
   end
 
   def convert_args(args)

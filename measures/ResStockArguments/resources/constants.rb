@@ -90,7 +90,8 @@ module Constants
 
   def self.other_excludes
     # these are ResStockArguments that haven't made their way into options_lookup.tsv yet
-    return ['heating_system_actual_cfm_per_ton',
+    return ['building_id',
+            'heating_system_actual_cfm_per_ton',
             'heating_system_rated_cfm_per_ton']
   end
 
@@ -100,6 +101,7 @@ module Constants
 
   def self.arguments_to_register
     # list of resstock arguments; reported as build_existing_model.<argument_name>, ...
-    return []
+    return ['hvac_control_heating_season_period',
+            'hvac_control_cooling_season_period']
   end
 end
