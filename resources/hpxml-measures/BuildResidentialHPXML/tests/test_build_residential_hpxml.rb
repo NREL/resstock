@@ -300,7 +300,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
     }
 
     schema_path = File.join(File.dirname(__FILE__), '../..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
-    schema_validator = XMLValidator.get_schema_validator(schema_path)
+    schema_validator = XMLValidator.get_xml_validator(schema_path)
 
     puts "Generating #{hpxmls_files.size} HPXML files..."
 
@@ -430,9 +430,9 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['foundation_wall_insulation_distance_to_bottom'] = 8.0
       args['rim_joist_assembly_r'] = 23.0
       args['slab_perimeter_insulation_r'] = 0
-      args['slab_perimeter_depth'] = 0
+      args['slab_perimeter_insulation_depth'] = 0
       args['slab_under_insulation_r'] = 0
-      args['slab_under_width'] = 0
+      args['slab_under_insulation_width'] = 0
       args['slab_thickness'] = 4.0
       args['slab_carpet_fraction'] = 0.0
       args['slab_carpet_r'] = 0.0
@@ -579,7 +579,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['solar_thermal_system_type'] = 'none'
       args['solar_thermal_collector_area'] = 40.0
       args['solar_thermal_collector_loop_type'] = HPXML::SolarThermalLoopTypeDirect
-      args['solar_thermal_collector_type'] = HPXML::SolarThermalTypeEvacuatedTube
+      args['solar_thermal_collector_type'] = HPXML::SolarThermalCollectorTypeEvacuatedTube
       args['solar_thermal_collector_azimuth'] = 180
       args['solar_thermal_collector_tilt'] = 20
       args['solar_thermal_collector_rated_optical_efficiency'] = 0.5
@@ -764,8 +764,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['pv_system_array_tilt'] = 'roofpitch'
       args['pv_system_2_array_tilt'] = 'roofpitch+15'
     elsif ['extra-dhw-solar-latitude.xml'].include? hpxml_file
-      args['solar_thermal_system_type'] = HPXML::SolarThermalSystemType
-      args['solar_thermal_collector_tilt'] = 'latitude-15'
+      args['solar_thermal_system_type'] = HPXML::SolarThermalSystemTypeHotWater
+      args['solar_thermal_collector_tilt'] = 'Latitude-15'
     elsif ['extra-second-refrigerator.xml'].include? hpxml_file
       args['extra_refrigerator_location'] = HPXML::LocationConditionedSpace
     elsif ['extra-second-heating-system-portable-heater-to-heating-system.xml'].include? hpxml_file

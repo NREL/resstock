@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Constants
+module Constants
   def self.build_residential_hpxml_excludes
     # don't make these BuildResidentialHPXML arguments into ResStockArguments arguments
     return ['hpxml_path',
@@ -15,6 +15,8 @@ class Constants
             'simulation_control_daylight_saving_period',
             'simulation_control_temperature_capacitance_multiplier',
             'simulation_control_defrost_model_type',
+            'simulation_control_onoff_thermostat_deadband',
+            'simulation_control_heat_pump_backup_heating_capacity_increment',
             'unit_multiplier',
             'geometry_unit_left_wall_is_adiabatic',
             'geometry_unit_right_wall_is_adiabatic',
@@ -94,5 +96,10 @@ class Constants
 
   def self.Auto
     return 'auto'
+  end
+
+  def self.arguments_to_register
+    # list of resstock arguments; reported as build_existing_model.<argument_name>, ...
+    return []
   end
 end

@@ -87,7 +87,7 @@ resstockarguments_xml.each do |name, properties|
   end
 
   # Add "auto" to Choices for optional String/Double/Integer
-  if properties['description'].include?('OS-HPXML default') && ['String', 'Double', 'Integer'].include?(properties['type'])
+  if (properties['description'].include?('OS-HPXML default') && ['String', 'Double', 'Integer'].include?(properties['type'])) || (name == 'year_built') || (name == 'geometry_unit_num_occupants') # these last 2 are special because ResStockArguments provides the default instead of OS-HPXML
     resstockarguments_xml[name]['choices'].unshift('auto')
   end
 
@@ -127,8 +127,8 @@ f.puts('.. [#] May be "String", "Double", "Integer", "Boolean", or "Choice".')
 f.puts
 f.puts('Furthermore, all *optional* Choice arguments include "auto" as one of the possible **Choices**.')
 f.puts('Most *optional* String/Double/Integer/Boolean arguments can also be assigned a value of "auto" (e.g., ``site_ground_conductivity``).')
-f.puts('Assigning "auto" means that downstream OS-HPXML default values (if applicable) will be used.')
-f.puts('When applicable, the **Description** field will include link(s) to `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.')
+f.puts('Assigning "auto" means that downstream default values (e.g., from OpenStudio-HPXML) will be used (if applicable).')
+f.puts('When an argument is defaulted using OpenStudio-HPXML, the **Description** field will include link(s) to `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.')
 f.puts
 
 lookup_file = File.join(resources_dir, 'options_lookup.tsv')

@@ -25,13 +25,16 @@
           <SiteType>suburban</SiteType>
           <ShieldingofHome>normal</ShieldingofHome>
           <Soil>
-            <Conductivity>0.2</Conductivity>
+            <SoilType>sand</SoilType>
+            <MoistureType>dry</MoistureType>
           </Soil>
         </Site>
         <BuildingConstruction>
+          <YearBuilt>2000</YearBuilt>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
           <NumberofConditionedFloors>1.0</NumberofConditionedFloors>
           <NumberofConditionedFloorsAboveGrade>1.0</NumberofConditionedFloorsAboveGrade>
+          <AverageCeilingHeight>8.0</AverageCeilingHeight>
           <NumberofBedrooms>3</NumberofBedrooms>
           <ConditionedFloorArea>1792.0</ConditionedFloorArea>
         </BuildingConstruction>
@@ -160,11 +163,7 @@
         <AirInfiltration>
           <AirInfiltrationMeasurement>
             <SystemIdentifier id='AirInfiltrationMeasurement1'/>
-            <HousePressure>50.0</HousePressure>
-            <BuildingAirLeakage>
-              <UnitofMeasure>ACH</UnitofMeasure>
-              <AirLeakage>2.8</AirLeakage>
-            </BuildingAirLeakage>
+            <LeakinessDescription>tight</LeakinessDescription>
           </AirInfiltrationMeasurement>
         </AirInfiltration>
         <Roofs>
@@ -879,7 +878,7 @@
             <SHGC>0.16</SHGC>
             <ExteriorShading>
               <SystemIdentifier id='GlassDoorLivingDiningWestExteriorShading'/>
-              <SummerShadingCoefficient>0.25</SummerShadingCoefficient>
+              <SummerShadingCoefficient>0.6</SummerShadingCoefficient>
             </ExteriorShading>
             <InteriorShading>
               <SystemIdentifier id='GlassDoorLivingDiningWestInteriorShading'/>
@@ -888,6 +887,46 @@
             <AttachedToWall idref='WallLivingDiningWest'/>
           </Window>
         </Windows>
+        <Skylights>
+          <Skylight>
+            <SystemIdentifier id='SkylightKitchenUtility'/>
+            <Area>8.0</Area>
+            <Azimuth>0</Azimuth>
+            <UFactor>0.49</UFactor>
+            <SHGC>0.29</SHGC>
+            <AttachedToRoof idref='Roof1'/>
+            <AttachedToFloor idref='CeilingKitchenUtility'/>
+            <extension>
+              <Curb>
+                <Area>3.2</Area>
+                <AssemblyEffectiveRValue>2.86</AssemblyEffectiveRValue>
+              </Curb>
+              <Shaft>
+                <Area>48.0</Area>
+                <AssemblyEffectiveRValue>20.0</AssemblyEffectiveRValue>
+              </Shaft>
+            </extension>
+          </Skylight>
+          <Skylight>
+            <SystemIdentifier id='SkylightLivingDining'/>
+            <Area>32.0</Area>
+            <Azimuth>180</Azimuth>
+            <UFactor>0.49</UFactor>
+            <SHGC>0.29</SHGC>
+            <AttachedToRoof idref='Roof1'/>
+            <AttachedToFloor idref='CeilingLivingDining'/>
+            <extension>
+              <Curb>
+                <Area>6.4</Area>
+                <AssemblyEffectiveRValue>2.86</AssemblyEffectiveRValue>
+              </Curb>
+              <Shaft>
+                <Area>96.0</Area>
+                <AssemblyEffectiveRValue>20.0</AssemblyEffectiveRValue>
+              </Shaft>
+            </extension>
+          </Skylight>
+        </Skylights>
         <Doors>
           <Door>
             <SystemIdentifier id='Door1'/>
@@ -950,7 +989,7 @@
                   <DuctType>supply</DuctType>
                   <DuctLeakage>
                     <Units>CFM25</Units>
-                    <Value>32.64</Value>
+                    <Value>26.6</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>
@@ -958,25 +997,30 @@
                   <DuctType>return</DuctType>
                   <DuctLeakage>
                     <Units>CFM25</Units>
-                    <Value>20.64</Value>
+                    <Value>17.5</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>
                 <Ducts>
                   <SystemIdentifier id='Ducts1'/>
                   <DuctType>supply</DuctType>
-                  <DuctEffectiveRValue>9.0</DuctEffectiveRValue>
+                  <DuctInsulationRValue>8.0</DuctInsulationRValue>
                   <DuctLocation>attic - vented</DuctLocation>
-                  <DuctSurfaceArea>272.0</DuctSurfaceArea>
+                  <DuctSurfaceArea>222.0</DuctSurfaceArea>
                 </Ducts>
                 <Ducts>
                   <SystemIdentifier id='Ducts2'/>
                   <DuctType>return</DuctType>
-                  <DuctEffectiveRValue>9.0</DuctEffectiveRValue>
+                  <DuctInsulationRValue>8.0</DuctInsulationRValue>
                   <DuctLocation>attic - vented</DuctLocation>
-                  <DuctSurfaceArea>86.0</DuctSurfaceArea>
+                  <DuctSurfaceArea>73.0</DuctSurfaceArea>
                 </Ducts>
                 <NumberofReturnRegisters>1</NumberofReturnRegisters>
+                <extension>
+                  <ManualJInputs>
+                    <BlowerFanHeatBtuh>1707.0</BlowerFanHeatBtuh>
+                  </ManualJInputs>
+                </extension>
               </AirDistribution>
             </DistributionSystemType>
           </HVACDistribution>
@@ -986,7 +1030,8 @@
             <VentilationFan>
               <SystemIdentifier id='VentilationFan1'/>
               <FanType>central fan integrated supply</FanType>
-              <RatedFlowRate>50.0</RatedFlowRate>
+              <RatedFlowRate>150.0</RatedFlowRate>
+              <HoursInOperation>8.0</HoursInOperation>
               <UsedForWholeBuildingVentilation>true</UsedForWholeBuildingVentilation>
               <AttachedToHVACDistributionSystem idref='HVACDistribution1'/>
             </VentilationFan>

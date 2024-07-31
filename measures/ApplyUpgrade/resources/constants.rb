@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Constants
+module Constants
   def self.NumApplyUpgradeOptions
     return 25
   end

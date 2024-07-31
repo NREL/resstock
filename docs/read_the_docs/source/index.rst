@@ -24,3 +24,18 @@ ResStock Documentation
    advanced_tutorial/index
    workflow_inputs/index
    workflow_outputs/index   
+
+Updates & Changelog
+===================
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Changes:
+
+   changelog/index
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`search`
