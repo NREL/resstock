@@ -199,6 +199,85 @@ upgrades:
         option: HVAC Detailed Performance Data|CCHP Non-Ducted
         apply_logic: *nonducted_MSHP_apply_logic
 
+  - upgrade_name: Case 9 - Heat Pump Selection – High COP, Cold-Temperature
+
+    package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+    options:
+      - &hvac_heating_efficiency_ashp_case_8
+        option: HVAC Heating Efficiency|ASHP, SEER2 17.5, 8.7 HSPF2, Case 9
+        apply_logic: *ducted_ASHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_ducted_heat_pump
+      - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve
+      - &hvac_performance_data_ashp_case_8
+        option: HVAC Detailed Performance Data|High COP Cold Ducted
+        apply_logic: *ducted_ASHP_apply_logic
+
+      - &hvac_heating_efficiency_mshp_case_8
+        option: HVAC Heating Efficiency|MSHP, SEER2 23.7, 10.3 HSPF2, Case 9
+        apply_logic: *nonducted_MSHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_non_ducted_heat_pump
+      - &hvac_performance-data_mshp_case_8
+        option: HVAC Detailed Performance Data|High COP Cold Non-Ducted
+        apply_logic: *nonducted_MSHP_apply_logic
+
+  - upgrade_name: Case 10 - Heat Pump Selection – High COP, Part Load
+
+    package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+    options:
+      - &hvac_heating_efficiency_ashp_case_8
+        option: HVAC Heating Efficiency|ASHP, SEER2 17.3, 8.7 HSPF2, Case 10
+        apply_logic: *ducted_ASHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_ducted_heat_pump
+      - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve
+      - &hvac_performance_data_ashp_case_8
+        option: HVAC Detailed Performance Data|High COP Part Load Ducted
+        apply_logic: *ducted_ASHP_apply_logic
+
+      - &hvac_heating_efficiency_mshp_case_8
+        option: HVAC Heating Efficiency|MSHP, SEER2 20, 10.3 HSPF2, Case 10
+        apply_logic: *nonducted_MSHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_non_ducted_heat_pump
+      - &hvac_performance-data_mshp_case_8
+        option: HVAC Detailed Performance Data|High COP Part Load Non-Ducted
+        apply_logic: *nonducted_MSHP_apply_logic
+
+  - upgrade_name: Case 11 - Heat Pump Selection – High Capacity, Cold Temperature
+
+    package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+    options:
+      - &hvac_heating_efficiency_ashp_case_8
+        option: HVAC Heating Efficiency|ASHP, SEER2 15.5, 8.5 HSPF2, Case 11
+        apply_logic: *ducted_ASHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_ducted_heat_pump
+      - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve
+      - &hvac_performance_data_ashp_case_8
+        option: HVAC Detailed Performance Data|High Capacity Cold Temp Ducted
+        apply_logic: *ducted_ASHP_apply_logic
+
+      - &hvac_heating_efficiency_mshp_case_8
+        option: HVAC Heating Efficiency|MSHP, SEER2 21, 10.4 HSPF2, Case 11
+        apply_logic: *nonducted_MSHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_non_ducted_heat_pump
+      - &hvac_performance-data_mshp_case_8
+        option: HVAC Detailed Performance Data|High Capacity Cold Temp Non-Ducted
+        apply_logic: *nonducted_MSHP_apply_logic     
+
+
 
 eagle:
   n_jobs: 3
