@@ -38234,6 +38234,26 @@ Assumption
 - \None of the shared system options currently modeled (in HVAC Shared Efficiencies) are ducted, therefore where there are discrepancies between HVAC Heating Type, HVAC Cooling Type, and HVAC Has Shared System, HVAC Has Shared System takes precedence. (e.g., Central AC + Ducted Heating + Shared Heating and Cooling = No (Ducts)) (This is a temporary fix and will change when ducted shared system options are introduced.)
 
 
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``hvac_blower_fan_watts_per_cfm``
+     - false
+     - W/CFM
+     - Double
+     - auto
+     - The blower fan efficiency at maximum fan speed. Applies only to split (not packaged) systems (i.e., applies to ducted systems as well as ductless mini-split systems). If not provided, the OS-HPXML default (see `HPXML Heating Systems <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-heating-systems>`_, `HPXML Cooling Systems <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-cooling-systems>`_, `HPXML Heat Pumps <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-heat-pumps>`_) is used.
+
 Options
 *******
 
@@ -38246,13 +38266,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - Option name
      - Stock saturation
+     - ``hvac_blower_fan_watts_per_cfm``
 
    * - No
      - 24%
+     - auto
    * - Yes
      - 76%
+     - auto
    * - Void
      - 0%
+     - 
 
 .. _hvac_has_shared_system:
 
