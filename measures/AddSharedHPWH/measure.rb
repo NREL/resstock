@@ -304,6 +304,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     # Thermal Zones
     model.getThermalZones.each do |thermal_zone|
+      next if thermal_zone.volume.is_initialized && thermal_zone.volume.get <= 1 # skip the return air plenum zone
+
       # Supply
       dhw_recirc_supply_pipe = OpenStudio::Model::PipeIndoor.new(model)
       dhw_recirc_supply_pipe.setName("Recirculation Supply Pipe - #{thermal_zone.name}")
