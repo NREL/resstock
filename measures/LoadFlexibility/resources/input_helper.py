@@ -12,6 +12,14 @@ class OffsetType:
 
 @dataclass(frozen=True)
 class Argument(Generic[T]):
+    """
+    This class defines both the input argument to the measure as well as the value passed.
+    The measure input argument is obtained using the getOSArgument which is used by the measure's
+    argument method.
+
+    During the run, the value passed to the measure is obtained from the runner and the val
+    attribute is set using the set_val method. This method ensures that the value is set only once.
+    """
     name: str
     type: type
     displayname: Optional[str] = None
@@ -140,6 +148,8 @@ class __RelativeOffsetData:
     )
 
 
+# Create an instance of the class.
+# This is the only instance that should be created and is used everywhere the module is imported.
 RelativeOffsetData = __RelativeOffsetData()
 
 
@@ -210,18 +220,36 @@ class __OffsetTimingData:
     )
 
 
+# Create an instance of the class.
+# This is the only instance that should be created and is used everywhere the module is imported.
 OffsetTimingData = __OffsetTimingData()
 
 
-def get_args(cls) -> List[Argument]:
-    return [field.default for field in cls.__dataclass_fields__.values()]
+upgrade_name_arg = Argument(name='upgrade_name',
+                            type=str,
+                            required=False,
+                            displayname='Upgrade Name', default="",
+                            description='The name of the upgrade when used as a part of upgrade measure')
 
 
-ALL_MEASURE_ARGS = get_args(OffsetTypeData)
-ALL_MEASURE_ARGS += get_args(RelativeOffsetData)
-ALL_MEASURE_ARGS += get_args(AbsoluteOffsetData)
-ALL_MEASURE_ARGS += get_args(OffsetTimingData)
-# absolute_offset_fields = get_dataclass_info(AbsoluteOffsetData)
-# offset_timing_fields = get_dataclass_info(OffsetTimingData)
+def _get_args(data_obj) -> List[Argument]:
+    """
+    Returns a list of Argument instances defined in the dataclass.
+    For a dataclass defined as:
+    @dataclass
+    class MyClass:
+        arg1: Argument[int] = Argument(name='arg1', type=int, default=1)
+        arg2: Argument[str] = Argument(name='arg2', type=str, default='a')
 
-# all_offset_fields = {**relative_offset_fields, **absolute_offset_fields, **offset_timing_fields}
+    MyClass().__dataclass_fields__.values() will return [Field(name='arg1', ...), Field(name='arg2', ...)]
+    And Field(name='arg1', ...).default will return Argument(name='arg1', type=int, default=1)
+    This function returns [Argument(name='arg1', type=int, default=1), Argument(name='arg2', type=str, default='a')]
+    """
+    return [field.default for field in data_obj.__dataclass_fields__.values()]
+
+
+ALL_MEASURE_ARGS = [upgrade_name_arg]
+ALL_MEASURE_ARGS += _get_args(OffsetTypeData)
+ALL_MEASURE_ARGS += _get_args(RelativeOffsetData)
+ALL_MEASURE_ARGS += _get_args(AbsoluteOffsetData)
+ALL_MEASURE_ARGS += _get_args(OffsetTimingData)
