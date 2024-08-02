@@ -3,7 +3,7 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /kfs2/projects/panels/ochre/resstock_model/30k/upgrade7
+output_directory: /kfs2/projects/panels/ochre/resstock_model/30k/upgrade10
 #weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
@@ -11,13 +11,13 @@ weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIP
 sampler:
   type: precomputed
   args:
-    sample_file: ../technoeconomic_analysis/Postprocessing/data_/baseline_buildstock_csv/buildstock_30k_7.csv
+    sample_file: ../technoeconomic_analysis/Postprocessing/data_/baseline_buildstock_csv/buildstock_30k_10.csv
 
 workflow_generator:
   type: residential_hpxml
   args:
     build_existing_model:
-      simulation_control_timestep: 15
+      simulation_control_timestep: 2
       simulation_control_run_period_begin_month: 1
       simulation_control_run_period_begin_day_of_month: 1
       simulation_control_run_period_end_month: 12
@@ -249,8 +249,8 @@ references:
           - HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Fuel
         costs:
         # assume the same as Boiler Baseboards Heating Only, Fuel
-            - value: 85.42
-              multiplier: Size, Heating System Primary (kBtu/h)
+          - value: 85.42
+            multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 24
 
     #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
@@ -682,6 +682,13 @@ references:
             multiplier: Fixed (1)
         lifetime: 13 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=279&actionId=2204&bcId=6961
                      # 17 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
+      - &120v_cooking
+        option: Cooking Range|Electric Induction, 120V, battery powered
+        apply_logic: *logic_cooking
+        costs:
+          - value: 5450 
+            multiplier: Fixed (1)
+        lifetime: 13 
 
     #### 4 Electric Clothes Dryer, 1 option  ####
       - &clothes_dryer_electric 
@@ -696,6 +703,13 @@ references:
                        # It is $578 at big box stores as of Feb 2024, $718 = $578 * 1.07 sales tax + $100 delivery/install
             multiplier: Fixed (1)
         lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
+      - &120v_clothes_dryer 
+        option: Clothes Dryer|Electric Heat Pump, 120V
+        apply_logic: *logic_dryer
+        costs:
+          - value: 1611 
+            multiplier: Fixed (1)
+        lifetime: 13 
 
     #### 5 Electric Pool Heater And Hot Tub Spa Heater, 2 options  ####
       - &electric_pool_heaters 
@@ -942,7 +956,8 @@ references:
       
 upgrades:
 
-  - upgrade_name: 1.7 High Efficiency and Low-voltage Electrification
+  - upgrade_name: 2.2 BAU Electrification with HPWH with Envelope
+    package_apply_logic: *with_heat_pump_ele_backup_hpwh
     options:
     #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
       - *heating_fuel
@@ -953,13 +968,13 @@ upgrades:
       - *cooling_setpoint_offset_period_none
       - *heating_setpoint_offset_magnitude_0
       - *heating_setpoint_offset_period_none
-    #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
-      - *high_eff_ashp_ducted
-      - *high_eff_mshp_ductless
-    #### 2.2 120V HPWH, 3 options  ####
-      - *120v_hpwh_50_gal
-      - *120v_hpwh_65_gal
-      - *120v_hpwh_80_gal
+    #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
+      - *fed_min_ashp_ducted
+      - *fed_min_mshp_ductless
+    #### 2.2 240V HPWH, 3 options  ####
+      - *240V_hpwh_50_gal
+      - *240V_hpwh_66_gal
+      - *240V_hpwh_80_gal
     #### 3 Electric Resistance Cooking, 1 option  ####
       - *electric_resistance_cooking
     #### 4 Electric Clothes Dryer, 1 options  ####
@@ -967,9 +982,21 @@ upgrades:
     #### 5 Electric Pool Heater And Hot Tub Spa Heater, 2 options  ####
       - *electric_pool_heaters 
       - *electric_spa_heaters
+    #### 6 Envelope, 12 options ####
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B-7AK-8AK
+      - *infiltration_30pct_reduction
+      - *ducts_category1
+      - *ducts_category3
+      - *ducts_category4 
+      - *ducts_category5
+      - *ducts_category6
+      - *ducts_category7 
+      - *drill_and_fill
 
 kestrel:
-  n_jobs: 3
+  n_jobs: 2
   minutes_per_sim: 20
   account: panels
   sampling:
