@@ -880,12 +880,12 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       hvac_distribution.hvac_systems.each do |hvac_system|
         if hvac_system.is_a?(HPXML::HeatingSystem)
-          air_distribution_airflows << hvac_system.heating_airflow_cfm if !hvac_system.heating_airflow_cfm
+          air_distribution_airflows << hvac_system.heating_airflow_cfm if !hvac_system.heating_airflow_cfm.nil?
         elsif hvac_system.is_a?(HPXML::CoolingSystem)
-          air_distribution_airflows << hvac_system.cooling_airflow_cfm if !hvac_system.cooling_airflow_cfm
+          air_distribution_airflows << hvac_system.cooling_airflow_cfm if !hvac_system.cooling_airflow_cfm.nil?
         elsif hvac_system.is_a?(HPXML::HeatPump)
-          air_distribution_airflows << hvac_system.heating_airflow_cfm if !hvac_system.heating_airflow_cfm
-          air_distribution_airflows << hvac_system.cooling_airflow_cfm if !hvac_system.cooling_airflow_cfm
+          air_distribution_airflows << hvac_system.heating_airflow_cfm if !hvac_system.heating_airflow_cfm.nil?
+          air_distribution_airflows << hvac_system.cooling_airflow_cfm if !hvac_system.cooling_airflow_cfm.nil?
         end
       end
     end
