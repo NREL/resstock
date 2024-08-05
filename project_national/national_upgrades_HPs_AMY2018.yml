@@ -4,21 +4,21 @@ os_sha: f953b6fcaf
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 # output_directory:  /projects/heatpump/test_runs/n_500_20240530_2007_v1
-output_directory:  n_1000_20240801_2007_v1
+output_directory:  n_500_20240805_2007_v1
 weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
 # weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 1000
+    n_datapoints: 500
 
 workflow_generator:
   type: residential_hpxml
   version: 2024.07.20
   args:
     build_existing_model:
-      simulation_control_timestep: 15
+      simulation_control_timestep: 60
       simulation_control_run_period_begin_month: 1
       simulation_control_run_period_begin_day_of_month: 1
       simulation_control_run_period_end_month: 12
