@@ -81,22 +81,21 @@ water_heater_electric_power_rating = get_nameplate_rating(nameplate_rating, 'wat
 water_heater_electric_tankless_1bath_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'electric tankless, one bathroom')
 water_heater_electric_tankless_more_1bath_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'electric tankless, more than one bathroom')
 water_heater_heat_pump_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'heat pump')
-water_heater_heat_pump_120_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'heat pump, 120V, shared')
+water_heater_heat_pump_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'water heater', 'heat pump, 120V, shared')
 
 dryer_elctric_ventless_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric ventless')
 dryer_elctric_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric')
-dryer_elctric_120_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric, 120V')
+dryer_elctric_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric, 120V')
 dryer_heat_pump_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'heat pump')
-dryer_heat_pump_120_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'heat pump, 120V')
+dryer_heat_pump_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'clothes dryer', 'heat pump, 120V')
 
 range_elctric_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'electric')
 range_induction_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'induction')
-range_elctric_120_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'electric, 120V')
-range_induction_120_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'induction, 120V')
+range_elctric_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'range/oven', 'electric, 120V')
+range_induction_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'range/oven', 'induction, 120V')
 
 hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'hot tub/spa', 'electric')
 pool_heater_power_rating = get_nameplate_rating(nameplate_rating, 'pool heater', 'electric')
-EVSE_power_rating_level1 = hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'electric vehicle charger', 'electric, level 1')
 EVSE_power_rating_level2 = hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'electric vehicle charger', 'electric, level 2')
 
 
@@ -619,7 +618,7 @@ def _new_load_space_conditioning(row, option_columns):
     # cooling load
     cooling_type = None
     for opt_col in option_columns:
-        if ("HVAC Heating Efficiency" in row[opt_col]):
+        if ("HVAC cooling Efficiency" in row[opt_col]):
             cooling_type = get_cooling_type(row[opt_col])
 
     cooling_load = hvac_cooling_conversion(
@@ -654,7 +653,10 @@ def _get_air_handlers(row, heating_type, secondary_heating_type) -> (float, floa
     - if no ducted heating, use CAC (based on cool cap only)
     """
     heating_has_ducts = _get_heating_has_ducts(row)
-    cooling_has_ducts = _get_cooling_has_ducts(row)
+    if heating_type == "Heat Pump":
+        cooling_has_ducts = heating_has_ducts
+    else:
+        cooling_has_ducts = _get_cooling_has_ducts(row)
 
     heat_ahu, cool_ahu = 0, 0
 
@@ -680,30 +682,31 @@ def _get_air_handlers(row, heating_type, secondary_heating_type) -> (float, floa
 
     return (heat_ahu, cool_ahu)
 
+
 def get_cooling_type(cool_eff):
-    cooling_type = None
     if "Room AC" in cool_eff:
-        cooling_type = "Room AC"
-    elif "AC" in cool_eff:
-        cooling_type = "Central AC"
-    elif  "Heat Pump" in cool_eff:
-        cooling_type = "Heat Pump"
-    elif "Swamp Cooler" in cool_eff:
+        return "Room AC"
+    if "AC" in cool_eff:
+        return "Central AC"
+    if "Heat Pump" in cool_eff:
+        return "Heat Pump"
+    if cool_eff in ["None", "Shared Cooling"]:
+        return None
+    if cool_eff == "Evaporative Cooler":
         raise ValueError(f"Unsupported: {cool_eff}")
-    return cooling_type
+    raise ValueError("Unknown cooling type")
+    
 
 def get_heating_type(heat_eff) -> Optional[str]:
-    heating_type = None
     if ("ASHP" in heat_eff) or ("MSHP" in heat_eff):
-        heating_type = "Heat Pump"
-    elif ("Electric" in heat_eff):
-        heating_type = "Electric Resistance"
-    elif ("GSHP" in heat_eff):
+        return "Heat Pump"
+    if ("Electric" in heat_eff):
+        return "Electric Resistance"
+    if ("GSHP" in heat_eff):
         raise ValueError(f"Unsupported: {heat_eff}")
-    else:
-        heating_type = "fuel"
-
-    return heating_type
+    if heat_eff in ["None", "Shared Heating"]:
+        return None
+    return "fuel"
 
 
 def hvac_240V_air_handler(nom_cap) -> float:
@@ -900,7 +903,7 @@ def existing_load_labels() -> list[str]:
 def apply_existing_loads(row, n_kit: int = 2, n_ldr: int = 1) -> list[float]:
     """ Load summing method """
     if row["completed_status"] != "Success":
-        return np.nan
+        return [np.nan for x in range(15)]
 
     existing_loads = [
             _special_load_space_conditioning(row), # max of heating or cooling
@@ -929,8 +932,8 @@ def apply_demand_factor(x, threshold_load=8000):
     """
     Split load into the following tiers and apply associated multiplier factor
         If threshold_load == 8000:
-            <= 10kVA : 1.00
-            > 10kVA : 0.4
+            <= 8kVA : 1.00
+            > 8kVA : 0.4
     """
     return (
         1 * min(threshold_load, x) +
@@ -1004,7 +1007,7 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
     ev_option_cols, _ = get_upgrade_columns_and_options(option_cols, upgrade_options, "Electric Vehicle")
     df_up["new_load_evse"] = df_up.apply(lambda x: _new_load_evse(x, ev_option_cols), axis=1)
 
-    # # TEMP - add EV load explicitly (for part II of TEA)
+    # TEMP - add EV load explicitly (for part II of TEA)
     cond = df_up["build_existing_model.geometry_building_type_recs"].isin([
         "Single-Family Detached",
         "Single-Family Attached",
@@ -1076,7 +1079,7 @@ def calculate_new_load_total_220_83(dfi: pd.DataFrame, dfu: pd.DataFrame, n_kit:
 
     # remove upgraded loads from existing loads and replace with new loads
     upgradable_loads = [x.removeprefix("new_") for x in new_loads]
-    df_upgraded = df_new.drop(columns=["building_id"]).rename(columns=dict(zip(new_loads, upgradable_loads)))
+    df_upgraded = df_new[new_loads].rename(columns=dict(zip(new_loads, upgradable_loads)))
     cond_upgraded = df_upgraded>0
     loads_upgraded = cond_upgraded.apply(lambda x: list(x[x].index), axis=1).rename("loads_upgraded") # record which loads are upgraded
     # replace where upgraded with nan then update with new loads

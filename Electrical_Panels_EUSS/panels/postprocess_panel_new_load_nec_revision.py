@@ -1,3 +1,4 @@
+
 """
 Requires env with python >= 3.10
 -**
@@ -14,8 +15,9 @@ Updated: 07/09/2024
 -----------------
 
 [220.83] - Load Summing Method
+# Revision: 2 kVA/sqft instead of 3, no A/B sections, new demand factors
 Generally, sum the following loads and then apply tiered demand load factors to the total load (see CAVEATS)
-1) general lighting and receptable loads at 2 VA/sqft (instead of 3 per revision);
+1) general lighting and receptable loads at 2 VA/sqft;
 2) at least 2 branch circuits for kitchen and 1 branch circuit for laundry at 1.5 kVA per branch; and
 3) all appliances that are fastened in place and permanently connected:
    - HVAC (taken as the larger nameplate of space heating or cooling), 
@@ -23,12 +25,23 @@ Generally, sum the following loads and then apply tiered demand load factors to 
    - clothes dryers, 
    - cooking ranges/ovens, 
    - dishwashers,
-   - EVSE, 
+   - EVSE (individual branch circuit), 
    - hot tubs, pool heaters, pool pumps, well pumps, garbage disposals, garbage compactors, and 
    - other fixed appliances with at least a 1/4 HP (500W) nameplate rating.
 
-# Revision: no A/B sections, new demand factors
-Total Load = 100% of first 8 kVA existing load + 40% of remaining existing load + 50% of new load
+Total Load = 100% of first 8 kVA existing load + 40% of remaining existing load + \
+80% new EVSE + 80% new ER space heating + 50% all other new loads
+This means: 
+If adding HP and keeping existing ER as backup,
+    - remove cooling from existing load
+    - add HP at 50% (likely heating-dominant)
+If new HVAC is HP+ER backup, 
+    - remove heating and cooling from existing load
+    - add ER at 80%, HP at 50% (likely heating-dominant)
+If replacing existing heating with ER heating,
+    - determine dominance unadjusted
+    - if heating-dominant, remove cooling from existing, add ER at 80%
+    - if cooling-dominant, no action
 
 HVAC load includes:
     - includes 120V air handler for non-electric central furnace, e.g., if HP with secondary gas furance, HP ODU + 120V handler
@@ -38,9 +51,15 @@ does not include:
     - boiler pump
 
 [220.87] - Maximum Demand Method
+# Revision: net load change instead of new loads to add on top of 125% peak, demand factors from 220.83 applicable to net change
+# Different ways to determine peak if preceding year data is incomplete or low resolution
 Existing Peak = 125% x 15_min_electricity_peak (1-full year)
 Net change = New Load - Existing Load replaced
-Total Load = Existing Peak + 50% * net change in load (revised)
+Adjusted net change = 80% net EVSE + 80% net ER space heating + 50% all other net loads
+Total Load = Existing Peak + Adjusted net change
+
+Adjustment made if hourly data is used, if less than 1 year of data is available
+Load can account for partial usage (per Parts III-IV)
 """
 
 import pandas as pd
@@ -77,22 +96,22 @@ water_heater_electric_power_rating = get_nameplate_rating(nameplate_rating, 'wat
 water_heater_electric_tankless_1bath_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'electric tankless, one bathroom')
 water_heater_electric_tankless_more_1bath_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'electric tankless, more than one bathroom')
 water_heater_heat_pump_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'heat pump')
-water_heater_heat_pump_120_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'heat pump, 120V, shared')
+water_heater_heat_pump_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'water heater', 'heat pump, 120V, shared')
 
 dryer_elctric_ventless_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric ventless')
 dryer_elctric_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric')
-dryer_elctric_120_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric, 120V')
+dryer_elctric_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric, 120V')
 dryer_heat_pump_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'heat pump')
-dryer_heat_pump_120_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'heat pump, 120V')
+dryer_heat_pump_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'clothes dryer', 'heat pump, 120V')
 
 range_elctric_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'electric')
 range_induction_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'induction')
-range_elctric_120_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'electric, 120V')
-range_induction_120_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'induction, 120V')
+range_elctric_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'range/oven', 'electric, 120V')
+range_induction_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'range/oven', 'induction, 120V')
 
 hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'hot tub/spa', 'electric')
 pool_heater_power_rating = get_nameplate_rating(nameplate_rating, 'pool heater', 'electric')
-EVSE_power_rating = hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'electric vehicle charger', 'electric')
+EVSE_power_rating_level2 = hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'electric vehicle charger', 'electric, level 2')
 
 
 # --- funcs ---
@@ -364,34 +383,32 @@ def _special_load_cooking_range_oven(row):
     return range_elctric_power_rating 
 
 
-def _special_load_space_heating_no_ahu(row):
+def _special_load_space_heating_no_ahu(row) -> tuple[list]:
     if row["completed_status"] != "Success":
-        return np.nan
+        return ([np.nan, np.nan, np.nan], [None, None, None])
 
     # shared heating is not part of dwelling unit's panel
     if row["build_existing_model.hvac_has_shared_system"] in ["Heating Only", "Heating and Cooling"]:
-        return 0
+        return ([0, 0, 0], [None, None, None])
 
     # heating load
     heating_type = get_heating_type(row["build_existing_model.hvac_heating_efficiency"])
     secondary_heating_type = get_heating_type(row["build_existing_model.hvac_secondary_heating_efficiency"])
 
-    heating_cols = [
+    heating_caps = [
         row["upgrade_costs.size_heating_system_primary_k_btu_h"],
         row["upgrade_costs.size_heating_system_secondary_k_btu_h"],
         row["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"]
         ]
-    system_cols = [
+    system_types = [
         heating_type,
         secondary_heating_type,
         "Electric Resistance",
         ]
 
-    heating_load = sum(
-            [hvac_heating_conversion(x, system_type=y) for x, y in zip(heating_cols, system_cols)]
-        )
+    heating_loads = [hvac_heating_conversion(x, system_type=y) for x, y in zip(heating_caps, system_types)]
 
-    return heating_load
+    return (heating_loads, system_types)
 
 
 def _special_load_space_cooling_no_ahu(row):
@@ -411,29 +428,72 @@ def _special_load_space_cooling_no_ahu(row):
     return cooling_load
 
 
-def _special_load_space_conditioning(row):
-    """ Not accounting for humidifier
-    1 Btu/h = 0.29307103866W
-
-    Returns:
-        max(loads) : int
-            special_load_for_heating_or_cooling
+def _special_load_space_conditioning_itemized(row) -> tuple[float]:
+    """ List of space conditioning loads
+    Not accounting for humidifier
     """
     if row["completed_status"] != "Success":
-        return np.nan
+        return tuple([np.nan for x in range(8)])
     
-    heating_load = _special_load_space_heating_no_ahu(row)
+    heating_loads, system_types = _special_load_space_heating_no_ahu(row) # [pri, sec, hp_bkup]
     cooling_load = _special_load_space_cooling_no_ahu(row)
 
+    heating_type = system_types[0]
+    secondary_heating_type = system_types[1]
+    heating_ahu, cooling_ahu = _get_air_handlers(row, heating_type, secondary_heating_type)
+
+    # create (pri_hp, pri_er, sec_hp, sec_er, hp_bkup)
+    heating_loads_hp_er = ()
+    for heat_load, heat_type in zip(heating_loads[:2], system_types[:2]):
+        if heat_type == "Electric Resistance":
+            heating_loads_hp_er += (0, heat_load) # (hp, er)
+        else:
+            heating_loads_hp_er += (heat_load, 0)
+    heating_loads_hp_er += (heating_loads[2],) # hp_bkup
+    hvac_loads = heating_loads_hp_er + (heating_ahu, cooling_load, cooling_ahu)
+    return hvac_loads
+
+
+def apply_space_conditioning(row):
+    """
+    Calculate load_hvac and load_hvac_dominance
+    Returns:
+        load_hvac (max heating or cooling)
+        hvac_dominance: ["heating", "cooling", "heating/cooling"]
+    """
+    heating_load = row[[
+        "load_hvac_primary_heating_heat_pump",
+        "load_hvac_primary_heating_electric_resistance",
+        "load_hvac_secondary_heating_heat_pump",
+        "load_hvac_secondary_heating_electric_resistance",
+        "load_hvac_heat_pump_backup", 
+        "load_hvac_heating_air_handler",
+    ]].sum()
+    cooling_load = row[[
+        "load_hvac_cooling",
+        "load_hvac_cooling_air_handler",
+    ]].sum()
+
+    if heating_load > cooling_load:
+        return (heating_load, "heating")
+    if heating_load < cooling_load:
+        return (cooling_load, "cooling")
+    if heating_load == cooling_load:
+        return (cooling_load, "heating/cooling")
+    return (np.nan, np.nan)
+
+    if heating_load < cooling_load:
+        return (cooling_load, "cooling")
+    if heating_load == cooling_load:
+        return (cooling_load, "heating/cooling")
+    return (np.nan, np.nan)
+    
+
+def _special_load_heat_cool_air_handlers(row) -> tuple[float]:
     heating_type = get_heating_type(row["build_existing_model.hvac_heating_efficiency"])
     secondary_heating_type = get_heating_type(row["build_existing_model.hvac_secondary_heating_efficiency"])
-
-    # Add AHU
     heat_ahu, cool_ahu = _get_air_handlers(row, heating_type, secondary_heating_type)
-    heating_load += heat_ahu
-    cooling_load += cool_ahu
-
-    return max(heating_load, cooling_load)
+    return (heat_ahu, cool_ahu)
 
 
 def _special_load_pool_heater(row, apply_df=True):
@@ -476,6 +536,17 @@ def _special_load_evse(row):
     else: 
         EV_load = max(EVSE_power_rating, 7200)
     return EV_load
+
+
+def _special_load_heat_pump_backup(row):
+    if row["completed_status"] != "Success":
+        return np.nan
+
+    heat_pump_backup = hvac_heating_conversion(
+        row["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"], 
+        system_type="Electric Resistance"
+        )
+    return heat_pump_backup
 
 
 ### -------- new load specs --------
@@ -568,9 +639,9 @@ def _new_load_water_heating(row, option_columns):
     return 0
 
 
-def _new_load_space_conditioning(row, option_columns):
+def _new_load_space_conditioning_itemized(row, option_columns) -> tuple[float]:
     if row["completed_status"] != "Success":
-        return np.nan
+        return tuple([np.nan for x in range(10)])
 
     # heating load
     heating_type = None
@@ -582,39 +653,48 @@ def _new_load_space_conditioning(row, option_columns):
         if ("HVAC Secondary Heating Efficiency" in row[opt_col]):
             secondary_heating_type = get_heating_type(row[opt_col])
 
-    heating_cols = [
+    heating_caps = [
         row["upgrade_costs.size_heating_system_primary_k_btu_h"],
         row["upgrade_costs.size_heating_system_secondary_k_btu_h"],
         row["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"]
         ]
-    system_cols = [
+    system_types = [
         heating_type,
         secondary_heating_type,
         "Electric Resistance",
         ]
 
-    heating_load = sum(
-        [hvac_heating_conversion(x, system_type=y) for x, y in zip(heating_cols, system_cols)]
-    )
+    heating_loads = [hvac_heating_conversion(x, system_type=y) for x, y in zip(heating_caps, system_types)]
 
+    heating_has_ducts = _get_heating_has_ducts(row)
+    if heating_type == "Heat Pump":
+        cooling_has_ducts = heating_has_ducts
+    else:
+        cooling_has_ducts = _get_cooling_has_ducts(row)
 
     # cooling load
     cooling_type = None
     for opt_col in option_columns:
-        if ("HVAC Heating Efficiency" in row[opt_col]):
+        if ("HVAC Cooling Efficiency" in row[opt_col]):
             cooling_type = get_cooling_type(row[opt_col])
 
     cooling_load = hvac_cooling_conversion(
         row["upgrade_costs.size_cooling_system_primary_k_btu_h"],
         system_type=cooling_type
     )
+    heating_ahu, cooling_ahu = _get_air_handlers(row, heating_type, secondary_heating_type)
 
-    # Add AHU
-    heat_ahu, cool_ahu = _get_air_handlers(row, heating_type, secondary_heating_type)
-    heating_load += heat_ahu
-    cooling_load += cool_ahu
+    # create [pri_hp, pri_er, sec_hp, sec_er, hp_bkup]
+    heating_loads_hp_er = []
+    for heat_load, heat_type in zip(heating_loads[:2], system_types[:2]):
+        if heat_type == "Electric Resistance":
+            heating_loads_hp_er += [0, heat_load] # (hp, er)
+        else:
+            heating_loads_hp_er += [heat_load, 0]
+    heating_loads_hp_er.append(heating_loads[2]) # hp_bkup
 
-    return max(heating_load, cooling_load)
+    hvac_loads = tuple(heating_loads_hp_er + [heating_ahu, cooling_load, cooling_ahu, heating_has_ducts, cooling_has_ducts])
+    return hvac_loads
 
 
 ### -------- util funcs --------
@@ -636,7 +716,10 @@ def _get_air_handlers(row, heating_type, secondary_heating_type) -> (float, floa
     - if no ducted heating, use CAC (based on cool cap only)
     """
     heating_has_ducts = _get_heating_has_ducts(row)
-    cooling_has_ducts = _get_cooling_has_ducts(row)
+    if heating_type == "Heat Pump":
+        cooling_has_ducts = heating_has_ducts
+    else:
+        cooling_has_ducts = _get_cooling_has_ducts(row)
 
     heat_ahu, cool_ahu = 0, 0
 
@@ -663,29 +746,29 @@ def _get_air_handlers(row, heating_type, secondary_heating_type) -> (float, floa
     return (heat_ahu, cool_ahu)
 
 def get_cooling_type(cool_eff):
-    cooling_type = None
     if "Room AC" in cool_eff:
-        cooling_type = "Room AC"
-    elif "AC" in cool_eff:
-        cooling_type = "Central AC"
-    elif  "Heat Pump" in cool_eff:
-        cooling_type = "Heat Pump"
-    elif "Swamp Cooler" in cool_eff:
+        return "Room AC"
+    if "AC" in cool_eff:
+        return "Central AC"
+    if "Heat Pump" in cool_eff:
+        return "Heat Pump"
+    if cool_eff in ["None", "Shared Cooling"]:
+        return None
+    if cool_eff == "Evaporative Cooler":
         raise ValueError(f"Unsupported: {cool_eff}")
-    return cooling_type
+    raise ValueError("Unknown cooling type")
+    
 
 def get_heating_type(heat_eff) -> Optional[str]:
-    heating_type = None
     if ("ASHP" in heat_eff) or ("MSHP" in heat_eff):
-        heating_type = "Heat Pump"
-    elif ("Electric" in heat_eff):
-        heating_type = "Electric Resistance"
-    elif ("GSHP" in heat_eff):
+        return "Heat Pump"
+    if ("Electric" in heat_eff):
+        return "Electric Resistance"
+    if ("GSHP" in heat_eff):
         raise ValueError(f"Unsupported: {heat_eff}")
-    else:
-        heating_type = "fuel"
-
-    return heating_type
+    if heat_eff in ["None", "Shared Heating"]:
+        return None
+    return "fuel"
 
 
 def hvac_240V_air_handler(nom_cap) -> float:
@@ -791,7 +874,7 @@ def read_file(filename: str, low_memory: bool =True, sort_bldg_id: bool = False,
     if filename.suffix in [".csv", ".gz"]:
         df = pd.read_csv(filename, low_memory=low_memory, keep_default_na=False, **kwargs)
     elif filename.suffix == ".parquet":
-        df = pd.read_parquet(filename, **kwargs)
+        df = pd.read_parquet(filename)
     else:
         raise TypeError(f"Unsupported file type, cannot read file: {filename}")
 
@@ -857,15 +940,7 @@ def generate_plots(df: pd.DataFrame, dfo: pd.DataFrame, output_dir: Path, sfd_on
 
 
 def existing_load_labels() -> list[str]:
-    existing_loads_labels = [
-        "load_hvac",
-        "load_water_heater",
-        "load_dryer",
-        "load_range_oven",
-        "load_hot_tub_spa",
-        "load_pool_heater",
-        "load_evse",
-
+    existing_loads_labels = existing_load_labels_replaceable() + [
         "load_lighting",
         "load_kitchen",
         "load_laundry",
@@ -880,7 +955,15 @@ def existing_load_labels() -> list[str]:
 
 def existing_load_labels_replaceable() -> list[str]:
     existing_loads_labels = [
-        "load_hvac",
+        "load_hvac_primary_heating_heat_pump",
+        "load_hvac_primary_heating_electric_resistance",
+        "load_hvac_secondary_heating_heat_pump",
+        "load_hvac_secondary_heating_electric_resistance",
+        "load_hvac_heat_pump_backup",
+        "load_hvac_heating_air_handler",
+        "load_hvac_cooling",
+        "load_hvac_cooling_air_handler",
+
         "load_water_heater",
         "load_dryer",
         "load_range_oven",
@@ -894,10 +977,11 @@ def existing_load_labels_replaceable() -> list[str]:
 def apply_existing_loads(row, n_kit: int = 2, n_ldr: int = 1) -> list[float]:
     """ Load summing method """
     if row["completed_status"] != "Success":
-        return np.nan
+        return [np.nan for x in range(22)]
 
-    existing_loads = [
-            _special_load_space_conditioning(row), # max of heating or cooling
+    hvac_loads = _special_load_space_conditioning_itemized(row) # n=8
+
+    existing_loads = list(hvac_loads) + [
             _fixed_load_water_heater(row),
             _special_load_dryer(row),
             _special_load_cooking_range_oven(row),
@@ -922,10 +1006,11 @@ def apply_existing_loads(row, n_kit: int = 2, n_ldr: int = 1) -> list[float]:
 def apply_existing_loads_replaceable(row) -> list[float]:
     """ Load summing method """
     if row["completed_status"] != "Success":
-        return np.nan
+        return [np.nan for x in range(14)]
 
-    existing_loads = [
-            _special_load_space_conditioning(row), # max of heating or cooling
+    hvac_loads = _special_load_space_conditioning_itemized(row) # n=8
+
+    existing_loads = list(hvac_loads) + [
             _fixed_load_water_heater(row),
             _special_load_dryer(row),
             _special_load_cooking_range_oven(row),
@@ -941,8 +1026,8 @@ def apply_demand_factor(x, threshold_load=8000):
     """
     Split load into the following tiers and apply associated multiplier factor
         If threshold_load == 8000:
-            <= 10kVA : 1.00
-            > 10kVA : 0.4
+            <= 8kVA : 1.00
+            > 8kVA : 0.4
     """
     return (
         1 * min(threshold_load, x) +
@@ -950,14 +1035,28 @@ def apply_demand_factor(x, threshold_load=8000):
     )
 
 
-def apply_total_load_220_83_existing(row) -> float | list[float]:
-    """Apply demand factor to existing loads per 220.83"""
+def apply_demand_factor_220_83_existing(row) -> float | list[float]:
+    """Apply demand factor to existing loads per 220.83 """
     threshold_load = 8000 # VA
 
-    # 220.83 100% of 1st 8kVA existing load + 40% of remainder existing load + 50% of new load
-    total_load = apply_demand_factor(row.sum(), threshold_load=threshold_load)
+    # 220.83 100% of 1st 8kVA existing load + 40% of remainder existing load
+    all_loads = [x for x in row.index if x.startswith("load_") and "hvac" not in x]
+    all_loads.append("load_hvac")
+    total_load = row[all_loads].sum()
+    total_load = apply_demand_factor(total_load, threshold_load=threshold_load)
 
     return total_load
+
+
+def calculate_total_load_post_upgrade(df_post, df_df, cond_upgraded) -> pd.Series:
+    """ 100% first 8 kVA existing + 40% remaining existing + 
+    80% of new EVSE + 80% of new central ER heating (if heating-dominant) + 50% new others 
+    """
+
+    df_post_adjusted = df_post[df_df.columns]*df_df
+    total_load_remaining_existing = df_post_adjusted.mask(cond_upgraded).sum(axis=1).apply(apply_demand_factor)
+    total_load_new = df_post_adjusted.mask(~cond_upgraded).sum(axis=1)
+    return total_load_remaining_existing + total_load_new
 
 
 def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool = False)-> pd.DataFrame:
@@ -980,7 +1079,7 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
     option_cols = []
     upgrade_options = []
     for opt_col in option_columns:
-        upgrade_option = [x for x in dfu[opt_col].unique() if x not in [None, np.nan, ""]]
+        upgrade_option = [x for x in dfu[opt_col].unique() if x != "" and not pd.isna(x)]
         if upgrade_option:
             assert len(upgrade_option) == 1, f"{upgrade_option=} has more than one option."
             option_cols.append(opt_col)
@@ -988,7 +1087,19 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
 
     # 3 convert upgrade options to nameplate power ratings
     # [1] Heating and cooling
-    df_up["new_load_hvac"] = df_up.apply(lambda x: _new_load_space_conditioning(x, option_cols), axis=1)
+    hvac_labels = [
+        "new_load_hvac_primary_heating_heat_pump",
+        "new_load_hvac_primary_heating_electric_resistance",
+        "new_load_hvac_secondary_heating_heat_pump",
+        "new_load_hvac_secondary_heating_electric_resistance",
+        "new_load_hvac_heat_pump_backup",
+        "new_load_hvac_heating_air_handler",
+        "new_load_hvac_cooling",
+        "new_load_hvac_cooling_air_handler",
+        "new_load_hvac_heating_has_ducts",
+        "new_load_hvac_cooling_has_ducts",
+    ]
+    df_up[hvac_labels] = df_up.apply(lambda x: _new_load_space_conditioning_itemized(x, option_cols), axis=1).to_list()
 
     # [2] Water heating
     wh_option_cols, _ = get_upgrade_columns_and_options(option_cols, upgrade_options, "Water Heater Efficiency")
@@ -1011,13 +1122,12 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
     df_up["new_load_evse"] = df_up.apply(lambda x: _new_load_evse(x, ev_option_cols), axis=1)
 
     # # TEMP - add EV load explicitly (for part II of TEA)
-    cond = df_up["build_existing_model.geometry_building_type_recs"].isin([
-        "Single-Family Detached",
-        "Single-Family Attached",
-        "Mobile Home",
-        ])
-    # df_up.loc[cond, "new_load_evse"] = EVSE_power_rating_level1
-    df_up.loc[cond, "new_load_evse"] = max(EVSE_power_rating_level2, 7200)
+    # cond = df_up["build_existing_model.geometry_building_type_recs"].isin([
+    #     "Single-Family Detached",
+    #     "Single-Family Attached",
+    #     "Mobile Home",
+    #     ])
+    # df_up.loc[cond, "new_load_evse"] = max(EVSE_power_rating_level2, 7200)
 
     # Nullify 0 values
     new_load_cols = [x for x in df_up.columns if "new_load" in x]
@@ -1041,35 +1151,132 @@ def get_upgrade_columns_and_options(option_columns, upgrade_options, parameter):
     return columns, options
 
 
-def calculate_remaining_existing_loads(df_existing, df_new):
-    """ remove upgraded loads from existing loads """
-    new_loads = [x for x in df_new.columns if "new_load" in x]
+def calculate_changes_in_existing_loads(df_existing, df_new):
+    """ Separate existing loads that have been replaced and 
+    existing loads that are remaining.
+
+    Returns:
+    df_replaced: pd.DataFrame
+        Subset of existing loads that have been replaced
+    df_remaining: pd.DataFrame
+        Existing loads with replaced loads set to 0
+    df_net: pd.DataFrame
+        New loads - existing loads
+    loads_upgraded: list[str]
+        List of name of loads that have been replaced/upgraded
+    """
+    new_loads = [x for x in df_new.columns if x.startswith("new_load") and "has_ducts" not in x]
     upgradable_loads = [x.removeprefix("new_") for x in new_loads]
-    df_upgraded = df_new.drop(columns=["building_id"]).rename(columns=dict(zip(new_loads, upgradable_loads)))
+    other_loads = [x for x in df_existing.columns if x not in upgradable_loads+["load_hvac", "load_hvac_determinant"]]
+    df_upgraded = df_new[new_loads].rename(columns=dict(zip(new_loads, upgradable_loads)))
     cond_upgraded = df_upgraded>0
-    loads_upgraded = cond_upgraded.apply(lambda x: list(x[x].index), axis=1).rename("loads_upgraded") # record which loads are upgraded
 
-    # replace where upgraded with 0 to finalize df_remaining (= df_existing - upgraded)
-    df_remaining = df_existing.copy()
-    df_subset = df_remaining[upgradable_loads].mask(cond_upgraded).fillna(0)
-    df_remaining[upgradable_loads] = df_subset
+    # consolidate HVAC
+    up_hvac_loads = [x for x in upgradable_loads if "hvac" in x]
+    up_non_hvac_loads = [x for x in upgradable_loads if x not in up_hvac_loads]
 
-    return df_remaining, df_upgraded, loads_upgraded
+    # initialize demand factor df for non-hvac loads
+    df_df = pd.DataFrame(1, columns=up_non_hvac_loads, index=df_upgraded.index)
+    df_df = df_df.mask(cond_upgraded[up_non_hvac_loads]).fillna(0.5)  # 50% new loads
+    df_df = df_df.mask(cond_upgraded["load_evse"]).fillna(0.8) # 80% EVSE
 
+    # 1. determine HVAC determinant in post-upgrade HVAC
+    df_hvac = df_upgraded[up_hvac_loads].copy()
+    df_hvac.update(df_existing[up_hvac_loads], overwrite=False) # post-upgrade HVAC system
+    df_hvac[["post_load_hvac_unadjusted", "post_load_hvac_determinant"]] = df_hvac.apply(
+        lambda x: apply_space_conditioning(x), axis=1).to_list()
+    df_hvac = pd.concat([
+        df_hvac,
+        df_new[["new_load_hvac_heating_has_ducts", "new_load_hvac_cooling_has_ducts"]].fillna(False),
+        ], axis=1)
+    df_hvac["hvac_upgraded"] = False
+    cond = df_hvac["post_load_hvac_unadjusted"] != df_existing["load_hvac"]
+    df_hvac.loc[cond, "hvac_upgraded"] = True
 
-def calculate_net_change_in_loads(df_existing, df_new):
-    """ Net = new load - existing load replaced """
-    new_loads = [x for x in df_new.columns if "new_load" in x]
-    upgradable_loads = [x.removeprefix("new_") for x in new_loads]
-    df_upgraded = df_new.drop(columns=["building_id"]).rename(columns=dict(zip(new_loads, upgradable_loads)))
-    cond_upgraded = df_upgraded>0
-    loads_upgraded = cond_upgraded.apply(lambda x: list(x[x].index), axis=1).rename("loads_upgraded") # record which loads are upgraded
+    # 2. assign demand factors
+    # Initialize
+    df_hvac_df = pd.DataFrame(0, columns=up_hvac_loads, index=df_hvac.index)
 
-    # retain existing loads that have been replaced, NAN means loads were not replaced and do not apply.
-    df_existing_replaced = df_existing[upgradable_loads].mask(~cond_upgraded)
-    df_net = df_upgraded.sum(axis=1) - df_existing_replaced.sum(axis=1)
+    # cooling-dominant
+    cond = df_hvac["post_load_hvac_determinant"]=="cooling" 
+    for col in ["load_hvac_cooling", "load_hvac_cooling_air_handler"]:
+        # existing cooling is dominant
+        df_hvac_df.loc[cond, col] = 1
 
-    return df_net, df_existing_replaced, loads_upgraded
+    # new cooling is dominant
+    col = "load_hvac_cooling"
+    cond2 = df_upgraded[col]>0
+    df_hvac_df.loc[(cond & cond2), col] = 0.5
+
+    col = "load_hvac_cooling_air_handler"
+    cond3 = df_upgraded[col]>0
+    df_hvac_df.loc[(cond & cond3), col] = 0.5
+
+    # heating-dominant
+    cond = df_hvac["post_load_hvac_determinant"].str.contains("heating")
+    heating_cols = [x for x in up_hvac_loads if "heating" in x or "backup" in x]
+    for col in heating_cols:
+        # existing heating is dominant
+        df_hvac_df.loc[cond, col] = 1
+
+    # new heating is dominant
+    col = "load_hvac_primary_heating_heat_pump"
+    cond2 = df_upgraded[col]>0
+    df_hvac_df.loc[(cond & cond2), col] = 0.5
+
+    col = "load_hvac_primary_heating_electric_resistance"
+    cond3 = df_upgraded[col]>0
+    df_hvac_df.loc[(cond & cond3), col] = 0.8
+
+    col = "load_hvac_secondary_heating_heat_pump"
+    cond4 = df_upgraded[col]>0
+    cond5 = df_upgraded[col].fillna(0).round(0)!=df_existing["load_hvac_primary_heating_heat_pump"].fillna(0).round(0)
+    df_hvac_df.loc[(cond & cond4 & cond5), col] = 0.5
+    cond_upgraded.loc[(cond4 & ~cond5), col] = False # existing heating as secondary
+
+    col = "load_hvac_secondary_heating_electric_resistance"
+    cond6 = df_upgraded[col]>0
+    cond7 = df_upgraded[col].fillna(0).round(0)!=df_existing["load_hvac_primary_heating_electric_resistance"].fillna(0).round(0)
+    df_hvac_df.loc[(cond & cond6 & cond7), col] = 0.8
+    cond_upgraded.loc[(cond6 & ~cond7), col] = False # existing heating as secondary
+
+    col = "load_hvac_heat_pump_backup"
+    cond8 = df_upgraded[col]>0
+    df_hvac_df.loc[(cond & cond8), col] = 0.8
+
+    col = "load_hvac_heating_air_handler"
+    cond9 = df_upgraded[col]>0
+    df_hvac_df.loc[(cond & cond9), col] = 0.5
+
+    # record which loads are upgraded (with HVAC consolidated)
+    loads_upgraded = pd.concat([
+        df_hvac["hvac_upgraded"].rename("load_hvac"),
+        cond_upgraded[up_non_hvac_loads],
+        ], axis=1).apply(lambda x: list(x[x].index), axis=1).rename("loads_upgraded") 
+
+    # consolidate where end uses are upgraded in df_existing
+    cond_upgraded = pd.concat([
+        cond_upgraded,
+        pd.DataFrame(False, columns=other_loads, index=cond_upgraded.index)
+        ], axis=1)
+    # consolidate demand factors
+    df_df = pd.concat([
+        df_hvac_df, 
+        df_df[up_non_hvac_loads],
+        pd.DataFrame(1, columns=other_loads, index=df_df.index)
+        ], axis=1)
+
+    # consolidate post-upgrade electric end use loads
+    df_post = df_upgraded[up_non_hvac_loads].copy()
+    df_post.update(df_existing[up_non_hvac_loads], overwrite=False)
+    df_post = pd.concat([
+        df_hvac[up_hvac_loads],
+        df_post,
+        df_existing[other_loads],
+        df_hvac["post_load_hvac_determinant"],
+        ], axis=1)
+
+    return (df_post, df_df, cond_upgraded, loads_upgraded)
 
 
 ### -------- load method calcs --------
@@ -1101,36 +1308,40 @@ def calculate_new_load_total_220_83(dfi: pd.DataFrame, dfu: pd.DataFrame, n_kit:
         df.apply(lambda x: apply_existing_loads(x, n_kit=n_kit, n_ldr=n_ldr), axis=1).to_list(),
         index = df.index, columns=existing_loads
         )
-
-    # Remaining existing loads
-    df_remaining, df_upgraded, loads_upgraded = calculate_remaining_existing_loads(df_existing, df_new)
+    df_existing[["load_hvac", "load_hvac_determinant"]] = df_existing.apply(
+        lambda x: apply_space_conditioning(x), axis=1).to_list()
 
     # Total pre-upgrade load
     total_load_pre = "load_total_pre_upgrade_VA_220_83"
     total_amp_pre = "amp_total_pre_upgrade_A_220_83"
-    df_existing[total_load_pre] = df_existing.apply(lambda x: apply_total_load_220_83_existing(x), axis=1)
-    df_existing[total_amp_pre] = df_existing[total_load_pre] / 240
+    df_result = pd.DataFrame(index=df_existing.index)
+    df_result[total_load_pre] = df_existing.apply(lambda x: apply_demand_factor_220_83_existing(x), axis=1)
+    df_result[total_amp_pre] = df_result[total_load_pre] / 240
 
+    # Change in existing loads
+    df_post, df_df, cond_upgraded, loads_upgraded = calculate_changes_in_existing_loads(df_existing, df_new)
 
     # QC
-    diff = df_existing[existing_loads].compare(df_remaining)
-    assert len(diff) > 0, "No difference between existing loads and remaining existing loads"
+    diff = df_existing[existing_loads].compare(df_post[existing_loads])
+    assert len(diff) > 0, "No difference between existing loads and post-upgrade loads"
 
-    # Total post-upgrade load: 100% of 1st 8 kVA existing + 40% remaining existing + 50% new
+    # Total post-upgrade load: 100% of 1st 8 kVA existing + 40% remaining existing + \
+    # 80% new (EVSE | ER heating) + 50% new others
     total_load_post = "load_total_post_upgrade_VA_220_83"
     total_amp_post = "amp_total_post_upgrade_A_220_83"
-    df_post = pd.DataFrame(index=df_new.index)
-    df_post[total_load_post] = df_remaining.apply(lambda x: apply_total_load_220_83_existing(x), axis=1)
-    df_post[total_load_post] += df_upgraded.sum(axis=1)*0.5
-    df_post[total_amp_post] = df_post[total_load_post] / 240
+    
+    df_result[total_load_post] = calculate_total_load_post_upgrade(df_post, df_df, cond_upgraded)
+    df_result[total_amp_post] = df_result[total_load_post] / 240
 
     df_result = pd.concat([
         df_new["building_id"],
         dfu["apply_upgrade.upgrade_name"],
         df_existing,
+        df_result[[total_load_pre, total_amp_pre]],
         loads_upgraded,
         df_new[new_loads],
-        df_post[[total_load_post, total_amp_post]],
+        df_post["post_load_hvac_determinant"],
+        df_result[[total_load_post, total_amp_post]],
         ], axis=1)
 
     if explode_result:
@@ -1144,7 +1355,7 @@ def calculate_new_load_total_220_83(dfi: pd.DataFrame, dfu: pd.DataFrame, n_kit:
     return dfu.join(df_result[cols].drop(columns=["apply_upgrade.upgrade_name"]).set_index("building_id"), on="building_id")
 
 
-def calculate_new_load_total_220_87(df: pd.DataFrame, dfu: pd.DataFrame, explode_result: bool = False, result_as_map: bool = False) -> pd.DataFrame:
+def calculate_new_load_total_220_87(df: pd.DataFrame, dfu: pd.DataFrame, n_kit: int = 2, n_ldr: int = 1, explode_result: bool = False, result_as_map: bool = False) -> pd.DataFrame:
     """ Maximum demand method 
         - "report_simulation_output.peak_electricity_annual_total_w": timestep -- not available in EUSS RR1
         - "qoi_report.qoi_hourly_peak_magnitude_use_kw": peak of hourly aggregates, different from above
@@ -1157,14 +1368,13 @@ def calculate_new_load_total_220_87(df: pd.DataFrame, dfu: pd.DataFrame, explode
     new_loads = [x for x in df_new.columns if "new_load" in x]
 
     # Existing loads
-    existing_loads = existing_load_labels_replaceable()
+    existing_loads = existing_load_labels()
     df_existing = pd.DataFrame(
-        df.apply(lambda x: apply_existing_loads_replaceable(x), axis=1).to_list(),
+        df.apply(lambda x: apply_existing_loads(x, n_kit=n_kit, n_ldr=n_ldr), axis=1).to_list(),
         index = df.index, columns=existing_loads
         )
-
-    ## Net changes
-    df_net, df_existing_replaced, loads_upgraded = calculate_net_change_in_loads(df_existing, df_new)
+    df_existing[["load_hvac", "load_hvac_determinant"]] = df_existing.apply(
+        lambda x: apply_space_conditioning(x), axis=1).to_list()
 
     # Total pre-upgrade load
     total_load_pre = "load_total_pre_upgrade_VA_220_87"
@@ -1185,22 +1395,28 @@ def calculate_new_load_total_220_87(df: pd.DataFrame, dfu: pd.DataFrame, explode
     df_result.loc[df["build_existing_model.vacancy_status"]=="Vacant", total_load_pre] = np.nan
     df_result[total_amp_pre] = df_result[total_load_pre] / 240 # amp
 
+    ## Change in existing loads
+    total_load_pre_upgrade = df_existing.apply(lambda x: apply_demand_factor_220_83_existing(x), axis=1)
+    df_post, df_df, cond_upgraded, loads_upgraded = calculate_changes_in_existing_loads(df_existing, df_new)
+    total_load_post_upgrade = calculate_total_load_post_upgrade(df_post, df_df, cond_upgraded)
+
     ## Total post-upgrade load
     total_load_post = "load_total_post_upgrade_VA_220_87"
     total_amp_post = "amp_total_post_upgrade_A_220_87"
-    net_load_change = "net_load_total_VA_220_87"
-    df_result[net_load_change] = df_net
-    df_result[total_load_post] = df_result[total_load_pre] + 0.5*df_result["net_load_total_VA_220_87"]
+    net_load_change = "net_change_in_load_total_VA_220_87"
+    df_result[net_load_change] = total_load_post_upgrade - total_load_pre_upgrade
+    df_result[total_load_post] = df_result[total_load_pre] + df_result[net_load_change]
     df_result[total_amp_post] = df_result[total_load_post] / 240
 
     
     df_result = pd.concat([
         df_new["building_id"],
         dfu["apply_upgrade.upgrade_name"],
+        df_existing,
         df_result[[total_load_pre, total_amp_pre]],
-        df_existing_replaced,
         loads_upgraded,
         df_new[new_loads],
+        df_post["post_load_hvac_determinant"],
         df_result[[net_load_change, total_load_post, total_amp_post]],
         ], axis=1)
 
@@ -1245,9 +1461,9 @@ def main(
     if explode_result:
         ext = "_exploded"
     if result_as_map:
-        output_filename = output_filedir / (upgrade_filename.stem.split(".")[0] + f"__res_map__nec_new_load{ext}" + ".csv")
+        output_filename = output_filedir / (upgrade_filename.stem.split(".")[0] + f"__res_map__2026nec_new_load{ext}" + upgrade_filename.suffix)
     else:
-        output_filename = output_filedir / (upgrade_filename.stem.split(".")[0] + f"__nec_new_load{ext}" + ".csv")
+        output_filename = output_filedir / (upgrade_filename.stem.split(".")[0] + f"__2026nec_new_load{ext}" + upgrade_filename.suffix)
 
     upgrade_num = [x for x in 
         list(chain(*[x.split(".") for x in upgrade_filename.stem.split("_")]))
@@ -1278,6 +1494,12 @@ def main(
     dfu = dfu[dfu["completed_status"]=="Success"].reset_index(drop=True)
     df = df[df["completed_status"]=="Success"].reset_index(drop=True)
 
+    # Format
+    columns = [x for x in dfu.columns if "build_existing_model" in x]
+    df[columns] = df[columns].fillna("None")
+    columns = [x for x in dfu.columns if x.startswith("upgrade_costs.option") and x.endswith("name")]
+    dfu[columns] = dfu[columns].fillna("")
+
     # QC
     bldgs_no_bl = set(dfu["building_id"]) - set(df["building_id"])
     if bldgs_no_bl:
@@ -1292,14 +1514,17 @@ def main(
     # NEC 220.87 - Maximum Demand Method
     if result_as_map:
         df1 = calculate_new_load_total_220_83(df, dfu, n_kit=2, n_ldr=1, explode_result=explode_result, result_as_map=result_as_map)
-        df2 = calculate_new_load_total_220_87(df, dfu, result_as_map=result_as_map)
+        df2 = calculate_new_load_total_220_87(df, dfu, n_kit=2, n_ldr=1, result_as_map=result_as_map)
         dfo = df1.join(df2.set_index("building_id").drop(columns=["apply_upgrade.upgrade_name"]), on="building_id")
     else:
         dfu1 = calculate_new_load_total_220_83(df, dfu, n_kit=2, n_ldr=1, explode_result=explode_result)
-        dfo = calculate_new_load_total_220_87(df, dfu1)
+        dfo = calculate_new_load_total_220_87(df, dfu1, n_kit=2, n_ldr=1)
 
     # --- save to file ---
-    dfo.to_csv(output_filename, index=False)
+    if output_filename.suffix == ".csv":
+        dfo.to_csv(output_filename, index=False)
+    elif output_filename.suffix == ".parquet":
+        dfo.to_parquet(output_filename)
     print(f"File output to: {output_filename}")
 
     if plot_later:
