@@ -73,7 +73,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Building -level information
     # num_units = hpxml.buildings.collect { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units }.sum
     # num_beds = hpxml.buildings.collect { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units * hpxml_bldg.building_construction.number_of_bedrooms }.sum
-    # FIXME: should this be hpxml.buildings.size? sounds like maybe the actual number of units
+    # FIXME: should these be relative to the number of MODELED units? i.e., hpxml.buildings.size? sounds like maybe no?
     num_units = hpxml.buildings.size
     num_beds = hpxml.buildings.collect { |hpxml_bldg| hpxml_bldg.building_construction.number_of_bedrooms }.sum
 
@@ -98,6 +98,15 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     else
       swing_tank_volume = 480.0
     end
+
+    # Register values
+    runner.registerValue('shared_hpwh_type', shared_hpwh_type)
+    runner.registerValue('shared_hpwh_fuel_type', shared_hpwh_fuel_type)
+    runner.registerValue('num_units', num_units)
+    runner.registerValue('num_beds', num_beds)
+    runner.registerValue('heat_pump_count', heat_pump_count)
+    runner.registerValue('storage_tank_volume', storage_tank_volume)
+    runner.registerValue('swing_tank_volume', swing_tank_volume)
 
     # Setpoint Schedules
     storage_sp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
@@ -193,7 +202,11 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Add Availability Manager
     heat_pump_loops.each do |heat_pump_loop, components|
       storage_tank, heat_pump = components
-      hot_node = heat_pump.outletModelObject.get.to_Node.get
+      if heat_pump.to_HeatPumpAirToWaterFuelFiredHeating.is_initialized
+        hot_node = heat_pump.outletModelObject.get.to_Node.get
+      elsif heat_pump.to_WaterHeaterMixed.is_initialized
+        hot_node = heat_pump.supplyOutletModelObject.get.to_Node.get
+      end
       cold_node = storage_tank.demandOutletModelObject.get.to_Node.get
       add_availability_manager(model, heat_pump_loop, hot_node, cold_node)
     end
@@ -242,7 +255,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     return demand_inlet, demand_bypass
   end
 
-  def add_indoor_pipes(model, demand_inlet, demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value, n_units)
+  def add_indoor_pipes(model, demand_inlet, demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value, _n_units)
     # Copper Pipe
     roughness = 'Smooth'
     thickness = 0.003
@@ -312,7 +325,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       dhw_recirc_supply_pipe.setAmbientTemperatureZone(thermal_zone)
       dhw_recirc_supply_pipe.setConstruction(insulated_supply_pipe_construction)
       dhw_recirc_supply_pipe.setPipeInsideDiameter(UnitConversions.convert(supply_diameter, 'in', 'm'))
-      dhw_recirc_supply_pipe.setPipeLength(UnitConversions.convert(supply_length / n_units, 'ft', 'm'))
+      # dhw_recirc_supply_pipe.setPipeLength(UnitConversions.convert(supply_length / n_units, 'ft', 'm')) # FIXME
+      dhw_recirc_supply_pipe.setPipeLength(UnitConversions.convert(supply_length / thermal_zone.multiplier, 'ft', 'm'))
 
       dhw_recirc_supply_pipe.addToNode(demand_inlet.outletModelObject.get.to_Node.get) # FIXME: check IDF branches to make sure everything looks ok
 
@@ -322,7 +336,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       dhw_recirc_return_pipe.setAmbientTemperatureZone(thermal_zone)
       dhw_recirc_return_pipe.setConstruction(insulated_return_pipe_construction)
       dhw_recirc_return_pipe.setPipeInsideDiameter(UnitConversions.convert(return_diameter, 'in', 'm'))
-      dhw_recirc_return_pipe.setPipeLength(UnitConversions.convert(return_length / n_units, 'ft', 'm'))
+      # dhw_recirc_return_pipe.setPipeLength(UnitConversions.convert(return_length / n_units, 'ft', 'm')) # FIXME
+      dhw_recirc_return_pipe.setPipeLength(UnitConversions.convert(return_length / thermal_zone.multiplier, 'ft', 'm'))
 
       dhw_recirc_return_pipe.addToNode(demand_bypass.outletModelObject.get.to_Node.get)
     end
@@ -506,7 +521,15 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
   def add_heat_pump(model, fuel_type, heat_pump_loop, name)
     if fuel_type == HPXML::FuelTypeElectricity
       heat_pump = OpenStudio::Model::WaterHeaterHeatPump.new(model) # FIXME: this may not be simulating succesfully currently
-    elsif fuel_type == HPXML::FuelTypeNaturalGas
+      heat_pump = heat_pump.tank.to_WaterHeaterMixed.get
+      heat_pump.setHeaterFuelType(EPlus::FuelTypeElectricity)
+      heat_pump.setOffCycleParasiticFuelType(EPlus::FuelTypeElectricity)
+      heat_pump.setOffCycleParasiticFuelConsumptionRate(0.0)
+      heat_pump.setOffCycleParasiticHeatFractiontoTank(0)
+      heat_pump.setOnCycleParasiticFuelType(EPlus::FuelTypeElectricity)
+      heat_pump.setOnCycleParasiticFuelConsumptionRate(0.0)
+      heat_pump.setOnCycleParasiticHeatFractiontoTank(0)
+    else
       heat_pump = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
       heat_pump.setFuelType(EPlus.fuel_type(fuel_type))
       heat_pump.setEndUseSubcategory(name)

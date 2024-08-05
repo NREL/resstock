@@ -1648,11 +1648,16 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     Outputs.write_results_out_to_file(results_out, args[:output_format], annual_output_path)
     runner.registerInfo("Wrote annual output results to #{annual_output_path}.")
 
+    # AddSharedHPWH measure
+    geometry_building_num_units = 1
+    geometry_building_num_units = @hpxml_bldgs[0].header.extension_properties['geometry_building_num_units'].to_i if !@hpxml_bldgs[0].header.extension_properties['geometry_building_num_units'].nil?
+
     results_out.each do |name, value|
       next if name.nil? || value.nil?
 
       name = OpenStudio::toUnderscoreCase(name).chomp('_')
 
+      value /= geometry_building_num_units
       runner.registerValue(name, value)
       runner.registerInfo("Registering #{value} for #{name}.")
     end
