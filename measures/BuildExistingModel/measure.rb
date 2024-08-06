@@ -341,7 +341,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     shared_hpwh_type = 'none'
     if bldg_data['Water Heater In Unit'] == 'No'
       if bldg_data['Water Heater Efficiency'].include?('Heat Pump')
-        # shared_hpwh_type = 'hpwh'
+        shared_hpwh_type = 'hpwh'
         if bldg_data['Water Heater Efficiency'].include?('Electric')
           shared_hpwh_fuel_type = HPXML::FuelTypeElectricity
         elsif bldg_data['Water Heater Efficiency'].include?('Natural Gas')
@@ -386,10 +386,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     elsif whole_sfa_or_mf_building_sim
       num_units_modeled = geometry_building_num_units
     end
-
-    register_value(runner, 'geometry_building_num_units', geometry_building_num_units)
-    register_value(runner, 'geometry_building_num_units_modeled', num_units_modeled)
-    register_value(runner, 'unit_multipliers', unit_multipliers.join(','))
 
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     (1..num_units_modeled).each do |unit_number|

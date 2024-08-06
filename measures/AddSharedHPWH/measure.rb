@@ -49,33 +49,35 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     # Extension properties
     hpxml_bldg = hpxml.buildings[0]
-
+    geometry_building_num_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f
+    num_stories = hpxml_bldg.header.extension_properties['geometry_num_floors_above_grade'].to_f
+    has_double_loaded_corridor = hpxml_bldg.header.extension_properties['geometry_corridor_position']
     shared_hpwh_type = hpxml_bldg.header.extension_properties['shared_hpwh_type']
+    shared_hpwh_fuel_type = hpxml_bldg.header.extension_properties['shared_hpwh_fuel_type']
+
+    # Skip measure if no shared HPWH
     if shared_hpwh_type == 'none'
       runner.registerAsNotApplicable('Building does not have shared HPWH. Skipping AddSharedHPWH measure ...')
       return true
     end
 
-    shared_hpwh_fuel_type = hpxml_bldg.header.extension_properties['shared_hpwh_fuel_type']
-    num_stories = hpxml_bldg.header.extension_properties['geometry_num_floors_above_grade'].to_f
-    has_double_loaded_corridor = hpxml_bldg.header.extension_properties['geometry_corridor_position']
-
     # TODO
-    # 1 Remove any existing WHs and associated plant loops. Keep WaterUseEquipment objects.
-    # 2 Add recirculation loop and piping. Use "Pipe:Indoor" objects, assume ~3 m of pipe per unit in the living zone of each.
-    #  Each unit also needs a splitter: either to the next unit or this unit's WaterUseEquipment Objects. (this involves pipes in parallel/series. this may be handled in FT.)
-    # 3 Add a recirculation pump (ConstantSpeed) to the loop. We'll use "AlwaysOn" logic, at least as a starting point.
-    # 5 Add a new WaterHeater:Stratified object to represent the main storage tank.
-    # 6 Add a swing tank in series: Ahead of the main WaterHeater:Stratified, another stratified tank model.
-    #  This one includes an ER element to make up for loop losses.
-    # 7 Add the GAHP(s). Will need to do some test runs when this is in to figure out how many units before we increase the # of HPs
+    # 1: Remove any existing WHs and associated plant loops. Keep WaterUseEquipment objects.
+    # 2: Add recirculation loop and piping. Use "Pipe:Indoor" objects, assume ~3 m of pipe per unit in the living zone of each.
+    #    Each unit also needs a splitter: either to the next unit or this unit's WaterUseEquipment Objects. (this involves pipes in parallel/series. this may be handled in FT.)
+    # 3: Add a recirculation pump (ConstantSpeed) to the loop. We'll use "AlwaysOn" logic, at least as a starting point.
+    # 5: Add a new WaterHeater:Stratified object to represent the main storage tank.
+    # 6: Add a swing tank in series: Ahead of the main WaterHeater:Stratified, another stratified tank model.
+    #    This one includes an ER element to make up for loop losses.
+    # 7: Add the GAHP(s). Will need to do some test runs when this is in to figure out how many units before we increase the # of HPs
 
     # Building -level information
-    # num_units = hpxml.buildings.collect { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units }.sum
-    # num_beds = hpxml.buildings.collect { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units * hpxml_bldg.building_construction.number_of_bedrooms }.sum
+    unit_multipliers = hpxml.buildings.collect { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units }
+    num_units = unit_multipliers.sum
+    num_beds = hpxml.buildings.collect { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units * hpxml_bldg.building_construction.number_of_bedrooms }.sum
     # FIXME: should these be relative to the number of MODELED units? i.e., hpxml.buildings.size? sounds like maybe no?
-    num_units = hpxml.buildings.size
-    num_beds = hpxml.buildings.collect { |hpxml_bldg| hpxml_bldg.building_construction.number_of_bedrooms }.sum
+    # num_units = hpxml.buildings.size
+    # num_beds = hpxml.buildings.collect { |hpxml_bldg| hpxml_bldg.building_construction.number_of_bedrooms }.sum
 
     # Calculate some size parameters: number of heat pumps, storage tank volume, number of tanks, swing tank volume
     # Sizing is based on CA code requirements: https://efiling.energy.ca.gov/GetDocument.aspx?tn=234434&DocumentContentId=67301
@@ -100,6 +102,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
 
     # Register values
+    runner.registerValue('geometry_building_num_units', geometry_building_num_units)
+    runner.registerValue('geometry_building_num_units_modeled', hpxml.buildings.size)
+    runner.registerValue('unit_multipliers', unit_multipliers.join(','))
     runner.registerValue('shared_hpwh_type', shared_hpwh_type)
     runner.registerValue('shared_hpwh_fuel_type', shared_hpwh_fuel_type)
     runner.registerValue('num_units', num_units)
@@ -204,7 +209,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       storage_tank, heat_pump = components
       if heat_pump.to_HeatPumpAirToWaterFuelFiredHeating.is_initialized
         hot_node = heat_pump.outletModelObject.get.to_Node.get
-      elsif heat_pump.to_WaterHeaterMixed.is_initialized
+      elsif heat_pump.to_WaterHeaterStratified.is_initialized
         hot_node = heat_pump.supplyOutletModelObject.get.to_Node.get
       end
       cold_node = storage_tank.demandOutletModelObject.get.to_Node.get
@@ -462,13 +467,23 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     storage_tank.setNumberofNodes(6)
     storage_tank.setUseSideDesignFlowRate(UnitConversions.convert(volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
     storage_tank.setEndUseSubcategory(name)
+    if heat_pump_loop.nil? # stratified tank on supply side of source loop (i.e., shared electric hpwh)
+      storage_tank.setHeaterThermalEfficiency(1.0)
+      storage_tank.setAdditionalDestratificationConductivity(0)
+      storage_tank.setSourceSideDesignFlowRate(0)
+      storage_tank.setSourceSideFlowControlMode('')
+      storage_tank.setSourceSideInletHeight(0)
+      storage_tank.setSourceSideOutletHeight(0)
+    end
 
     if prev_storage_tank.nil?
       source_loop.addSupplyBranchForComponent(storage_tank) # first one is a new supply branch
     else
       storage_tank.addToNode(prev_storage_tank.useSideOutletModelObject.get.to_Node.get) # remaining are added in series
     end
-    heat_pump_loop.addDemandBranchForComponent(storage_tank)
+    if !heat_pump_loop.nil?
+      heat_pump_loop.addDemandBranchForComponent(storage_tank)
+    end
 
     return storage_tank
   end
@@ -521,24 +536,20 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
   def add_heat_pump(model, fuel_type, heat_pump_loop, name)
     if fuel_type == HPXML::FuelTypeElectricity
       heat_pump = OpenStudio::Model::WaterHeaterHeatPump.new(model) # FIXME: this may not be simulating succesfully currently
-      heat_pump = heat_pump.tank.to_WaterHeaterMixed.get
-      heat_pump.setHeaterFuelType(EPlus::FuelTypeElectricity)
-      heat_pump.setOffCycleParasiticFuelType(EPlus::FuelTypeElectricity)
-      heat_pump.setOffCycleParasiticFuelConsumptionRate(0.0)
-      heat_pump.setOffCycleParasiticHeatFractiontoTank(0)
-      heat_pump.setOnCycleParasiticFuelType(EPlus::FuelTypeElectricity)
-      heat_pump.setOnCycleParasiticFuelConsumptionRate(0.0)
-      heat_pump.setOnCycleParasiticHeatFractiontoTank(0)
+      tank = add_storage_tank(model, heat_pump_loop, nil, 80.0, nil, name)
+      heat_pump.setTank(tank)
+      fan = heat_pump.fan
+      fan.additionalProperties.setFeature('ObjectType', Constants.ObjectNameWaterHeater) # Used by reporting measure
+      heat_pump = tank
     else
       heat_pump = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
+      heat_pump.setName(name)
       heat_pump.setFuelType(EPlus.fuel_type(fuel_type))
       heat_pump.setEndUseSubcategory(name)
       heat_pump.setNominalAuxiliaryElectricPower(0)
       heat_pump.setStandbyElectricPower(0)
+      heat_pump_loop.addSupplyBranchForComponent(heat_pump)
     end
-
-    heat_pump.setName(name)
-    heat_pump_loop.addSupplyBranchForComponent(heat_pump)
 
     return heat_pump
   end
