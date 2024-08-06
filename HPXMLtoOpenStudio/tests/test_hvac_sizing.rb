@@ -323,7 +323,7 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_in_delta(16608, hpxml_bldg.hvac_plant.hdl_walls, block_tol_btuh)
     assert_equal(0, hpxml_bldg.hvac_plant.hdl_roofs)
     assert_equal(0, hpxml_bldg.hvac_plant.hdl_floors)
-    assert_in_delta(2440, hpxml_bldg.hvac_plant.hdl_slabs, block_tol_btuh)
+    assert_in_delta(2440, hpxml_bldg.hvac_plant.hdl_slabs, 1000) # Discrepancy because we take into account basement floor depth below grade (5ft) vs Table 4A assumption of 8ft
     assert_in_delta(5435, hpxml_bldg.hvac_plant.hdl_ceilings, block_tol_btuh)
     assert_in_delta(6944, hpxml_bldg.hvac_plant.hdl_infil, block_tol_btuh)
     assert_equal(0, hpxml_bldg.hvac_plant.hdl_vent)
@@ -1203,7 +1203,11 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
 
   def test_manual_j_slab_f_factor
     # Check values against MJ8 Table 5A Construction Number 22 (Concrete Slab on Grade Floor)
-    tol = 0.1
+    tol = 0.15 # 15%
+
+    high_soil_k = 1.0 / 1.25 # Heavy moist soil, R-value/ft=1.25
+    med_soil_k = 1.0 / 2.0 # Heavy dry or light moist soil, R-value/ft=2.0
+    low_soil_k = 1.0 / 5.0 # Light dry soil, R-value/ft=5.0
 
     slab = HPXML::Slab.new(nil)
     slab.thickness = 4.0 # in
@@ -1214,83 +1218,177 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     slab.under_slab_insulation_r_value = 0
 
     # 22A — No Edge Insulation, No insulation Below Floor, any Floor Cover
-    assert_in_delta(1.358, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(1.180, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.989, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(1.358, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(1.180, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.989, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     # 22B — Vertical Board Insulation Covers Slab Edge and Extends Straight Down to Three Feet Below Grade, any Floor Cover
     slab.perimeter_insulation_depth = 3
     slab.perimeter_insulation_r_value = 5
-    assert_in_delta(0.589, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.449, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.289, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(0.589, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(0.449, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.289, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     slab.perimeter_insulation_r_value = 10
-    assert_in_delta(0.481, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.355, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.210, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(0.481, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(0.355, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.210, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     slab.perimeter_insulation_r_value = 15
-    assert_in_delta(0.432, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.314, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.178, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(0.432, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(0.314, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.178, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     # 22C — Horizontal Board Insulation Extends Four Feet Under Slab, any Floor Cover
     slab.perimeter_insulation_depth = 0
     slab.perimeter_insulation_r_value = 0
     slab.under_slab_insulation_width = 4
     slab.under_slab_insulation_r_value = 5
-    assert_in_delta(1.266, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(1.135, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.980, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(1.266, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(1.135, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.980, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     slab.under_slab_insulation_r_value = 10
-    assert_in_delta(1.221, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(1.108, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.937, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(1.221, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(1.108, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.937, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     slab.under_slab_insulation_r_value = 15
-    assert_in_delta(1.194, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(1.091, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.967, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(1.194, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(1.091, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.967, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     # 22D — Vertical Board Insulation Covers Slab Edge, Turns Under the Slab and Extends Four Feet Horizontally, any Floor Cover
     slab.under_slab_insulation_width = 4
     slab.under_slab_insulation_r_value = 5
     slab.perimeter_insulation_depth = 0.333 # 4" slab
     slab.perimeter_insulation_r_value = 5
-    assert_in_delta(0.574, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.442, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.287, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(0.574, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(0.442, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.287, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     slab.under_slab_insulation_r_value = 10
     slab.perimeter_insulation_r_value = 10
-    assert_in_delta(0.456, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.343, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.208, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(0.456, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(0.343, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.208, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     slab.under_slab_insulation_r_value = 15
     slab.perimeter_insulation_r_value = 15
-    assert_in_delta(0.401, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.298, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.174, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(0.401, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(0.298, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.174, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
   end
 
   def test_manual_j_basement_slab_ufactor
     # Check values against MJ8 Table 4A Construction Number 21 (Basement Floor)
-    tol = 0.002
+    tol = 0.06 # 6%
+
+    high_soil_k = 1.0 / 1.25 # Heavy moist soil, R-value/ft=1.25
 
     # 21A — No Insulation Below Floor, Any Floor Cover
-    assert_in_delta(0.027, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 20.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.025, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 24.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.022, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 28.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.020, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 32.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_epsilon(0.027, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 20.0, high_soil_k), tol)
+    assert_in_epsilon(0.025, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 24.0, high_soil_k), tol)
+    assert_in_epsilon(0.022, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 28.0, high_soil_k), tol)
+    assert_in_epsilon(0.020, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 32.0, high_soil_k), tol)
 
     # 21B — Insulation Installed Below Floor, Any Floor Cover
-    assert_in_delta(0.019, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 20.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.017, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 24.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.015, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 28.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.014, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 32.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_epsilon(0.019, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 20.0, high_soil_k), tol)
+    assert_in_epsilon(0.017, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 24.0, high_soil_k), tol)
+    assert_in_epsilon(0.015, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 28.0, high_soil_k), tol)
+    assert_in_epsilon(0.014, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 32.0, high_soil_k), tol)
+  end
+
+  def test_manual_j_basement_wall_below_grade_ufactor
+    # Check values against MJ8 Table 4A Construction Number 15 (Basement Walls)
+    tol = 0.06 # 6%
+
+    high_soil_k = 1.0 / 1.25 # Heavy moist soil, R-value/ft=1.25
+
+    fwall = HPXML::FoundationWall.new(nil)
+
+    # Test w/ Insulation Assembly R-value
+    # 15A - Concrete Block Wall with Board Insulation
+    fwall.type = HPXML::FoundationWallTypeConcreteBlock
+
+    # No insulation, open, 2ft depth
+    fwall.height = 2.0
+    fwall.depth_below_grade = 2.0
+    fwall.insulation_assembly_r_value = 1.0 / 0.584
+    assert_in_epsilon(0.257, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+    # No insulation, open, 10ft depth
+    fwall.height = 10.0
+    fwall.depth_below_grade = 10.0
+    assert_in_epsilon(0.109, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+    # Full R-20 board, filled, 2ft depth
+    fwall.height = 2.0
+    fwall.depth_below_grade = 2.0
+    fwall.insulation_assembly_r_value = 1.0 / 0.043
+    assert_in_epsilon(0.034, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+    # Full R-20 board, filled, 10ft depth
+    fwall.height = 10.0
+    fwall.depth_below_grade = 10.0
+    assert_in_epsilon(0.026, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+    # Test w/ Insulation Layers
+    # 15C - Four Inches Concrete with Board Insulation
+
+    fwall.type = HPXML::FoundationWallTypeSolidConcrete
+    fwall.thickness = 4.0 # in
+    fwall.insulation_assembly_r_value = nil
+    fwall.insulation_interior_r_value = 0.0
+    fwall.insulation_exterior_r_value = 0.0
+    fwall.insulation_interior_distance_to_top = 0.0
+    fwall.insulation_exterior_distance_to_top = 0.0
+    fwall.insulation_interior_distance_to_bottom = 0.0
+    fwall.insulation_exterior_distance_to_bottom = 0.0
+
+    # No insulation, 2ft depth
+    fwall.height = 2.0
+    fwall.depth_below_grade = 2.0
+    assert_in_epsilon(0.304, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+    # No insulation, 10ft depth
+    fwall.height = 10.0
+    fwall.depth_below_grade = 10.0
+    assert_in_epsilon(0.121, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+    [true, false].each do |use_exterior_insulation|
+      # Full R-20 board, 2ft depth
+      fwall.height = 2.0
+      fwall.depth_below_grade = 2.0
+      fwall.insulation_exterior_r_value = use_exterior_insulation ? 20.0 : 0.0
+      fwall.insulation_interior_r_value = use_exterior_insulation ? 0.0 : 20.0
+      fwall.insulation_exterior_distance_to_bottom = use_exterior_insulation ? 2.0 : 0.0
+      fwall.insulation_interior_distance_to_bottom = use_exterior_insulation ? 0.0 : 2.0
+      assert_in_epsilon(0.037, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+      # Full R-20 board, 10ft depth
+      fwall.height = 10.0
+      fwall.depth_below_grade = 10.0
+      fwall.insulation_exterior_distance_to_bottom = use_exterior_insulation ? 10.0 : 0.0
+      fwall.insulation_interior_distance_to_bottom = use_exterior_insulation ? 0.0 : 10.0
+      assert_in_epsilon(0.028, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+      # 3ft R-20 board, 2ft depth
+      fwall.height = 2.0
+      fwall.depth_below_grade = 2.0
+      fwall.insulation_exterior_r_value = use_exterior_insulation ? 20.0 : 0.0
+      fwall.insulation_interior_r_value = use_exterior_insulation ? 0.0 : 20.0
+      fwall.insulation_exterior_distance_to_bottom = use_exterior_insulation ? 3.0 : 0.0
+      fwall.insulation_interior_distance_to_bottom = use_exterior_insulation ? 0.0 : 3.0
+      assert_in_epsilon(0.037, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+      # 3ft R-20 board, 10ft depth
+      fwall.height = 10.0
+      fwall.depth_below_grade = 10.0
+      fwall.insulation_exterior_distance_to_bottom = use_exterior_insulation ? 3.0 : 0.0
+      fwall.insulation_interior_distance_to_bottom = use_exterior_insulation ? 0.0 : 3.0
+      assert_in_epsilon(0.057, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+    end
   end
 
   def test_multiple_zones

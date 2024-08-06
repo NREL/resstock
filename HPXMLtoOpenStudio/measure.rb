@@ -526,7 +526,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # HVAC
     @hvac_unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::Columns[:HVAC].name, @hpxml_header.unavailable_periods)
     airloop_map = {} # Map of HPXML System ID -> AirLoopHVAC (or ZoneHVACFourPipeFanCoil)
-    add_ideal_system(model, spaces, epw_path)
+    add_ideal_system(model, spaces, weather)
     add_cooling_system(model, runner, weather, spaces, airloop_map)
     add_heating_system(runner, model, weather, spaces, airloop_map)
     add_heat_pump(runner, model, weather, spaces, airloop_map)
@@ -1997,25 +1997,25 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
   end
 
-  # TODO
+  # Adds an ideal air system as needed to meet the load under certain circumstances:
+  # 1. the sum of fractions load served is less than 1 and greater than 0 (e.g., room ACs serving a portion of the home's load),
+  #    in which case we need the ideal system to help fully condition the thermal zone to prevent incorrect heat transfers, or
+  # 2. ASHRAE 140 tests where we need heating/cooling loads.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
-  # @param epw_path [String] Path to the EPW weather file
-  # @return [TODO] TODO
-  def add_ideal_system(model, spaces, epw_path)
-    # Adds an ideal air system as needed to meet the load under certain circumstances:
-    # 1. the sum of fractions load served is less than 1, or
-    # 2. we're using an ideal air system for e.g. ASHRAE 140 loads calculation.
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @return [void]
+  def add_ideal_system(model, spaces, weather)
     conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
 
     if @apply_ashrae140_assumptions && (@hpxml_bldg.total_fraction_heat_load_served + @hpxml_bldg.total_fraction_heat_load_served == 0.0)
       cooling_load_frac = 1.0
       heating_load_frac = 1.0
       if @apply_ashrae140_assumptions
-        if epw_path.end_with? 'USA_CO_Colorado.Springs-Peterson.Field.724660_TMY3.epw'
+        if weather.header.StateProvinceRegion.downcase == 'co'
           cooling_load_frac = 0.0
-        elsif epw_path.end_with? 'USA_NV_Las.Vegas-McCarran.Intl.AP.723860_TMY3.epw'
+        elsif weather.header.StateProvinceRegion.downcase == 'nv'
           heating_load_frac = 0.0
         else
           fail 'Unexpected weather file for ASHRAE 140 run.'

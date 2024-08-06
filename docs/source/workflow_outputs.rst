@@ -710,18 +710,19 @@ Report: <BuildingID>: Summary
 
 For each HPXML Building, the following output types are reported.
 
-  =======================  ===========  ================  ================  ================  ================
-  Type                     Orientation  Heating HTM [#]_  Cooling HTM [#]_  Heating CFM [#]_  Cooling CFM [#]_
-  =======================  ===========  ================  ================  ================  ================
-  Windows: <WindowID>      X            X                 X                                     
-  Skylights: <SkylightID>  X            X                 X                                     
-  Doors: <DoorID>          X            X                 X                                     
-  Walls: <WallID>          X            X                 X                                     
-  Ceilings: <CeilingID>                 X                 X                                     
-  Floors: <FloorID>                     X                 X                                     
-  Infiltration                                                              X                 X  
-  Ventilation                                                               X                 X  
-  =======================  ===========  ================  ================  ================  ================
+  ===========================  ===========  ================  ================  ================  ================
+  Type                         Orientation  Heating HTM [#]_  Cooling HTM [#]_  Heating CFM [#]_  Cooling CFM [#]_
+  ===========================  ===========  ================  ================  ================  ================
+  Windows: <WindowID>          X            X                 X                                     
+  Skylights: <SkylightID>      X            X                 X                                     
+  Doors: <DoorID>              X            X                 X                                     
+  Above Grade Walls: <WallID>  X            X                 X                                     
+  Below Grade Walls: <WallID>  X            X                 X                                     
+  Ceilings: <CeilingID>                     X                 X                                     
+  Floors: <FloorID>                         X                 X                                     
+  Infiltration                                                                  X                 X  
+  Ventilation                                                                   X                 X  
+  ===========================  ===========  ================  ================  ================  ================
 
   .. [#] Heating HTM is the heating heat transfer multiplier (Btu/ft^2), which is multiplier by surface area to calculate the heating design load.
   .. [#] Cooling HTM is the cooling heat transfer multiplier (Btu/ft^2), which is multiplier by surface area to calculate the sensible cooling design load.
@@ -733,24 +734,25 @@ Report: <BuildingID>: Loads
 
 For each HPXML Building, the following output types are reported.
 
-  =======================  ===========  ===========  ===============  ==============  =======================  =====================
-  Type                     Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)  Cooling Latent (Btuh)
-  =======================  ===========  ===========  ===============  ==============  =======================  =====================
-  Windows: <WindowID>      X                                          X               X
-  Skylights: <SkylightID>  X                                          X               X
-  Doors: <DoorID>          X                                          X               X
-  Walls: <WallID>          X                                          X               X
-  Ceilings: <CeilingID>    X                                          X               X
-  Floors: <FloorID>        X            See [#]_                      X               X
-  Infiltration                                       X                X               X                        X  
-  Internal Gains                                                                      X                        X  
-  Ducts                                                               X               X                        X  
-  Ventilation                                                         X               X                        X  
-  Piping                                                              X
-  Blower Heat                                                                         X
-  AED Excursion                                                                       X                          
-  Total                                                               X               X                        X
-  =======================  ===========  ===========  ===============  ==============  =======================  =====================
+  ===========================  ===========  ===========  ===============  ==============  =======================  =====================
+  Type                         Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)  Cooling Latent (Btuh)
+  ===========================  ===========  ===========  ===============  ==============  =======================  =====================
+  Windows: <WindowID>          X                                          X               X
+  Skylights: <SkylightID>      X                                          X               X
+  Doors: <DoorID>              X                                          X               X
+  Above Grade Walls: <WallID>  X                                          X               X
+  Below Grade Walls: <WallID>  X                                          X               X
+  Ceilings: <CeilingID>        X                                          X               X
+  Floors: <FloorID>            X            See [#]_                      X               X
+  Infiltration                                           X                X               X                        X  
+  Internal Gains                                                                          X                        X  
+  Ducts                                                                   X               X                        X  
+  Ventilation                                                             X               X                        X  
+  Piping                                                                  X
+  Blower Heat                                                                             X
+  AED Excursion                                                                           X                          
+  Total                                                                   X               X                        X
+  ===========================  ===========  ===========  ===============  ==============  =======================  =====================
 
   .. [#] Length will be provided for a slab floor under conditioned space.
 
@@ -760,24 +762,25 @@ Report: <BuildingID>: <ZoneID>: Loads
 For each HPXML conditioned Zone (see :ref:`zones_spaces`), the following output types are reported.
 Only those surfaces attached to a space in the given zone will be included.
 
-  =======================  ===========  ===========  ===============  ==============  =======================  =====================
-  Type                     Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)  Cooling Latent (Btuh)
-  =======================  ===========  ===========  ===============  ==============  =======================  =====================
-  Windows: <WindowID>      X                                          X               X
-  Skylights: <SkylightID>  X                                          X               X
-  Doors: <DoorID>          X                                          X               X
-  Walls: <WallID>          X                                          X               X
-  Ceilings: <CeilingID>    X                                          X               X
-  Floors: <FloorID>        X            See [#]_                      X               X
-  Infiltration                                       X                X               X                        X  
-  Internal Gains                                                                      X                        X  
-  Ducts                                                               X               X                        X  
-  Ventilation                                                         X               X                        X  
-  Piping                                                              X
-  Blower Heat                                                                         X
-  AED Excursion                                                                       X                          
-  Total                                                               X               X                        X
-  =======================  ===========  ===========  ===============  ==============  =======================  =====================
+  ===========================  ===========  ===========  ===============  ==============  =======================  =====================
+  Type                         Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)  Cooling Latent (Btuh)
+  ===========================  ===========  ===========  ===============  ==============  =======================  =====================
+  Windows: <WindowID>          X                                          X               X
+  Skylights: <SkylightID>      X                                          X               X
+  Doors: <DoorID>              X                                          X               X
+  Above Grade Walls: <WallID>  X                                          X               X
+  Below Grade Walls: <WallID>  X                                          X               X
+  Ceilings: <CeilingID>        X                                          X               X
+  Floors: <FloorID>            X            See [#]_                      X               X
+  Infiltration                                           X                X               X                        X  
+  Internal Gains                                                                          X                        X  
+  Ducts                                                                   X               X                        X  
+  Ventilation                                                             X               X                        X  
+  Piping                                                                  X
+  Blower Heat                                                                             X
+  AED Excursion                                                                           X                          
+  Total                                                                   X               X                        X
+  ===========================  ===========  ===========  ===============  ==============  =======================  =====================
 
   .. [#] Length will be provided for a slab floor under conditioned space.
 
@@ -787,21 +790,21 @@ Report: <BuildingID>: <SpaceID>: Loads
 For each HPXML Space in a conditioned zone (see :ref:`zones_spaces`), the following output types are reported.
 Only those surfaces attached to the given space will be included.
 
-  =======================  ===========  ===========  ===============  ==============  =======================
-  Type                     Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)
-  =======================  ===========  ===========  ===============  ==============  =======================
-  Windows: <WindowID>      X                                          X               X
-  Skylights: <SkylightID>  X                                          X               X
-  Doors: <DoorID>          X                                          X               X
-  Walls: <WallID>          X                                          X               X
-  Ceilings: <CeilingID>    X                                          X               X
-  Floors: <FloorID>        X            See [#]_                      X               X
-  Infiltration                                       X                X               X
-  Internal Gains                                                                      X
-  Ducts                                                               X               X
-  AED Excursion                                                                       X
-  Total                                                               X               X
-  =======================  ===========  ===========  ===============  ==============  =======================
+  ===========================  ===========  ===========  ===============  ==============  =======================
+  Type                         Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)
+  ===========================  ===========  ===========  ===============  ==============  =======================
+  Windows: <WindowID>          X                                          X               X
+  Skylights: <SkylightID>      X                                          X               X
+  Doors: <DoorID>              X                                          X               X
+  Above Grade Walls: <WallID>  X                                          X               X
+  Ceilings: <CeilingID>        X                                          X               X
+  Floors: <FloorID>            X            See [#]_                      X               X
+  Infiltration                                           X                X               X
+  Internal Gains                                                                          X
+  Ducts                                                                   X               X
+  AED Excursion                                                                           X
+  Total                                                                   X               X
+  ===========================  ===========  ===========  ===============  ==============  =======================
 
   .. [#] Length will be provided for a slab floor under conditioned space.
 
