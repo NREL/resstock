@@ -19,7 +19,10 @@ if __name__ == '__main__':
                       'upgrade_name',
                       'add_timeseries_',
                       'user_output_variables',
-                      'debug']
+                      'debug',
+                      'include_monthly_',
+                      'register_annual_',
+                      'register_monthly_']
 
     # BASELINE
 

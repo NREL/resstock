@@ -7,9 +7,6 @@ require 'openstudio'
 require_relative 'resources/constants'
 require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 
-# in addition to the above requires, this measure is expected to run in an
-# environment with resstock/resources/buildstock.rb loaded
-
 # start the measure
 class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   # human readable name
@@ -185,13 +182,9 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources'))
     characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/housing_characteristics'))
-    buildstock_file = File.join(resources_dir, 'buildstock.rb')
     measures_dir = File.join(File.dirname(__FILE__), '../../measures')
     hpxml_measures_dir = File.join(File.dirname(__FILE__), '../../resources/hpxml-measures')
     lookup_file = File.join(resources_dir, 'options_lookup.tsv')
-
-    # Load buildstock_file
-    require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
     # Check file/dir paths exist
     check_dir_exists(resources_dir, runner)
