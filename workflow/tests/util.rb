@@ -1082,6 +1082,10 @@ def _check_unit_multiplier_results(xml, hpxml_bldg, annual_results_1x, annual_re
       # Check that the hot water usage difference is less than 10 gal/yr or less than 2%
       abs_delta_tol = 10.0
       abs_frac_tol = 0.02
+    elsif key.include?('Total Water:')
+      # Check that the total water usage difference is less than 10 gal/yr or less than 2%
+      abs_delta_tol = 10.0
+      abs_frac_tol = 0.02
     elsif key.include?('Resilience: Battery')
       # Check that the battery resilience difference is less than 1 hr or less than 1%
       abs_delta_tol = 1.0
@@ -1169,7 +1173,7 @@ def _check_unit_multiplier_results(xml, hpxml_bldg, annual_results_1x, annual_re
           next if key.include?('Peak')
         end
         if hpxml_bldg.water_heating_systems.select { |wh| [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? wh.water_heater_type }.size > 0
-          next if key.include?('Hot Water')
+          next if key.include?('Hot Water') || key.include?('Total Water')
         end
 
         debug_str = "#{File.basename(xml)}: [#{key}, #{period}] 1x=#{val_1x}, 10x=#{val_10x}"
@@ -1207,7 +1211,7 @@ def _write_results(results, csv_out, output_groups_filter: [])
     'energy' => ['Energy Use', 'Fuel Use', 'End Use'],
     'loads' => ['Load', 'Component Load'],
     'hvac' => ['HVAC Design Temperature', 'HVAC Capacity', 'HVAC Design Load'],
-    'misc' => ['Unmet Hours', 'Hot Water', 'Peak Electricity', 'Peak Load', 'Resilience'],
+    'misc' => ['Unmet Hours', 'Hot Water', 'Total Water', 'Peak Electricity', 'Peak Load', 'Resilience'],
     'bills' => ['Utility Bills'],
   }
 

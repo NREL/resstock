@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>report_simulation_output</name>
   <uid>df9d170c-c21a-4130-866d-0d46b06073fd</uid>
-  <version_id>cad8b6ff-ed40-494a-8c8e-948499029726</version_id>
-  <version_modified>2024-07-12T14:33:32Z</version_modified>
+  <version_id>7aa17b3d-ac1a-4d85-84ba-e432878b7ce6</version_id>
+  <version_modified>2024-07-25T16:20:28Z</version_modified>
   <xml_checksum>9BF1E6AC</xml_checksum>
   <class_name>ReportSimulationOutput</class_name>
   <display_name>HPXML Simulation Output Report</display_name>
@@ -286,6 +286,25 @@
       </choices>
     </argument>
     <argument>
+      <name>include_annual_total_water_uses</name>
+      <display_name>Generate Annual Output: Total Water Uses</display_name>
+      <description>Generates annual total water usages for each end use.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>include_annual_hvac_summary</name>
       <display_name>Generate Annual Output: HVAC Summary</display_name>
       <description>Generates HVAC capacities, design temperatures, and design loads.</description>
@@ -491,6 +510,25 @@
       <name>include_timeseries_hot_water_uses</name>
       <display_name>Generate Timeseries Output: Hot Water Uses</display_name>
       <description>Generates timeseries hot water usages for each end use.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_timeseries_total_water_uses</name>
+      <display_name>Generate Timeseries Output: Total Water Uses</display_name>
+      <description>Generates timeseries total water usages for each end use.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -1879,6 +1917,34 @@
       <model_dependent>false</model_dependent>
     </output>
     <output>
+      <name>total_water_clothes_washer_gal</name>
+      <display_name>total_water_clothes_washer_gal</display_name>
+      <short_name>total_water_clothes_washer_gal</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>total_water_dishwasher_gal</name>
+      <display_name>total_water_dishwasher_gal</display_name>
+      <short_name>total_water_dishwasher_gal</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>total_water_fixtures_gal</name>
+      <display_name>total_water_fixtures_gal</display_name>
+      <short_name>total_water_fixtures_gal</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>total_water_distribution_waste_gal</name>
+      <display_name>total_water_distribution_waste_gal</display_name>
+      <short_name>total_water_distribution_waste_gal</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
       <name>resilience_battery_hr</name>
       <display_name>resilience_battery_hr</display_name>
       <short_name>resilience_battery_hr</short_name>
@@ -1912,7 +1978,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>CDB2D617</checksum>
+      <checksum>A16A8458</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -1929,13 +1995,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>9728288E</checksum>
+      <checksum>F6DFCEDD</checksum>
     </file>
     <file>
       <filename>test_report_sim_output.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>E54EAD68</checksum>
+      <checksum>64DFFB69</checksum>
     </file>
   </files>
 </measure>

@@ -72,6 +72,15 @@ module HWT
 end
 
 # TODO
+module TWT
+  # Total Water Types
+  ClothesWasher = 'Clothes Washer'
+  Dishwasher = 'Dishwasher'
+  Fixtures = 'Fixtures'
+  DistributionWaste = 'Distribution Waste'
+end
+
+# TODO
 module LT
   # Load Types
   Heating = 'Heating: Delivered'

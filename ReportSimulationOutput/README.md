@@ -167,6 +167,17 @@ Generates annual hot water usages for each end use.
 
 <br/>
 
+**Generate Annual Output: Total Water Uses**
+
+Generates annual total water usages for each end use.
+
+- **Name:** ``include_annual_total_water_uses``
+- **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
 **Generate Annual Output: HVAC Summary**
 
 Generates HVAC capacities, design temperatures, and design loads.
@@ -284,6 +295,17 @@ Generates timeseries emissions for each end use. Requires the appropriate HPXML 
 Generates timeseries hot water usages for each end use.
 
 - **Name:** ``include_timeseries_hot_water_uses``
+- **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
+**Generate Timeseries Output: Total Water Uses**
+
+Generates timeseries total water usages for each end use.
+
+- **Name:** ``include_timeseries_total_water_uses``
 - **Type:** ``Boolean``
 
 - **Required:** ``false``
@@ -781,6 +803,14 @@ All possible measure outputs are listed below. Actual outputs depend on measure 
 - ``hot_water_fixtures_gal``
 
 - ``hot_water_distribution_waste_gal``
+
+- ``total_water_clothes_washer_gal``
+
+- ``total_water_dishwasher_gal``
+
+- ``total_water_fixtures_gal``
+
+- ``total_water_distribution_waste_gal``
 
 - ``resilience_battery_hr``
 

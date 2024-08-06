@@ -125,6 +125,12 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(true)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_annual_total_water_uses', false)
+    arg.setDisplayName('Generate Annual Output: Total Water Uses')
+    arg.setDescription('Generates annual total water usages for each end use.')
+    arg.setDefaultValue(true)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_annual_hvac_summary', false)
     arg.setDisplayName('Generate Annual Output: HVAC Summary')
     arg.setDescription('Generates HVAC capacities, design temperatures, and design loads.')
@@ -194,6 +200,12 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_timeseries_hot_water_uses', false)
     arg.setDisplayName('Generate Timeseries Output: Hot Water Uses')
     arg.setDescription('Generates timeseries hot water usages for each end use.')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_timeseries_total_water_uses', false)
+    arg.setDisplayName('Generate Timeseries Output: Total Water Uses')
+    arg.setDescription('Generates timeseries total water usages for each end use.')
     arg.setDefaultValue(false)
     args << arg
 
@@ -300,6 +312,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
      @peak_loads,
      @component_loads,
      @hot_water_uses,
+     @total_water_uses,
      @resilience].each do |outputs|
       outputs.values.each do |obj|
         output_name = OpenStudio::toUnderscoreCase("#{obj.name} #{obj.annual_units}")
@@ -408,9 +421,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    # End Use/Hot Water Use/Ideal Load outputs
+    # End Use/Hot Water Use/Total Water Use/Ideal Load outputs
     { @end_uses => args[:include_timeseries_end_use_consumptions],
-      @hot_water_uses => args[:include_timeseries_hot_water_uses] }.each do |uses, include_ts|
+      @hot_water_uses => args[:include_timeseries_hot_water_uses],
+      @total_water_uses => args[:include_timeseries_total_water_uses] }.each do |uses, include_ts|
       uses.each do |key, use|
         use.variables.each do |_sys_id, varkey, var|
           result << OpenStudio::IdfObject.load("Output:Variable,#{varkey},#{var},runperiod;").get
@@ -901,6 +915,19 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
 
+    # Total Water Uses
+    @total_water_uses.each do |_total_water_type, total_water|
+      total_water.variables.map { |v| v[0] }.uniq.each do |sys_id|
+        keys = total_water.variables.select { |v| v[0] == sys_id }.map { |v| v[1] }
+        vars = total_water.variables.select { |v| v[0] == sys_id }.map { |v| v[2] }
+
+        total_water.annual_output_by_system[sys_id] = get_report_variable_data_annual(keys, vars, UnitConversions.convert(1.0, 'm^3', total_water.annual_units))
+        if args[:include_timeseries_total_water_uses]
+          total_water.timeseries_output_by_system[sys_id] = get_report_variable_data_timeseries(keys, vars, UnitConversions.convert(1.0, 'm^3', total_water.timeseries_units), 0, args[:timeseries_frequency])
+        end
+      end
+    end
+
     @hpxml_bldgs.each do |hpxml_bldg|
       # Apply Heating/Cooling DSEs
       (hpxml_bldg.heating_systems + hpxml_bldg.heat_pumps).each do |htg_system|
@@ -981,7 +1008,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     # Calculate aggregated values from per-system values as needed
-    (@end_uses.values + @loads.values + @hot_water_uses.values).each do |obj|
+    (@end_uses.values + @loads.values + @hot_water_uses.values + @total_water_uses.values).each do |obj|
       # Annual
       if obj.annual_output.nil?
         if not obj.annual_output_by_system.empty?
@@ -1632,6 +1659,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       results_out << [line_break]
     end
 
+    # Total water uses
+    if args[:include_annual_total_water_uses]
+      @total_water_uses.each do |_total_water_type, total_water|
+        results_out << ["#{total_water.name} (#{total_water.annual_units})", total_water.annual_output.to_f.round(n_digits - 2)]
+      end
+      results_out << [line_break]
+    end
+
     # Resilience
     if args[:include_annual_resilience]
       @resilience.each do |_type, resilience|
@@ -1776,6 +1811,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     else
       hot_water_use_data = []
     end
+    if args[:include_timeseries_total_water_uses]
+      total_water_use_data = @total_water_uses.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
+    else
+      total_water_use_data = []
+    end
     if args[:include_timeseries_total_loads]
       total_loads_data = @loads.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
     else
@@ -1820,7 +1860,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     return if (total_energy_data.size + fuel_data.size + end_use_data.size + system_use_data.size + emissions_data.size + emission_fuel_data.size +
-               emission_end_use_data.size + hot_water_use_data.size + total_loads_data.size + comp_loads_data.size + unmet_hours_data.size +
+               emission_end_use_data.size + hot_water_use_data.size + total_water_use_data.size + total_loads_data.size + comp_loads_data.size + unmet_hours_data.size +
                zone_temps_data.size + airflows_data.size + weather_data.size + resilience_data.size + output_variables_data.size) == 0
 
     fail 'Unable to obtain timestamps.' if @timestamps.empty?
@@ -1828,7 +1868,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     if ['csv'].include? args[:output_format]
       # Assemble data
       data = data.zip(*timestamps2, *timestamps3, *total_energy_data, *fuel_data, *end_use_data, *system_use_data, *emissions_data,
-                      *emission_fuel_data, *emission_end_use_data, *hot_water_use_data, *total_loads_data, *comp_loads_data,
+                      *emission_fuel_data, *emission_end_use_data, *hot_water_use_data, *total_water_use_data, *total_loads_data, *comp_loads_data,
                       *unmet_hours_data, *zone_temps_data, *airflows_data, *weather_data, *resilience_data, *output_variables_data)
 
       # Error-check
@@ -1892,7 +1932,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       h['TimeUTC'] = timestamps3[2..-1] if timestamps_utc
 
       [total_energy_data, fuel_data, end_use_data, system_use_data, emissions_data, emission_fuel_data,
-       emission_end_use_data, hot_water_use_data, total_loads_data, comp_loads_data, unmet_hours_data,
+       emission_end_use_data, hot_water_use_data, total_water_use_data, total_loads_data, comp_loads_data, unmet_hours_data,
        zone_temps_data, airflows_data, weather_data, resilience_data, output_variables_data].each do |d|
         d.each do |o|
           grp, name = o[0].split(':', 2)
@@ -2205,7 +2245,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @model.getModelObjects.sort.each do |object|
       next if object.to_AdditionalProperties.is_initialized
 
-      [EUT, HWT, LT, RT].each do |class_name|
+      [EUT, HWT, TWT, LT, RT].each do |class_name|
         vars_by_key = get_object_outputs_by_key(@model, object, class_name)
         next if vars_by_key.size == 0
 
@@ -2307,6 +2347,19 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
   # TODO
   class HotWater < BaseOutput
+    # @param outputs [TODO] TODO
+    def initialize(outputs: [])
+      super()
+      @variables = outputs.select { |o| !o[2].include?(':') }
+      @meters = outputs.select { |o| o[2].include?(':') }
+      @timeseries_output_by_system = {}
+      @annual_output_by_system = {}
+    end
+    attr_accessor(:variables, :meters, :annual_output_by_system, :timeseries_output_by_system)
+  end
+
+  # TODO
+  class TotalWater < BaseOutput
     # @param outputs [TODO] TODO
     def initialize(outputs: [])
       super()
@@ -2627,6 +2680,19 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       hot_water.name = "Hot Water: #{hot_water_type}"
       hot_water.annual_units = 'gal'
       hot_water.timeseries_units = 'gal'
+    end
+
+    # Total Water Uses
+    @total_water_uses = {}
+    @total_water_uses[TWT::ClothesWasher] = TotalWater.new(outputs: get_object_outputs(TWT, TWT::ClothesWasher))
+    @total_water_uses[TWT::Dishwasher] = TotalWater.new(outputs: get_object_outputs(TWT, TWT::Dishwasher))
+    @total_water_uses[TWT::Fixtures] = TotalWater.new(outputs: get_object_outputs(TWT, TWT::Fixtures))
+    @total_water_uses[TWT::DistributionWaste] = TotalWater.new(outputs: get_object_outputs(TWT, TWT::DistributionWaste))
+
+    @total_water_uses.each do |total_water_type, total_water|
+      total_water.name = "Total Water: #{total_water_type}"
+      total_water.annual_units = 'gal'
+      total_water.timeseries_units = 'gal'
     end
 
     # Resilience
@@ -3068,6 +3134,19 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                           Constants.ObjectNameClothesWasher => HWT::ClothesWasher,
                           Constants.ObjectNameDishwasher => HWT::Dishwasher }[object.to_WaterUseEquipment.get.waterUseEquipmentDefinition.endUseSubcategory]
         return { hot_water_use => ['Water Use Equipment Hot Water Volume'] }
+
+      end
+
+    elsif class_name == TWT
+
+      # Total Water Use
+
+      if object.to_WaterUseEquipment.is_initialized
+        total_water_use = { Constants.ObjectNameFixtures => TWT::Fixtures,
+                            Constants.ObjectNameDistributionWaste => TWT::DistributionWaste,
+                            Constants.ObjectNameClothesWasher => TWT::ClothesWasher,
+                            Constants.ObjectNameDishwasher => TWT::Dishwasher }[object.to_WaterUseEquipment.get.waterUseEquipmentDefinition.endUseSubcategory]
+        return { total_water_use => ['Water Use Equipment Total Volume'] }
 
       end
 
