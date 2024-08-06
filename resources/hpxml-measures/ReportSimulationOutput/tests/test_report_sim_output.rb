@@ -200,6 +200,10 @@ class ReportSimulationOutputTest < Minitest::Test
     "Hot Water: #{HWT::Dishwasher} (gal)",
     "Hot Water: #{HWT::Fixtures} (gal)",
     "Hot Water: #{HWT::DistributionWaste} (gal)",
+    "Total Water: #{HWT::ClothesWasher} (gal)",
+    "Total Water: #{HWT::Dishwasher} (gal)",
+    "Total Water: #{HWT::Fixtures} (gal)",
+    "Total Water: #{HWT::DistributionWaste} (gal)",
     'Resilience: Battery (hr)',
     'HVAC Capacity: Cooling (Btu/h)',
     'HVAC Capacity: Heating (Btu/h)',
@@ -279,11 +283,18 @@ class ReportSimulationOutputTest < Minitest::Test
     "System Use: WaterHeatingSystem1: #{FT::Elec}: #{EUT::HotWater}",
   ]
 
-  BaseHPXMLTimeseriesColsWaterUses = [
+  BaseHPXMLTimeseriesColsHotWaterUses = [
     "Hot Water: #{HWT::ClothesWasher}",
     "Hot Water: #{HWT::Dishwasher}",
     "Hot Water: #{HWT::Fixtures}",
     "Hot Water: #{HWT::DistributionWaste}",
+  ]
+
+  BaseHPXMLTimeseriesColsTotalWaterUses = [
+    "Total Water: #{HWT::ClothesWasher}",
+    "Total Water: #{HWT::Dishwasher}",
+    "Total Water: #{HWT::Fixtures}",
+    "Total Water: #{HWT::DistributionWaste}",
   ]
 
   BaseHPXMLTimeseriesColsResilience = [
@@ -406,7 +417,8 @@ class ReportSimulationOutputTest < Minitest::Test
             BaseHPXMLTimeseriesColsFuels +
             BaseHPXMLTimeseriesColsEndUses +
             BaseHPXMLTimeseriesColsSystemUses +
-            BaseHPXMLTimeseriesColsWaterUses +
+            BaseHPXMLTimeseriesColsHotWaterUses +
+            BaseHPXMLTimeseriesColsTotalWaterUses +
             BaseHPXMLTimeseriesColsTotalLoads +
             BaseHPXMLTimeseriesColsUnmetHours +
             BaseHPXMLTimeseriesColsZoneTemps +
@@ -596,6 +608,7 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_emission_fuels' => false,
                   'include_timeseries_emission_end_uses' => false,
                   'include_timeseries_hot_water_uses' => false,
+                  'include_timeseries_total_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_unmet_hours' => false,
                   'include_timeseries_component_loads' => false,
@@ -631,6 +644,7 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_emission_fuels' => true,
                   'include_timeseries_emission_end_uses' => true,
                   'include_timeseries_hot_water_uses' => true,
+                  'include_timeseries_total_water_uses' => true,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_unmet_hours' => true,
                   'include_timeseries_component_loads' => true,
@@ -663,6 +677,7 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_annual_peak_loads' => false,
                   'include_annual_component_loads' => false,
                   'include_annual_hot_water_uses' => false,
+                  'include_annual_total_water_uses' => false,
                   'include_annual_hvac_summary' => false,
                   'include_annual_resilience' => false }
     annual_csv, timeseries_csv = _test_measure(args_hash)
@@ -830,14 +845,32 @@ class ReportSimulationOutputTest < Minitest::Test
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsWaterUses
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsHotWaterUses
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
     assert_equal(8760, timeseries_rows.size - 2)
     timeseries_cols = timeseries_rows.transpose
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
-    _check_for_nonzero_avg_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsWaterUses)
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsHotWaterUses)
+  end
+
+  def test_timeseries_hourly_totalwater_uses
+    args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml'),
+                  'skip_validation' => true,
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_total_water_uses' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsTotalWaterUses
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+    _check_for_nonzero_avg_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsTotalWaterUses)
   end
 
   def test_timeseries_hourly_total_loads
@@ -1030,6 +1063,7 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_emission_fuels' => true,
                   'include_timeseries_emission_end_uses' => true,
                   'include_timeseries_hot_water_uses' => true,
+                  'include_timeseries_total_water_uses' => true,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_unmet_hours' => true,
                   'include_timeseries_component_loads' => true,
@@ -1073,6 +1107,7 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_emission_fuels' => true,
                   'include_timeseries_emission_end_uses' => true,
                   'include_timeseries_hot_water_uses' => true,
+                  'include_timeseries_total_water_uses' => true,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_unmet_hours' => true,
                   'include_timeseries_component_loads' => true,
@@ -1112,6 +1147,7 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_emission_fuels' => true,
                   'include_timeseries_emission_end_uses' => true,
                   'include_timeseries_hot_water_uses' => true,
+                  'include_timeseries_total_water_uses' => true,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_unmet_hours' => true,
                   'include_timeseries_component_loads' => true,
