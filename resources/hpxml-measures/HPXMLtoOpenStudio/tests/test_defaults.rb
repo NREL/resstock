@@ -231,7 +231,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.state_code = 'CA'
     hpxml_bldg.city = 'CityName'
     hpxml_bldg.time_zone_utc_offset = -8
-    hpxml_bldg.elevation = 1234
+    hpxml_bldg.elevation = -1234
     hpxml_bldg.latitude = 12
     hpxml_bldg.longitude = -34
     hpxml_bldg.header.natvent_days_per_week = 7
@@ -255,7 +255,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.header.manualj_infiltration_method = HPXML::ManualJInfiltrationMethodBlowerDoor
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_building_values(default_hpxml_bldg, false, 3, 3, 10, 10, 'CA', 'CityName', -8, 1234, 12, -34, 7, HPXML::HeatPumpSizingMaxLoad, true,
+    _test_default_building_values(default_hpxml_bldg, false, 3, 3, 10, 10, 'CA', 'CityName', -8, -1234, 12, -34, 7, HPXML::HeatPumpSizingMaxLoad, true,
                                   2, 3, 4, 5, 0.0, 100.0, HPXML::ManualJDailyTempRangeLow, 68.0, 78.0, 0.33, 50.0, 1600.0, 60.0, 8, HPXML::HeatPumpBackupSizingSupplemental, HPXML::ManualJInfiltrationMethodBlowerDoor)
 
     # Test defaults - DST not in weather file

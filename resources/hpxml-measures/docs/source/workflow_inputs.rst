@@ -438,7 +438,7 @@ Building site information can be entered in ``/HPXML/Building/Site``.
   ``Address/ZipCode``                      string           See [#]_         No                  Address ZIP Code (not used in the energy model)
   ``GeoLocation/Latitude``                 double    deg    >= -90, <= 90    No        See [#]_  Site latitude (negative for southern hemisphere)
   ``GeoLocation/Longitude``                double    deg    >= -180, <= 180  No        See [#]_  Site longitude (negative for western hemisphere)
-  ``Elevation``                            double    ft     >= 0             No        See [#]_  Site elevation
+  ``Elevation``                            double    ft                      No        See [#]_  Site elevation
   ``TimeZone/UTCOffset``                   double           >= -12, <= 14    No        See [#]_  Difference in decimal hours between the home's time zone and UTC
   ``TimeZone/DSTObserved``                 boolean                           No        true      Daylight saving time observed?
   =======================================  ========  =====  ===============  ========  ========  ===============

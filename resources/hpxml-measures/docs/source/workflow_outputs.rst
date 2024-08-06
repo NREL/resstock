@@ -102,18 +102,18 @@ Annual Energy by Fuel Use
 
 Fuel uses are listed below.
 
-   ====================================  ===========================
-   Type                                  Notes
-   ====================================  ===========================
-   Fuel Use: Electricity: Total (MBtu)   Total electricity consumption, includes any battery charging/discharging
-   Fuel Use: Electricity: Net (MBtu)     Subtracts any power produced by PV or generators
-   Fuel Use: Natural Gas: Total (MBtu)
-   Fuel Use: Fuel Oil: Total (MBtu)      Includes "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "kerosene", and "diesel"
-   Fuel Use: Propane: Total (MBtu)
-   Fuel Use: Wood Cord: Total (MBtu)
-   Fuel Use: Wood Pellets: Total (MBtu)
-   Fuel Use: Coal: Total (MBtu)          Includes "coal", "anthracite coal", "bituminous coal", and "coke"
-   ====================================  ===========================
+  ====================================  ===========================
+  Type                                  Notes
+  ====================================  ===========================
+  Fuel Use: Electricity: Total (MBtu)   Total electricity consumption, includes any battery charging/discharging
+  Fuel Use: Electricity: Net (MBtu)     Subtracts any power produced by PV or generators
+  Fuel Use: Natural Gas: Total (MBtu)
+  Fuel Use: Fuel Oil: Total (MBtu)      Includes "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "kerosene", and "diesel"
+  Fuel Use: Propane: Total (MBtu)
+  Fuel Use: Wood Cord: Total (MBtu)
+  Fuel Use: Wood Pellets: Total (MBtu)
+  Fuel Use: Coal: Total (MBtu)          Includes "coal", "anthracite coal", "bituminous coal", and "coke"
+  ====================================  ===========================
 
 .. _annualenduses:
 
@@ -125,107 +125,107 @@ End uses are listed below.
 Note that all end uses are mutually exclusive -- the "Electricity: Heating" end use, for example, excludes energy reported in the "Electricity: Heating Fans/Pumps" end use.
 So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural Gas: \*") equal the above reported fuel use (e.g., "Fuel Use: Natural Gas: Total").
 
-   ================================================================  ====================================================
-   Type                                                              Notes
-   ================================================================  ====================================================
-   End Use: Electricity: Heating (MBtu)                              Excludes heat pump backup and fans/pumps
-   End Use: Electricity: Heating Fans/Pumps (MBtu)                   Includes supply fan (air distribution) or circulating pump (hydronic distribution or geothermal loop)
-   End Use: Electricity: Heating Heat Pump Backup (MBtu)             Excludes heat pump backup fans/pumps
-   End Use: Electricity: Heating Heat Pump Backup Fans/Pumps (MBtu)  Includes supply fan (air distribution) or circulating pump (hydronic distribution) during heat pump backup
-   End Use: Electricity: Cooling (MBtu)                              Excludes fans/pumps
-   End Use: Electricity: Cooling Fans/Pumps (MBtu)                   Includes supply fan (air distribution) and circulating pump (geothermal loop)
-   End Use: Electricity: Hot Water (MBtu)                            Excludes recirc pump and solar thermal pump
-   End Use: Electricity: Hot Water Recirc Pump (MBtu)
-   End Use: Electricity: Hot Water Solar Thermal Pump (MBtu)         Non-zero only when using detailed (not simple) solar thermal inputs
-   End Use: Electricity: Lighting Interior (MBtu)
-   End Use: Electricity: Lighting Garage (MBtu)
-   End Use: Electricity: Lighting Exterior (MBtu)                    Includes exterior holiday lighting
-   End Use: Electricity: Mech Vent (MBtu)                            Excludes preheating/precooling
-   End Use: Electricity: Mech Vent Preheating (MBtu)
-   End Use: Electricity: Mech Vent Precooling (MBtu)
-   End Use: Electricity: Whole House Fan (MBtu)
-   End Use: Electricity: Refrigerator (MBtu)
-   End Use: Electricity: Freezer (MBtu)
-   End Use: Electricity: Dehumidifier (MBtu)
-   End Use: Electricity: Dishwasher (MBtu)
-   End Use: Electricity: Clothes Washer (MBtu)
-   End Use: Electricity: Clothes Dryer (MBtu)
-   End Use: Electricity: Range/Oven (MBtu)
-   End Use: Electricity: Ceiling Fan (MBtu)
-   End Use: Electricity: Television (MBtu)
-   End Use: Electricity: Plug Loads (MBtu)                           Excludes independently reported plug loads (e.g., well pump)
-   End Use: Electricity: Electric Vehicle Charging (MBtu)
-   End Use: Electricity: Well Pump (MBtu)
-   End Use: Electricity: Pool Heater (MBtu)
-   End Use: Electricity: Pool Pump (MBtu)
-   End Use: Electricity: Permanent Spa Heater (MBtu)
-   End Use: Electricity: Permanent Spa Pump (MBtu)
-   End Use: Electricity: PV (MBtu)                                   Negative value for any power produced
-   End Use: Electricity: Generator (MBtu)                            Negative value for any power produced
-   End Use: Electricity: Battery (MBtu)                              Positive value for charging (including efficiency losses); negative value for discharging
-   End Use: Natural Gas: Heating (MBtu)                              Excludes heat pump backup
-   End Use: Natural Gas: Heating Heat Pump Backup (MBtu)
-   End Use: Natural Gas: Hot Water (MBtu)
-   End Use: Natural Gas: Clothes Dryer (MBtu)
-   End Use: Natural Gas: Range/Oven (MBtu)
-   End Use: Natural Gas: Mech Vent Preheating (MBtu)
-   End Use: Natural Gas: Pool Heater (MBtu)
-   End Use: Natural Gas: Permanent Spa Heater (MBtu)
-   End Use: Natural Gas: Grill (MBtu)
-   End Use: Natural Gas: Lighting (MBtu)
-   End Use: Natural Gas: Fireplace (MBtu)
-   End Use: Natural Gas: Generator (MBtu)                            Positive value for any fuel consumed
-   End Use: Fuel Oil: Heating (MBtu)                                 Excludes heat pump backup
-   End Use: Fuel Oil: Heating Heat Pump Backup (MBtu)
-   End Use: Fuel Oil: Hot Water (MBtu)
-   End Use: Fuel Oil: Clothes Dryer (MBtu)
-   End Use: Fuel Oil: Range/Oven (MBtu)
-   End Use: Fuel Oil: Mech Vent Preheating (MBtu)
-   End Use: Fuel Oil: Grill (MBtu)
-   End Use: Fuel Oil: Lighting (MBtu)
-   End Use: Fuel Oil: Fireplace (MBtu)
-   End Use: Fuel Oil: Generator (MBtu)                               Positive value for any fuel consumed
-   End Use: Propane: Heating (MBtu)                                  Excludes heat pump backup
-   End Use: Propane: Heating Heat Pump Backup (MBtu)
-   End Use: Propane: Hot Water (MBtu)
-   End Use: Propane: Clothes Dryer (MBtu)
-   End Use: Propane: Range/Oven (MBtu)
-   End Use: Propane: Mech Vent Preheating (MBtu)
-   End Use: Propane: Grill (MBtu)
-   End Use: Propane: Lighting (MBtu)
-   End Use: Propane: Fireplace (MBtu)
-   End Use: Propane: Generator (MBtu)                                Positive value for any fuel consumed
-   End Use: Wood Cord: Heating (MBtu)                                Excludes heat pump backup
-   End Use: Wood Cord: Heating Heat Pump Backup (MBtu)
-   End Use: Wood Cord: Hot Water (MBtu)
-   End Use: Wood Cord: Clothes Dryer (MBtu)
-   End Use: Wood Cord: Range/Oven (MBtu)
-   End Use: Wood Cord: Mech Vent Preheating (MBtu)
-   End Use: Wood Cord: Grill (MBtu)
-   End Use: Wood Cord: Lighting (MBtu)
-   End Use: Wood Cord: Fireplace (MBtu)
-   End Use: Wood Cord: Generator (MBtu)                              Positive value for any fuel consumed
-   End Use: Wood Pellets: Heating (MBtu)                             Excludes heat pump backup
-   End Use: Wood Pellets: Heating Heat Pump Backup (MBtu)
-   End Use: Wood Pellets: Hot Water (MBtu)
-   End Use: Wood Pellets: Clothes Dryer (MBtu)
-   End Use: Wood Pellets: Range/Oven (MBtu)
-   End Use: Wood Pellets: Mech Vent Preheating (MBtu)
-   End Use: Wood Pellets: Grill (MBtu)
-   End Use: Wood Pellets: Lighting (MBtu)
-   End Use: Wood Pellets: Fireplace (MBtu)
-   End Use: Wood Pellets: Generator (MBtu)                           Positive value for any fuel consumed
-   End Use: Coal: Heating (MBtu)                                     Excludes heat pump backup
-   End Use: Coal: Heating Heat Pump Backup (MBtu)
-   End Use: Coal: Hot Water (MBtu)
-   End Use: Coal: Clothes Dryer (MBtu)
-   End Use: Coal: Range/Oven (MBtu)
-   End Use: Coal: Mech Vent Preheating (MBtu)
-   End Use: Coal: Grill (MBtu)
-   End Use: Coal: Lighting (MBtu)
-   End Use: Coal: Fireplace (MBtu)
-   End Use: Coal: Generator (MBtu)                                   Positive value for any fuel consumed
-   ================================================================  ====================================================
+  ================================================================  ====================================================
+  Type                                                              Notes
+  ================================================================  ====================================================
+  End Use: Electricity: Heating (MBtu)                              Excludes heat pump backup and fans/pumps
+  End Use: Electricity: Heating Fans/Pumps (MBtu)                   Includes supply fan (air distribution) or circulating pump (hydronic distribution or geothermal loop)
+  End Use: Electricity: Heating Heat Pump Backup (MBtu)             Excludes heat pump backup fans/pumps
+  End Use: Electricity: Heating Heat Pump Backup Fans/Pumps (MBtu)  Includes supply fan (air distribution) or circulating pump (hydronic distribution) during heat pump backup
+  End Use: Electricity: Cooling (MBtu)                              Excludes fans/pumps
+  End Use: Electricity: Cooling Fans/Pumps (MBtu)                   Includes supply fan (air distribution) and circulating pump (geothermal loop)
+  End Use: Electricity: Hot Water (MBtu)                            Excludes recirc pump and solar thermal pump
+  End Use: Electricity: Hot Water Recirc Pump (MBtu)
+  End Use: Electricity: Hot Water Solar Thermal Pump (MBtu)         Non-zero only when using detailed (not simple) solar thermal inputs
+  End Use: Electricity: Lighting Interior (MBtu)
+  End Use: Electricity: Lighting Garage (MBtu)
+  End Use: Electricity: Lighting Exterior (MBtu)                    Includes exterior holiday lighting
+  End Use: Electricity: Mech Vent (MBtu)                            Excludes preheating/precooling
+  End Use: Electricity: Mech Vent Preheating (MBtu)
+  End Use: Electricity: Mech Vent Precooling (MBtu)
+  End Use: Electricity: Whole House Fan (MBtu)
+  End Use: Electricity: Refrigerator (MBtu)
+  End Use: Electricity: Freezer (MBtu)
+  End Use: Electricity: Dehumidifier (MBtu)
+  End Use: Electricity: Dishwasher (MBtu)
+  End Use: Electricity: Clothes Washer (MBtu)
+  End Use: Electricity: Clothes Dryer (MBtu)
+  End Use: Electricity: Range/Oven (MBtu)
+  End Use: Electricity: Ceiling Fan (MBtu)
+  End Use: Electricity: Television (MBtu)
+  End Use: Electricity: Plug Loads (MBtu)                           Excludes independently reported plug loads (e.g., well pump)
+  End Use: Electricity: Electric Vehicle Charging (MBtu)
+  End Use: Electricity: Well Pump (MBtu)
+  End Use: Electricity: Pool Heater (MBtu)
+  End Use: Electricity: Pool Pump (MBtu)
+  End Use: Electricity: Permanent Spa Heater (MBtu)
+  End Use: Electricity: Permanent Spa Pump (MBtu)
+  End Use: Electricity: PV (MBtu)                                   Negative value for any power produced
+  End Use: Electricity: Generator (MBtu)                            Negative value for any power produced
+  End Use: Electricity: Battery (MBtu)                              Positive value for charging (including efficiency losses); negative value for discharging
+  End Use: Natural Gas: Heating (MBtu)                              Excludes heat pump backup
+  End Use: Natural Gas: Heating Heat Pump Backup (MBtu)
+  End Use: Natural Gas: Hot Water (MBtu)
+  End Use: Natural Gas: Clothes Dryer (MBtu)
+  End Use: Natural Gas: Range/Oven (MBtu)
+  End Use: Natural Gas: Mech Vent Preheating (MBtu)
+  End Use: Natural Gas: Pool Heater (MBtu)
+  End Use: Natural Gas: Permanent Spa Heater (MBtu)
+  End Use: Natural Gas: Grill (MBtu)
+  End Use: Natural Gas: Lighting (MBtu)
+  End Use: Natural Gas: Fireplace (MBtu)
+  End Use: Natural Gas: Generator (MBtu)                            Positive value for any fuel consumed
+  End Use: Fuel Oil: Heating (MBtu)                                 Excludes heat pump backup
+  End Use: Fuel Oil: Heating Heat Pump Backup (MBtu)
+  End Use: Fuel Oil: Hot Water (MBtu)
+  End Use: Fuel Oil: Clothes Dryer (MBtu)
+  End Use: Fuel Oil: Range/Oven (MBtu)
+  End Use: Fuel Oil: Mech Vent Preheating (MBtu)
+  End Use: Fuel Oil: Grill (MBtu)
+  End Use: Fuel Oil: Lighting (MBtu)
+  End Use: Fuel Oil: Fireplace (MBtu)
+  End Use: Fuel Oil: Generator (MBtu)                               Positive value for any fuel consumed
+  End Use: Propane: Heating (MBtu)                                  Excludes heat pump backup
+  End Use: Propane: Heating Heat Pump Backup (MBtu)
+  End Use: Propane: Hot Water (MBtu)
+  End Use: Propane: Clothes Dryer (MBtu)
+  End Use: Propane: Range/Oven (MBtu)
+  End Use: Propane: Mech Vent Preheating (MBtu)
+  End Use: Propane: Grill (MBtu)
+  End Use: Propane: Lighting (MBtu)
+  End Use: Propane: Fireplace (MBtu)
+  End Use: Propane: Generator (MBtu)                                Positive value for any fuel consumed
+  End Use: Wood Cord: Heating (MBtu)                                Excludes heat pump backup
+  End Use: Wood Cord: Heating Heat Pump Backup (MBtu)
+  End Use: Wood Cord: Hot Water (MBtu)
+  End Use: Wood Cord: Clothes Dryer (MBtu)
+  End Use: Wood Cord: Range/Oven (MBtu)
+  End Use: Wood Cord: Mech Vent Preheating (MBtu)
+  End Use: Wood Cord: Grill (MBtu)
+  End Use: Wood Cord: Lighting (MBtu)
+  End Use: Wood Cord: Fireplace (MBtu)
+  End Use: Wood Cord: Generator (MBtu)                              Positive value for any fuel consumed
+  End Use: Wood Pellets: Heating (MBtu)                             Excludes heat pump backup
+  End Use: Wood Pellets: Heating Heat Pump Backup (MBtu)
+  End Use: Wood Pellets: Hot Water (MBtu)
+  End Use: Wood Pellets: Clothes Dryer (MBtu)
+  End Use: Wood Pellets: Range/Oven (MBtu)
+  End Use: Wood Pellets: Mech Vent Preheating (MBtu)
+  End Use: Wood Pellets: Grill (MBtu)
+  End Use: Wood Pellets: Lighting (MBtu)
+  End Use: Wood Pellets: Fireplace (MBtu)
+  End Use: Wood Pellets: Generator (MBtu)                           Positive value for any fuel consumed
+  End Use: Coal: Heating (MBtu)                                     Excludes heat pump backup
+  End Use: Coal: Heating Heat Pump Backup (MBtu)
+  End Use: Coal: Hot Water (MBtu)
+  End Use: Coal: Clothes Dryer (MBtu)
+  End Use: Coal: Range/Oven (MBtu)
+  End Use: Coal: Mech Vent Preheating (MBtu)
+  End Use: Coal: Grill (MBtu)
+  End Use: Coal: Lighting (MBtu)
+  End Use: Coal: Fireplace (MBtu)
+  End Use: Coal: Generator (MBtu)                                   Positive value for any fuel consumed
+  ================================================================  ====================================================
 
 Annual Energy By System Use
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -233,45 +233,45 @@ Annual Energy By System Use
 Results for each end use of each heating, cooling, and water heating system defined in the HPXML file are listed as shown below.
 Non-zero end uses from :ref:`annualenduses` will be included.
 
-   ===============================================================  =============================================
-   Type                                                             Notes
-   ===============================================================  =============================================
-   System Use: <HeatingSystemID>: <FuelType>: <EndUse> (MBtu)       End use energy for the heating system
-   System Use: <CoolingSystemID>: <FuelType>: <EndUse> (MBtu)       End use energy for the cooling system
-   System Use: <HeatPumpID>: <FuelType>: <EndUse> (MBtu)            End use energy for the heat pump system
-   System Use: <WaterHeatingSystemID>: <FuelType>: <EndUse> (MBtu)  End use energy for the water heating system
-   System Use: <VentilationFanID>: <FuelType>: <EndUse> (MBtu)      End use energy for the ventilation fan system (preheating/precooling only)
-   ===============================================================  =============================================
+  ===============================================================  =============================================
+  Type                                                             Notes
+  ===============================================================  =============================================
+  System Use: <HeatingSystemID>: <FuelType>: <EndUse> (MBtu)       End use energy for the heating system
+  System Use: <CoolingSystemID>: <FuelType>: <EndUse> (MBtu)       End use energy for the cooling system
+  System Use: <HeatPumpID>: <FuelType>: <EndUse> (MBtu)            End use energy for the heat pump system
+  System Use: <WaterHeatingSystemID>: <FuelType>: <EndUse> (MBtu)  End use energy for the water heating system
+  System Use: <VentilationFanID>: <FuelType>: <EndUse> (MBtu)      End use energy for the ventilation fan system (preheating/precooling only)
+  ===============================================================  =============================================
 
 Annual Emissions
 ~~~~~~~~~~~~~~~~
 
 Results for each emissions scenario defined in the HPXML file are listed as shown below.
 
-   =======================================================================  ==================================================================
-   Type                                                                     Notes
-   =======================================================================  ==================================================================
-   Emissions: <EmissionsType>: <ScenarioName>: Total (lb)                   Scenario total emissions, includes any battery charging/discharging
-   Emissions: <EmissionsType>: <ScenarioName>: Net (lb)                     Subtracts any power produced by PV or generators
-   =======================================================================  ==================================================================
+  =======================================================================  ==================================================================
+  Type                                                                     Notes
+  =======================================================================  ==================================================================
+  Emissions: <EmissionsType>: <ScenarioName>: Total (lb)                   Scenario total emissions, includes any battery charging/discharging
+  Emissions: <EmissionsType>: <ScenarioName>: Net (lb)                     Subtracts any power produced by PV or generators
+  =======================================================================  ==================================================================
 
 Annual Emissions by Fuel Use
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Results for each emissions scenario defined in the HPXML file are listed as shown below.
 
-   =======================================================================  ==================================================================
-   Type                                                                     Notes
-   =======================================================================  ==================================================================
-   Emissions: <EmissionsType>: <ScenarioName>: Electricity: Total (lb)      Scenario total emissions for Electricity only, includes any battery charging/discharging
-   Emissions: <EmissionsType>: <ScenarioName>: Electricity: Net (lb)        Subtracts any power produced by PV or generators
-   Emissions: <EmissionsType>: <ScenarioName>: Natural Gas: Total (lb)      Scenario emissions for Natural Gas only
-   Emissions: <EmissionsType>: <ScenarioName>: Fuel Oil: Total (lb)         Scenario emissions for Fuel Oil only
-   Emissions: <EmissionsType>: <ScenarioName>: Propane: Total (lb)          Scenario emissions for Propane only
-   Emissions: <EmissionsType>: <ScenarioName>: Wood Cord: Total (lb)        Scenario emissions for Wood Cord only
-   Emissions: <EmissionsType>: <ScenarioName>: Wood Pellets: Total (lb)     Scenario emissions for Wood Pellets only
-   Emissions: <EmissionsType>: <ScenarioName>: Coal: Total (lb)             Scenario emissions for Coal only
-   =======================================================================  ==================================================================
+  =======================================================================  ==================================================================
+  Type                                                                     Notes
+  =======================================================================  ==================================================================
+  Emissions: <EmissionsType>: <ScenarioName>: Electricity: Total (lb)      Scenario total emissions for Electricity only, includes any battery charging/discharging
+  Emissions: <EmissionsType>: <ScenarioName>: Electricity: Net (lb)        Subtracts any power produced by PV or generators
+  Emissions: <EmissionsType>: <ScenarioName>: Natural Gas: Total (lb)      Scenario emissions for Natural Gas only
+  Emissions: <EmissionsType>: <ScenarioName>: Fuel Oil: Total (lb)         Scenario emissions for Fuel Oil only
+  Emissions: <EmissionsType>: <ScenarioName>: Propane: Total (lb)          Scenario emissions for Propane only
+  Emissions: <EmissionsType>: <ScenarioName>: Wood Cord: Total (lb)        Scenario emissions for Wood Cord only
+  Emissions: <EmissionsType>: <ScenarioName>: Wood Pellets: Total (lb)     Scenario emissions for Wood Pellets only
+  Emissions: <EmissionsType>: <ScenarioName>: Coal: Total (lb)             Scenario emissions for Coal only
+  =======================================================================  ==================================================================
 
 Annual Emissions by End Use
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -279,34 +279,34 @@ Annual Emissions by End Use
 Results for each emissions scenario defined in the HPXML file are listed as shown below.
 Every end use from :ref:`annualenduses` will be included.
 
-   =======================================================================  ==================================================================
-   Type                                                                     Notes
-   =======================================================================  ==================================================================
-   Emissions: <EmissionsType>: <ScenarioName>: Electricity: <EndUse> (lb)   Scenario emissions for this Electricity end use (one row per end use)
-   Emissions: <EmissionsType>: <ScenarioName>: Natural Gas: <EndUse> (lb)   Scenario emissions for this Natural Gas end use (one row per end use)
-   Emissions: <EmissionsType>: <ScenarioName>: Fuel Oil: <EndUse> (lb)      Scenario emissions for this Fuel Oil end use (one row per end use)
-   Emissions: <EmissionsType>: <ScenarioName>: Propane: <EndUse> (lb)       Scenario emissions for this Propane end use (one row per end use)
-   Emissions: <EmissionsType>: <ScenarioName>: Wood Cord: <EndUse> (lb)     Scenario emissions for this Wood Cord end use (one row per end use)
-   Emissions: <EmissionsType>: <ScenarioName>: Wood Pellets: <EndUse> (lb)  Scenario emissions for this Wood Pellets end use (one row per end use)
-   Emissions: <EmissionsType>: <ScenarioName>: Coal: <EndUse> (lb)          Scenario emissions for this Coal end use (one row per end use)
-   =======================================================================  ==================================================================
+  =======================================================================  ==================================================================
+  Type                                                                     Notes
+  =======================================================================  ==================================================================
+  Emissions: <EmissionsType>: <ScenarioName>: Electricity: <EndUse> (lb)   Scenario emissions for this Electricity end use (one row per end use)
+  Emissions: <EmissionsType>: <ScenarioName>: Natural Gas: <EndUse> (lb)   Scenario emissions for this Natural Gas end use (one row per end use)
+  Emissions: <EmissionsType>: <ScenarioName>: Fuel Oil: <EndUse> (lb)      Scenario emissions for this Fuel Oil end use (one row per end use)
+  Emissions: <EmissionsType>: <ScenarioName>: Propane: <EndUse> (lb)       Scenario emissions for this Propane end use (one row per end use)
+  Emissions: <EmissionsType>: <ScenarioName>: Wood Cord: <EndUse> (lb)     Scenario emissions for this Wood Cord end use (one row per end use)
+  Emissions: <EmissionsType>: <ScenarioName>: Wood Pellets: <EndUse> (lb)  Scenario emissions for this Wood Pellets end use (one row per end use)
+  Emissions: <EmissionsType>: <ScenarioName>: Coal: <EndUse> (lb)          Scenario emissions for this Coal end use (one row per end use)
+  =======================================================================  ==================================================================
 
 Annual Building Loads
 ~~~~~~~~~~~~~~~~~~~~~
 
 Annual building loads are listed below.
 
-   ======================================  ==================================================================
-   Type                                    Notes
-   ======================================  ==================================================================
-   Load: Heating: Delivered (MBtu)         Total heating load delivered, including distribution losses.
-   Load: Heating: Heat Pump Backup (MBtu)  Heating load delivered by the heat pump backup only, including distribution losses.
-   Load: Cooling: Delivered (MBtu)         Total cooling load delivered, including distribution losses.
-   Load: Hot Water: Delivered (MBtu)       Total hot water load delivered, including contributions by desuperheaters or solar thermal systems.
-   Load: Hot Water: Tank Losses (MBtu)
-   Load: Hot Water: Desuperheater (MBtu)   Hot water load delivered by the desuperheater.
-   Load: Hot Water: Solar Thermal (MBtu)   Hot water load delivered by the solar thermal system.
-   ======================================  ==================================================================
+  ======================================  ==================================================================
+  Type                                    Notes
+  ======================================  ==================================================================
+  Load: Heating: Delivered (MBtu)         Total heating load delivered, including distribution losses.
+  Load: Heating: Heat Pump Backup (MBtu)  Heating load delivered by the heat pump backup only, including distribution losses.
+  Load: Cooling: Delivered (MBtu)         Total cooling load delivered, including distribution losses.
+  Load: Hot Water: Delivered (MBtu)       Total hot water load delivered, including contributions by desuperheaters or solar thermal systems.
+  Load: Hot Water: Tank Losses (MBtu)
+  Load: Hot Water: Desuperheater (MBtu)   Hot water load delivered by the desuperheater.
+  Load: Hot Water: Solar Thermal (MBtu)   Hot water load delivered by the solar thermal system.
+  ======================================  ==================================================================
 
 Note that the "Delivered" loads represent the energy delivered by the HVAC/DHW system; if a system is significantly undersized, there will be unmet load not reflected by these values.
 If the home is not fully conditioned (e.g., a room air conditioner that only meets 30% of the cooling load), the reported load will be likewise reduced compared to a home that is fully conditioned.
@@ -316,12 +316,12 @@ Annual Unmet Hours
 
 Annual unmet hours are listed below.
 
-   =========================  =====
-   Type                       Notes
-   =========================  =====
-   Unmet Hours: Heating (hr)  Number of hours where the heating setpoint is not maintained.
-   Unmet Hours: Cooling (hr)  Number of hours where the cooling setpoint is not maintained.
-   =========================  =====
+  =========================  =====
+  Type                       Notes
+  =========================  =====
+  Unmet Hours: Heating (hr)  Number of hours where the heating setpoint is not maintained.
+  Unmet Hours: Cooling (hr)  Number of hours where the cooling setpoint is not maintained.
+  =========================  =====
 
 These numbers reflect the number of hours during the heating/cooling season when the conditioned space temperature deviates more than 0.2 deg-C (0.36 deg-F) from the heating/cooling setpoint.
 
@@ -330,25 +330,25 @@ Peak Building Electricity
 
 Peak building electricity outputs are listed below.
 
-   ==================================  =============================================================
-   Type                                Notes
-   ==================================  =============================================================
-   Peak Electricity: Winter Total (W)  Maximum value in Dec/Jan/Feb (or Jun/Jul/Aug in the southern hemisphere)
-   Peak Electricity: Summer Total (W)  Maximum value in Jun/Jul/Aug (or Dec/Jan/Feb in the southern hemisphere)
-   Peak Electricity: Annual Total (W)  Maximum value in any month
-   ==================================  =============================================================
+  ==================================  =============================================================
+  Type                                Notes
+  ==================================  =============================================================
+  Peak Electricity: Winter Total (W)  Maximum value in Dec/Jan/Feb (or Jun/Jul/Aug in the southern hemisphere)
+  Peak Electricity: Summer Total (W)  Maximum value in Jun/Jul/Aug (or Dec/Jan/Feb in the southern hemisphere)
+  Peak Electricity: Annual Total (W)  Maximum value in any month
+  ==================================  =============================================================
 
 Peak Building Loads
 ~~~~~~~~~~~~~~~~~~~
 
 Peak building loads are listed below.
 
-   =======================================  ==================================
-   Type                                     Notes
-   =======================================  ==================================
-   Peak Load: Heating: Delivered (kBtu/hr)  Includes HVAC distribution losses.
-   Peak Load: Cooling: Delivered (kBtu/hr)  Includes HVAC distribution losses.
-   =======================================  ==================================
+  =======================================  ==================================
+  Type                                     Notes
+  =======================================  ==================================
+  Peak Load: Heating: Delivered (kBtu/hr)  Includes HVAC distribution losses.
+  Peak Load: Cooling: Delivered (kBtu/hr)  Includes HVAC distribution losses.
+  =======================================  ==================================
 
 Note that the "Delivered" peak loads represent the energy delivered by the HVAC system; if a system is significantly undersized, there will be unmet peak load not reflected by these values.
 If the home is not fully conditioned (e.g., a room air conditioner that only meets 30% of the cooling load), the reported peak load will be likewise reduced compared to a home that is fully conditioned.
@@ -364,30 +364,30 @@ The sum of component loads for heating (or cooling) will roughly equal the annua
 
 Component loads disaggregated by Heating/Cooling are listed below.
    
-   =================================================  =========================================================================================================
-   Type                                               Notes
-   =================================================  =========================================================================================================
-   Component Load: \*: Roofs (MBtu)                   Heat gain/loss through HPXML ``Roof`` elements adjacent to conditioned space
-   Component Load: \*: Ceilings (MBtu)                Heat gain/loss through HPXML ``Floor`` elements (inferred to be ceilings) adjacent to conditioned space
-   Component Load: \*: Walls (MBtu)                   Heat gain/loss through HPXML ``Wall`` elements adjacent to conditioned space
-   Component Load: \*: Rim Joists (MBtu)              Heat gain/loss through HPXML ``RimJoist`` elements adjacent to conditioned space
-   Component Load: \*: Foundation Walls (MBtu)        Heat gain/loss through HPXML ``FoundationWall`` elements adjacent to conditioned space
-   Component Load: \*: Doors (MBtu)                   Heat gain/loss through HPXML ``Door`` elements adjacent to conditioned space
-   Component Load: \*: Windows Conduction (MBtu)      Heat gain/loss attributed to conduction through HPXML ``Window`` elements adjacent to conditioned space
-   Component Load: \*: Windows Solar (MBtu)           Heat gain/loss attributed to solar gains through HPXML ``Window`` elements adjacent to conditioned space
-   Component Load: \*: Skylights Conduction (MBtu)    Heat gain/loss attributed to conduction through HPXML ``Skylight`` elements adjacent to conditioned space
-   Component Load: \*: Skylights Solar (MBtu)         Heat gain/loss attributed to solar gains through HPXML ``Skylight`` elements adjacent to conditioned space
-   Component Load: \*: Floors (MBtu)                  Heat gain/loss through HPXML ``Floor`` elements (inferred to be floors) adjacent to conditioned space
-   Component Load: \*: Slabs (MBtu)                   Heat gain/loss through HPXML ``Slab`` elements adjacent to conditioned space
-   Component Load: \*: Internal Mass (MBtu)           Heat gain/loss from internal mass (e.g., furniture, interior walls/floors) in conditioned space
-   Component Load: \*: Infiltration (MBtu)            Heat gain/loss from airflow induced by stack and wind effects
-   Component Load: \*: Natural Ventilation (MBtu)     Heat gain/loss from airflow through operable windows
-   Component Load: \*: Mechanical Ventilation (MBtu)  Heat gain/loss from airflow/fan energy from mechanical ventilation systems (including clothes dryer exhaust)
-   Component Load: \*: Whole House Fan (MBtu)         Heat gain/loss from airflow due to a whole house fan
-   Component Load: \*: Ducts (MBtu)                   Heat gain/loss from conduction and leakage losses through supply/return ducts outside conditioned space
-   Component Load: \*: Internal Gains (MBtu)          Heat gain/loss from appliances, plug loads, water heater tank losses, etc. in the conditioned space
-   Component Load: \*: Lighting (MBtu)                Heat gain/loss from lighting in the conditioned space
-   =================================================  =========================================================================================================
+  =================================================  =========================================================================================================
+  Type                                               Notes
+  =================================================  =========================================================================================================
+  Component Load: \*: Roofs (MBtu)                   Heat gain/loss through HPXML ``Roof`` elements adjacent to conditioned space
+  Component Load: \*: Ceilings (MBtu)                Heat gain/loss through HPXML ``Floor`` elements (inferred to be ceilings) adjacent to conditioned space
+  Component Load: \*: Walls (MBtu)                   Heat gain/loss through HPXML ``Wall`` elements adjacent to conditioned space
+  Component Load: \*: Rim Joists (MBtu)              Heat gain/loss through HPXML ``RimJoist`` elements adjacent to conditioned space
+  Component Load: \*: Foundation Walls (MBtu)        Heat gain/loss through HPXML ``FoundationWall`` elements adjacent to conditioned space
+  Component Load: \*: Doors (MBtu)                   Heat gain/loss through HPXML ``Door`` elements adjacent to conditioned space
+  Component Load: \*: Windows Conduction (MBtu)      Heat gain/loss attributed to conduction through HPXML ``Window`` elements adjacent to conditioned space
+  Component Load: \*: Windows Solar (MBtu)           Heat gain/loss attributed to solar gains through HPXML ``Window`` elements adjacent to conditioned space
+  Component Load: \*: Skylights Conduction (MBtu)    Heat gain/loss attributed to conduction through HPXML ``Skylight`` elements adjacent to conditioned space
+  Component Load: \*: Skylights Solar (MBtu)         Heat gain/loss attributed to solar gains through HPXML ``Skylight`` elements adjacent to conditioned space
+  Component Load: \*: Floors (MBtu)                  Heat gain/loss through HPXML ``Floor`` elements (inferred to be floors) adjacent to conditioned space
+  Component Load: \*: Slabs (MBtu)                   Heat gain/loss through HPXML ``Slab`` elements adjacent to conditioned space
+  Component Load: \*: Internal Mass (MBtu)           Heat gain/loss from internal mass (e.g., furniture, interior walls/floors) in conditioned space
+  Component Load: \*: Infiltration (MBtu)            Heat gain/loss from airflow induced by stack and wind effects
+  Component Load: \*: Natural Ventilation (MBtu)     Heat gain/loss from airflow through operable windows
+  Component Load: \*: Mechanical Ventilation (MBtu)  Heat gain/loss from airflow/fan energy from mechanical ventilation systems (including clothes dryer exhaust)
+  Component Load: \*: Whole House Fan (MBtu)         Heat gain/loss from airflow due to a whole house fan
+  Component Load: \*: Ducts (MBtu)                   Heat gain/loss from conduction and leakage losses through supply/return ducts outside conditioned space
+  Component Load: \*: Internal Gains (MBtu)          Heat gain/loss from appliances, plug loads, water heater tank losses, etc. in the conditioned space
+  Component Load: \*: Lighting (MBtu)                Heat gain/loss from lighting in the conditioned space
+  =================================================  =========================================================================================================
 
 If the home is not fully conditioned (e.g., a room air conditioner that only meets 30% of the cooling load), the reported component loads will be likewise reduced compared to a home that is fully conditioned.
 
@@ -396,25 +396,29 @@ Annual Hot Water Uses
 
 Annual hot water uses are listed below.
 
-   ===================================  ====================
-   Type                                 Notes
-   ===================================  ====================
-   Hot Water: Clothes Washer (gal)
-   Hot Water: Dishwasher (gal)
-   Hot Water: Fixtures (gal)            Showers and faucets.
-   Hot Water: Distribution Waste (gal) 
-   ===================================  ====================
+  ===================================  ====================
+  Type                                 Notes
+  ===================================  ====================
+  Hot Water: Clothes Washer (gal)
+  Hot Water: Dishwasher (gal)
+  Hot Water: Fixtures (gal)            Showers and faucets.
+  Hot Water: Distribution Waste (gal) 
+  ===================================  ====================
+
+.. note::
+
+  All values are gallons of *hot* water (e.g., at water heater setpoint), not *total* water (e.g., at the fixture temperature).
 
 Resilience
 ~~~~~~~~~~
 
 Resilience outputs are listed below.
 
-   ===================================  ====================
-   Type                                 Notes
-   ===================================  ====================
-   Resilience: Battery (hr)             Average length of time the battery state of charge can meet the electric load [#]_
-   ===================================  ====================
+  ===================================  ====================
+  Type                                 Notes
+  ===================================  ====================
+  Resilience: Battery (hr)             Average length of time the battery state of charge can meet the electric load [#]_
+  ===================================  ====================
 
   .. [#] Calculation is performed every timestep and then averaged, which assumes a power outage is equally likely to occur every hour of the year.
          The entire electric load is treated as a "critical load" that would be supported during an outage.
@@ -426,13 +430,13 @@ HVAC Capacities
 System outputs are listed below.
 Capacities for individual HVAC systems can be found in the ``in.xml`` file.
 
-   ====================================================  ====================
-   Type                                                  Notes
-   ====================================================  ====================
-   HVAC Capacity: Cooling (Btu/h)                        Total HVAC cooling capacity
-   HVAC Capacity: Heating (Btu/h)                        Total HVAC heating capacity
-   HVAC Capacity: Heat Pump Backup (Btu/h)               Total HVAC heat pump backup capacity
-   ====================================================  ====================
+  ====================================================  ====================
+  Type                                                  Notes
+  ====================================================  ====================
+  HVAC Capacity: Cooling (Btu/h)                        Total HVAC cooling capacity
+  HVAC Capacity: Heating (Btu/h)                        Total HVAC heating capacity
+  HVAC Capacity: Heat Pump Backup (Btu/h)               Total HVAC heat pump backup capacity
+  ====================================================  ====================
 
 .. note::
 
@@ -450,12 +454,12 @@ HVAC Design Temperatures
 Design temperatures are used in the design load calculations for autosizing of HVAC equipment; see :ref:`hvac_sizing_control` for how they are derived.
 Design temperatures can also be found in the ``in.xml`` file.
 
-   =====================================================================  ====================
-   Type                                                                   Notes
-   =====================================================================  ====================
-   HVAC Design Temperature: Heating (F)                                   99% heating drybulb temperature
-   HVAC Design Temperature: Cooling (F)                                   1% cooling drybulb temperature
-   =====================================================================  ====================
+  =====================================================================  ====================
+  Type                                                                   Notes
+  =====================================================================  ====================
+  HVAC Design Temperature: Heating (F)                                   99% heating drybulb temperature
+  HVAC Design Temperature: Cooling (F)                                   1% cooling drybulb temperature
+  =====================================================================  ====================
 
 .. _hvac_design_loads:
 
@@ -467,43 +471,43 @@ Design loads are based on block load ACCA Manual J calculations using :ref:`hvac
 Design loads can also be found in the ``in.xml`` file.
 Additional detail related to design loads can be found in the :ref:`design_load_details`.
 
-   =====================================================================  ====================
-   Type                                                                   Notes
-   =====================================================================  ====================
-   HVAC Design Load: Heating: Total (Btu/h)                               Total heating design load
-   HVAC Design Load: Heating: Ducts (Btu/h)                               Heating design load for ducts
-   HVAC Design Load: Heating: Windows (Btu/h)                             Heating design load for windows
-   HVAC Design Load: Heating: Skylights (Btu/h)                           Heating design load for skylights
-   HVAC Design Load: Heating: Doors (Btu/h)                               Heating design load for doors
-   HVAC Design Load: Heating: Walls (Btu/h)                               Heating design load for walls
-   HVAC Design Load: Heating: Roofs (Btu/h)                               Heating design load for roofs
-   HVAC Design Load: Heating: Floors (Btu/h)                              Heating design load for floors
-   HVAC Design Load: Heating: Slabs (Btu/h)                               Heating design load for slabs
-   HVAC Design Load: Heating: Ceilings (Btu/h)                            Heating design load for ceilings
-   HVAC Design Load: Heating: Infiltration (Btu/h)                        Heating design load for infiltration
-   HVAC Design Load: Heating: Ventilation (Btu/h)                         Heating design load for ventilation
-   HVAC Design Load: Heating: Piping (Btu/h)                              Heating design load for hydronic piping
-   HVAC Design Load: Cooling Sensible: Total (Btu/h)                      Total sensible cooling design load
-   HVAC Design Load: Cooling Sensible: Ducts (Btu/h)                      Sensible cooling design load for ducts
-   HVAC Design Load: Cooling Sensible: Windows (Btu/h)                    Sensible cooling design load for windows
-   HVAC Design Load: Cooling Sensible: Skylights (Btu/h)                  Sensible cooling design load for skylights
-   HVAC Design Load: Cooling Sensible: Doors (Btu/h)                      Sensible cooling design load for doors
-   HVAC Design Load: Cooling Sensible: Walls (Btu/h)                      Sensible cooling design load for walls
-   HVAC Design Load: Cooling Sensible: Roofs (Btu/h)                      Sensible cooling design load for roofs
-   HVAC Design Load: Cooling Sensible: Floors (Btu/h)                     Sensible cooling design load for floors
-   HVAC Design Load: Cooling Sensible: Slabs (Btu/h)                      Sensible cooling design load for slabs
-   HVAC Design Load: Cooling Sensible: Ceilings (Btu/h)                   Sensible cooling design load for ceilings
-   HVAC Design Load: Cooling Sensible: Infiltration (Btu/h)               Sensible cooling design load for infiltration
-   HVAC Design Load: Cooling Sensible: Ventilation (Btu/h)                Sensible cooling design load for ventilation
-   HVAC Design Load: Cooling Sensible: Internal Gains (Btu/h)             Sensible cooling design load for internal gains
-   HVAC Design Load: Cooling Sensible: Blower Heat (Btu/h)                Sensible cooling design load for blower fan heat
-   HVAC Design Load: Cooling Sensible: AED Excursion (Btu/h)              Sensible cooling design load for Adequate Exposure Diversity (AED) excursion
-   HVAC Design Load: Cooling Latent: Total (Btu/h)                        Total latent cooling design load
-   HVAC Design Load: Cooling Latent: Ducts (Btu/h)                        Latent cooling design load for ducts
-   HVAC Design Load: Cooling Latent: Infiltration (Btu/h)                 Latent cooling design load for infiltration
-   HVAC Design Load: Cooling Latent: Ventilation (Btu/h)                  Latent cooling design load for ventilation
-   HVAC Design Load: Cooling Latent: Internal Gains (Btu/h)               Latent cooling design load for internal gains
-   =====================================================================  ====================
+  =====================================================================  ====================
+  Type                                                                   Notes
+  =====================================================================  ====================
+  HVAC Design Load: Heating: Total (Btu/h)                               Total heating design load
+  HVAC Design Load: Heating: Ducts (Btu/h)                               Heating design load for ducts
+  HVAC Design Load: Heating: Windows (Btu/h)                             Heating design load for windows
+  HVAC Design Load: Heating: Skylights (Btu/h)                           Heating design load for skylights
+  HVAC Design Load: Heating: Doors (Btu/h)                               Heating design load for doors
+  HVAC Design Load: Heating: Walls (Btu/h)                               Heating design load for walls
+  HVAC Design Load: Heating: Roofs (Btu/h)                               Heating design load for roofs
+  HVAC Design Load: Heating: Floors (Btu/h)                              Heating design load for floors
+  HVAC Design Load: Heating: Slabs (Btu/h)                               Heating design load for slabs
+  HVAC Design Load: Heating: Ceilings (Btu/h)                            Heating design load for ceilings
+  HVAC Design Load: Heating: Infiltration (Btu/h)                        Heating design load for infiltration
+  HVAC Design Load: Heating: Ventilation (Btu/h)                         Heating design load for ventilation
+  HVAC Design Load: Heating: Piping (Btu/h)                              Heating design load for hydronic piping
+  HVAC Design Load: Cooling Sensible: Total (Btu/h)                      Total sensible cooling design load
+  HVAC Design Load: Cooling Sensible: Ducts (Btu/h)                      Sensible cooling design load for ducts
+  HVAC Design Load: Cooling Sensible: Windows (Btu/h)                    Sensible cooling design load for windows
+  HVAC Design Load: Cooling Sensible: Skylights (Btu/h)                  Sensible cooling design load for skylights
+  HVAC Design Load: Cooling Sensible: Doors (Btu/h)                      Sensible cooling design load for doors
+  HVAC Design Load: Cooling Sensible: Walls (Btu/h)                      Sensible cooling design load for walls
+  HVAC Design Load: Cooling Sensible: Roofs (Btu/h)                      Sensible cooling design load for roofs
+  HVAC Design Load: Cooling Sensible: Floors (Btu/h)                     Sensible cooling design load for floors
+  HVAC Design Load: Cooling Sensible: Slabs (Btu/h)                      Sensible cooling design load for slabs
+  HVAC Design Load: Cooling Sensible: Ceilings (Btu/h)                   Sensible cooling design load for ceilings
+  HVAC Design Load: Cooling Sensible: Infiltration (Btu/h)               Sensible cooling design load for infiltration
+  HVAC Design Load: Cooling Sensible: Ventilation (Btu/h)                Sensible cooling design load for ventilation
+  HVAC Design Load: Cooling Sensible: Internal Gains (Btu/h)             Sensible cooling design load for internal gains
+  HVAC Design Load: Cooling Sensible: Blower Heat (Btu/h)                Sensible cooling design load for blower fan heat
+  HVAC Design Load: Cooling Sensible: AED Excursion (Btu/h)              Sensible cooling design load for Adequate Exposure Diversity (AED) excursion
+  HVAC Design Load: Cooling Latent: Total (Btu/h)                        Total latent cooling design load
+  HVAC Design Load: Cooling Latent: Ducts (Btu/h)                        Latent cooling design load for ducts
+  HVAC Design Load: Cooling Latent: Infiltration (Btu/h)                 Latent cooling design load for infiltration
+  HVAC Design Load: Cooling Latent: Ventilation (Btu/h)                  Latent cooling design load for ventilation
+  HVAC Design Load: Cooling Latent: Internal Gains (Btu/h)               Latent cooling design load for internal gains
+  =====================================================================  ====================
 
 .. _hvac_zone_design_loads:
 
@@ -514,43 +518,43 @@ For each conditioned zone (see :ref:`zones_spaces`), zone-level design loads are
 Zone design loads can also be found in the ``in.xml`` file.
 Additional detail related to zone design loads can be found in the :ref:`design_load_details`:.
 
-   =====================================================================  ====================
-   Type                                                                   Notes
-   =====================================================================  ====================
-   HVAC Zone Design Load: Heating: Total (Btu/h)                          Total heating design load
-   HVAC Zone Design Load: Heating: Ducts (Btu/h)                          Heating design load for ducts
-   HVAC Zone Design Load: Heating: Windows (Btu/h)                        Heating design load for windows
-   HVAC Zone Design Load: Heating: Skylights (Btu/h)                      Heating design load for skylights
-   HVAC Zone Design Load: Heating: Doors (Btu/h)                          Heating design load for doors
-   HVAC Zone Design Load: Heating: Walls (Btu/h)                          Heating design load for walls
-   HVAC Zone Design Load: Heating: Roofs (Btu/h)                          Heating design load for roofs
-   HVAC Zone Design Load: Heating: Floors (Btu/h)                         Heating design load for floors
-   HVAC Zone Design Load: Heating: Slabs (Btu/h)                          Heating design load for slabs
-   HVAC Zone Design Load: Heating: Ceilings (Btu/h)                       Heating design load for ceilings
-   HVAC Zone Design Load: Heating: Infiltration (Btu/h)                   Heating design load for infiltration
-   HVAC Zone Design Load: Heating: Ventilation (Btu/h)                    Heating design load for ventilation
-   HVAC Zone Design Load: Heating: Piping (Btu/h)                         Heating design load for hydronic piping
-   HVAC Zone Design Load: Cooling Sensible: Total (Btu/h)                 Total sensible cooling design load
-   HVAC Zone Design Load: Cooling Sensible: Ducts (Btu/h)                 Sensible cooling design load for ducts
-   HVAC Zone Design Load: Cooling Sensible: Windows (Btu/h)               Sensible cooling design load for windows
-   HVAC Zone Design Load: Cooling Sensible: Skylights (Btu/h)             Sensible cooling design load for skylights
-   HVAC Zone Design Load: Cooling Sensible: Doors (Btu/h)                 Sensible cooling design load for doors
-   HVAC Zone Design Load: Cooling Sensible: Walls (Btu/h)                 Sensible cooling design load for walls
-   HVAC Zone Design Load: Cooling Sensible: Roofs (Btu/h)                 Sensible cooling design load for roofs
-   HVAC Zone Design Load: Cooling Sensible: Floors (Btu/h)                Sensible cooling design load for floors
-   HVAC Zone Design Load: Cooling Sensible: Slabs (Btu/h)                 Sensible cooling design load for slabs
-   HVAC Zone Design Load: Cooling Sensible: Ceilings (Btu/h)              Sensible cooling design load for ceilings
-   HVAC Zone Design Load: Cooling Sensible: Infiltration (Btu/h)          Sensible cooling design load for infiltration
-   HVAC Zone Design Load: Cooling Sensible: Ventilation (Btu/h)           Sensible cooling design load for ventilation
-   HVAC Zone Design Load: Cooling Sensible: Internal Gains (Btu/h)        Sensible cooling design load for internal gains
-   HVAC Zone Design Load: Cooling Sensible: Blower Heat (Btu/h)           Sensible cooling design load for blower fan heat
-   HVAC Zone Design Load: Cooling Sensible: AED Excursion (Btu/h)         Sensible cooling design load for Adequate Exposure Diversity (AED) excursion
-   HVAC Zone Design Load: Cooling Latent: Total (Btu/h)                   Total latent cooling design load
-   HVAC Zone Design Load: Cooling Latent: Ducts (Btu/h)                   Latent cooling design load for ducts
-   HVAC Zone Design Load: Cooling Latent: Infiltration (Btu/h)            Latent cooling design load for infiltration
-   HVAC Zone Design Load: Cooling Latent: Ventilation (Btu/h)             Latent cooling design load for ventilation
-   HVAC Zone Design Load: Cooling Latent: Internal Gains (Btu/h)          Latent cooling design load for internal gains
-   =====================================================================  ====================
+  =====================================================================  ====================
+  Type                                                                   Notes
+  =====================================================================  ====================
+  HVAC Zone Design Load: Heating: Total (Btu/h)                          Total heating design load
+  HVAC Zone Design Load: Heating: Ducts (Btu/h)                          Heating design load for ducts
+  HVAC Zone Design Load: Heating: Windows (Btu/h)                        Heating design load for windows
+  HVAC Zone Design Load: Heating: Skylights (Btu/h)                      Heating design load for skylights
+  HVAC Zone Design Load: Heating: Doors (Btu/h)                          Heating design load for doors
+  HVAC Zone Design Load: Heating: Walls (Btu/h)                          Heating design load for walls
+  HVAC Zone Design Load: Heating: Roofs (Btu/h)                          Heating design load for roofs
+  HVAC Zone Design Load: Heating: Floors (Btu/h)                         Heating design load for floors
+  HVAC Zone Design Load: Heating: Slabs (Btu/h)                          Heating design load for slabs
+  HVAC Zone Design Load: Heating: Ceilings (Btu/h)                       Heating design load for ceilings
+  HVAC Zone Design Load: Heating: Infiltration (Btu/h)                   Heating design load for infiltration
+  HVAC Zone Design Load: Heating: Ventilation (Btu/h)                    Heating design load for ventilation
+  HVAC Zone Design Load: Heating: Piping (Btu/h)                         Heating design load for hydronic piping
+  HVAC Zone Design Load: Cooling Sensible: Total (Btu/h)                 Total sensible cooling design load
+  HVAC Zone Design Load: Cooling Sensible: Ducts (Btu/h)                 Sensible cooling design load for ducts
+  HVAC Zone Design Load: Cooling Sensible: Windows (Btu/h)               Sensible cooling design load for windows
+  HVAC Zone Design Load: Cooling Sensible: Skylights (Btu/h)             Sensible cooling design load for skylights
+  HVAC Zone Design Load: Cooling Sensible: Doors (Btu/h)                 Sensible cooling design load for doors
+  HVAC Zone Design Load: Cooling Sensible: Walls (Btu/h)                 Sensible cooling design load for walls
+  HVAC Zone Design Load: Cooling Sensible: Roofs (Btu/h)                 Sensible cooling design load for roofs
+  HVAC Zone Design Load: Cooling Sensible: Floors (Btu/h)                Sensible cooling design load for floors
+  HVAC Zone Design Load: Cooling Sensible: Slabs (Btu/h)                 Sensible cooling design load for slabs
+  HVAC Zone Design Load: Cooling Sensible: Ceilings (Btu/h)              Sensible cooling design load for ceilings
+  HVAC Zone Design Load: Cooling Sensible: Infiltration (Btu/h)          Sensible cooling design load for infiltration
+  HVAC Zone Design Load: Cooling Sensible: Ventilation (Btu/h)           Sensible cooling design load for ventilation
+  HVAC Zone Design Load: Cooling Sensible: Internal Gains (Btu/h)        Sensible cooling design load for internal gains
+  HVAC Zone Design Load: Cooling Sensible: Blower Heat (Btu/h)           Sensible cooling design load for blower fan heat
+  HVAC Zone Design Load: Cooling Sensible: AED Excursion (Btu/h)         Sensible cooling design load for Adequate Exposure Diversity (AED) excursion
+  HVAC Zone Design Load: Cooling Latent: Total (Btu/h)                   Total latent cooling design load
+  HVAC Zone Design Load: Cooling Latent: Ducts (Btu/h)                   Latent cooling design load for ducts
+  HVAC Zone Design Load: Cooling Latent: Infiltration (Btu/h)            Latent cooling design load for infiltration
+  HVAC Zone Design Load: Cooling Latent: Ventilation (Btu/h)             Latent cooling design load for ventilation
+  HVAC Zone Design Load: Cooling Latent: Internal Gains (Btu/h)          Latent cooling design load for internal gains
+  =====================================================================  ====================
 
 .. _hvac_space_design_loads:
 
@@ -561,34 +565,34 @@ For each space in a conditioned zone (see :ref:`zones_spaces`), space-level desi
 Space design loads can also be found in the ``in.xml`` file.
 Additional detail related to space design loads can be found in the :ref:`design_load_details`:.
 
-   =====================================================================================  ====================
-   Type                                                                                   Notes
-   =====================================================================================  ====================
-   HVAC Space Design Load: <SpaceID>: Heating: Total (Btu/h)                              Total heating design load
-   HVAC Space Design Load: <SpaceID>: Heating: Ducts (Btu/h)                              Heating design load for ducts
-   HVAC Space Design Load: <SpaceID>: Heating: Windows (Btu/h)                            Heating design load for windows
-   HVAC Space Design Load: <SpaceID>: Heating: Skylights (Btu/h)                          Heating design load for skylights
-   HVAC Space Design Load: <SpaceID>: Heating: Doors (Btu/h)                              Heating design load for doors
-   HVAC Space Design Load: <SpaceID>: Heating: Walls (Btu/h)                              Heating design load for walls
-   HVAC Space Design Load: <SpaceID>: Heating: Roofs (Btu/h)                              Heating design load for roofs
-   HVAC Space Design Load: <SpaceID>: Heating: Floors (Btu/h)                             Heating design load for floors
-   HVAC Space Design Load: <SpaceID>: Heating: Slabs (Btu/h)                              Heating design load for slabs
-   HVAC Space Design Load: <SpaceID>: Heating: Ceilings (Btu/h)                           Heating design load for ceilings
-   HVAC Space Design Load: <SpaceID>: Heating: Infiltration (Btu/h)                       Heating design load for infiltration
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: Total (Btu/h)                     Total sensible cooling design load
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: Ducts (Btu/h)                     Sensible cooling design load for ducts
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: Windows (Btu/h)                   Sensible cooling design load for windows
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: Skylights (Btu/h)                 Sensible cooling design load for skylights
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: Doors (Btu/h)                     Sensible cooling design load for doors
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: Walls (Btu/h)                     Sensible cooling design load for walls
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: Roofs (Btu/h)                     Sensible cooling design load for roofs
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: Floors (Btu/h)                    Sensible cooling design load for floors
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: Slabs (Btu/h)                     Sensible cooling design load for slabs
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: Ceilings (Btu/h)                  Sensible cooling design load for ceilings
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: Infiltration (Btu/h)              Sensible cooling design load for infiltration
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: Internal Gains (Btu/h)            Sensible cooling design load for internal gains
-   HVAC Space Design Load: <SpaceID>: Cooling Sensible: AED Excursion (Btu/h)             Sensible cooling design load for Adequate Exposure Diversity (AED) excursion
-   =====================================================================================  ====================
+  =====================================================================================  ====================
+  Type                                                                                   Notes
+  =====================================================================================  ====================
+  HVAC Space Design Load: <SpaceID>: Heating: Total (Btu/h)                              Total heating design load
+  HVAC Space Design Load: <SpaceID>: Heating: Ducts (Btu/h)                              Heating design load for ducts
+  HVAC Space Design Load: <SpaceID>: Heating: Windows (Btu/h)                            Heating design load for windows
+  HVAC Space Design Load: <SpaceID>: Heating: Skylights (Btu/h)                          Heating design load for skylights
+  HVAC Space Design Load: <SpaceID>: Heating: Doors (Btu/h)                              Heating design load for doors
+  HVAC Space Design Load: <SpaceID>: Heating: Walls (Btu/h)                              Heating design load for walls
+  HVAC Space Design Load: <SpaceID>: Heating: Roofs (Btu/h)                              Heating design load for roofs
+  HVAC Space Design Load: <SpaceID>: Heating: Floors (Btu/h)                             Heating design load for floors
+  HVAC Space Design Load: <SpaceID>: Heating: Slabs (Btu/h)                              Heating design load for slabs
+  HVAC Space Design Load: <SpaceID>: Heating: Ceilings (Btu/h)                           Heating design load for ceilings
+  HVAC Space Design Load: <SpaceID>: Heating: Infiltration (Btu/h)                       Heating design load for infiltration
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: Total (Btu/h)                     Total sensible cooling design load
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: Ducts (Btu/h)                     Sensible cooling design load for ducts
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: Windows (Btu/h)                   Sensible cooling design load for windows
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: Skylights (Btu/h)                 Sensible cooling design load for skylights
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: Doors (Btu/h)                     Sensible cooling design load for doors
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: Walls (Btu/h)                     Sensible cooling design load for walls
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: Roofs (Btu/h)                     Sensible cooling design load for roofs
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: Floors (Btu/h)                    Sensible cooling design load for floors
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: Slabs (Btu/h)                     Sensible cooling design load for slabs
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: Ceilings (Btu/h)                  Sensible cooling design load for ceilings
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: Infiltration (Btu/h)              Sensible cooling design load for infiltration
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: Internal Gains (Btu/h)            Sensible cooling design load for internal gains
+  HVAC Space Design Load: <SpaceID>: Cooling Sensible: AED Excursion (Btu/h)             Sensible cooling design load for Adequate Exposure Diversity (AED) excursion
+  =====================================================================================  ====================
 
 HVAC Geothermal Loop
 ~~~~~~~~~~~~~~~~~~~~
@@ -596,12 +600,12 @@ HVAC Geothermal Loop
 Geothermal loop outputs are listed below.
 Outputs for individual geothermal loops can be found in the ``in.xml`` file.
 
-   =====================================================================  ====================
-   Type                                                                   Notes
-   =====================================================================  ====================
-   HVAC Geothermal Loop: Borehole/Trench Count                            Total number of vertical boreholes
-   HVAC Geothermal Loop: Borehole/Trench Length (ft)                      Length (i.e., average depth) of each borehole
-   =====================================================================  ====================
+  =====================================================================  ====================
+  Type                                                                   Notes
+  =====================================================================  ====================
+  HVAC Geothermal Loop: Borehole/Trench Count                            Total number of vertical boreholes
+  HVAC Geothermal Loop: Borehole/Trench Length (ft)                      Length (i.e., average depth) of each borehole
+  =====================================================================  ====================
 
 
 .. _timeseries_outputs:
@@ -615,26 +619,26 @@ If multiple timeseries frequencies are requested (e.g., hourly and daily), the t
 
 Depending on the outputs requested, the file may include:
 
-   ===================================  ==================================================================================================================================
-   Type                                 Notes
-   ===================================  ==================================================================================================================================
-   Total Consumptions                   Energy use for building total and net (i.e., subtracts any power produced by PV or generators).
-   Fuel Consumptions                    Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
-   End Use Consumptions                 Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
-   System Use Consumptions              Energy use for each HVAC and water heating system (in kBtu).
-   Emissions                            Emissions (e.g., CO2) for each scenario defined in the HPXML file.
-   Emission Fuels                       Emissions (e.g., CO2) disaggregated by fuel type for each scenario defined in the HPXML file.
-   Emission End Uses                    Emissions (e.g., CO2) disaggregated by end use for each scenario defined in the HPXML file.
-   Hot Water Uses                       Water use for each end use type (in gallons).
-   Total Loads                          Heating, cooling, and hot water loads (in kBtu).
-   Component Loads                      Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).
-   Unmet Hours                          Heating and cooling unmet hours.
-   Zone Temperatures                    Zone temperatures (in deg-F) for each space (e.g., conditioned space, attic, garage, basement, crawlspace, etc.) plus heating/cooling setpoints.
-   Airflows                             Airflow rates (in cfm) for infiltration, mechanical ventilation (including clothes dryer exhaust), natural ventilation, whole house fans.
-   Weather                              Weather file data including outdoor temperatures, relative humidity, wind speed, and solar.
-   Resilience                           Resilience outputs (currently only average resilience hours for battery storage).
-   EnergyPlus Output Variables          Any user-specified EnergyPlus output variables (e.g., 'Zone People Occupant Count').
-   ===================================  ==================================================================================================================================
+  ===================================  ==================================================================================================================================
+  Type                                 Notes
+  ===================================  ==================================================================================================================================
+  Total Consumptions                   Energy use for building total and net (i.e., subtracts any power produced by PV or generators).
+  Fuel Consumptions                    Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
+  End Use Consumptions                 Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
+  System Use Consumptions              Energy use for each HVAC and water heating system (in kBtu).
+  Emissions                            Emissions (e.g., CO2) for each scenario defined in the HPXML file.
+  Emission Fuels                       Emissions (e.g., CO2) disaggregated by fuel type for each scenario defined in the HPXML file.
+  Emission End Uses                    Emissions (e.g., CO2) disaggregated by end use for each scenario defined in the HPXML file.
+  Hot Water Uses                       Water use for each end use type (in gallons).
+  Total Loads                          Heating, cooling, and hot water loads (in kBtu).
+  Component Loads                      Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).
+  Unmet Hours                          Heating and cooling unmet hours.
+  Zone Temperatures                    Zone temperatures (in deg-F) for each space (e.g., conditioned space, attic, garage, basement, crawlspace, etc.) plus heating/cooling setpoints.
+  Airflows                             Airflow rates (in cfm) for infiltration, mechanical ventilation (including clothes dryer exhaust), natural ventilation, whole house fans.
+  Weather                              Weather file data including outdoor temperatures, relative humidity, wind speed, and solar.
+  Resilience                           Resilience outputs (currently only average resilience hours for battery storage).
+  EnergyPlus Output Variables          Any user-specified EnergyPlus output variables (e.g., 'Zone People Occupant Count').
+  ===================================  ==================================================================================================================================
 
 Timeseries outputs can be one of the following frequencies: hourly, daily, monthly, or timestep (i.e., equal to the simulation timestep, which defaults to an hour but can be sub-hourly).
 
@@ -658,33 +662,33 @@ Annual Bills by Fuel Use
 
 Annual results for each utility bill scenario defined in the HPXML file are listed as shown below.
 
-   =================================================  ====================
-   Type                                               Notes
-   =================================================  ====================
-   <ScenarioName>: Total (USD)                        Scenario annual total charges.
-   <ScenarioName>: Electricity: Fixed (USD)           Scenario annual fixed charges for electricity.
-   <ScenarioName>: Electricity: Energy (USD)          Scenario annual energy charges for electricity.
-   <ScenarioName>: Electricity: PV Credit (USD)       Scenario annual production credit (negative value) for PV.
-   <ScenarioName>: Electricity: Total (USD)           Scenario annual total charges for electricity.
-   <ScenarioName>: Natural Gas: Fixed (USD)           Scenario annual fixed charges for natural gas.
-   <ScenarioName>: Natural Gas: Energy (USD)          Scenario annual energy charges for natural gas.
-   <ScenarioName>: Natural Gas: Total (USD)           Scenario annual total charges for natural gas.
-   <ScenarioName>: Fuel Oil: Fixed (USD)              Scenario annual fixed charges for fuel oil.
-   <ScenarioName>: Fuel Oil: Energy (USD)             Scenario annual energy charges for fuel oil.
-   <ScenarioName>: Fuel Oil: Total (USD)              Scenario annual total charges for fuel oil.
-   <ScenarioName>: Propane: Fixed (USD)               Scenario annual fixed charges for propane.
-   <ScenarioName>: Propane: Energy (USD)              Scenario annual energy charges for propane.
-   <ScenarioName>: Propane: Total (USD)               Scenario annual total charges for propane.
-   <ScenarioName>: Wood Cord: Fixed (USD)             Scenario annual fixed charges for wood cord.
-   <ScenarioName>: Wood Cord: Energy (USD)            Scenario annual energy charges for wood cord.
-   <ScenarioName>: Wood Cord: Total (USD)             Scenario annual total charges for wood cord.
-   <ScenarioName>: Wood Pellets: Fixed (USD)          Scenario annual fixed charges for wood pellets.
-   <ScenarioName>: Wood Pellets: Energy (USD)         Scenario annual energy charges for wood pellets.
-   <ScenarioName>: Wood Pellets: Total (USD)          Scenario annual total charges for wood pellets.
-   <ScenarioName>: Coal: Fixed (USD)                  Scenario annual fixed charges for coal.
-   <ScenarioName>: Coal: Energy (USD)                 Scenario annual energy charges for coal.
-   <ScenarioName>: Coal: Total (USD)                  Scenario annual total charges for coal.
-   =================================================  ====================
+  =================================================  ====================
+  Type                                               Notes
+  =================================================  ====================
+  <ScenarioName>: Total (USD)                        Scenario annual total charges.
+  <ScenarioName>: Electricity: Fixed (USD)           Scenario annual fixed charges for electricity.
+  <ScenarioName>: Electricity: Energy (USD)          Scenario annual energy charges for electricity.
+  <ScenarioName>: Electricity: PV Credit (USD)       Scenario annual production credit (negative value) for PV.
+  <ScenarioName>: Electricity: Total (USD)           Scenario annual total charges for electricity.
+  <ScenarioName>: Natural Gas: Fixed (USD)           Scenario annual fixed charges for natural gas.
+  <ScenarioName>: Natural Gas: Energy (USD)          Scenario annual energy charges for natural gas.
+  <ScenarioName>: Natural Gas: Total (USD)           Scenario annual total charges for natural gas.
+  <ScenarioName>: Fuel Oil: Fixed (USD)              Scenario annual fixed charges for fuel oil.
+  <ScenarioName>: Fuel Oil: Energy (USD)             Scenario annual energy charges for fuel oil.
+  <ScenarioName>: Fuel Oil: Total (USD)              Scenario annual total charges for fuel oil.
+  <ScenarioName>: Propane: Fixed (USD)               Scenario annual fixed charges for propane.
+  <ScenarioName>: Propane: Energy (USD)              Scenario annual energy charges for propane.
+  <ScenarioName>: Propane: Total (USD)               Scenario annual total charges for propane.
+  <ScenarioName>: Wood Cord: Fixed (USD)             Scenario annual fixed charges for wood cord.
+  <ScenarioName>: Wood Cord: Energy (USD)            Scenario annual energy charges for wood cord.
+  <ScenarioName>: Wood Cord: Total (USD)             Scenario annual total charges for wood cord.
+  <ScenarioName>: Wood Pellets: Fixed (USD)          Scenario annual fixed charges for wood pellets.
+  <ScenarioName>: Wood Pellets: Energy (USD)         Scenario annual energy charges for wood pellets.
+  <ScenarioName>: Wood Pellets: Total (USD)          Scenario annual total charges for wood pellets.
+  <ScenarioName>: Coal: Fixed (USD)                  Scenario annual fixed charges for coal.
+  <ScenarioName>: Coal: Energy (USD)                 Scenario annual energy charges for coal.
+  <ScenarioName>: Coal: Total (USD)                  Scenario annual total charges for coal.
+  =================================================  ====================
 
 Monthly Bills by Fuel Use
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -706,49 +710,49 @@ Report: <BuildingID>: Summary
 
 For each HPXML Building, the following output types are reported.
 
-   =======================  ===========  ================  ================  ================  ================
-   Type                     Orientation  Heating HTM [#]_  Cooling HTM [#]_  Heating CFM [#]_  Cooling CFM [#]_
-   =======================  ===========  ================  ================  ================  ================
-   Windows: <WindowID>      X            X                 X                                     
-   Skylights: <SkylightID>  X            X                 X                                     
-   Doors: <DoorID>          X            X                 X                                     
-   Walls: <WallID>          X            X                 X                                     
-   Ceilings: <CeilingID>                 X                 X                                     
-   Floors: <FloorID>                     X                 X                                     
-   Infiltration                                                              X                 X  
-   Ventilation                                                               X                 X  
-   =======================  ===========  ================  ================  ================  ================
+  =======================  ===========  ================  ================  ================  ================
+  Type                     Orientation  Heating HTM [#]_  Cooling HTM [#]_  Heating CFM [#]_  Cooling CFM [#]_
+  =======================  ===========  ================  ================  ================  ================
+  Windows: <WindowID>      X            X                 X                                     
+  Skylights: <SkylightID>  X            X                 X                                     
+  Doors: <DoorID>          X            X                 X                                     
+  Walls: <WallID>          X            X                 X                                     
+  Ceilings: <CeilingID>                 X                 X                                     
+  Floors: <FloorID>                     X                 X                                     
+  Infiltration                                                              X                 X  
+  Ventilation                                                               X                 X  
+  =======================  ===========  ================  ================  ================  ================
 
-   .. [#] Heating HTM is the heating heat transfer multiplier (Btu/ft^2), which is multiplier by surface area to calculate the heating design load.
-   .. [#] Cooling HTM is the cooling heat transfer multiplier (Btu/ft^2), which is multiplier by surface area to calculate the sensible cooling design load.
-   .. [#] Heating CFM is the airflow rate (ft^3/min) during the heating season.
-   .. [#] Cooling CFM is the airflow rate (ft^3/min) during the cooling season.
+  .. [#] Heating HTM is the heating heat transfer multiplier (Btu/ft^2), which is multiplier by surface area to calculate the heating design load.
+  .. [#] Cooling HTM is the cooling heat transfer multiplier (Btu/ft^2), which is multiplier by surface area to calculate the sensible cooling design load.
+  .. [#] Heating CFM is the airflow rate (ft^3/min) during the heating season.
+  .. [#] Cooling CFM is the airflow rate (ft^3/min) during the cooling season.
 
 Report: <BuildingID>: Loads
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For each HPXML Building, the following output types are reported.
 
-   =======================  ===========  ===========  ===============  ==============  =======================  =====================
-   Type                     Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)  Cooling Latent (Btuh)
-   =======================  ===========  ===========  ===============  ==============  =======================  =====================
-   Windows: <WindowID>      X                                          X               X
-   Skylights: <SkylightID>  X                                          X               X
-   Doors: <DoorID>          X                                          X               X
-   Walls: <WallID>          X                                          X               X
-   Ceilings: <CeilingID>    X                                          X               X
-   Floors: <FloorID>        X            See [#]_                      X               X
-   Infiltration                                       X                X               X                        X  
-   Internal Gains                                                                      X                        X  
-   Ducts                                                               X               X                        X  
-   Ventilation                                                         X               X                        X  
-   Piping                                                              X
-   Blower Heat                                                                         X
-   AED Excursion                                                                       X                          
-   Total                                                               X               X                        X
-   =======================  ===========  ===========  ===============  ==============  =======================  =====================
+  =======================  ===========  ===========  ===============  ==============  =======================  =====================
+  Type                     Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)  Cooling Latent (Btuh)
+  =======================  ===========  ===========  ===============  ==============  =======================  =====================
+  Windows: <WindowID>      X                                          X               X
+  Skylights: <SkylightID>  X                                          X               X
+  Doors: <DoorID>          X                                          X               X
+  Walls: <WallID>          X                                          X               X
+  Ceilings: <CeilingID>    X                                          X               X
+  Floors: <FloorID>        X            See [#]_                      X               X
+  Infiltration                                       X                X               X                        X  
+  Internal Gains                                                                      X                        X  
+  Ducts                                                               X               X                        X  
+  Ventilation                                                         X               X                        X  
+  Piping                                                              X
+  Blower Heat                                                                         X
+  AED Excursion                                                                       X                          
+  Total                                                               X               X                        X
+  =======================  ===========  ===========  ===============  ==============  =======================  =====================
 
-   .. [#] Length will be provided for a slab floor under conditioned space.
+  .. [#] Length will be provided for a slab floor under conditioned space.
 
 Report: <BuildingID>: <ZoneID>: Loads
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -756,26 +760,26 @@ Report: <BuildingID>: <ZoneID>: Loads
 For each HPXML conditioned Zone (see :ref:`zones_spaces`), the following output types are reported.
 Only those surfaces attached to a space in the given zone will be included.
 
-   =======================  ===========  ===========  ===============  ==============  =======================  =====================
-   Type                     Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)  Cooling Latent (Btuh)
-   =======================  ===========  ===========  ===============  ==============  =======================  =====================
-   Windows: <WindowID>      X                                          X               X
-   Skylights: <SkylightID>  X                                          X               X
-   Doors: <DoorID>          X                                          X               X
-   Walls: <WallID>          X                                          X               X
-   Ceilings: <CeilingID>    X                                          X               X
-   Floors: <FloorID>        X            See [#]_                      X               X
-   Infiltration                                       X                X               X                        X  
-   Internal Gains                                                                      X                        X  
-   Ducts                                                               X               X                        X  
-   Ventilation                                                         X               X                        X  
-   Piping                                                              X
-   Blower Heat                                                                         X
-   AED Excursion                                                                       X                          
-   Total                                                               X               X                        X
-   =======================  ===========  ===========  ===============  ==============  =======================  =====================
+  =======================  ===========  ===========  ===============  ==============  =======================  =====================
+  Type                     Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)  Cooling Latent (Btuh)
+  =======================  ===========  ===========  ===============  ==============  =======================  =====================
+  Windows: <WindowID>      X                                          X               X
+  Skylights: <SkylightID>  X                                          X               X
+  Doors: <DoorID>          X                                          X               X
+  Walls: <WallID>          X                                          X               X
+  Ceilings: <CeilingID>    X                                          X               X
+  Floors: <FloorID>        X            See [#]_                      X               X
+  Infiltration                                       X                X               X                        X  
+  Internal Gains                                                                      X                        X  
+  Ducts                                                               X               X                        X  
+  Ventilation                                                         X               X                        X  
+  Piping                                                              X
+  Blower Heat                                                                         X
+  AED Excursion                                                                       X                          
+  Total                                                               X               X                        X
+  =======================  ===========  ===========  ===============  ==============  =======================  =====================
 
-   .. [#] Length will be provided for a slab floor under conditioned space.
+  .. [#] Length will be provided for a slab floor under conditioned space.
 
 Report: <BuildingID>: <SpaceID>: Loads
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -783,23 +787,23 @@ Report: <BuildingID>: <SpaceID>: Loads
 For each HPXML Space in a conditioned zone (see :ref:`zones_spaces`), the following output types are reported.
 Only those surfaces attached to the given space will be included.
 
-   =======================  ===========  ===========  ===============  ==============  =======================
-   Type                     Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)
-   =======================  ===========  ===========  ===============  ==============  =======================
-   Windows: <WindowID>      X                                          X               X
-   Skylights: <SkylightID>  X                                          X               X
-   Doors: <DoorID>          X                                          X               X
-   Walls: <WallID>          X                                          X               X
-   Ceilings: <CeilingID>    X                                          X               X
-   Floors: <FloorID>        X            See [#]_                      X               X
-   Infiltration                                       X                X               X
-   Internal Gains                                                                      X
-   Ducts                                                               X               X
-   AED Excursion                                                                       X
-   Total                                                               X               X
-   =======================  ===========  ===========  ===============  ==============  =======================
+  =======================  ===========  ===========  ===============  ==============  =======================
+  Type                     Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)
+  =======================  ===========  ===========  ===============  ==============  =======================
+  Windows: <WindowID>      X                                          X               X
+  Skylights: <SkylightID>  X                                          X               X
+  Doors: <DoorID>          X                                          X               X
+  Walls: <WallID>          X                                          X               X
+  Ceilings: <CeilingID>    X                                          X               X
+  Floors: <FloorID>        X            See [#]_                      X               X
+  Infiltration                                       X                X               X
+  Internal Gains                                                                      X
+  Ducts                                                               X               X
+  AED Excursion                                                                       X
+  Total                                                               X               X
+  =======================  ===========  ===========  ===============  ==============  =======================
 
-   .. [#] Length will be provided for a slab floor under conditioned space.
+  .. [#] Length will be provided for a slab floor under conditioned space.
 
 Report: <BuildingID>: AED Curve
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
