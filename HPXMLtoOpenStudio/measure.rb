@@ -497,7 +497,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     # Init
     OpenStudio::Model::WeatherFile.setWeatherFile(model, OpenStudio::EpwFile.new(epw_path))
-    set_defaults_and_globals()
+    set_inits_and_globals()
     Location.apply(model, weather, @hpxml_header, @hpxml_bldg)
     add_simulation_params(model)
 
@@ -526,7 +526,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # HVAC
     @hvac_unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::Columns[:HVAC].name, @hpxml_header.unavailable_periods)
     airloop_map = {} # Map of HPXML System ID -> AirLoopHVAC (or ZoneHVACFourPipeFanCoil)
-    add_ideal_system(model, spaces, epw_path)
+    add_ideal_system(model, spaces, weather)
     add_cooling_system(model, runner, weather, spaces, airloop_map)
     add_heating_system(runner, model, weather, spaces, airloop_map)
     add_heat_pump(runner, model, weather, spaces, airloop_map)
@@ -609,7 +609,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # TODO
   #
   # @return [TODO] TODO
-  def set_defaults_and_globals()
+  def set_inits_and_globals()
     # Initialize
     @remaining_heat_load_frac = 1.0
     @remaining_cool_load_frac = 1.0
@@ -630,21 +630,18 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     @hpxml_bldg.collapse_enclosure_surfaces() # Speeds up simulation
     @hpxml_bldg.delete_adiabatic_subsurfaces() # EnergyPlus doesn't allow this
 
-    # We don't want this to be written to in.xml, because then if you ran the in.xml
-    # file, you would get different results (operational calculation) relative to the
-    # original file (asset calculation).
-    if @hpxml_bldg.building_occupancy.number_of_residents.nil?
-      @hpxml_bldg.building_occupancy.number_of_residents = Geometry.get_occupancy_default_num(nbeds: @nbeds)
-    elsif (@hpxml_bldg.building_occupancy.number_of_residents == 0) && (not @apply_ashrae140_assumptions)
+    if not @hpxml_bldg.building_occupancy.number_of_residents.nil?
       # If zero occupants, ensure end uses of interest are zeroed out
-      @hpxml_header.unavailable_periods.add(column_name: 'Vacancy',
-                                            begin_month: @hpxml_header.sim_begin_month,
-                                            begin_day: @hpxml_header.sim_begin_day,
-                                            begin_hour: 0,
-                                            end_month: @hpxml_header.sim_end_month,
-                                            end_day: @hpxml_header.sim_end_day,
-                                            end_hour: 24,
-                                            natvent_availability: HPXML::ScheduleUnavailable)
+      if (@hpxml_bldg.building_occupancy.number_of_residents == 0) && (not @apply_ashrae140_assumptions)
+        @hpxml_header.unavailable_periods.add(column_name: 'Vacancy',
+                                              begin_month: @hpxml_header.sim_begin_month,
+                                              begin_day: @hpxml_header.sim_begin_day,
+                                              begin_hour: 0,
+                                              end_month: @hpxml_header.sim_end_month,
+                                              end_day: @hpxml_header.sim_end_day,
+                                              end_hour: 24,
+                                              natvent_availability: HPXML::ScheduleUnavailable)
+      end
     end
   end
 
@@ -664,8 +661,11 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @return [TODO] TODO
   def add_num_occupants(model, runner, spaces)
     # Occupants
-    num_occ = @hpxml_bldg.building_occupancy.number_of_residents
-    return if num_occ <= 0
+    if @hpxml_bldg.building_occupancy.number_of_residents.nil? # Asset calculation
+      num_occ = Geometry.get_occupancy_default_num(nbeds: @nbeds)
+    else # Operational calculation
+      num_occ = @hpxml_bldg.building_occupancy.number_of_residents
+    end
 
     Geometry.apply_occupants(model, runner, @hpxml_bldg, num_occ, spaces[HPXML::LocationConditionedSpace],
                              @schedules_file, @hpxml_header.unavailable_periods)
@@ -1997,25 +1997,25 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
   end
 
-  # TODO
+  # Adds an ideal air system as needed to meet the load under certain circumstances:
+  # 1. the sum of fractions load served is less than 1 and greater than 0 (e.g., room ACs serving a portion of the home's load),
+  #    in which case we need the ideal system to help fully condition the thermal zone to prevent incorrect heat transfers, or
+  # 2. ASHRAE 140 tests where we need heating/cooling loads.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
-  # @param epw_path [String] Path to the EPW weather file
-  # @return [TODO] TODO
-  def add_ideal_system(model, spaces, epw_path)
-    # Adds an ideal air system as needed to meet the load under certain circumstances:
-    # 1. the sum of fractions load served is less than 1, or
-    # 2. we're using an ideal air system for e.g. ASHRAE 140 loads calculation.
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @return [void]
+  def add_ideal_system(model, spaces, weather)
     conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
 
     if @apply_ashrae140_assumptions && (@hpxml_bldg.total_fraction_heat_load_served + @hpxml_bldg.total_fraction_heat_load_served == 0.0)
       cooling_load_frac = 1.0
       heating_load_frac = 1.0
       if @apply_ashrae140_assumptions
-        if epw_path.end_with? 'USA_CO_Colorado.Springs-Peterson.Field.724660_TMY3.epw'
+        if weather.header.StateProvinceRegion.downcase == 'co'
           cooling_load_frac = 0.0
-        elsif epw_path.end_with? 'USA_NV_Las.Vegas-McCarran.Intl.AP.723860_TMY3.epw'
+        elsif weather.header.StateProvinceRegion.downcase == 'nv'
           heating_load_frac = 0.0
         else
           fail 'Unexpected weather file for ASHRAE 140 run.'

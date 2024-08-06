@@ -604,7 +604,7 @@ class ScheduleGenerator
       @schedules[SchedulesFile::Columns[:Sleeping].name] = sleep_schedule
     end
 
-    @schedules[SchedulesFile::Columns[:HotWaterFixtures].name] = [showers, sinks, baths].transpose.map { |flow| flow.reduce(:+) }
+    @schedules[SchedulesFile::Columns[:HotWaterFixtures].name] = [showers, sinks, baths].transpose.map { |flow| flow.sum }
     fixtures_peak_flow = @schedules[SchedulesFile::Columns[:HotWaterFixtures].name].max
     @schedules[SchedulesFile::Columns[:HotWaterFixtures].name] = @schedules[SchedulesFile::Columns[:HotWaterFixtures].name].map { |flow| flow / fixtures_peak_flow }
 

@@ -3,6 +3,7 @@
 __New Features__
 - Adds inputs for modeling skylight curbs and/or shafts.
 - Allows alternative infiltration input `AirInfiltrationMeasurement/LeakinessDescription`, in which the infiltration level is estimated using age of home, climate zone, foundation type, etc.
+- Updates hot water end uses for operational calculations (i.e., when `NumberofResidents` provided) based on FSEC study.
 - Central Fan Integrated Supply (CFIS) mechanical ventilation enhancements:
   - Allows modeling systems with no strategy to meet remainder of ventilation target (`CFISControls/AdditionalRuntimeOperatingMode="none"`).
 - HVAC Manual J design load and sizing calculations:
@@ -16,6 +17,7 @@ __New Features__
 - BuildResidentialScheduleFile measure:
   - **Breaking change**: Replaced `slab_under_width` argument with `slab_under_insulation_width`.
   - **Breaking change**: Replaced `slab_perimeter_depth` argument with `slab_perimeter_insulation_depth`.
+- **Breaking change**: Disaggregates "Walls" into "Above Grade Walls" and "Below Grade Walls" in results_design_load_details.csv output file.
 
 __Bugfixes__
 - Prevents possible error when using multiple `Attic`/`Foundation` elements for the same attic/foundation type.
@@ -23,7 +25,7 @@ __Bugfixes__
 - Fixes utility bill calculations if there is battery storage or a generator.
 - BuildResidentialScheduleFile measure: Fixes possible divide by zero error during generation of stochastic clothes washer and dishwasher schedules.
 - Allows negative values for `Building/Site/Elevation`.
-- Fixes zero ventilation design load for "supply only" mechanical ventilation.
+- Misc Manual J design load calculation improvements.
 
 ## OpenStudio-HPXML v1.8.1
 
