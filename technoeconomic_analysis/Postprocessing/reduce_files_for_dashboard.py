@@ -64,7 +64,11 @@ def reduce_columns_in_files(csv_dir: Path):
 
         cols = get_metric_columns()
         if "results_up00" in file_name:
-            cols += get_metadata_columns(df)
+            cols += get_metadata_columns(df) 
+            col = "build_existing_model.county_fips"
+            df[col] = df["build_existing_model.county_and_puma"].str.split(",").str[0]
+            df[col] = df[col].str[1:3] + df[col].str[4:7]
+            cols.append(col)
         else:
             cols += get_upgrade_cost_by_category_columns(df)
 
