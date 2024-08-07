@@ -194,7 +194,8 @@ references:
         costs: 
         # Source: REMDb for replacing existing boiler to electric boiler
         # then inflated from January 2018 to December 2023 using a 1.24 multiplier.
-          - value: 3844 
+        # then add wiring cost 1384
+          - value: 5228 #3844 + 1384
             multiplier: Fixed (1)
           - value: 0
             multiplier: Size, Heating System Primary (kBtu/h)
@@ -210,7 +211,8 @@ references:
         costs: 
         # Source: REMDb for replacing existing furnace to electric furnace
         # inflated from January 2018 to December 2023) using a 1.24 multiplier.
-          - value: 1984 
+        # then add wiring cost 1384
+          - value: 3368 #1984 + 1384
             multiplier: Fixed (1)
           - value: 350
             multiplier: Size, Heating System Primary (kBtu/h)
@@ -225,7 +227,8 @@ references:
         # TBD
         # cost for the initial run Source: REMDb for replacing existing furnace to electric furnace
         # inflated from January 2018 to December 2023) using a 1.24 multiplier.
-          - value: 1984 
+        # then add wiring cost 1384
+          - value: 3368 #1984 + 1384
             multiplier: Fixed (1)
           - value: 350
             multiplier: Size, Heating System Primary (kBtu/h)
@@ -235,10 +238,10 @@ references:
         apply_logic:
           - HVAC Shared Efficiencies|Boiler Baseboards Heating Only, Fuel
         costs: 
-        # TBD
+        # fixed cost is the wiring cost 1384
         # Assume $3844 cost for an average capacity (in euss results), then use a ratio to get cost 
         # The average heating system size in euss is 45 kBtu/h .
-          - value: 0 
+          - value: 1384 
             multiplier: Fixed (1)
           - value: 85.42
             multiplier: Size, Heating System Primary (kBtu/h)
@@ -249,6 +252,8 @@ references:
           - HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Fuel
         costs:
         # assume the same as Boiler Baseboards Heating Only, Fuel
+          - value: 1384 
+            multiplier: Fixed (1)
           - value: 85.42
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 24
@@ -570,7 +575,8 @@ references:
         costs: 
         # Source: REMDb for replacing non-electric tank water heater to electric tank water heater (EF=0.95)
         # then inflated from January 2018 to December 2023) using a 1.24 multiplier.
-          - value: 1078.8 # for EF 0.92
+        # then add wiring cost 1384
+          - value: 2462.8 #1078.8 +1384 # for EF 0.92
             multiplier: Fixed (1)
           - value: 2.36
             multiplier: Size, Water Heater (gal)
@@ -587,7 +593,8 @@ references:
         costs: 
         # Source: REMDb for replacing non-electric tank water heater to electric tank water heater (EF=0.95)
         # then inflated from January 2018 to December 2023) using a 1.24 multiplier.
-          - value: 1016.8 # for EF 0.95
+        # then add wiring cost 1384
+          - value: 2400.8 #1016.8 + 1384 # for EF 0.95
             multiplier: Fixed (1)
           - value: 4.34
             multiplier: Size, Water Heater (gal)
@@ -599,42 +606,86 @@ references:
             - Water Heater Efficiency|Natural Gas Tankless
             - Water Heater Efficiency|Propane Tankless
         costs: 
-        # TBD
-          - value: 2356  # REMDb for replacing to tankless natural gas water heater (EF=0.96) and then inflated from January 2018 to December 2023) using a 1.24 multiplier
+        # cost from LBNL brennan 1813
+        # then adds 7% tax and $100 install cost,
+        # then add wiring cost 1384
+          - value: 3423.91 
             multiplier: Fixed (1)
           - value: 0
             multiplier: Size, Water Heater (gal)
         lifetime: 20
 
     #### 2.2 240V HPWH, 3 options  ####
-      - &240V_hpwh_50_gal
+      - &240V_hpwh_50_gal_existing_ele
         option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
         apply_logic:
           - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - Water Heater Fuel|Electricity
           - or:
             - Bedrooms|1
             - Bedrooms|2
             - Bedrooms|3
         costs:
-          - value: 2712.82 # Median installed cost for 50 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+        # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+          - value: 3582 #4966-1384
             multiplier: Fixed (1)
         lifetime: &hpwh_lifetime 13
-      - &240V_hpwh_66_gal
+      - &240V_hpwh_50_gal_existing_non_ele
+        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+        apply_logic:
+          - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - not: Water Heater Fuel|Electricity
+          - or:
+            - Bedrooms|1
+            - Bedrooms|2
+            - Bedrooms|3
+        costs:
+        # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+          - value: 4966
+            multiplier: Fixed (1)
+        lifetime: *hpwh_lifetime
+      - &240V_hpwh_66_gal_existing_ele
         option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
         apply_logic:
           - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - Water Heater Fuel|Electricity
           - Bedrooms|4
         costs:
-          - value: 3736.48  # Interpolated between 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+        # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+          - value: 3982 #5366-1384  
             multiplier: Fixed (1)
         lifetime: *hpwh_lifetime
-      - &240V_hpwh_80_gal
+      - &240V_hpwh_66_gal_existing_non_ele
+        option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+        apply_logic:
+          - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - not: Water Heater Fuel|Electricity
+          - Bedrooms|4
+        costs:
+        # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+          - value: 5366 #5366-1384  
+            multiplier: Fixed (1)
+        lifetime: *hpwh_lifetime
+      - &240V_hpwh_80_gal_existing_ele
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         apply_logic:
           - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - Water Heater Fuel|Electricity
           - Bedrooms|5
         costs:
-          - value: 4631.88 # Median installed cost for 80 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+        # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+          - value: 4696 #6080-1384
+            multiplier: Fixed (1)
+        lifetime: *hpwh_lifetime
+      - &240V_hpwh_80_gal_existing_non_ele
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        apply_logic:
+          - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - not: Water Heater Fuel|Electricity
+          - Bedrooms|5
+        costs:
+        # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+          - value: 9080
             multiplier: Fixed (1)
         lifetime: *hpwh_lifetime
 
@@ -645,7 +696,8 @@ references:
           - or:
             - Bedrooms|1
         costs:
-          - value: 2099
+        # Updated as coresponding 240v HPWH cost minus the cost of a 240v branch circuit ($1,384) based on team review 2024-06-10
+          - value: 3582
             multiplier: Fixed (1)
         lifetime: *hpwh_lifetime
       - &120v_hpwh_65_gal
@@ -653,7 +705,8 @@ references:
         apply_logic:
           - Bedrooms|2
         costs:
-          - value: 2499
+        # Updated as coresponding 240v HPWH cost minus the cost of a 240v branch circuit ($1,384) based on team review 2024-06-10
+          - value: 3982
             multiplier: Fixed (1)
         lifetime: *hpwh_lifetime
       - &120v_hpwh_80_gal
@@ -664,7 +717,8 @@ references:
             - Bedrooms|4
             - Bedrooms|5
         costs:
-          - value: 3000
+        # Updated as coresponding 240v HPWH cost minus the cost of a 240v branch circuit ($1,384) based on team review 2024-06-10
+          - value: 4696
             multiplier: Fixed (1)
         lifetime: *hpwh_lifetime
 
@@ -676,9 +730,9 @@ references:
             - Cooking Range|Gas
             - Cooking Range|Propane
         costs:
-          - value: 774 # Lowest-priced electric range and oven from wirecutter on 7/7/23, GE Model #JB645DKWW (black is same price)
-                       # https://www.lowes.com/pd/GE-Smooth-Surface-4-Elements-5-3-cu-ft-Self-Cleaning-Freestanding-Electric-Range-White-Common-30-in-Actual-29-875-in/1000014250
-                       # It is $630 at big box stores as of July 2023, $774 = $630 * 1.07 sales tax + $100 delivery/install
+        # Updated per Brennan feedback, adds 7% tax and $100 install cost, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+        # then add wiring cost 1384
+          - value: 2598.94 #1214.94+1384
             multiplier: Fixed (1)
         lifetime: 13 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=279&actionId=2204&bcId=6961
                      # 17 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
@@ -686,6 +740,7 @@ references:
         option: Cooking Range|Electric Induction, 120V, battery powered
         apply_logic: *logic_cooking
         costs:
+        # Updated per Brennan feedback, adds 7% tax and $100 install cost, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
           - value: 5450 
             multiplier: Fixed (1)
         lifetime: 13 
@@ -698,15 +753,16 @@ references:
             - Clothes Dryer|Gas
             - Clothes Dryer|Propane
         costs:
-          - value: 718 # Cheaper of top-ranked electric dryer on Consumer Reports, is full-size
-                       # https://www.homedepot.com/p/GE-7-4-cu-ft-Electric-Dryer-with-Sensor-Dry-in-White-GTD58EBSVWS/324668239
-                       # It is $578 at big box stores as of Feb 2024, $718 = $578 * 1.07 sales tax + $100 delivery/install
+        # Updated per Brennan feedback, adds 7% tax and $100 install cost, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+        # then add wiring cost 1384
+          - value: 2374.24 #990+1384
             multiplier: Fixed (1)
         lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
       - &120v_clothes_dryer 
         option: Clothes Dryer|Electric Heat Pump, 120V
         apply_logic: *logic_dryer
         costs:
+        # Updated per Brennan feedback, adds 7% tax and $100 install cost, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
           - value: 1611 
             multiplier: Fixed (1)
         lifetime: 13 
@@ -719,9 +775,7 @@ references:
             - Misc Pool Heater|Natural Gas
             - Misc Pool Heater|Other Fuel
         costs:
-          - value: 4590 # https://lesliespool.com/jacuzzi-127000-btu-pro-grade-electric-pool-heat-pump/85451.html
-                        # installation $310 - varies on state and zip code between 228 and 400 USD
-                        # tax 7%
+          - value: 3381.11 #1997.11+1384
             multiplier: Fixed (1)
         lifetime: 15
       - &electric_spa_heaters 
@@ -731,9 +785,7 @@ references:
             - Misc Hot Tub Spa|Natural Gas
             - Misc Hot Tub Spa|Other Fuel
         costs:
-          - value: 2760 # https://lesliespool.com/raypak-model-0018-e3t-electric-3-series-titanium-pool-spa-heater---18kw---61419-btu-hr/382735.html
-                        # installation $310 - varies on state and zip code between 228 and 400 USD
-                        # tax 7%
+          - value: 3381.11 #1997.11+1384
             multiplier: Fixed (1)
         lifetime: 15
 
@@ -1017,9 +1069,12 @@ upgrades:
       - *fed_min_ashp_ducted
       - *fed_min_mshp_ductless
     #### 2.2 240V HPWH, 3 options  ####
-      - *240V_hpwh_50_gal
-      - *240V_hpwh_66_gal
-      - *240V_hpwh_80_gal
+      - *240V_hpwh_50_gal_existing_ele
+      - *240V_hpwh_50_gal_existing_non_ele
+      - *240V_hpwh_66_gal_existing_ele
+      - *240V_hpwh_66_gal_existing_non_ele
+      - *240V_hpwh_80_gal_existing_ele
+      - *240V_hpwh_80_gal_existing_non_ele
     #### 3 Electric Resistance Cooking, 1 option  ####
       - *electric_resistance_cooking
     #### 4 Electric Clothes Dryer, 1 options  ####
@@ -1069,9 +1124,12 @@ upgrades:
       - *high_eff_ashp_ducted
       - *high_eff_mshp_ductless
     #### 2.2 240V HPWH, 3 options  ####
-      - *240V_hpwh_50_gal
-      - *240V_hpwh_66_gal
-      - *240V_hpwh_80_gal
+      - *240V_hpwh_50_gal_existing_ele
+      - *240V_hpwh_50_gal_existing_non_ele
+      - *240V_hpwh_66_gal_existing_ele
+      - *240V_hpwh_66_gal_existing_non_ele
+      - *240V_hpwh_80_gal_existing_ele
+      - *240V_hpwh_80_gal_existing_non_ele
     #### 3 Electric Resistance Cooking, 1 option  ####
       - *electric_resistance_cooking
     #### 4 Electric Clothes Dryer, 1 options  ####
@@ -1243,9 +1301,12 @@ upgrades:
       - *fed_min_ashp_ducted
       - *fed_min_mshp_ductless
     #### 2.2 240V HPWH, 3 options  ####
-      - *240V_hpwh_50_gal
-      - *240V_hpwh_66_gal
-      - *240V_hpwh_80_gal
+      - *240V_hpwh_50_gal_existing_ele
+      - *240V_hpwh_50_gal_existing_non_ele
+      - *240V_hpwh_66_gal_existing_ele
+      - *240V_hpwh_66_gal_existing_non_ele
+      - *240V_hpwh_80_gal_existing_ele
+      - *240V_hpwh_80_gal_existing_non_ele
     #### 3 Electric Resistance Cooking, 1 option  ####
       - *electric_resistance_cooking
     #### 4 Electric Clothes Dryer, 1 options  ####
@@ -1320,10 +1381,13 @@ upgrades:
     #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
       - *high_eff_ashp_ducted
       - *high_eff_mshp_ductless
-    #### 2.2 240V HPWH, 4 options  ####
-      - *240V_hpwh_50_gal
-      - *240V_hpwh_66_gal
-      - *240V_hpwh_80_gal
+    #### 2.2 240V HPWH, 3 options  ####
+      - *240V_hpwh_50_gal_existing_ele
+      - *240V_hpwh_50_gal_existing_non_ele
+      - *240V_hpwh_66_gal_existing_ele
+      - *240V_hpwh_66_gal_existing_non_ele
+      - *240V_hpwh_80_gal_existing_ele
+      - *240V_hpwh_80_gal_existing_non_ele
     #### 3 Electric Resistance Cooking, 1 option  ####
       - *electric_resistance_cooking
     #### 4 Electric Clothes Dryer, 1 options  ####
