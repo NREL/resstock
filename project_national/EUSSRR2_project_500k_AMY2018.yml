@@ -530,10 +530,11 @@ upgrades:
 
   - upgrade_name: Geothermal heat pump
     
-    package_apply_logic: &remove_shared_heating_cooling
+    package_apply_logic: &remove_shared_heating_cooling_ghp
       - not: Heating Fuel|Wood
       - not: Heating Fuel|Other Fuel
       - not: Heating Fuel|None
+      - HVAC Has Ducts|Yes      
       - not:
         - or:
           - HVAC Shared Efficiencies|Boiler Baseboards Heating Only, Electricity
@@ -809,7 +810,7 @@ upgrades:
 
   - upgrade_name: Geothermal heat pump + Light Touch Envelope
 
-    package_apply_logic: *remove_shared_heating_cooling
+    package_apply_logic: *remove_shared_heating_cooling_ghp
 
 
     options:
@@ -1090,7 +1091,7 @@ upgrades:
 
   - upgrade_name: Geothermal heat pump + Light Touch Envelope + Full Appliance Electrification with Efficiency
     
-    package_apply_logic: *remove_shared_heating_cooling
+    package_apply_logic: *remove_shared_heating_cooling_ghp
 
     options:
       - *ducted_GTHP
@@ -1122,3 +1123,11 @@ upgrades:
       - *induction_range_oven_for_non-electric_cooking
       - *electric_pool_heaters
       - *electric_spa_heaters
+
+  - upgrade_name: Envelope Only - Light Touch Envelope
+    options:
+        ### -- Light Touch Envelope -- ###
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
