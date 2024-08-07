@@ -1272,13 +1272,19 @@ module HVACSizing
           hpxml_bldg.foundation_walls.each do |foundation_wall|
             next unless foundation_wall.is_exterior && foundation_wall.interior_adjacent_to == adjacent_space
 
-            u_wall_bg = get_foundation_wall_below_grade_ufactor(foundation_wall, false, mj.ground_conductivity)
-            sum_a_wall += foundation_wall.below_grade_area
-            sum_ua_wall += (u_wall_bg * foundation_wall.below_grade_area)
+            bg_area = foundation_wall.below_grade_area
+            if bg_area > 0
+              u_wall_bg = get_foundation_wall_below_grade_ufactor(foundation_wall, false, mj.ground_conductivity)
+              sum_a_wall += bg_area
+              sum_ua_wall += (u_wall_bg * bg_area)
+            end
+
+            ag_area = foundation_wall.above_grade_net_area
+            next unless ag_area > 0
 
             u_wall_ag = get_foundation_wall_above_grade_ufactor(foundation_wall, true)
-            sum_a_wall += foundation_wall.above_grade_net_area
-            sum_ua_wall += (u_wall_ag * foundation_wall.above_grade_net_area)
+            sum_a_wall += ag_area
+            sum_ua_wall += (u_wall_ag * ag_area)
           end
           hpxml_bldg.walls.each do |wall|
             next unless wall.is_exterior && wall.interior_adjacent_to == adjacent_space
@@ -3726,19 +3732,38 @@ module HVACSizing
 
       if [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? HPXML::LocationOutside
         space_UAs[HPXML::LocationOutside] += (1.0 / surface.insulation_assembly_r_value) * surface.area
+
       elsif HPXML::conditioned_locations.include?(surface.interior_adjacent_to) || HPXML::conditioned_locations.include?(surface.exterior_adjacent_to)
         space_UAs[HPXML::LocationConditionedSpace] += (1.0 / surface.insulation_assembly_r_value) * surface.area
+
       elsif [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? HPXML::LocationGround
         # Ground temperature is used for basements, not crawlspaces, per Walker (1998)
         # "Technical background for default values used for forced air systems in proposed ASHRAE Std. 152"
+
         if [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented].include? location
           ua_location = HPXML::LocationOutside
         else
           ua_location = HPXML::LocationGround
         end
+
         if surface.is_a? HPXML::FoundationWall
-          u_wall_without_soil = get_foundation_wall_below_grade_ufactor(surface, false, mj.ground_conductivity)
-          space_UAs[ua_location] += u_wall_without_soil * surface.area
+          sum_ua_wall = 0.0
+          sum_a_wall = 0.0
+          bg_area = surface.below_grade_area
+          if bg_area > 0
+            u_wall_bg = get_foundation_wall_below_grade_ufactor(surface, false, mj.ground_conductivity)
+            sum_a_wall += bg_area
+            sum_ua_wall += (u_wall_bg * bg_area)
+          end
+          ag_area = surface.above_grade_net_area
+          if ag_area > 0
+            u_wall_ag = get_foundation_wall_above_grade_ufactor(surface, true)
+            sum_a_wall += ag_area
+            sum_ua_wall += (u_wall_ag * ag_area)
+          end
+          u_wall = sum_ua_wall / sum_a_wall
+          space_UAs[ua_location] += u_wall * surface.area
+
         elsif surface.is_a? HPXML::Slab
           if surface.thickness == 0
             # Dirt floor, assume U-value=0.1 per Walker (1998) "Technical background for default
