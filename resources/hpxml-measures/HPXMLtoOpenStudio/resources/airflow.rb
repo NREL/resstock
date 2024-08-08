@@ -695,8 +695,8 @@ module Airflow
     end
     vent_program.addLine("Set NVavail = #{nv_avail_sensor.name}")
     vent_program.addLine("Set ClgSsnAvail = #{nv_clg_ssn_sensor.name}")
-    vent_program.addLine("Set #{nv_flow_actuator.name} = 0") # Init
-    vent_program.addLine("Set #{whf_flow_actuator.name} = 0") # Init
+    vent_program.addLine('Set Qnv = 0') # Init
+    vent_program.addLine('Set Qwhf = 0') # Init
     vent_program.addLine("Set #{cond_to_zone_flow_rate_actuator.name} = 0") unless whf_zone.nil? # Init
     vent_program.addLine("Set #{whf_elec_actuator.name} = 0") # Init
     infil_constraints = 'If ((Wout < MaxHR) && (Tin > Tout) && (Tin > Tnvsp) && (ClgSsnAvail > 0))'
@@ -715,7 +715,7 @@ module Airflow
     vent_program.addLine('  Set Adj = (@Min Adj 1)')
     vent_program.addLine('  Set Adj = (@Max Adj 0)')
     vent_program.addLine('  If (WHF_Flow > 0)') # If available, prioritize whole house fan
-    vent_program.addLine("    Set #{whf_flow_actuator.name} = WHF_Flow*Adj")
+    vent_program.addLine('    Set Qwhf = WHF_Flow*Adj')
     vent_program.addLine("    Set #{cond_to_zone_flow_rate_actuator.name} = WHF_Flow*Adj") unless whf_zone.nil?
     vent_program.addLine('    Set WHF_W = 0')
     vent_fans_whf.each do |vent_whf|
@@ -731,33 +731,24 @@ module Airflow
     vent_program.addLine("    Set Vwind = #{@vwind_sensor.name}")
     vent_program.addLine('    Set SGNV = NVArea*Adj*((((Cs*dT)+(Cw*(Vwind^2)))^0.5)/1000)')
     vent_program.addLine("    Set MaxNV = #{UnitConversions.convert(max_flow_rate, 'cfm', 'm^3/s')}")
-    vent_program.addLine("    Set #{nv_flow_actuator.name} = (@Min SGNV MaxNV)")
+    vent_program.addLine('    Set Qnv = (@Min SGNV MaxNV)')
     vent_program.addLine('  EndIf')
     vent_program.addLine('EndIf')
+    vent_program.addLine("Set #{nv_flow_actuator.name} = Qnv")
+    vent_program.addLine("Set #{whf_flow_actuator.name} = Qwhf")
 
     manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     manager.setName("#{vent_program.name} calling manager")
     manager.setCallingPoint('BeginZoneTimestepAfterInitHeatBalance')
     manager.addProgram(vent_program)
 
-    create_timeseries_flowrate_ems_output_var(model, nv_flow_actuator.name.to_s, vent_program)
-    create_timeseries_flowrate_ems_output_var(model, whf_flow_actuator.name.to_s, vent_program)
-  end
-
-  # TODO
-  #
-  # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param ems_var_name [TODO] TODO
-  # @param ems_program [TODO] TODO
-  # @return [TODO] TODO
-  def self.create_timeseries_flowrate_ems_output_var(model, ems_var_name, ems_program)
-    # This is only used to report timeseries flow rates when requested
-    ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, ems_var_name)
-    ems_output_var.setName("#{ems_var_name}_timeseries_outvar")
-    ems_output_var.setTypeOfDataInVariable('Averaged')
-    ems_output_var.setUpdateFrequency('ZoneTimestep')
-    ems_output_var.setEMSProgramOrSubroutineName(ems_program)
-    ems_output_var.setUnits('m^/s')
+    # EMS global variables for output reporting
+    q_nv_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{vent_program.name}_Qnv")
+    q_whf_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{vent_program.name}_Qwhf")
+    q_nv_var.additionalProperties.setFeature('ObjectType', Constants.ObjectNameNaturalVentilation)
+    q_whf_var.additionalProperties.setFeature('ObjectType', Constants.ObjectNameWholeHouseFan)
+    vent_program.addLine("Set #{q_nv_var.name} = Qnv")
+    vent_program.addLine("Set #{q_whf_var.name} = Qwhf")
   end
 
   # TODO
@@ -2032,6 +2023,7 @@ module Airflow
   # @return [TODO] TODO
   def self.apply_infiltration_adjustment_to_conditioned(model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers, duct_lk_imbals, vent_mech_sup_tot,
                                                         vent_mech_exh_tot, vent_mech_bal_tot, vent_mech_erv_hrv_tot, infil_flow_actuator, schedules_file, unavailable_periods)
+
     # Average in-unit CFMs (include recirculation from in unit CFMs for shared systems)
     sup_cfm_tot = vent_mech_sup_tot.map { |vent_mech| vent_mech.average_unit_flow_rate }.sum(0.0)
     exh_cfm_tot = vent_mech_exh_tot.map { |vent_mech| vent_mech.average_unit_flow_rate }.sum(0.0)
@@ -2120,12 +2112,17 @@ module Airflow
       infil_program.addLine('Set Qtot = (((Qimb^2) + (Qinf^2)) ^ 0.5) + Qbal')
     end
 
-    # Mechanical ventilation only
-    create_timeseries_flowrate_ems_output_var(model, 'Qfan', infil_program)
-
     # Natural infiltration and duct leakage imbalance induced infiltration
-    infil_program.addLine("Set #{infil_flow_actuator.name} = Qtot - Qfan")
-    create_timeseries_flowrate_ems_output_var(model, infil_flow_actuator.name.to_s, infil_program)
+    infil_program.addLine('Set Qinf_adj = Qtot - Qfan')
+    infil_program.addLine("Set #{infil_flow_actuator.name} = Qinf_adj")
+
+    # EMS global variables for output reporting
+    q_inf_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{infil_program.name}_Qinf")
+    q_fan_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{infil_program.name}_Qfan")
+    q_inf_var.additionalProperties.setFeature('ObjectType', Constants.ObjectNameInfiltration)
+    q_fan_var.additionalProperties.setFeature('ObjectType', Constants.ObjectNameMechanicalVentilation)
+    infil_program.addLine("Set #{q_inf_var.name} = Qinf_adj")
+    infil_program.addLine("Set #{q_fan_var.name} = Qfan")
   end
 
   # TODO
