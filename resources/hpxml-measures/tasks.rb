@@ -1421,7 +1421,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
       wall = hpxml_bldg.walls.select { |w| w.azimuth == hpxml_bldg.neighbor_buildings[0].azimuth }[0]
       wall.exterior_adjacent_to = HPXML::LocationOtherHeatedSpace
     end
-    if ['base-foundation-vented-crawlspace-above-grade.xml'].include? hpxml_file
+    if ['base-foundation-vented-crawlspace-above-grade2.xml'].include? hpxml_file
       # Convert FoundationWall to Wall to test a foundation with only Wall elements
       fwall = hpxml_bldg.foundation_walls[0]
       hpxml_bldg.walls.add(id: "Wall#{hpxml_bldg.walls.size + 1}",

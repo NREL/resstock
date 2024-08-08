@@ -355,6 +355,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     unmet_hours_program = @model.getEnergyManagementSystemPrograms.find { |p| p.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameUnmetHoursProgram }
     total_loads_program = @model.getEnergyManagementSystemPrograms.find { |p| p.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameTotalLoadsProgram }
     comp_loads_program = @model.getEnergyManagementSystemPrograms.find { |p| p.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameComponentLoadsProgram }
+    total_airflows_program = @model.getEnergyManagementSystemPrograms.find { |p| p.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameTotalAirflowsProgram }
     heated_zones = eval(@model.getBuilding.additionalProperties.getFeatureAsString('heated_zones').get)
     cooled_zones = eval(@model.getBuilding.additionalProperties.getFeatureAsString('cooled_zones').get)
 
@@ -518,11 +519,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     # Airflow outputs (timeseries only)
     if args[:include_timeseries_airflows]
       @airflows.each do |_airflow_type, airflow|
-        ems_programs = @model.getEnergyManagementSystemPrograms.select { |p| p.additionalProperties.getFeatureAsString('ObjectType').to_s == airflow.ems_program }
-        ems_programs.each_with_index do |_ems_program, i|
-          unit_prefix = ems_programs.size > 1 ? "unit#{i + 1}_" : ''
-          result << OpenStudio::IdfObject.load("Output:Variable,*,#{unit_prefix}#{airflow.ems_variable}_timeseries_outvar,#{args[:timeseries_frequency]};").get
-        end
+        result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{airflow.ems_variable}_timeseries_outvar,#{airflow.ems_variable},Averaged,ZoneTimestep,#{total_airflows_program.name},m^3/s;").get
+        result << OpenStudio::IdfObject.load("Output:Variable,*,#{airflow.ems_variable}_timeseries_outvar,#{args[:timeseries_frequency]};").get
       end
     end
 
@@ -1173,19 +1171,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     # Airflows
     if args[:include_timeseries_airflows]
       @airflows.each do |_airflow_type, airflow|
-        # FUTURE: This works but may incur a performance penalty.
-        # Switch to creating a single EMS program that sums the airflows from
-        # the individual dwelling units and then just grab those outputs here.
-        for i in 0..@hpxml_bldgs.size - 1
-          unit_prefix = @hpxml_bldgs.size > 1 ? "unit#{i + 1}_" : ''
-          unit_multiplier = @hpxml_bldgs[i].building_construction.number_of_units
-          values = get_report_variable_data_timeseries(['EMS'], ["#{unit_prefix}#{airflow.ems_variable}_timeseries_outvar"], UnitConversions.convert(unit_multiplier, 'm^3/s', 'cfm'), 0, args[:timeseries_frequency])
-          if airflow.timeseries_output.empty?
-            airflow.timeseries_output = values
-          else
-            airflow.timeseries_output = airflow.timeseries_output.zip(values).map { |x, y| x + y }
-          end
-        end
+        airflow.timeseries_output = get_report_variable_data_timeseries(['EMS'], ["#{airflow.ems_variable}_timeseries_outvar"], UnitConversions.convert(1, 'm^3/s', 'cfm'), 0, args[:timeseries_frequency], ems_shift: true)
       end
     end
 
@@ -2406,14 +2392,12 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
   # TODO
   class Airflow < BaseOutput
-    # @param ems_program [TODO] TODO
     # @param ems_variable [TODO] TODO
-    def initialize(ems_program:, ems_variable:)
+    def initialize(ems_variable:)
       super()
-      @ems_program = ems_program
       @ems_variable = ems_variable
     end
-    attr_accessor(:ems_program, :ems_variable)
+    attr_accessor(:ems_variable)
   end
 
   # TODO
@@ -2749,10 +2733,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     # Airflows
     @airflows = {}
-    @airflows[AFT::Infiltration] = Airflow.new(ems_program: Constants.ObjectNameInfiltration, ems_variable: (Constants.ObjectNameInfiltration + ' flow act').gsub(' ', '_'))
-    @airflows[AFT::MechanicalVentilation] = Airflow.new(ems_program: Constants.ObjectNameInfiltration, ems_variable: 'Qfan')
-    @airflows[AFT::NaturalVentilation] = Airflow.new(ems_program: Constants.ObjectNameNaturalVentilation, ems_variable: (Constants.ObjectNameNaturalVentilation + ' flow act').gsub(' ', '_'))
-    @airflows[AFT::WholeHouseFan] = Airflow.new(ems_program: Constants.ObjectNameNaturalVentilation, ems_variable: (Constants.ObjectNameWholeHouseFan + ' flow act').gsub(' ', '_'))
+    @airflows[AFT::Infiltration] = Airflow.new(ems_variable: 'total_infil_flow_rate')
+    @airflows[AFT::MechanicalVentilation] = Airflow.new(ems_variable: 'total_mechvent_flow_rate')
+    @airflows[AFT::NaturalVentilation] = Airflow.new(ems_variable: 'total_natvent_flow_rate')
+    @airflows[AFT::WholeHouseFan] = Airflow.new(ems_variable: 'total_whf_flow_rate')
 
     @airflows.each do |airflow_type, airflow|
       airflow.name = "Airflow: #{airflow_type}"

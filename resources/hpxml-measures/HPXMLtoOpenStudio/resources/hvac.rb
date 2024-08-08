@@ -5027,7 +5027,7 @@ module HVAC
       end
 
       if seer_eq <= 0
-        fail "Negative SEER equivalent calculated for cooling system '#{cooling_system.id}', double check inputs."
+        fail "Negative SEER equivalent calculated for cooling system '#{cooling_system.id}', double-check inputs."
       end
 
       cooling_system.cooling_system_type = HPXML::HVACTypeCentralAirConditioner

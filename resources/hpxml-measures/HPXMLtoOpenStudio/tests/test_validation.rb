@@ -1068,7 +1068,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'hvac-invalid-distribution-system-type' => ["Incorrect HVAC distribution system type for HVAC type: 'Furnace'. Should be one of: ["],
                             'hvac-shared-boiler-multiple' => ['More than one shared heating system found.'],
                             'hvac-shared-chiller-multiple' => ['More than one shared cooling system found.'],
-                            'hvac-shared-chiller-negative-seer-eq' => ["Negative SEER equivalent calculated for cooling system 'CoolingSystem1', double check inputs."],
+                            'hvac-shared-chiller-negative-seer-eq' => ["Negative SEER equivalent calculated for cooling system 'CoolingSystem1', double-check inputs."],
                             'inconsistent-belly-wing-skirt-present' => ['All belly-and-wing foundations must have the same SkirtPresent.'],
                             'inconsistent-cond-zone-assignment' => ["Surface 'Floor1' is not adjacent to conditioned space but was assigned to conditioned Zone 'ConditionedZone'."],
                             'inconsistent-uncond-basement-within-infiltration-volume' => ['All unconditioned basements must have the same WithinInfiltrationVolume.'],
@@ -1681,9 +1681,12 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
   def test_ruby_warning_messages
     # Test case => Error message
     all_expected_warnings = { 'cfis-undersized-supplemental-fan' => ["CFIS supplemental fan 'VentilationFan2' is undersized (90.0 cfm) compared to the target hourly ventilation rate (110.0 cfm)."],
-                              'duct-lto-cfm25' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
-                              'duct-lto-cfm50' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
-                              'duct-lto-percent' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
+                              'duct-lto-cfm25-cond-space' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
+                              'duct-lto-cfm25-uncond-space' => ['Very high sum of supply + return duct leakage to the outside; double-check inputs.'],
+                              'duct-lto-cfm50-cond-space' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
+                              'duct-lto-cfm50-uncond-space' => ['Very high sum of supply + return duct leakage to the outside; double-check inputs.'],
+                              'duct-lto-percent-cond-space' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
+                              'duct-lto-percent-uncond-space' => ['Very high sum of supply + return duct leakage to the outside; double-check inputs.'],
                               'floor-or-ceiling1' => ["Floor 'Floor1' has FloorOrCeiling=floor but it should be ceiling. The input will be overridden."],
                               'floor-or-ceiling2' => ["Floor 'Floor1' has FloorOrCeiling=ceiling but it should be floor. The input will be overridden."],
                               'hvac-gshp-bore-depth-autosized-high' => ['Reached a maximum of 10 boreholes; setting bore depth to the maximum (500 ft).'],
@@ -1793,7 +1796,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml, hpxml_bldg = _create_hpxml('base-mechvent-cfis-supplemental-fan-exhaust.xml')
         suppl_fan = hpxml_bldg.ventilation_fans.find { |f| f.is_cfis_supplemental_fan }
         suppl_fan.tested_flow_rate = 90.0
-      elsif ['duct-lto-cfm25'].include? warning_case
+      elsif ['duct-lto-cfm25-cond-space'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-atticroof-conditioned.xml')
         hpxml_bldg.hvac_distributions[0].conditioned_floor_area_served = hpxml_bldg.building_construction.conditioned_floor_area
         hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.each do |dlm|
@@ -1804,7 +1807,12 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
           duct.duct_surface_area = nil
           duct.duct_location = nil
         end
-      elsif ['duct-lto-cfm50'].include? warning_case
+      elsif ['duct-lto-cfm25-uncond-space'].include? warning_case
+        hpxml, hpxml_bldg = _create_hpxml('base.xml')
+        hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.each do |dlm|
+          dlm.duct_leakage_value = 800.0
+        end
+      elsif ['duct-lto-cfm50-cond-space'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-atticroof-conditioned.xml')
         hpxml_bldg.hvac_distributions[0].conditioned_floor_area_served = hpxml_bldg.building_construction.conditioned_floor_area
         hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.each do |dlm|
@@ -1815,16 +1823,26 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
           duct.duct_surface_area = nil
           duct.duct_location = nil
         end
-      elsif ['duct-lto-percent'].include? warning_case
+      elsif ['duct-lto-cfm50-uncond-space'].include? warning_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-ducts-leakage-cfm50.xml')
+        hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.each do |dlm|
+          dlm.duct_leakage_value = 1600.0
+        end
+      elsif ['duct-lto-percent-cond-space'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-atticroof-conditioned.xml')
         hpxml_bldg.hvac_distributions[0].conditioned_floor_area_served = hpxml_bldg.building_construction.conditioned_floor_area
         hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.each do |dlm|
           dlm.duct_leakage_units = HPXML::UnitsPercent
-          dlm.duct_leakage_value = 0.2
+          dlm.duct_leakage_value = 0.035
         end
         hpxml_bldg.hvac_distributions[0].ducts.each do |duct|
           duct.duct_surface_area = nil
           duct.duct_location = nil
+        end
+      elsif ['duct-lto-percent-uncond-space'].include? warning_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-ducts-leakage-percent.xml')
+        hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.each do |dlm|
+          dlm.duct_leakage_value = 0.25
         end
       elsif ['floor-or-ceiling1'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')

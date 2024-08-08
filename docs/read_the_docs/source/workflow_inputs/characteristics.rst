@@ -63214,49 +63214,49 @@ Arguments
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.
+     - The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead. If the front wall is adiabatic, the value will be ignored.
    * - ``window_back_wwr``
      - true
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.
+     - The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead. If the back wall is adiabatic, the value will be ignored.
    * - ``window_left_wwr``
      - true
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.
+     - The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead. If the left wall is adiabatic, the value will be ignored.
    * - ``window_right_wwr``
      - true
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.
+     - The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead. If the right wall is adiabatic, the value will be ignored.
    * - ``window_area_front``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead. If the front wall is adiabatic, the value will be ignored.
    * - ``window_area_back``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead. If the back wall is adiabatic, the value will be ignored.
    * - ``window_area_left``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead. If the left wall is adiabatic, the value will be ignored.
    * - ``window_area_right``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead. If the right wall is adiabatic, the value will be ignored.
    * - ``window_aspect_ratio``
      - true
      - Frac

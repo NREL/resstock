@@ -1217,7 +1217,7 @@ Assembly R-value of the walls.
 
 **Windows: Front Window-to-Wall Ratio**
 
-The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.
+The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead. If the front wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_front_wwr``
 - **Type:** ``Double``
@@ -1230,7 +1230,7 @@ The ratio of window area to wall area for the unit's front facade. Enter 0 if sp
 
 **Windows: Back Window-to-Wall Ratio**
 
-The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.
+The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead. If the back wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_back_wwr``
 - **Type:** ``Double``
@@ -1243,7 +1243,7 @@ The ratio of window area to wall area for the unit's back facade. Enter 0 if spe
 
 **Windows: Left Window-to-Wall Ratio**
 
-The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.
+The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead. If the left wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_left_wwr``
 - **Type:** ``Double``
@@ -1256,7 +1256,7 @@ The ratio of window area to wall area for the unit's left facade (when viewed fr
 
 **Windows: Right Window-to-Wall Ratio**
 
-The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.
+The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead. If the right wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_right_wwr``
 - **Type:** ``Double``
@@ -1269,7 +1269,7 @@ The ratio of window area to wall area for the unit's right facade (when viewed f
 
 **Windows: Front Window Area**
 
-The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.
+The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead. If the front wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_front``
 - **Type:** ``Double``
@@ -1282,7 +1282,7 @@ The amount of window area on the unit's front facade. Enter 0 if specifying Fron
 
 **Windows: Back Window Area**
 
-The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.
+The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead. If the back wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_back``
 - **Type:** ``Double``
@@ -1295,7 +1295,7 @@ The amount of window area on the unit's back facade. Enter 0 if specifying Back 
 
 **Windows: Left Window Area**
 
-The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead.
+The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead. If the left wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_left``
 - **Type:** ``Double``
@@ -1308,7 +1308,7 @@ The amount of window area on the unit's left facade (when viewed from the front)
 
 **Windows: Right Window Area**
 
-The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead.
+The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead. If the right wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_right``
 - **Type:** ``Double``

@@ -211,12 +211,8 @@ module HVACSizing
                            HPXML::ManualJDailyTempRangeMedium => 1,
                            HPXML::ManualJDailyTempRangeHigh => 2 }[hpxml_bldg.header.manualj_daily_temp_range]
 
-    # Altitude Correction Factors (ACF) taken from Table 10A (sea level - 12,000 ft)
-    acfs = [1.0, 0.97, 0.93, 0.89, 0.87, 0.84, 0.80, 0.77, 0.75, 0.72, 0.69, 0.66, 0.63]
-
-    # Calculate the altitude correction factor (ACF) for the site
-    alt_cnt = (hpxml_bldg.elevation / 1000.0).to_i
-    mj.acf = MathTools.interp2(hpxml_bldg.elevation, alt_cnt * 1000.0, (alt_cnt + 1.0) * 1000.0, acfs[alt_cnt], acfs[alt_cnt + 1])
+    # Calculate the altitude correction factor (ACF) for the site; equation from Table 10A
+    mj.acf = 1.0 - 0.0000308 * hpxml_bldg.elevation
 
     mj.p_psi = Psychrometrics.Pstd_fZ(hpxml_bldg.elevation)
     mj.p_atm = UnitConversions.convert(mj.p_psi, 'psi', 'atm')
@@ -732,7 +728,6 @@ module HVACSizing
       cnt45 = (get_mj_azimuth(window.azimuth) / 45.0).round.to_i
 
       window_ufactor, window_shgc = Constructions.get_ufactor_shgc_adjusted_by_storms(window.storm_type, window.ufactor, window.shgc)
-
       htg_htm = window_ufactor * mj.htd
       htg_loads = htg_htm * window.area
       all_zone_loads[zone].Heat_Windows += htg_loads
@@ -810,12 +805,13 @@ module HVACSizing
         if hr.nil?
           # Average Load Procedure (ALP) load
           all_zone_loads[zone].Cool_Windows += clg_loads
-          window.additional_properties.detailed_output_values = DetailedOutputValues.new(area: window.area,
-                                                                                         heat_htm: htg_htm,
-                                                                                         cool_htm: clg_htm,
-                                                                                         heat_load: htg_loads,
-                                                                                         cool_load_sens: clg_loads,
-                                                                                         cool_load_lat: 0)
+          detailed_output_values = DetailedOutputValues.new(area: window.area,
+                                                            heat_htm: htg_htm,
+                                                            cool_htm: clg_htm,
+                                                            heat_load: htg_loads,
+                                                            cool_load_sens: clg_loads,
+                                                            cool_load_lat: 0)
+          window.additional_properties.detailed_output_values_windows = detailed_output_values
           if space.fenestration_load_procedure == HPXML::SpaceFenestrationLoadProcedureStandard
             all_space_loads[space].Cool_Windows += clg_loads
           end
@@ -902,12 +898,13 @@ module HVACSizing
         if hr.nil?
           # Average Load Procedure (ALP) load
           all_zone_loads[zone].Cool_Skylights += clg_loads
-          skylight.additional_properties.detailed_output_values = DetailedOutputValues.new(area: skylight.area,
-                                                                                           heat_htm: htg_htm,
-                                                                                           cool_htm: clg_htm,
-                                                                                           heat_load: htg_loads,
-                                                                                           cool_load_sens: clg_loads,
-                                                                                           cool_load_lat: 0)
+          detailed_output_values = DetailedOutputValues.new(area: skylight.area,
+                                                            heat_htm: htg_htm,
+                                                            cool_htm: clg_htm,
+                                                            heat_load: htg_loads,
+                                                            cool_load_sens: clg_loads,
+                                                            cool_load_lat: 0)
+          skylight.additional_properties.detailed_output_values_skylights = detailed_output_values
           if space.fenestration_load_procedure == HPXML::SpaceFenestrationLoadProcedureStandard
             all_space_loads[space].Cool_Skylights += clg_loads
           end
@@ -998,12 +995,13 @@ module HVACSizing
       all_zone_loads[zone].Cool_Doors += clg_loads
       all_space_loads[space].Heat_Doors += htg_loads
       all_space_loads[space].Cool_Doors += clg_loads
-      door.additional_properties.detailed_output_values = DetailedOutputValues.new(area: door.area,
-                                                                                   heat_htm: htg_htm,
-                                                                                   cool_htm: clg_htm,
-                                                                                   heat_load: htg_loads,
-                                                                                   cool_load_sens: clg_loads,
-                                                                                   cool_load_lat: 0)
+      detailed_output_values = DetailedOutputValues.new(area: door.area,
+                                                        heat_htm: htg_htm,
+                                                        cool_htm: clg_htm,
+                                                        heat_load: htg_loads,
+                                                        cool_load_sens: clg_loads,
+                                                        cool_load_lat: 0)
+      door.additional_properties.detailed_output_values_doors = detailed_output_values
     end
   end
 
@@ -1015,38 +1013,68 @@ module HVACSizing
   # @param all_space_loads [Hash] Map of HPXML::Spaces => DesignLoadValues object
   # @return [void]
   def self.process_load_walls(mj, hpxml_bldg, all_zone_loads, all_space_loads)
-    # Above-Grade Walls
-    (hpxml_bldg.walls + hpxml_bldg.rim_joists).each do |wall|
+    # Above-Grade Wall Area
+    (hpxml_bldg.walls + hpxml_bldg.rim_joists + hpxml_bldg.foundation_walls).each do |wall|
       next unless wall.is_thermal_boundary
 
       space = wall.space
       zone = space.zone
 
+      # Get gross/net areas
+      if wall.is_a?(HPXML::FoundationWall) && wall.depth_below_grade == wall.height
+        # Entirely below grade
+        next
+      elsif wall.is_a?(HPXML::FoundationWall) && wall.depth_below_grade >= 2
+        # If foundation wall is less than 2 feet below grade, treat entire
+        # wall as above grade.
+        gross_area = wall.above_grade_area
+        net_area = wall.above_grade_net_area
+      else
+        gross_area = wall.area
+        net_area = wall.net_area
+      end
+
+      # Get assembly R-value
+      if wall.is_a?(HPXML::FoundationWall)
+        assembly_r = 1.0 / get_foundation_wall_above_grade_ufactor(wall, true)
+      else
+        assembly_r = wall.insulation_assembly_r_value
+      end
+
       ashrae_wall_group = get_ashrae_wall_group(wall)
 
       if wall.is_exterior
         # Store exposed wall gross area for infiltration calculation
-        space.additional_properties.total_exposed_wall_area += wall.area
+        space.additional_properties.total_exposed_wall_area += gross_area
 
         # Adjust base Cooling Load Temperature Difference (CLTD)
         # Assume absorptivity for light walls < 0.5, medium walls <= 0.75, dark walls > 0.75 (based on MJ8 Table 4B Notes)
-        if wall.solar_absorptance <= 0.5
-          color_multiplier = 0.65      # MJ8 Table 4B Notes, pg 348
+
+        if wall.is_a? HPXML::FoundationWall
+          color = HPXML::ColorMedium
+        elsif wall.solar_absorptance <= 0.5
+          color = HPXML::ColorLight
         elsif wall.solar_absorptance <= 0.75
-          color_multiplier = 0.83      # MJ8 Appendix 12, pg 519
+          color = HPXML::ColorMedium
         else
+          color = HPXML::ColorDark
+        end
+
+        if color == HPXML::ColorLight
+          color_multiplier = 0.65      # MJ8 Table 4B Notes, pg 348
+        elsif color == HPXML::ColorMedium
+          color_multiplier = 0.83      # MJ8 Appendix 12, pg 519
+        elsif color == HPXML::ColorDark
           color_multiplier = 1.0
         end
 
-        # Base Cooling Load Temperature Differences (CLTD's) for dark colored sunlit and shaded walls
-        # with 95 degF outside temperature taken from MJ8 Figure A12-8 (intermediate wall groups were
-        # determined using linear interpolation). Shaded walls apply to partition walls only.
-        cltd_base_sun = { 'G' => 38.0, 'F-G' => 34.95, 'F' => 31.9, 'E-F' => 29.45, 'E' => 27.0, 'D-E' => 24.5, 'D' => 22.0, 'C-D' => 21.25, 'C' => 20.5, 'B-C' => 19.65, 'B' => 18.8 }
-        # cltd_base_shade = { 'G' => 25.0, 'F-G' => 22.5, 'F' => 20.0, 'E-F' => 18.45, 'E' => 16.9, 'D-E' => 15.45, 'D' => 14.0, 'C-D' => 13.55, 'C' => 13.1, 'B-C' => 12.85, 'B' => 12.6 }
+        # Base Cooling Load Temperature Differences (CLTD's) taken from MJ8 Figure A12-8
+        # (intermediate wall groups were determined using linear interpolation).
+        cltd_base_sun = { 'G' => 38.0, 'F-G' => 34.95, 'F' => 31.9, 'E-F' => 29.45, 'E' => 27.0, 'D-E' => 24.5,
+                          'D' => 22.0, 'C-D' => 21.25, 'C' => 20.5, 'B-C' => 19.65, 'B' => 18.8 }
 
         # Non-directional exterior walls
-        cltd_base = cltd_base_sun
-        cltd = cltd_base[ashrae_wall_group] * color_multiplier
+        cltd = cltd_base_sun[ashrae_wall_group] * color_multiplier
 
         if mj.ctd >= 10.0
           # Adjust base CLTD for different CTD or DR
@@ -1057,55 +1085,49 @@ module HVACSizing
           cltd = [cltd + cltd_corr, 0.0].max # NOTE: The CLTD_Alt equation in A12-18 part 5 suggests CLTD - CLTD_corr, but A12-19 suggests it should be CLTD + CLTD_corr (where CLTD_corr is negative)
         end
 
-        clg_htm = (1.0 / wall.insulation_assembly_r_value) * cltd
-        htg_htm = (1.0 / wall.insulation_assembly_r_value) * mj.htd
+        clg_htm = (1.0 / assembly_r) * cltd
+        htg_htm = (1.0 / assembly_r) * mj.htd
       else # Partition wall
         adjacent_space = wall.exterior_adjacent_to
-        clg_htm = (1.0 / wall.insulation_assembly_r_value) * (mj.cool_design_temps[adjacent_space] - mj.cool_setpoint)
-        htg_htm = (1.0 / wall.insulation_assembly_r_value) * (mj.heat_setpoint - mj.heat_design_temps[adjacent_space])
+        clg_htm = (1.0 / assembly_r) * (mj.cool_design_temps[adjacent_space] - mj.cool_setpoint)
+        htg_htm = (1.0 / assembly_r) * (mj.heat_setpoint - mj.heat_design_temps[adjacent_space])
       end
-      clg_loads = clg_htm * wall.net_area
-      htg_loads = htg_htm * wall.net_area
+      clg_loads = clg_htm * net_area
+      htg_loads = htg_htm * net_area
       all_zone_loads[zone].Cool_Walls += clg_loads
       all_zone_loads[zone].Heat_Walls += htg_loads
       all_space_loads[space].Cool_Walls += clg_loads
       all_space_loads[space].Heat_Walls += htg_loads
-      wall.additional_properties.detailed_output_values = DetailedOutputValues.new(area: wall.net_area,
-                                                                                   heat_htm: htg_htm,
-                                                                                   cool_htm: clg_htm,
-                                                                                   heat_load: htg_loads,
-                                                                                   cool_load_sens: clg_loads,
-                                                                                   cool_load_lat: 0)
+      detailed_output_values = DetailedOutputValues.new(area: net_area,
+                                                        heat_htm: htg_htm,
+                                                        cool_htm: clg_htm,
+                                                        heat_load: htg_loads,
+                                                        cool_load_sens: clg_loads,
+                                                        cool_load_lat: 0)
+      wall.additional_properties.detailed_output_values_above_grade_walls = detailed_output_values
     end
 
-    # Foundation walls
+    # Below-Grade Wall Area
     hpxml_bldg.foundation_walls.each do |foundation_wall|
       next unless foundation_wall.is_thermal_boundary
+      next unless foundation_wall.is_exterior # Partition walls handled with above grade walls
+      next if foundation_wall.depth_below_grade < 2 # Already handled in above grade walls
 
       space = foundation_wall.space
       zone = space.zone
 
-      if foundation_wall.is_exterior
-        # Store exposed wall gross area for infiltration calculation
-        ag_frac = (foundation_wall.height - foundation_wall.depth_below_grade) / foundation_wall.height
-        space.additional_properties.total_exposed_wall_area += foundation_wall.area * ag_frac
-
-        u_wall_with_soil = get_foundation_wall_ufactor(foundation_wall, true, mj.ground_conductivity)
-        htg_htm = u_wall_with_soil * mj.htd
-      else # Partition wall
-        adjacent_space = foundation_wall.exterior_adjacent_to
-        u_wall_without_soil = get_foundation_wall_ufactor(foundation_wall, false, mj.ground_conductivity)
-        htg_htm = u_wall_without_soil * (mj.heat_setpoint - mj.heat_design_temps[adjacent_space])
-      end
-      htg_loads = htg_htm * foundation_wall.net_area
+      u_wall = get_foundation_wall_below_grade_ufactor(foundation_wall, true, mj.ground_conductivity)
+      htg_htm = u_wall * mj.htd
+      htg_loads = htg_htm * foundation_wall.below_grade_area
       all_zone_loads[zone].Heat_Walls += htg_loads
       all_space_loads[space].Heat_Walls += htg_loads
-      foundation_wall.additional_properties.detailed_output_values = DetailedOutputValues.new(area: foundation_wall.net_area,
-                                                                                              heat_htm: htg_htm,
-                                                                                              cool_htm: 0,
-                                                                                              heat_load: htg_loads,
-                                                                                              cool_load_sens: 0,
-                                                                                              cool_load_lat: 0)
+      detailed_output_values = DetailedOutputValues.new(area: foundation_wall.below_grade_area,
+                                                        heat_htm: htg_htm,
+                                                        cool_htm: 0,
+                                                        heat_load: htg_loads,
+                                                        cool_load_sens: 0,
+                                                        cool_load_lat: 0)
+      foundation_wall.additional_properties.detailed_output_values_below_grade_walls = detailed_output_values
     end
   end
 
@@ -1168,12 +1190,13 @@ module HVACSizing
       all_zone_loads[zone].Heat_Roofs += htg_loads
       all_space_loads[space].Cool_Roofs += clg_loads
       all_space_loads[space].Heat_Roofs += htg_loads
-      roof.additional_properties.detailed_output_values = DetailedOutputValues.new(area: roof.net_area,
-                                                                                   heat_htm: htg_htm,
-                                                                                   cool_htm: clg_htm,
-                                                                                   heat_load: htg_loads,
-                                                                                   cool_load_sens: clg_loads,
-                                                                                   cool_load_lat: 0)
+      detailed_output_values = DetailedOutputValues.new(area: roof.net_area,
+                                                        heat_htm: htg_htm,
+                                                        cool_htm: clg_htm,
+                                                        heat_load: htg_loads,
+                                                        cool_load_sens: clg_loads,
+                                                        cool_load_lat: 0)
+      roof.additional_properties.detailed_output_values_ceilings = detailed_output_values
     end
   end
 
@@ -1206,12 +1229,13 @@ module HVACSizing
       all_zone_loads[zone].Heat_Ceilings += htg_loads
       all_space_loads[space].Cool_Ceilings += clg_loads
       all_space_loads[space].Heat_Ceilings += htg_loads
-      floor.additional_properties.detailed_output_values = DetailedOutputValues.new(area: floor.net_area,
-                                                                                    heat_htm: htg_htm,
-                                                                                    cool_htm: clg_htm,
-                                                                                    heat_load: htg_loads,
-                                                                                    cool_load_sens: clg_loads,
-                                                                                    cool_load_lat: 0)
+      detailed_output_values = DetailedOutputValues.new(area: floor.net_area,
+                                                        heat_htm: htg_htm,
+                                                        cool_htm: clg_htm,
+                                                        heat_load: htg_loads,
+                                                        cool_load_sens: clg_loads,
+                                                        cool_load_lat: 0)
+      floor.additional_properties.detailed_output_values_ceilings = detailed_output_values
     end
   end
 
@@ -1248,9 +1272,19 @@ module HVACSizing
           hpxml_bldg.foundation_walls.each do |foundation_wall|
             next unless foundation_wall.is_exterior && foundation_wall.interior_adjacent_to == adjacent_space
 
-            u_wall_without_soil = get_foundation_wall_ufactor(foundation_wall, false, mj.ground_conductivity)
-            sum_a_wall += foundation_wall.net_area
-            sum_ua_wall += (u_wall_without_soil * foundation_wall.net_area)
+            bg_area = foundation_wall.below_grade_area
+            if bg_area > 0
+              u_wall_bg = get_foundation_wall_below_grade_ufactor(foundation_wall, false, mj.ground_conductivity)
+              sum_a_wall += bg_area
+              sum_ua_wall += (u_wall_bg * bg_area)
+            end
+
+            ag_area = foundation_wall.above_grade_net_area
+            next unless ag_area > 0
+
+            u_wall_ag = get_foundation_wall_above_grade_ufactor(foundation_wall, true)
+            sum_a_wall += ag_area
+            sum_ua_wall += (u_wall_ag * ag_area)
           end
           hpxml_bldg.walls.each do |wall|
             next unless wall.is_exterior && wall.interior_adjacent_to == adjacent_space
@@ -1290,12 +1324,13 @@ module HVACSizing
       all_zone_loads[zone].Heat_Floors += htg_loads
       all_space_loads[space].Cool_Roofs += clg_loads
       all_space_loads[space].Heat_Roofs += htg_loads
-      floor.additional_properties.detailed_output_values = DetailedOutputValues.new(area: floor.net_area,
-                                                                                    heat_htm: htg_htm,
-                                                                                    cool_htm: clg_htm,
-                                                                                    heat_load: htg_loads,
-                                                                                    cool_load_sens: clg_loads,
-                                                                                    cool_load_lat: 0)
+      detailed_output_values = DetailedOutputValues.new(area: floor.net_area,
+                                                        heat_htm: htg_htm,
+                                                        cool_htm: clg_htm,
+                                                        heat_load: htg_loads,
+                                                        cool_load_sens: clg_loads,
+                                                        cool_load_lat: 0)
+      floor.additional_properties.detailed_output_values_floors = detailed_output_values
     end
   end
 
@@ -1318,22 +1353,30 @@ module HVACSizing
       htd_adj = mj.htd
       htd_adj += 25.0 if has_radiant_floor # Table 4A: Radiant slab floor: HTM = F-Value × (HTD + 25)
 
-      if slab.interior_adjacent_to == HPXML::LocationConditionedSpace # Slab-on-grade
+      # Use MJ basement floor calculation if average depth is >= 2 ft
+      is_basement_floor = false
+      if HPXML::conditioned_below_grade_locations.include? slab.interior_adjacent_to
+        adj_fnd_walls = hpxml_bldg.foundation_walls.select { |fw| fw.interior_adjacent_to == slab.interior_adjacent_to }
+
+        # Calculate weighted-average (by length) below-grade depth
+        z_f = adj_fnd_walls.map { |fw| fw.depth_below_grade * (fw.area / fw.height) }.sum(0.0) / adj_fnd_walls.map { |fw| fw.area / fw.height }.sum
+
+        if z_f >= 2
+          is_basement_floor = true
+        end
+      end
+
+      if not is_basement_floor # Slab near grade
         f_value = calc_slab_f_value(slab, mj.ground_conductivity)
         htg_htm = f_value * htd_adj
         htg_loads = htg_htm * slab.exposed_perimeter
         slab_length = slab.exposed_perimeter
-      elsif HPXML::conditioned_below_grade_locations.include? slab.interior_adjacent_to
-        ext_fnd_walls = hpxml_bldg.foundation_walls.select { |fw| fw.interior_adjacent_to == slab.interior_adjacent_to && fw.is_exterior }
-
-        # Calculate weighted-average (by length) below-grade depth
-        z_f = ext_fnd_walls.map { |fw| fw.depth_below_grade * (fw.area / fw.height) }.sum(0.0) / ext_fnd_walls.map { |fw| fw.area / fw.height }.sum
-
+      else # Basement floor (>= 2 ft below grade)
         # Calculate width of shortest side
         lengths_by_azimuth = {}
-        ext_fnd_walls.each do |fnd_wall|
+        adj_fnd_walls.each do |fnd_wall|
           if fnd_wall.azimuth.nil?
-            azimuths = [0, 90, 180, 270]
+            azimuths = HPXMLDefaults.get_default_azimuths(hpxml_bldg)
           else
             azimuths = [fnd_wall.azimuth]
           end
@@ -1365,13 +1408,14 @@ module HVACSizing
       end
       all_zone_loads[zone].Heat_Slabs += htg_loads
       all_space_loads[space].Heat_Slabs += htg_loads
-      slab.additional_properties.detailed_output_values = DetailedOutputValues.new(area: slab_area,
-                                                                                   length: slab_length,
-                                                                                   heat_htm: htg_htm,
-                                                                                   cool_htm: 0,
-                                                                                   heat_load: htg_loads,
-                                                                                   cool_load_sens: 0,
-                                                                                   cool_load_lat: 0)
+      detailed_output_values = DetailedOutputValues.new(area: slab_area,
+                                                        length: slab_length,
+                                                        heat_htm: htg_htm,
+                                                        cool_htm: 0,
+                                                        heat_load: htg_loads,
+                                                        cool_load_sens: 0,
+                                                        cool_load_lat: 0)
+      slab.additional_properties.detailed_output_values_floors = detailed_output_values
     end
   end
 
@@ -3688,19 +3732,38 @@ module HVACSizing
 
       if [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? HPXML::LocationOutside
         space_UAs[HPXML::LocationOutside] += (1.0 / surface.insulation_assembly_r_value) * surface.area
+
       elsif HPXML::conditioned_locations.include?(surface.interior_adjacent_to) || HPXML::conditioned_locations.include?(surface.exterior_adjacent_to)
         space_UAs[HPXML::LocationConditionedSpace] += (1.0 / surface.insulation_assembly_r_value) * surface.area
+
       elsif [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? HPXML::LocationGround
         # Ground temperature is used for basements, not crawlspaces, per Walker (1998)
         # "Technical background for default values used for forced air systems in proposed ASHRAE Std. 152"
+
         if [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented].include? location
           ua_location = HPXML::LocationOutside
         else
           ua_location = HPXML::LocationGround
         end
+
         if surface.is_a? HPXML::FoundationWall
-          u_wall_without_soil = get_foundation_wall_ufactor(surface, false, mj.ground_conductivity)
-          space_UAs[ua_location] += u_wall_without_soil * surface.area
+          sum_ua_wall = 0.0
+          sum_a_wall = 0.0
+          bg_area = surface.below_grade_area
+          if bg_area > 0
+            u_wall_bg = get_foundation_wall_below_grade_ufactor(surface, false, mj.ground_conductivity)
+            sum_a_wall += bg_area
+            sum_ua_wall += (u_wall_bg * bg_area)
+          end
+          ag_area = surface.above_grade_net_area
+          if ag_area > 0
+            u_wall_ag = get_foundation_wall_above_grade_ufactor(surface, true)
+            sum_a_wall += ag_area
+            sum_ua_wall += (u_wall_ag * ag_area)
+          end
+          u_wall = sum_ua_wall / sum_a_wall
+          space_UAs[ua_location] += u_wall * surface.area
+
         elsif surface.is_a? HPXML::Slab
           if surface.thickness == 0
             # Dirt floor, assume U-value=0.1 per Walker (1998) "Technical background for default
@@ -3844,172 +3907,257 @@ module HVACSizing
     return design_temp
   end
 
-  # Determines the ASHRAE Group Number G-B (based on the Table 4A Group Number A-K) for above-grade walls.
+  # Determines the ASHRAE Group Number G-B (based on the Table 4A Group Number A-K) for the wall.
+  # Correlations are estimated by analyzing the construction tables.
   #
-  # @param wall [HPXML::Wall or HPXML::RimJoist] The wall or rim joist of interest
+  # @param wall [HPXML::Wall or HPXML::RimJoist or HPXML::FoundationWall] The wall, rim joist, or foundation wall of interest
   # @return [String] ASHRAE Group Number
   def self.get_ashrae_wall_group(wall)
-    if wall.is_a? HPXML::RimJoist
-      wall_type = HPXML::WallTypeWoodStud
-    else
-      wall_type = wall.wall_type
-    end
-
-    wall_ufactor = 1.0 / wall.insulation_assembly_r_value
-
-    # The following correlations were estimated by analyzing MJ8 construction tables.
-    if wall_type == HPXML::WallTypeWoodStud
-      if wall.siding == HPXML::SidingTypeBrick
-        if wall_ufactor <= 0.070
-          table_4a_wall_group = 'K'
-        elsif wall_ufactor <= 0.083
-          table_4a_wall_group = 'J'
-        elsif wall_ufactor <= 0.095
-          table_4a_wall_group = 'I'
-        elsif wall_ufactor <= 0.100
-          table_4a_wall_group = 'H'
-        elsif wall_ufactor <= 0.130
-          table_4a_wall_group = 'G'
-        elsif wall_ufactor <= 0.175
-          table_4a_wall_group = 'F'
-        else
-          table_4a_wall_group = 'E'
-        end
+    if wall.is_a?(HPXML::Wall) || wall.is_a?(HPXML::RimJoist)
+      if wall.is_a? HPXML::RimJoist
+        wall_type = HPXML::WallTypeWoodStud
       else
-        if wall_ufactor <= 0.048
+        wall_type = wall.wall_type
+      end
+
+      wall_ufactor = 1.0 / wall.insulation_assembly_r_value
+
+      if wall_type == HPXML::WallTypeWoodStud
+        if wall.siding == HPXML::SidingTypeBrick
+          if wall_ufactor <= 0.070
+            table_4a_wall_group = 'K'
+          elsif wall_ufactor <= 0.083
+            table_4a_wall_group = 'J'
+          elsif wall_ufactor <= 0.095
+            table_4a_wall_group = 'I'
+          elsif wall_ufactor <= 0.100
+            table_4a_wall_group = 'H'
+          elsif wall_ufactor <= 0.130
+            table_4a_wall_group = 'G'
+          elsif wall_ufactor <= 0.175
+            table_4a_wall_group = 'F'
+          else
+            table_4a_wall_group = 'E'
+          end
+        else
+          if wall_ufactor <= 0.048
+            table_4a_wall_group = 'J'
+          elsif wall_ufactor <= 0.051
+            table_4a_wall_group = 'I'
+          elsif wall_ufactor <= 0.059
+            table_4a_wall_group = 'H'
+          elsif wall_ufactor <= 0.063
+            table_4a_wall_group = 'G'
+          elsif wall_ufactor <= 0.067
+            table_4a_wall_group = 'F'
+          elsif wall_ufactor <= 0.075
+            table_4a_wall_group = 'E'
+          elsif wall_ufactor <= 0.086
+            table_4a_wall_group = 'D'
+          elsif wall_ufactor <= 0.110
+            table_4a_wall_group = 'C'
+          elsif wall_ufactor <= 0.170
+            table_4a_wall_group = 'B'
+          else
+            table_4a_wall_group = 'A'
+          end
+        end
+
+      elsif wall_type == HPXML::WallTypeSteelStud
+        if wall.siding == HPXML::SidingTypeBrick
+          if wall_ufactor <= 0.090
+            table_4a_wall_group = 'K'
+          elsif wall_ufactor <= 0.105
+            table_4a_wall_group = 'J'
+          elsif wall_ufactor <= 0.118
+            table_4a_wall_group = 'I'
+          elsif wall_ufactor <= 0.125
+            table_4a_wall_group = 'H'
+          elsif wall_ufactor <= 0.145
+            table_4a_wall_group = 'G'
+          elsif wall_ufactor <= 0.200
+            table_4a_wall_group = 'F'
+          else
+            table_4a_wall_group = 'E'
+          end
+        else
+          if wall_ufactor <= 0.066
+            table_4a_wall_group = 'J'
+          elsif wall_ufactor <= 0.070
+            table_4a_wall_group = 'I'
+          elsif wall_ufactor <= 0.075
+            table_4a_wall_group = 'H'
+          elsif wall_ufactor <= 0.081
+            table_4a_wall_group = 'G'
+          elsif wall_ufactor <= 0.088
+            table_4a_wall_group = 'F'
+          elsif wall_ufactor <= 0.100
+            table_4a_wall_group = 'E'
+          elsif wall_ufactor <= 0.105
+            table_4a_wall_group = 'D'
+          elsif wall_ufactor <= 0.120
+            table_4a_wall_group = 'C'
+          elsif wall_ufactor <= 0.200
+            table_4a_wall_group = 'B'
+          else
+            table_4a_wall_group = 'A'
+          end
+        end
+
+      elsif wall_type == HPXML::WallTypeDoubleWoodStud
+        table_4a_wall_group = 'J' # assumed since MJ8 does not include double stud constructions
+        if wall.siding == HPXML::SidingTypeBrick
+          table_4a_wall_group = 'K'
+        end
+
+      elsif wall_type == HPXML::WallTypeSIP
+        # Manual J refers to SIPs as Structural Foam Panel (SFP)
+        if wall_ufactor >= (0.072 + 0.050) / 2
+          if wall.siding == HPXML::SidingTypeBrick
+            table_4a_wall_group = 'J'
+          else
+            table_4a_wall_group = 'G'
+          end
+        elsif wall_ufactor >= 0.050
+          if wall.siding == HPXML::SidingTypeBrick
+            table_4a_wall_group = 'K'
+          else
+            table_4a_wall_group = 'I'
+          end
+        else
+          table_4a_wall_group = 'K'
+        end
+
+      elsif wall_type == HPXML::WallTypeCMU
+        # Table 4A - Construction Number 13
+        if wall_ufactor <= 0.0575
           table_4a_wall_group = 'J'
-        elsif wall_ufactor <= 0.051
-          table_4a_wall_group = 'I'
-        elsif wall_ufactor <= 0.059
-          table_4a_wall_group = 'H'
-        elsif wall_ufactor <= 0.063
-          table_4a_wall_group = 'G'
         elsif wall_ufactor <= 0.067
-          table_4a_wall_group = 'F'
-        elsif wall_ufactor <= 0.075
-          table_4a_wall_group = 'E'
-        elsif wall_ufactor <= 0.086
-          table_4a_wall_group = 'D'
-        elsif wall_ufactor <= 0.110
-          table_4a_wall_group = 'C'
-        elsif wall_ufactor <= 0.170
-          table_4a_wall_group = 'B'
-        else
-          table_4a_wall_group = 'A'
-        end
-      end
-
-    elsif wall_type == HPXML::WallTypeSteelStud
-      if wall.siding == HPXML::SidingTypeBrick
-        if wall_ufactor <= 0.090
-          table_4a_wall_group = 'K'
-        elsif wall_ufactor <= 0.105
-          table_4a_wall_group = 'J'
-        elsif wall_ufactor <= 0.118
           table_4a_wall_group = 'I'
-        elsif wall_ufactor <= 0.125
+        elsif wall_ufactor <= 0.080
           table_4a_wall_group = 'H'
-        elsif wall_ufactor <= 0.145
+        elsif wall_ufactor <= 0.108
           table_4a_wall_group = 'G'
-        elsif wall_ufactor <= 0.200
+        elsif wall_ufactor <= 0.148
           table_4a_wall_group = 'F'
         else
           table_4a_wall_group = 'E'
         end
-      else
-        if wall_ufactor <= 0.066
-          table_4a_wall_group = 'J'
-        elsif wall_ufactor <= 0.070
-          table_4a_wall_group = 'I'
-        elsif wall_ufactor <= 0.075
+
+      elsif [HPXML::WallTypeBrick, HPXML::WallTypeAdobe, HPXML::WallTypeConcrete].include? wall_type
+        # Two Courses Brick or 8 Inches Concrete
+        if wall_ufactor >= (0.218 + 0.179) / 2
+          table_4a_wall_group = 'G'
+        elsif wall_ufactor >= (0.152 + 0.132) / 2
           table_4a_wall_group = 'H'
-        elsif wall_ufactor <= 0.081
-          table_4a_wall_group = 'G'
-        elsif wall_ufactor <= 0.088
-          table_4a_wall_group = 'F'
-        elsif wall_ufactor <= 0.100
-          table_4a_wall_group = 'E'
-        elsif wall_ufactor <= 0.105
-          table_4a_wall_group = 'D'
-        elsif wall_ufactor <= 0.120
-          table_4a_wall_group = 'C'
-        elsif wall_ufactor <= 0.200
-          table_4a_wall_group = 'B'
-        else
-          table_4a_wall_group = 'A'
-        end
-      end
-
-    elsif wall_type == HPXML::WallTypeDoubleWoodStud
-      table_4a_wall_group = 'J' # assumed since MJ8 does not include double stud constructions
-      if wall.siding == HPXML::SidingTypeBrick
-        table_4a_wall_group = 'K'
-      end
-
-    elsif wall_type == HPXML::WallTypeSIP
-      # Manual J refers to SIPs as Structural Foam Panel (SFP)
-      if wall_ufactor >= (0.072 + 0.050) / 2
-        if wall.siding == HPXML::SidingTypeBrick
+        elsif wall_ufactor >= (0.117 + 0.079) / 2
+          table_4a_wall_group = 'I'
+        elsif wall_ufactor >= 0.079
           table_4a_wall_group = 'J'
         else
-          table_4a_wall_group = 'G'
-        end
-      elsif wall_ufactor >= 0.050
-        if wall.siding == HPXML::SidingTypeBrick
           table_4a_wall_group = 'K'
-        else
-          table_4a_wall_group = 'I'
         end
-      else
+
+      elsif wall_type == HPXML::WallTypeLog
+        # Stacked Logs
+        if wall_ufactor >= (0.103 + 0.091) / 2
+          table_4a_wall_group = 'G'
+        elsif wall_ufactor >= (0.091 + 0.082) / 2
+          table_4a_wall_group = 'H'
+        elsif wall_ufactor >= (0.074 + 0.068) / 2
+          table_4a_wall_group = 'I'
+        elsif wall_ufactor >= (0.068 + 0.063) / 2
+          table_4a_wall_group = 'J'
+        else
+          table_4a_wall_group = 'K'
+        end
+
+      elsif [HPXML::WallTypeICF, HPXML::WallTypeStrawBale, HPXML::WallTypeStone].include? wall_type
         table_4a_wall_group = 'K'
+
       end
 
-    elsif wall_type == HPXML::WallTypeCMU
-      # Table 4A - Construction Number 13
-      if wall_ufactor <= 0.0575
-        table_4a_wall_group = 'J'
-      elsif wall_ufactor <= 0.067
-        table_4a_wall_group = 'I'
-      elsif wall_ufactor <= 0.080
-        table_4a_wall_group = 'H'
-      elsif wall_ufactor <= 0.108
-        table_4a_wall_group = 'G'
-      elsif wall_ufactor <= 0.148
-        table_4a_wall_group = 'F'
-      else
-        table_4a_wall_group = 'E'
-      end
+    elsif wall.is_a?(HPXML::FoundationWall)
+      wall_type = wall.type
 
-    elsif [HPXML::WallTypeBrick, HPXML::WallTypeAdobe, HPXML::WallTypeConcrete].include? wall_type
-      # Two Courses Brick or 8 Inches Concrete
-      if wall_ufactor >= (0.218 + 0.179) / 2
-        table_4a_wall_group = 'G'
-      elsif wall_ufactor >= (0.152 + 0.132) / 2
-        table_4a_wall_group = 'H'
-      elsif wall_ufactor >= (0.117 + 0.079) / 2
-        table_4a_wall_group = 'I'
-      elsif wall_ufactor >= 0.079
-        table_4a_wall_group = 'J'
-      else
-        table_4a_wall_group = 'K'
-      end
+      # Above-grade U-factor
+      wall_ufactor = get_foundation_wall_above_grade_ufactor(wall, true)
 
-    elsif wall_type == HPXML::WallTypeLog
-      # Stacked Logs
-      if wall_ufactor >= (0.103 + 0.091) / 2
-        table_4a_wall_group = 'G'
-      elsif wall_ufactor >= (0.091 + 0.082) / 2
-        table_4a_wall_group = 'H'
-      elsif wall_ufactor >= (0.074 + 0.068) / 2
-        table_4a_wall_group = 'I'
-      elsif wall_ufactor >= (0.068 + 0.063) / 2
-        table_4a_wall_group = 'J'
-      else
-        table_4a_wall_group = 'K'
-      end
+      if [HPXML::FoundationWallTypeConcreteBlock,
+          HPXML::FoundationWallTypeConcreteBlockFoamCore,
+          HPXML::FoundationWallTypeConcreteBlockPerliteCore,
+          HPXML::FoundationWallTypeConcreteBlockVermiculiteCore].include? wall_type
+        # Table 4A - Construction Number 15A, Concrete Block Wall, Open Core
+        if wall_ufactor >= (0.269 + 0.175) / 2
+          table_4a_wall_group = 'E'
+        elsif wall_ufactor >= (0.175 + 0.130) / 2
+          table_4a_wall_group = 'F'
+        elsif wall_ufactor >= (0.103 + 0.085) / 2
+          table_4a_wall_group = 'G'
+        elsif wall_ufactor >= (0.085 + 0.060) / 2
+          table_4a_wall_group = 'H'
+        elsif wall_ufactor >= (0.060 + 0.046) / 2
+          table_4a_wall_group = 'J'
+        else
+          table_4a_wall_group = 'K'
+        end
 
-    elsif [HPXML::WallTypeICF, HPXML::WallTypeStrawBale, HPXML::WallTypeStone].include? wall_type
-      table_4a_wall_group = 'K'
+      elsif wall_type == HPXML::FoundationWallTypeConcreteBlockSolidCore
+        # Table 4A - Construction Number 15A, Concrete Block Wall, Filled Core
+        if wall_ufactor >= (0.188 + 0.137) / 2
+          table_4a_wall_group = 'E'
+        elsif wall_ufactor >= (0.137 + 0.107) / 2
+          table_4a_wall_group = 'F'
+        elsif wall_ufactor >= (0.088 + 0.075) / 2
+          table_4a_wall_group = 'G'
+        elsif wall_ufactor >= (0.075 + 0.055) / 2
+          table_4a_wall_group = 'H'
+        elsif wall_ufactor >= (0.055 + 0.043) / 2
+          table_4a_wall_group = 'J'
+        else
+          table_4a_wall_group = 'K'
+        end
+
+      elsif wall_type == HPXML::FoundationWallTypeSolidConcrete && wall.thickness < 6.0
+        # Table 4A - Construction Number 15C, Four Inch Concrete
+        if wall_ufactor >= (0.308 + 0.190) / 2
+          table_4a_wall_group = 'E'
+        elsif wall_ufactor >= (0.190 + 0.138) / 2
+          table_4a_wall_group = 'F'
+        elsif wall_ufactor >= (0.108 + 0.089) / 2
+          table_4a_wall_group = 'G'
+        elsif wall_ufactor >= (0.089 + 0.062) / 2
+          table_4a_wall_group = 'H'
+        elsif wall_ufactor >= (0.062 + 0.047) / 2
+          table_4a_wall_group = 'J'
+        else
+          table_4a_wall_group = 'K'
+        end
+
+      elsif [HPXML::FoundationWallTypeDoubleBrick,
+             HPXML::FoundationWallTypeSolidConcrete].include? wall_type
+        # Table 4A - Construction Number 15B, Eight Inch Brick, Stone, or Concrete
+        if wall_ufactor >= (0.247 + 0.165) / 2
+          table_4a_wall_group = 'G'
+        elsif wall_ufactor >= (0.165 + 0.124) / 2
+          table_4a_wall_group = 'H'
+        elsif wall_ufactor >= (0.100 + 0.083) / 2
+          table_4a_wall_group = 'I'
+        elsif wall_ufactor >= (0.083 + 0.059) / 2
+          table_4a_wall_group = 'J'
+        else
+          table_4a_wall_group = 'K'
+        end
+
+      elsif wall_type == HPXML::FoundationWallTypeWood
+        # Table 4A - Construction Number 15E, Plywood Panel on Wood/Metal Framing
+        if wall_ufactor >= (0.106 + 0.098) / 2
+          table_4a_wall_group = 'J'
+        else
+          table_4a_wall_group = 'K'
+        end
+
+      end
 
     end
 
@@ -4116,58 +4264,74 @@ module HVACSizing
     return surfaces_a / surfaces_ua
   end
 
-  # Calculates the foundation wall effective U-factor according to Manual J Section A12-4.
+  # Calculates the foundation wall above grade U-factor.
+  #
+  # @param foundation_wall [HPXML::FoundationWall] The foundation wall of interest
+  # @param include_insulation_layers [Boolean] Whether to include interior/exterior insulation layers in the calculation
+  # @return [Double] Above grade U-factor for the foundation wall (Btu/hr-ft2-F)
+  def self.get_foundation_wall_above_grade_ufactor(foundation_wall, include_insulation_layers)
+    if not foundation_wall.insulation_assembly_r_value.nil?
+      return 1.0 / foundation_wall.insulation_assembly_r_value
+    end
+
+    assembly_r = Material.FoundationWallMaterial(foundation_wall.type, foundation_wall.thickness).rvalue
+    assembly_r += Material.AirFilmVertical.rvalue + Material.AirFilmOutside.rvalue
+    if include_insulation_layers
+      if foundation_wall.insulation_interior_distance_to_top == 0 && foundation_wall.insulation_interior_distance_to_bottom > 0
+        assembly_r += foundation_wall.insulation_interior_r_value
+      end
+      if foundation_wall.insulation_exterior_distance_to_top == 0 && foundation_wall.insulation_exterior_distance_to_bottom > 0
+        assembly_r += foundation_wall.insulation_exterior_r_value
+      end
+    end
+    return 1.0 / assembly_r
+  end
+
+  # Calculates the foundation wall below grade effective U-factor according to Manual J Section A12-4.
   #
   # @param foundation_wall [HPXML::FoundationWall] The foundation wall of interest
   # @param include_soil [Boolean] Whether to include the thermal resistance of soil in the calculation
   # @param ground_conductivity [Double] Ground conductivity (Btu/hr-ft-F)
-  # @return [Double] U-factor for the foundation wall (Btu/hr-ft2-F)
-  def self.get_foundation_wall_ufactor(foundation_wall, include_soil, ground_conductivity)
-    # Calculate effective U-factor
-
+  # @return [Double] Below grade U-factor for the foundation wall (Btu/hr-ft2-F)
+  def self.get_foundation_wall_below_grade_ufactor(foundation_wall, include_soil, ground_conductivity)
+    # Retrieve assembly or insulation layer properties
+    ag_depth = foundation_wall.height - foundation_wall.depth_below_grade
     if not foundation_wall.insulation_assembly_r_value.nil?
-      wall_constr_rvalue = foundation_wall.insulation_assembly_r_value - Material.AirFilmVertical.rvalue
+      wall_constr_rvalue = 1.0 / get_foundation_wall_above_grade_ufactor(foundation_wall, nil)
       wall_ins_rvalue_int, wall_ins_rvalue_ext = 0, 0
-      wall_ins_dist_to_top_int, wall_ins_dist_to_top_ext = 0, 0
-      wall_ins_dist_to_bottom_int, wall_ins_dist_to_bottom_ext = 0, 0
+      wall_ins_dist_top_to_grade_int, wall_ins_dist_top_to_grade_ext = 0, 0
+      wall_ins_dist_bottom_to_grade_int, wall_ins_dist_bottom_to_grade_ext = 0, 0
     else
-      wall_constr_rvalue = Material.Concrete(foundation_wall.thickness).rvalue
+      wall_constr_rvalue = 1.0 / get_foundation_wall_above_grade_ufactor(foundation_wall, false)
       wall_ins_rvalue_int = foundation_wall.insulation_interior_r_value
       wall_ins_rvalue_ext = foundation_wall.insulation_exterior_r_value
-      wall_ins_dist_to_top_int = foundation_wall.insulation_interior_distance_to_top
-      wall_ins_dist_to_top_ext = foundation_wall.insulation_exterior_distance_to_top
-      wall_ins_dist_to_bottom_int = foundation_wall.insulation_interior_distance_to_bottom
-      wall_ins_dist_to_bottom_ext = foundation_wall.insulation_exterior_distance_to_bottom
+      wall_ins_dist_top_to_grade_int = foundation_wall.insulation_interior_distance_to_top - ag_depth
+      wall_ins_dist_top_to_grade_ext = foundation_wall.insulation_exterior_distance_to_top - ag_depth
+      wall_ins_dist_bottom_to_grade_int = foundation_wall.insulation_interior_distance_to_bottom - ag_depth
+      wall_ins_dist_bottom_to_grade_ext = foundation_wall.insulation_exterior_distance_to_bottom - ag_depth
     end
 
-    u_wall = 0.0
-    wall_height = foundation_wall.height.ceil
-    wall_depth_above_grade = foundation_wall.height - foundation_wall.depth_below_grade
-    for distance_to_top in 1..wall_height
+    # Perform calculation for each 1ft bin of below grade depth
+    sum_u_wall = 0.0
+    wall_depth_above_grade = foundation_wall.depth_below_grade.ceil
+    for distance_to_grade in 1..wall_depth_above_grade
       # Calculate R-wall at this depth
-      r_wall = wall_constr_rvalue + Material.AirFilmVertical.rvalue # Base wall construction + interior film
-      if distance_to_top <= wall_depth_above_grade
-        # Above-grade: no soil, add exterior film
-        r_soil = 0.0
-        r_wall += Material.AirFilmOutside.rvalue
-      else
-        # Below-grade: add soil, no exterior film
-        distance_to_grade = distance_to_top - wall_depth_above_grade
-        r_soil = (Math::PI * distance_to_grade / 2.0) / ground_conductivity
-      end
-      if (distance_to_top > wall_ins_dist_to_top_int) && (distance_to_top <= wall_ins_dist_to_bottom_int)
+      r_wall = wall_constr_rvalue - Material.AirFilmOutside.rvalue
+      bin_distance_to_grade = distance_to_grade - 0.5 # Use e.g. 2.5 ft for the 2ft-3ft bin
+      r_soil = (Math::PI * bin_distance_to_grade / 2.0) / ground_conductivity
+      if (distance_to_grade > wall_ins_dist_top_to_grade_int) && (distance_to_grade <= wall_ins_dist_bottom_to_grade_int)
         r_wall += wall_ins_rvalue_int # Interior insulation at this depth, add R-value
       end
-      if (distance_to_top > wall_ins_dist_to_top_ext) && (distance_to_top <= wall_ins_dist_to_bottom_ext)
+      if (distance_to_grade > wall_ins_dist_top_to_grade_ext) && (distance_to_grade <= wall_ins_dist_bottom_to_grade_ext)
         r_wall += wall_ins_rvalue_ext # Exterior insulation at this depth, add R-value
       end
       if include_soil
-        u_wall += 1.0 / (r_soil + r_wall)
+        sum_u_wall += 1.0 / (r_soil + r_wall)
       else
-        u_wall += 1.0 / r_wall
+        sum_u_wall += 1.0 / r_wall
       end
     end
-    u_wall /= wall_height
+    u_wall = sum_u_wall / foundation_wall.depth_below_grade
     if include_soil
       u_wall *= 0.85 # 15% decrease due to soil thermal storage per Manual J
     end
@@ -4181,8 +4345,6 @@ module HVACSizing
   # @param ground_conductivity [Double] Ground conductivity (Btu/hr-ft-F)
   # @return [Double] F-value for the slab (Btu/ft-F)
   def self.calc_slab_f_value(slab, ground_conductivity)
-    soil_r_per_foot = 1.0 / ground_conductivity
-
     slab_r_gravel_per_inch = 0.65 # Based on calibration to Table 4A values by Tony Fontanini
 
     # Because of uncertainty pertaining to the effective path radius, F-values are calculated
@@ -4222,7 +4384,7 @@ module HVACSizing
         r_air_film = 0.05 + 0.92 + 0.17
 
         # Soil
-        r_soil = soil_r_per_foot * spl # (h-F-ft2/BTU)
+        r_soil = spl / ground_conductivity # hr-ft2-F/Btu
 
         # Effective R-Value
         r_air_to_air = r_concrete + r_gravel + r_ins + r_air_film + r_soil
@@ -4651,52 +4813,18 @@ module HVACSizing
                         HPXML::OrientationSouthwest => 'SW',
                         HPXML::OrientationWest => 'W' }
 
-    # Gets the HPXML Windows that should be output for the building, zone, or space.
+    # Gets the HPXML objects w/ the given property type that should be output for the building, zone, or space.
     #
     # @param obj [HPXML::Building or HPXML::Zone or HPXML::Space] The HPXML building, zone, or space of interest
-    # @return [Array] List of windows
-    def self.windows(obj)
-      return obj.windows.select { |s| s.additional_properties.respond_to?(:detailed_output_values) }
-    end
-
-    # Gets the HPXML Skylights that should be output for the building, zone, or space.
-    #
-    # @param obj [HPXML::Building or HPXML::Zone or HPXML::Space] The HPXML building, zone, or space of interest
-    # @return [Array] List of skylights
-    def self.skylights(obj)
-      return obj.skylights.select { |s| s.additional_properties.respond_to?(:detailed_output_values) }
-    end
-
-    # Gets the HPXML Doors that should be output for the building, zone, or space.
-    #
-    # @param obj [HPXML::Building or HPXML::Zone or HPXML::Space] The HPXML building, zone, or space of interest
-    # @return [Array] List of doors
-    def self.doors(obj)
-      return obj.doors.select { |s| s.additional_properties.respond_to?(:detailed_output_values) }
-    end
-
-    # Gets the HPXML Walls, RimJoists, and FoundationWalls that should be output for the building, zone, or space.
-    #
-    # @param obj [HPXML::Building or HPXML::Zone or HPXML::Space] The HPXML building, zone, or space of interest
-    # @return [Array] List of walls/rim joists/foundation walls
-    def self.walls(obj)
-      return (obj.walls + obj.rim_joists + obj.foundation_walls).select { |s| s.additional_properties.respond_to?(:detailed_output_values) }
-    end
-
-    # Gets the HPXML Floors (ceilings) and Roofs that should be output for the building, zone, or space.
-    #
-    # @param obj [HPXML::Building or HPXML::Zone or HPXML::Space] The HPXML building, zone, or space of interest
-    # @return [Array] List of ceilings/roofs
-    def self.ceilings(obj)
-      return obj.floors.select { |s| s.additional_properties.respond_to?(:detailed_output_values) && s.is_ceiling } + obj.roofs.select { |s| s.additional_properties.respond_to?(:detailed_output_values) }
-    end
-
-    # Gets the HPXML Floors (floors) and Slabs that should be output for the building, zone, or space.
-    #
-    # @param obj [HPXML::Building or HPXML::Zone or HPXML::Space] The HPXML building, zone, or space of interest
-    # @return [Array] List of floors/slabs
-    def self.floors(obj)
-      return obj.floors.select { |s| s.additional_properties.respond_to?(:detailed_output_values) && s.is_floor } + obj.slabs.select { |s| s.additional_properties.respond_to?(:detailed_output_values) }
+    # @param additional_property_type [Symbol] Name of property on obj.additional_properties
+    # @return [Hash<Object, Object>] Map of HPXML::XXX object => DetailedOutputValues object
+    def self.get_surfaces_with_property(obj, additional_property_type)
+      objs = (obj.surfaces + obj.subsurfaces).select { |s| s.additional_properties.respond_to?(additional_property_type) }
+      props = {}
+      objs.each do |obj|
+        props[obj] = obj.additional_properties.send(additional_property_type)
+      end
+      return props
     end
 
     # Note: Every report name must have the HPXML BuildingID in it in case we are running a whole MF building with multiple Building elements.
@@ -4713,28 +4841,25 @@ module HVACSizing
 
     # Summary Results
     results_out << ["Report: #{hpxml_bldg.building_id}: Summary", 'Orientation', 'Heating HTM', 'Cooling HTM', 'Heating CFM', 'Cooling CFM']
-    windows(hpxml_bldg).each do |window|
-      fj1 = window.additional_properties.detailed_output_values
+    get_surfaces_with_property(hpxml_bldg, :detailed_output_values_windows).each do |window, fj1|
       results_out << ["Windows: #{window.id}", orientation_map[window.orientation], fj1.Heat_HTM, fj1.Cool_HTM]
     end
-    skylights(hpxml_bldg).each do |skylight|
-      fj1 = skylight.additional_properties.detailed_output_values
+    get_surfaces_with_property(hpxml_bldg, :detailed_output_values_skylights).each do |skylight, fj1|
       results_out << ["Skylights: #{skylight.id}", orientation_map[skylight.orientation], fj1.Heat_HTM, fj1.Cool_HTM]
     end
-    doors(hpxml_bldg).each do |door|
-      fj1 = door.additional_properties.detailed_output_values
+    get_surfaces_with_property(hpxml_bldg, :detailed_output_values_doors).each do |door, fj1|
       results_out << ["Doors: #{door.id}", orientation_map[door.orientation], fj1.Heat_HTM, fj1.Cool_HTM]
     end
-    walls(hpxml_bldg).each do |wall|
-      fj1 = wall.additional_properties.detailed_output_values
-      results_out << ["Walls: #{wall.id}", orientation_map[wall.orientation], fj1.Heat_HTM, fj1.Cool_HTM]
+    get_surfaces_with_property(hpxml_bldg, :detailed_output_values_above_grade_walls).each do |wall, fj1|
+      results_out << ["Above Grade Walls: #{wall.id}", orientation_map[wall.orientation], fj1.Heat_HTM, fj1.Cool_HTM]
     end
-    ceilings(hpxml_bldg).each do |ceiling|
-      fj1 = ceiling.additional_properties.detailed_output_values
+    get_surfaces_with_property(hpxml_bldg, :detailed_output_values_below_grade_walls).each do |wall, fj1|
+      results_out << ["Below Grade Walls: #{wall.id}", orientation_map[wall.orientation], fj1.Heat_HTM, fj1.Cool_HTM]
+    end
+    get_surfaces_with_property(hpxml_bldg, :detailed_output_values_ceilings).each do |ceiling, fj1|
       results_out << ["Ceilings: #{ceiling.id}", nil, fj1.Heat_HTM, fj1.Cool_HTM]
     end
-    floors(hpxml_bldg).each do |floor|
-      fj1 = floor.additional_properties.detailed_output_values
+    get_surfaces_with_property(hpxml_bldg, :detailed_output_values_floors).each do |floor, fj1|
       results_out << ["Floors: #{floor.id}", nil, fj1.Heat_HTM, fj1.Cool_HTM]
     end
     results_out << ['Infiltration', nil, nil, nil, hpxml_bldg.additional_properties.infil_heat_cfm.round, hpxml_bldg.additional_properties.infil_cool_cfm.round]
@@ -4744,28 +4869,25 @@ module HVACSizing
     all_zone_loads.keys.each_with_index do |zone, i|
       results_out << [line_break]
       results_out << ["Report: #{zone_col_names[i]}: Loads", 'Area (ft^2)', 'Length (ft)', 'Wall Area Ratio', 'Heating (Btuh)', 'Cooling Sensible (Btuh)', 'Cooling Latent (Btuh)']
-      windows(zone).each do |window|
-        fj1 = window.additional_properties.detailed_output_values
+      get_surfaces_with_property(zone, :detailed_output_values_windows).each do |window, fj1|
         results_out << ["Windows: #{window.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
       end
-      skylights(zone).each do |skylight|
-        fj1 = skylight.additional_properties.detailed_output_values
+      get_surfaces_with_property(zone, :detailed_output_values_skylights).each do |skylight, fj1|
         results_out << ["Skylights: #{skylight.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
       end
-      doors(zone).each do |door|
-        fj1 = door.additional_properties.detailed_output_values
+      get_surfaces_with_property(zone, :detailed_output_values_doors).each do |door, fj1|
         results_out << ["Doors: #{door.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
       end
-      walls(zone).each do |wall|
-        fj1 = wall.additional_properties.detailed_output_values
-        results_out << ["Walls: #{wall.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
+      get_surfaces_with_property(zone, :detailed_output_values_above_grade_walls).each do |wall, fj1|
+        results_out << ["Above Grade Walls: #{wall.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
       end
-      ceilings(zone).each do |ceiling|
-        fj1 = ceiling.additional_properties.detailed_output_values
+      get_surfaces_with_property(zone, :detailed_output_values_below_grade_walls).each do |wall, fj1|
+        results_out << ["Below Grade Walls: #{wall.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
+      end
+      get_surfaces_with_property(zone, :detailed_output_values_ceilings).each do |ceiling, fj1|
         results_out << ["Ceilings: #{ceiling.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
       end
-      floors(zone).each do |floor|
-        fj1 = floor.additional_properties.detailed_output_values
+      get_surfaces_with_property(zone, :detailed_output_values_floors).each do |floor, fj1|
         results_out << ["Floors: #{floor.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
       end
       zone_loads = all_zone_loads[zone]
@@ -4783,28 +4905,25 @@ module HVACSizing
     all_space_loads.keys.each_with_index do |space, i|
       results_out << [line_break]
       results_out << ["Report: #{space_col_names[i]}: Loads", 'Area (ft^2)', 'Length (ft)', 'Wall Area Ratio', 'Heating (Btuh)', 'Cooling Sensible (Btuh)']
-      windows(space).select { |s| s.wall.space == space }.each do |window|
-        fj1 = window.additional_properties.detailed_output_values
+      get_surfaces_with_property(space, :detailed_output_values_windows).each do |window, fj1|
         results_out << ["Windows: #{window.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
       end
-      skylights(space).select { |s| s.roof.space == space }.each do |skylight|
-        fj1 = skylight.additional_properties.detailed_output_values
+      get_surfaces_with_property(space, :detailed_output_values_skylights).each do |skylight, fj1|
         results_out << ["Skylights: #{skylight.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
       end
-      doors(space).select { |s| s.wall.space == space }.each do |door|
-        fj1 = door.additional_properties.detailed_output_values
+      get_surfaces_with_property(space, :detailed_output_values_doors).each do |door, fj1|
         results_out << ["Doors: #{door.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
       end
-      walls(space).select { |s| s.space == space }.each do |wall|
-        fj1 = wall.additional_properties.detailed_output_values
-        results_out << ["Walls: #{wall.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
+      get_surfaces_with_property(space, :detailed_output_values_above_grade_walls).each do |wall, fj1|
+        results_out << ["Above Grade Walls: #{wall.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
       end
-      ceilings(space).select { |s| s.space == space }.each do |ceiling|
-        fj1 = ceiling.additional_properties.detailed_output_values
+      get_surfaces_with_property(space, :detailed_output_values_below_grade_walls).each do |wall, fj1|
+        results_out << ["Below Grade Walls: #{wall.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
+      end
+      get_surfaces_with_property(space, :detailed_output_values_ceilings).each do |ceiling, fj1|
         results_out << ["Ceilings: #{ceiling.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
       end
-      floors(space).select { |s| s.space == space }.each do |floor|
-        fj1 = floor.additional_properties.detailed_output_values
+      get_surfaces_with_property(space, :detailed_output_values_floors).each do |floor, fj1|
         results_out << ["Floors: #{floor.id}", fj1.Area, fj1.Length, nil, fj1.Heat_Load, fj1.Cool_Load_Sens]
       end
       space_loads = all_space_loads[space]

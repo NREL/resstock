@@ -82,7 +82,7 @@ The ``in.xml`` output file will include autosized HVAC capacities as well as som
 Annual Outputs
 --------------
 
-OpenStudio-HPXML will always generate an annual output file called ``results_annual.csv`` (or ``results_annual.json`` or ``results_annual.msgpack``), located in the run directory.
+OpenStudio-HPXML will always generate an annual output file called ``results_annual.csv`` (or ``.json`` or ``.msgpack``), located in the run directory.
 The file includes the following sections of output:
 
 Annual Energy
@@ -614,31 +614,33 @@ Timeseries Outputs
 ------------------
 
 OpenStudio-HPXML can optionally generate a timeseries output file.
-The timeseries output file is called ``results_timeseries.csv`` (or ``results_timeseries.json`` or ``results_timeseries.msgpack``) and located in the run directory.
+The timeseries output file is called ``results_timeseries.csv`` (or ``.json`` or ``.msgpack``) and located in the run directory.
 If multiple timeseries frequencies are requested (e.g., hourly and daily), the timeseries output filenames will include the frequency (e.g., ``run/results_timeseries_daily.csv``).
 
 Depending on the outputs requested, the file may include:
 
-  ===================================  ==================================================================================================================================
-  Type                                 Notes
-  ===================================  ==================================================================================================================================
-  Total Consumptions                   Energy use for building total and net (i.e., subtracts any power produced by PV or generators).
-  Fuel Consumptions                    Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
-  End Use Consumptions                 Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
-  System Use Consumptions              Energy use for each HVAC and water heating system (in kBtu).
-  Emissions                            Emissions (e.g., CO2) for each scenario defined in the HPXML file.
-  Emission Fuels                       Emissions (e.g., CO2) disaggregated by fuel type for each scenario defined in the HPXML file.
-  Emission End Uses                    Emissions (e.g., CO2) disaggregated by end use for each scenario defined in the HPXML file.
-  Hot Water Uses                       Water use for each end use type (in gallons).
-  Total Loads                          Heating, cooling, and hot water loads (in kBtu).
-  Component Loads                      Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).
-  Unmet Hours                          Heating and cooling unmet hours.
-  Zone Temperatures                    Zone temperatures (in deg-F) for each space (e.g., conditioned space, attic, garage, basement, crawlspace, etc.) plus heating/cooling setpoints.
-  Airflows                             Airflow rates (in cfm) for infiltration, mechanical ventilation (including clothes dryer exhaust), natural ventilation, whole house fans.
-  Weather                              Weather file data including outdoor temperatures, relative humidity, wind speed, and solar.
-  Resilience                           Resilience outputs (currently only average resilience hours for battery storage).
-  EnergyPlus Output Variables          Any user-specified EnergyPlus output variables (e.g., 'Zone People Occupant Count').
-  ===================================  ==================================================================================================================================
+  ===========================  ===================  ==================================================================================================================================
+  Type                         Argument [#]_        Notes
+  ===========================  ===================  ==================================================================================================================================
+  Total Consumptions           ``total``            Energy use for building total and net (i.e., subtracts any power produced by PV or generators).
+  Fuel Consumptions            ``fuels``            Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
+  End Use Consumptions         ``enduses``          Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
+  System Use Consumptions      ``systemuses``       Energy use for each HVAC and water heating system (in kBtu).
+  Emissions                    ``emissions``        Emissions (e.g., CO2) for each scenario defined in the HPXML file.
+  Emission Fuels               ``emissionfuels``    Emissions (e.g., CO2) disaggregated by fuel type for each scenario defined in the HPXML file.
+  Emission End Uses            ``emissionenduses``  Emissions (e.g., CO2) disaggregated by end use for each scenario defined in the HPXML file.
+  Hot Water Uses               ``hotwater``         Water use for each end use type (in gallons).
+  Total Loads                  ``loads``            Heating, cooling, and hot water loads (in kBtu).
+  Component Loads              ``componentloads``   Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).
+  Unmet Hours                  ``unmethours``       Heating and cooling unmet hours.
+  Zone Temperatures            ``temperatures``     Zone temperatures (in deg-F) for each space (e.g., conditioned space, attic, garage, basement, crawlspace, etc.) plus heating/cooling setpoints.
+  Airflows                     ``airflows``         Airflow rates (in cfm) for infiltration, mechanical ventilation (including clothes dryer exhaust), natural ventilation, whole house fans.
+  Weather                      ``weather``          Weather file data including outdoor temperatures, relative humidity, wind speed, and solar.
+  Resilience                   ``resilience``       Resilience outputs (currently only average resilience hours for battery storage).
+  EnergyPlus Output Variables                       Any user-specified EnergyPlus output variables (e.g., 'Zone People Occupant Count').
+  ===========================  ===================  ==================================================================================================================================
+
+  .. [#] This is the argument provided to ``run_simulation.rb`` as described in the :ref:`basic_run` usage instructions.
 
 Timeseries outputs can be one of the following frequencies: hourly, daily, monthly, or timestep (i.e., equal to the simulation timestep, which defaults to an hour but can be sub-hourly).
 
@@ -654,8 +656,8 @@ Utility Bill Outputs
 --------------------
 
 OpenStudio-HPXML can optionally generate utility bill output files (annual, monthly, or both).
-The annual utility bills output file is called ``results_bills.csv`` (or ``results_bills.json`` or ``results_bills.msgpack``) and located in the run directory.
-The monthly utility bills output file is called ``results_bills_monthly.csv`` (or ``results_bills_monthly.json`` or ``results_bills_monthly.msgpack``) and located in the run directory.
+The annual utility bills output file is called ``results_bills.csv`` (or ``.json`` or ``.msgpack``) and located in the run directory.
+The monthly utility bills output file is called ``results_bills_monthly.csv`` (or ``.json`` or ``.msgpack``) and located in the run directory.
 
 Annual Bills by Fuel Use
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -700,7 +702,7 @@ Monthly results for each utility bill scenario defined in the HPXML file are lis
 Design Load Details Outputs
 ---------------------------
 
-OpenStudio-HPXML provides an additional output file called ``results_design_load_details.csv`` (or ``results_design_load_details.json`` or ``results_design_load_details.msgpack``) that includes details related to the calculation of HVAC design loads for sizing equipment.
+OpenStudio-HPXML provides an additional output file called ``results_design_load_details.csv`` (or ``.json`` or ``.msgpack``) that includes details related to the calculation of HVAC design loads for sizing equipment.
 The file includes values pertaining to ACCA Form J1 (see example on page 2 of `here <https://www.acca.org/HigherLogic/System/DownloadDocumentFile.ashx?DocumentFileKey=4165a9b7-f229-421d-b20e-718cc83286df)>`_).
 
 The file is organized into a few different reports described below.
@@ -710,18 +712,19 @@ Report: <BuildingID>: Summary
 
 For each HPXML Building, the following output types are reported.
 
-  =======================  ===========  ================  ================  ================  ================
-  Type                     Orientation  Heating HTM [#]_  Cooling HTM [#]_  Heating CFM [#]_  Cooling CFM [#]_
-  =======================  ===========  ================  ================  ================  ================
-  Windows: <WindowID>      X            X                 X                                     
-  Skylights: <SkylightID>  X            X                 X                                     
-  Doors: <DoorID>          X            X                 X                                     
-  Walls: <WallID>          X            X                 X                                     
-  Ceilings: <CeilingID>                 X                 X                                     
-  Floors: <FloorID>                     X                 X                                     
-  Infiltration                                                              X                 X  
-  Ventilation                                                               X                 X  
-  =======================  ===========  ================  ================  ================  ================
+  ===========================  ===========  ================  ================  ================  ================
+  Type                         Orientation  Heating HTM [#]_  Cooling HTM [#]_  Heating CFM [#]_  Cooling CFM [#]_
+  ===========================  ===========  ================  ================  ================  ================
+  Windows: <WindowID>          X            X                 X                                     
+  Skylights: <SkylightID>      X            X                 X                                     
+  Doors: <DoorID>              X            X                 X                                     
+  Above Grade Walls: <WallID>  X            X                 X                                     
+  Below Grade Walls: <WallID>  X            X                 X                                     
+  Ceilings: <CeilingID>                     X                 X                                     
+  Floors: <FloorID>                         X                 X                                     
+  Infiltration                                                                  X                 X  
+  Ventilation                                                                   X                 X  
+  ===========================  ===========  ================  ================  ================  ================
 
   .. [#] Heating HTM is the heating heat transfer multiplier (Btu/ft^2), which is multiplier by surface area to calculate the heating design load.
   .. [#] Cooling HTM is the cooling heat transfer multiplier (Btu/ft^2), which is multiplier by surface area to calculate the sensible cooling design load.
@@ -733,24 +736,25 @@ Report: <BuildingID>: Loads
 
 For each HPXML Building, the following output types are reported.
 
-  =======================  ===========  ===========  ===============  ==============  =======================  =====================
-  Type                     Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)  Cooling Latent (Btuh)
-  =======================  ===========  ===========  ===============  ==============  =======================  =====================
-  Windows: <WindowID>      X                                          X               X
-  Skylights: <SkylightID>  X                                          X               X
-  Doors: <DoorID>          X                                          X               X
-  Walls: <WallID>          X                                          X               X
-  Ceilings: <CeilingID>    X                                          X               X
-  Floors: <FloorID>        X            See [#]_                      X               X
-  Infiltration                                       X                X               X                        X  
-  Internal Gains                                                                      X                        X  
-  Ducts                                                               X               X                        X  
-  Ventilation                                                         X               X                        X  
-  Piping                                                              X
-  Blower Heat                                                                         X
-  AED Excursion                                                                       X                          
-  Total                                                               X               X                        X
-  =======================  ===========  ===========  ===============  ==============  =======================  =====================
+  ===========================  ===========  ===========  ===============  ==============  =======================  =====================
+  Type                         Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)  Cooling Latent (Btuh)
+  ===========================  ===========  ===========  ===============  ==============  =======================  =====================
+  Windows: <WindowID>          X                                          X               X
+  Skylights: <SkylightID>      X                                          X               X
+  Doors: <DoorID>              X                                          X               X
+  Above Grade Walls: <WallID>  X                                          X               X
+  Below Grade Walls: <WallID>  X                                          X               X
+  Ceilings: <CeilingID>        X                                          X               X
+  Floors: <FloorID>            X            See [#]_                      X               X
+  Infiltration                                           X                X               X                        X  
+  Internal Gains                                                                          X                        X  
+  Ducts                                                                   X               X                        X  
+  Ventilation                                                             X               X                        X  
+  Piping                                                                  X
+  Blower Heat                                                                             X
+  AED Excursion                                                                           X                          
+  Total                                                                   X               X                        X
+  ===========================  ===========  ===========  ===============  ==============  =======================  =====================
 
   .. [#] Length will be provided for a slab floor under conditioned space.
 
@@ -760,24 +764,25 @@ Report: <BuildingID>: <ZoneID>: Loads
 For each HPXML conditioned Zone (see :ref:`zones_spaces`), the following output types are reported.
 Only those surfaces attached to a space in the given zone will be included.
 
-  =======================  ===========  ===========  ===============  ==============  =======================  =====================
-  Type                     Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)  Cooling Latent (Btuh)
-  =======================  ===========  ===========  ===============  ==============  =======================  =====================
-  Windows: <WindowID>      X                                          X               X
-  Skylights: <SkylightID>  X                                          X               X
-  Doors: <DoorID>          X                                          X               X
-  Walls: <WallID>          X                                          X               X
-  Ceilings: <CeilingID>    X                                          X               X
-  Floors: <FloorID>        X            See [#]_                      X               X
-  Infiltration                                       X                X               X                        X  
-  Internal Gains                                                                      X                        X  
-  Ducts                                                               X               X                        X  
-  Ventilation                                                         X               X                        X  
-  Piping                                                              X
-  Blower Heat                                                                         X
-  AED Excursion                                                                       X                          
-  Total                                                               X               X                        X
-  =======================  ===========  ===========  ===============  ==============  =======================  =====================
+  ===========================  ===========  ===========  ===============  ==============  =======================  =====================
+  Type                         Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)  Cooling Latent (Btuh)
+  ===========================  ===========  ===========  ===============  ==============  =======================  =====================
+  Windows: <WindowID>          X                                          X               X
+  Skylights: <SkylightID>      X                                          X               X
+  Doors: <DoorID>              X                                          X               X
+  Above Grade Walls: <WallID>  X                                          X               X
+  Below Grade Walls: <WallID>  X                                          X               X
+  Ceilings: <CeilingID>        X                                          X               X
+  Floors: <FloorID>            X            See [#]_                      X               X
+  Infiltration                                           X                X               X                        X  
+  Internal Gains                                                                          X                        X  
+  Ducts                                                                   X               X                        X  
+  Ventilation                                                             X               X                        X  
+  Piping                                                                  X
+  Blower Heat                                                                             X
+  AED Excursion                                                                           X                          
+  Total                                                                   X               X                        X
+  ===========================  ===========  ===========  ===============  ==============  =======================  =====================
 
   .. [#] Length will be provided for a slab floor under conditioned space.
 
@@ -787,21 +792,21 @@ Report: <BuildingID>: <SpaceID>: Loads
 For each HPXML Space in a conditioned zone (see :ref:`zones_spaces`), the following output types are reported.
 Only those surfaces attached to the given space will be included.
 
-  =======================  ===========  ===========  ===============  ==============  =======================
-  Type                     Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)
-  =======================  ===========  ===========  ===============  ==============  =======================
-  Windows: <WindowID>      X                                          X               X
-  Skylights: <SkylightID>  X                                          X               X
-  Doors: <DoorID>          X                                          X               X
-  Walls: <WallID>          X                                          X               X
-  Ceilings: <CeilingID>    X                                          X               X
-  Floors: <FloorID>        X            See [#]_                      X               X
-  Infiltration                                       X                X               X
-  Internal Gains                                                                      X
-  Ducts                                                               X               X
-  AED Excursion                                                                       X
-  Total                                                               X               X
-  =======================  ===========  ===========  ===============  ==============  =======================
+  ===========================  ===========  ===========  ===============  ==============  =======================
+  Type                         Area (ft^2)  Length (ft)  Wall Area Ratio  Heating (Btuh)  Cooling Sensible (Btuh)
+  ===========================  ===========  ===========  ===============  ==============  =======================
+  Windows: <WindowID>          X                                          X               X
+  Skylights: <SkylightID>      X                                          X               X
+  Doors: <DoorID>              X                                          X               X
+  Above Grade Walls: <WallID>  X                                          X               X
+  Ceilings: <CeilingID>        X                                          X               X
+  Floors: <FloorID>            X            See [#]_                      X               X
+  Infiltration                                           X                X               X
+  Internal Gains                                                                          X
+  Ducts                                                                   X               X
+  AED Excursion                                                                           X
+  Total                                                                   X               X
+  ===========================  ===========  ===========  ===============  ==============  =======================
 
   .. [#] Length will be provided for a slab floor under conditioned space.
 
