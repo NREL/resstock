@@ -52,12 +52,12 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     geometry_building_num_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f
     num_stories = hpxml_bldg.header.extension_properties['geometry_num_floors_above_grade'].to_f
     has_double_loaded_corridor = hpxml_bldg.header.extension_properties['geometry_corridor_position']
-    shared_hpwh_type = hpxml_bldg.header.extension_properties['shared_hpwh_type']
-    shared_hpwh_fuel_type = hpxml_bldg.header.extension_properties['shared_hpwh_fuel_type']
+    shared_heating_system_type = hpxml_bldg.header.extension_properties['shared_heating_system_type']
+    shared_heating_system_fuel_type = hpxml_bldg.header.extension_properties['shared_heating_system_fuel_type']
 
-    # Skip measure if no shared HPWH
-    if shared_hpwh_type == 'none'
-      runner.registerAsNotApplicable('Building does not have shared HPWH. Skipping AddSharedHPWH measure ...')
+    # Skip measure if no shared heating system
+    if shared_heating_system_type == 'none'
+      runner.registerAsNotApplicable('Building does not have shared heating system. Skipping AddSharedHPWH measure ...')
       return true
     end
 
@@ -83,6 +83,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Sizing is based on CA code requirements: https://efiling.energy.ca.gov/GetDocument.aspx?tn=234434&DocumentContentId=67301
     # FIXME: How to adjust size when used for space heating?
     heat_pump_count = ((0.037 * num_beds + 0.106 * num_units) * (154.0 / 123.5)).ceil # ratio is assumed capacity from code / nominal capacity from Robur spec sheet
+    heat_pump_count *= 2 # FIXME
     # storage_tank_volume = 80.0 * heat_pump_count
     # storage_tank_count = storage_tank_volume / 80.0 # TODO: Do we model these as x tanks in series or combine them into a single tank?
     storage_tank_volume = 80.0
@@ -100,13 +101,14 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     else
       swing_tank_volume = 480.0
     end
+    swing_tank_volume = 0.0 if shared_heating_system_type.include?('boiler')
 
     # Register values
     runner.registerValue('geometry_building_num_units', geometry_building_num_units)
     runner.registerValue('geometry_building_num_units_modeled', hpxml.buildings.size)
     runner.registerValue('unit_multipliers', unit_multipliers.join(','))
-    runner.registerValue('shared_hpwh_type', shared_hpwh_type)
-    runner.registerValue('shared_hpwh_fuel_type', shared_hpwh_fuel_type)
+    runner.registerValue('shared_heating_system_type', shared_heating_system_type)
+    runner.registerValue('shared_heating_system_fuel_type', shared_heating_system_fuel_type)
     runner.registerValue('num_units', num_units)
     runner.registerValue('num_beds', num_beds)
     runner.registerValue('heat_pump_count', heat_pump_count)
@@ -128,7 +130,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       heat_pump_loops[heat_pump_loop] = []
     end
     source_loop = add_loop(model, 'Source Loop')
-    if shared_hpwh_type == 'space-heating hpwh'
+    if shared_heating_system_type.include?('space-heating')
       space_heating_loop = add_loop(model, 'Space Heating Loop')
     end
 
@@ -157,7 +159,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       add_pump(model, heat_pump_loop, "#{heat_pump_loop.name} Pump", hp_loop_gpm)
     end
     add_pump(model, source_loop, 'Source Loop Pump', pump_gpm)
-    if shared_hpwh_type == 'space-heating hpwh'
+    if shared_heating_system_type.include?('space-heating')
       add_pump(model, space_heating_loop, 'Space Heating Loop Pump', pump_gpm) # FIXME: need to re-consider the pump here
     end
 
@@ -167,7 +169,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       add_setpoint_manager(model, heat_pump_loop, storage_sp_schedule, "#{heat_pump_loop.name} Setpoint Manager", 'Temperature')
     end
     add_setpoint_manager(model, source_loop, storage_sp_schedule, 'Source Loop Setpoint Manager', 'Temperature')
-    if shared_hpwh_type == 'space-heating hpwh'
+    if shared_heating_system_type.include?('space-heating')
       add_setpoint_manager(model, space_heating_loop, storage_sp_schedule, 'Space Heating Loop Setpoint Manager')
     end
 
@@ -181,49 +183,50 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     # Add Heat Exchangers
     add_heat_exchanger(model, dhw_loop, source_loop, 'DHW Heat Exchanger')
-    if shared_hpwh_type == 'space-heating hpwh'
+    if shared_heating_system_type.include?('space-heating')
       add_heat_exchanger(model, space_heating_loop, source_loop, 'Space Heating Heat Exchanger')
     end
 
     # Add Heat Pump
     heat_pump_loops.each do |heat_pump_loop, components|
-      components << add_heat_pump(model, shared_hpwh_fuel_type, heat_pump_loop, "#{heat_pump_loop.name} Heat Pump Water Heater")
-    end
-
-    # HPWH provides space heating
-    if shared_hpwh_type == 'space-heating hpwh'
-      if model.getCoilHeatingWaterBaseboards.size == 0 # no existing baseboards(s)
-        # TODO: create the baseboards? or should space-heating hpwh only be available if existing baseboards?
-      end
-
-      # Re-connect CoilHeatingWaterBaseboards
-      model.getCoilHeatingWaterBaseboards.each do |chwb|
-        space_heating_loop.addDemandBranchForComponent(chwb)
-      end
-
-      # disaggregate_heating_vs_how_water(model, heat_pump_loop, storage_tank) # FIXME: doesn't work if both distribution loops go through the source loop
+      components << add_component(model, shared_heating_system_type, shared_heating_system_fuel_type, heat_pump_loop, "#{heat_pump_loop.name} Heat Pump Water Heater")
     end
 
     # Add Availability Manager
     heat_pump_loops.each do |heat_pump_loop, components|
-      storage_tank, heat_pump = components
-      if heat_pump.to_HeatPumpAirToWaterFuelFiredHeating.is_initialized
-        hot_node = heat_pump.outletModelObject.get.to_Node.get
-      elsif heat_pump.to_WaterHeaterStratified.is_initialized
-        hot_node = heat_pump.supplyOutletModelObject.get.to_Node.get
+      storage_tank, component = components
+      if component.to_BoilerHotWater.is_initialized || component.to_HeatPumpAirToWaterFuelFiredHeating.is_initialized
+        hot_node = component.outletModelObject.get.to_Node.get
+      elsif component.to_WaterHeaterStratified.is_initialized
+        hot_node = component.supplyOutletModelObject.get.to_Node.get
       end
       cold_node = storage_tank.demandOutletModelObject.get.to_Node.get
       add_availability_manager(model, heat_pump_loop, hot_node, cold_node)
     end
 
     # Re-connect WaterUseConections
+    runner.registerValue('model.getWaterUseConnectionss.size', model.getWaterUseConnectionss.size)
     model.getWaterUseConnectionss.each do |wuc|
+      wuc.setName("#{wuc.name}_reconnected")
       dhw_loop.addDemandBranchForComponent(wuc)
     end
 
+    # Re-connect CoilHeatingWaterBaseboards
+    runner.registerValue('model.getCoilHeatingWaterBaseboards.size', model.getCoilHeatingWaterBaseboards.size)
+    if shared_heating_system_type.include?('space-heating')
+      if model.getCoilHeatingWaterBaseboards.size > 0 # no existing baseboards(s)
+        model.getCoilHeatingWaterBaseboards.each do |chwb|
+          chwb.setName("#{chwb.name}_reconnected")
+          space_heating_loop.addDemandBranchForComponent(chwb)
+        end
+
+        # disaggregate_heating_vs_how_water(model, heat_pump_loop, storage_tank) # FIXME: doesn't work if both distribution loops go through the source loop
+      end
+    end
+
     # Remove Existing
-    remove_loops(runner, model, shared_hpwh_type)
-    remove_ems(runner, model, shared_hpwh_type)
+    remove_loops(runner, model, shared_heating_system_type)
+    remove_ems(runner, model, shared_heating_system_type)
 
     return true
   end
@@ -489,6 +492,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
   end
 
   def add_swing_tank(model, last_storage_tank, volume, capacity, name)
+    return if volume == 0
+
     # this would be in series with the main storage tanks, downstream of it
     # this does not go on the demand side of the heat pump loop, like the main storage tank does
     swing_tank = OpenStudio::Model::WaterHeaterStratified.new(model)
@@ -533,25 +538,38 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     source_loop.addDemandBranchForComponent(hx)
   end
 
-  def add_heat_pump(model, fuel_type, heat_pump_loop, name)
-    if fuel_type == HPXML::FuelTypeElectricity
-      heat_pump = OpenStudio::Model::WaterHeaterHeatPump.new(model) # FIXME: this may not be simulating succesfully currently
-      tank = add_storage_tank(model, heat_pump_loop, nil, 80.0, nil, name)
-      heat_pump.setTank(tank)
-      fan = heat_pump.fan
-      fan.additionalProperties.setFeature('ObjectType', Constants.ObjectNameWaterHeater) # Used by reporting measure
-      heat_pump = tank
-    else
-      heat_pump = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
-      heat_pump.setName(name)
-      heat_pump.setFuelType(EPlus.fuel_type(fuel_type))
-      heat_pump.setEndUseSubcategory(name)
-      heat_pump.setNominalAuxiliaryElectricPower(0)
-      heat_pump.setStandbyElectricPower(0)
-      heat_pump_loop.addSupplyBranchForComponent(heat_pump)
+  def add_component(model, system_type, fuel_type, heat_pump_loop, name)
+    if system_type.include?('boiler')
+      component = OpenStudio::Model::BoilerHotWater.new(model)
+      component.setName(name)
+      component.setFuelType(EPlus.fuel_type(fuel_type))
+      component.setMinimumPartLoadRatio(0.0)
+      component.setMaximumPartLoadRatio(1.0)
+      component.setBoilerFlowMode('LeavingSetpointModulated')
+      component.setOptimumPartLoadRatio(1.0)
+      component.setWaterOutletUpperTemperatureLimit(99.9)
+      component.setOnCycleParasiticElectricLoad(0)
+      component.additionalProperties.setFeature('IsCombiBoiler', true) # Used by reporting measure
+      heat_pump_loop.addSupplyBranchForComponent(component)
+    elsif system_type.include?('heat pump water heater')
+      if fuel_type == HPXML::FuelTypeElectricity
+        component = OpenStudio::Model::WaterHeaterHeatPump.new(model)
+        tank = add_storage_tank(model, heat_pump_loop, nil, 80.0, nil, name)
+        component.setTank(tank)
+        fan = component.fan
+        fan.additionalProperties.setFeature('ObjectType', Constants.ObjectNameWaterHeater) # Used by reporting measure
+        component = tank
+      else
+        component = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
+        component.setName(name)
+        component.setFuelType(EPlus.fuel_type(fuel_type))
+        component.setNominalAuxiliaryElectricPower(0)
+        component.setStandbyElectricPower(0)
+        heat_pump_loop.addSupplyBranchForComponent(component)
+      end
     end
 
-    return heat_pump
+    return component
   end
 
   def add_availability_manager(model, loop, hot_node, cold_node)
@@ -588,12 +606,12 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     heat_pump_loop_hw.addDemandBranchForComponent(storage_tank)
   end
 
-  def remove_loops(runner, model, shared_hpwh_type)
+  def remove_loops(runner, model, shared_heating_system_type)
     plant_loop_to_remove = [
       'dhw loop',
       'solar hot water loop'
     ]
-    plant_loop_to_remove += ['boiler hydronic heat loop'] if shared_hpwh_type == 'space-heating hpwh'
+    plant_loop_to_remove += ['boiler hydronic heat loop'] if shared_heating_system_type.include?('space-heating')
     plant_loop_to_remove += plant_loop_to_remove.map { |p| p.gsub(' ', '_') }
     model.getPlantLoops.each do |plant_loop|
       next if plant_loop_to_remove.select { |p| plant_loop.name.to_s.include?(p) }.size == 0
@@ -603,7 +621,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
   end
 
-  def remove_ems(runner, model, shared_hpwh_type)
+  def remove_ems(runner, model, shared_heating_system_type)
     # ProgramCallingManagers / Programs
     ems_pcm_to_remove = [
       'water heater EC_adj ProgramManager',
@@ -614,7 +632,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     ems_pcm_to_remove += [
       'boiler hydronic pump power program calling manager',
       'boiler hydronic pump disaggregate program calling manager'
-    ] if shared_hpwh_type == 'space-heating hpwh'
+    ] if shared_heating_system_type.include?('space-heating')
     ems_pcm_to_remove += ems_pcm_to_remove.map { |e| e.gsub(' ', '_') }
     model.getEnergyManagementSystemProgramCallingManagers.each do |ems_pcm|
       next if ems_pcm_to_remove.select { |e| ems_pcm.name.to_s.include?(e) }.size == 0
@@ -645,7 +663,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     ems_sensor_to_remove += [
       'boiler hydronic pump',
       'boiler plr'
-    ] if shared_hpwh_type == 'space-heating hpwh'
+    ] if shared_heating_system_type.include?('space-heating')
     ems_sensor_to_remove += ems_sensor_to_remove.map { |e| e.gsub(' ', '_') }
     model.getEnergyManagementSystemSensors.each do |ems_sensor|
       next if ems_sensor_to_remove.select { |e| ems_sensor.name.to_s.include?(e) }.size == 0
@@ -654,11 +672,24 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       ems_sensor.remove
     end
 
+    # Actuators
+    ems_actuator_to_remove = []
+    ems_actuator_to_remove += [
+      'boiler hydronic pump'
+    ] if shared_heating_system_type.include?('space-heating')
+    ems_actuator_to_remove += ems_actuator_to_remove.map { |e| e.gsub(' ', '_') }
+    model.getEnergyManagementSystemActuators.each do |ems_actuator|
+      next if ems_actuator_to_remove.select { |e| ems_actuator.name.to_s.include?(e) }.size == 0
+
+      runner.registerInfo("#{ems_actuator.class} '#{ems_actuator.name}' removed.")
+      ems_actuator.remove
+    end
+
     # OutputVariables
     ems_outvar_to_remove = []
     ems_outvar_to_remove += [
       'boiler hydronic pump disaggregate htg primary'
-    ] if shared_hpwh_type == 'space-heating hpwh'
+    ] if shared_heating_system_type.include?('space-heating')
     ems_outvar_to_remove += ems_outvar_to_remove.map { |e| e.gsub(' ', '_') } if !ems_outvar_to_remove.empty?
     model.getEnergyManagementSystemOutputVariables.each do |ems_output_variable|
       next if ems_outvar_to_remove.select { |e| ems_output_variable.name.to_s.include?(e) }.size == 0
@@ -671,7 +702,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     ems_intvar_to_remove = []
     ems_intvar_to_remove += [
       'boiler hydronic pump rated mfr'
-    ] if shared_hpwh_type == 'space-heating hpwh'
+    ] if shared_heating_system_type.include?('space-heating')
     ems_intvar_to_remove += ems_intvar_to_remove.map { |e| e.gsub(' ', '_') } if !ems_intvar_to_remove.empty?
     model.getEnergyManagementSystemInternalVariables.each do |ems_internal_variable|
       next if ems_intvar_to_remove.select { |e| ems_internal_variable.name.to_s.include?(e) }.size == 0
