@@ -337,8 +337,48 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Initialize measure keys with hpxml_path arguments
     hpxml_path = File.expand_path('../existing.xml')
 
-    # Optional whole SFA/MF building simulation
-    whole_sfa_or_mf_building_sim = false
+    # AddSharedHPWH measure
+    shared_heating_system_type = 'none'
+    if bldg_data['Water Heater In Unit'] == 'No'
+      if bldg_data['Water Heater Efficiency'].include?('Heat Pump')
+        shared_heating_system_type = 'heat pump water heater'
+        if bldg_data['Water Heater Fuel'].include?('Electricity')
+          shared_heating_system_fuel_type = HPXML::FuelTypeElectricity
+        elsif bldg_data['Water Heater Fuel'].include?('Natural Gas')
+          shared_heating_system_fuel_type = HPXML::FuelTypeNaturalGas
+        elsif bldg_data['Water Heater Fuel'].include?('Fuel Oil')
+          shared_heating_system_fuel_type = HPXML::FuelTypeOil
+        elsif bldg_data['Water Heater Fuel'].include?('Propane')
+          shared_heating_system_fuel_type = HPXML::FuelTypePropane
+        elsif bldg_data['Water Heater Fuel'].include?('Other Fuel')
+          shared_heating_system_fuel_type = HPXML::FuelTypeWoodCord
+        end
+      end
+
+      if bldg_data['HVAC Shared Efficiencies'].include?('Boiler')
+        shared_heating_system_type = 'space-heating boiler'
+      elsif bldg_data['HVAC Shared Efficiencies'].include?('Heat Pump')
+        shared_heating_system_type = 'space-heating heat pump water heater'
+      end
+
+      if shared_heating_system_type.include?('space-heating')
+        if bldg_data['HVAC Heating Type And Fuel'].include?('Electricity')
+          shared_heating_system_fuel_type = HPXML::FuelTypeElectricity
+        elsif bldg_data['HVAC Heating Type And Fuel'].include?('Natural Gas')
+          shared_heating_system_fuel_type = HPXML::FuelTypeNaturalGas
+        elsif bldg_data['HVAC Heating Type And Fuel'].include?('Fuel Oil')
+          shared_heating_system_fuel_type = HPXML::FuelTypeOil
+        end
+      end
+    end
+
+    geometry_num_floors_above_grade = bldg_data['Geometry Stories']
+    geometry_corridor_position = bldg_data['Corridor']
+
+    # Optional whole SFA/MF building simulation and unit multipliers
+    whole_sfa_or_mf_building_sim = (shared_heating_system_type != 'none')
+    use_unit_multipliers = whole_sfa_or_mf_building_sim
+
     geometry_building_num_units = 1
     if whole_sfa_or_mf_building_sim
       resstock_arguments_runner.result.stepValues.each do |step_value|
@@ -349,11 +389,15 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     num_units_modeled = 1
-    max_num_units_modeled = 5
     unit_multipliers = []
-    if whole_sfa_or_mf_building_sim && geometry_building_num_units > 1
-      num_units_modeled = [geometry_building_num_units, max_num_units_modeled].min
-      unit_multipliers = split_into(geometry_building_num_units, num_units_modeled)
+    if use_unit_multipliers
+      if whole_sfa_or_mf_building_sim && geometry_building_num_units > 1
+        max_num_units_modeled = 5
+        num_units_modeled = [geometry_building_num_units, max_num_units_modeled].min
+        unit_multipliers = split_into(geometry_building_num_units, num_units_modeled)
+      end
+    elsif whole_sfa_or_mf_building_sim
+      num_units_modeled = geometry_building_num_units
     end
 
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
@@ -395,6 +439,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         arg_value = measures['ResStockArguments'][0][arg_name]
         additional_properties << "#{arg_name}=#{arg_value}"
       end
+      additional_properties << "geometry_building_num_units=#{geometry_building_num_units}" # Used by ReportSimulationOutput reporting measure
+      additional_properties << "geometry_num_floors_above_grade=#{geometry_num_floors_above_grade}" # Used by AddSharedHPWH reporting measure
+      additional_properties << "geometry_corridor_position=#{['Double-Loaded Interior', 'Double Exterior'].include?(geometry_corridor_position)}" # Used by AddSharedHPWH reporting measure
+      additional_properties << "shared_heating_system_type=#{shared_heating_system_type}" # Used by AddSharedHPWH reporting measure
+      additional_properties << "shared_heating_system_fuel_type=#{shared_heating_system_fuel_type}" # Used by AddSharedHPWH reporting measure
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
       # Get software program used and version
