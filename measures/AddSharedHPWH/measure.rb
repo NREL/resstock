@@ -176,10 +176,14 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Add Tanks
     prev_storage_tank = nil
     supply_loops.each do |supply_loop, components|
-      components << add_storage_tank(model, source_loop, supply_loop, storage_tank_volume, prev_storage_tank, "#{supply_loop.name} Main Storage Tank")
+      storage_tank = add_storage_tank(model, source_loop, supply_loop, storage_tank_volume, prev_storage_tank, "#{supply_loop.name} Main Storage Tank", shared_water_heater_fuel_type)
+      storage_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedHotWater) # Used by reporting measure
+
+      components << storage_tank
       prev_storage_tank = components[0]
     end
-    add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank')
+    swing_tank = add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank', shared_water_heater_fuel_type)
+    swing_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedHotWater) if !swing_tank.nil? # Used by reporting measure
 
     # Add Heat Exchangers
     add_heat_exchanger(model, dhw_loop, source_loop, 'DHW Heat Exchanger')
@@ -208,6 +212,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     runner.registerValue('model.getWaterUseConnectionss.size', model.getWaterUseConnectionss.size)
     model.getWaterUseConnectionss.each do |wuc|
       wuc.setName("#{wuc.name}_reconnected")
+      # wuc.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedHotWater) # Used by reporting measure
       dhw_loop.addDemandBranchForComponent(wuc)
     end
 
@@ -217,6 +222,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       if model.getCoilHeatingWaterBaseboards.size > 0 # no existing baseboards(s)
         model.getCoilHeatingWaterBaseboards.each do |chwb|
           chwb.setName("#{chwb.name}_reconnected")
+          chwb.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedHotWater) # Used by reporting measure
           space_heating_loop.addDemandBranchForComponent(chwb)
         end
 
@@ -444,7 +450,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     manager.addToNode(loop.supplyOutletNode)
   end
 
-  def add_storage_tank(model, source_loop, heat_pump_loop, volume, prev_storage_tank, name)
+  def add_storage_tank(model, source_loop, heat_pump_loop, volume, prev_storage_tank, name, fuel_type)
     h_tank = 2.0 # m, assumed
     h_source_in = 0.01 * h_tank
     h_source_out = 0.99 * h_tank
@@ -470,7 +476,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     storage_tank.setNumberofNodes(6)
     storage_tank.setUseSideDesignFlowRate(UnitConversions.convert(volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
     storage_tank.setEndUseSubcategory(name)
-    if heat_pump_loop.nil? # stratified tank on supply side of source loop (i.e., shared electric hpwh)
+    storage_tank.setHeaterFuelType(EPlus.fuel_type(fuel_type))
+    if heat_pump_loop.nil? # stratified tank on supply side of source loop (e.g., shared electric hpwh)
       storage_tank.setHeaterThermalEfficiency(1.0)
       storage_tank.setAdditionalDestratificationConductivity(0)
       storage_tank.setSourceSideDesignFlowRate(0)
@@ -491,7 +498,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     return storage_tank
   end
 
-  def add_swing_tank(model, last_storage_tank, volume, capacity, name)
+  def add_swing_tank(model, last_storage_tank, volume, capacity, name, fuel_type)
     return if volume == 0
 
     # this would be in series with the main storage tanks, downstream of it
@@ -525,9 +532,12 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     swing_tank.setNumberofNodes(6)
     swing_tank.setUseSideDesignFlowRate(UnitConversions.convert(volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
     swing_tank.setEndUseSubcategory(name)
+    swing_tank.setHeaterFuelType(EPlus.fuel_type(fuel_type))
 
     swing_tank.addToNode(last_storage_tank.useSideOutletModelObject.get.to_Node.get) # in series
     # swing_tank.addToNode(source_loop.supplyOutletNode)
+
+    return swing_tank
   end
 
   def add_heat_exchanger(model, dhw_loop, source_loop, name)
@@ -554,7 +564,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     elsif system_type.include?('heat pump water heater')
       if fuel_type == HPXML::FuelTypeElectricity
         component = OpenStudio::Model::WaterHeaterHeatPump.new(model)
-        tank = add_storage_tank(model, heat_pump_loop, nil, 80.0, nil, name)
+        tank = add_storage_tank(model, heat_pump_loop, nil, 80.0, nil, name, fuel_type)
+        tank.additionalProperties.setFeature('IsCombiBoiler', true) # Used by reporting measure
         component.setTank(tank)
         fan = component.fan
         fan.additionalProperties.setFeature('ObjectType', Constants.ObjectNameWaterHeater) # Used by reporting measure
@@ -565,6 +576,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
         component.setFuelType(EPlus.fuel_type(fuel_type))
         component.setNominalAuxiliaryElectricPower(0)
         component.setStandbyElectricPower(0)
+        # if system_type.include?('space-heating')
+        # component.additionalProperties.setFeature('IsCombiHP', true) # Used by reporting measure
+        # end
         heat_pump_loop.addSupplyBranchForComponent(component)
       end
     end

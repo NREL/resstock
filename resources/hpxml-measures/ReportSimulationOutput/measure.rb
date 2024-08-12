@@ -2885,6 +2885,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
           return { [FT::Elec, EUT::Heating] => ["Baseboard #{EPlus::FuelTypeElectricity} Energy"] }
         end
 
+      elsif object.to_CoilHeatingWaterBaseboard.is_initialized
+        if object_type == Constants.ObjectNameSharedHotWater
+          return { [to_ft[fuel], EUT::Heating] => ['Baseboard Total Heating Energy'] }
+        end
+
       elsif object.to_BoilerHotWater.is_initialized
         is_combi_boiler = false
         if object.additionalProperties.getFeatureAsBoolean('IsCombiBoiler').is_initialized
@@ -3109,12 +3114,19 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         end
         if capacity == 0 && object_type == Constants.ObjectNameSolarHotWater
           return { LT::HotWaterSolarThermal => ['Water Heater Use Side Heat Transfer Energy'] }
+        elsif capacity == 0 && object_type == Constants.ObjectNameSharedHotWater
+          return { LT::HotWaterTankLosses => ['Water Heater Use Side Heat Transfer Energy'] }
         elsif capacity > 0 || is_combi_boiler # Active water heater only (e.g., exclude desuperheater and solar thermal storage tanks)
           return { LT::HotWaterTankLosses => ['Water Heater Heat Loss Energy'] }
         end
 
       elsif object.to_WaterUseConnections.is_initialized
-        return { LT::HotWaterDelivered => ['Water Use Connections Plant Hot Water Energy'] }
+        if object_type == Constants.ObjectNameSharedHotWater
+          return { LT::HotWaterDelivered => ['Water Use Connections Plant Hot Water Energy',
+                                             'Baseboard Hot Water Energy'] }
+        else
+          return { LT::HotWaterDelivered => ['Water Use Connections Plant Hot Water Energy'] }
+        end
 
       elsif object.to_CoilWaterHeatingDesuperheater.is_initialized
         return { LT::HotWaterDesuperheater => ['Water Heater Heating Energy'] }
