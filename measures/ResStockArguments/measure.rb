@@ -404,43 +404,43 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Conditioned floor area
     if args[:geometry_unit_cfa] == Constants.Auto
-      # TODO: Disaggregate detached and mobile home
-      cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 298, # AHS 2021, 1 detached and mobile home weighted average
-               ['0-499', HPXML::ResidentialTypeSFA] => 273, # AHS 2021, 1 attached
-               ['0-499', HPXML::ResidentialTypeApartment] => 322, # AHS 2021, multi-family weighted average
-               ['0-499', HPXML::ResidentialTypeManufactured] => 298, # AHS 2021, 1 detached and mobile home weighted average
-               ['500-749', HPXML::ResidentialTypeSFD] => 634, # AHS 2021, 1 detached and mobile home weighted average
-               ['500-749', HPXML::ResidentialTypeSFA] => 625, # AHS 2021, 1 attached
-               ['500-749', HPXML::ResidentialTypeApartment] => 623, # AHS 2021, multi-family weighted average
-               ['500-749', HPXML::ResidentialTypeManufactured] => 634, # AHS 2021, 1 detached and mobile home weighted average
-               ['750-999', HPXML::ResidentialTypeSFD] => 881, # AHS 2021, 1 detached and mobile home weighted average
-               ['750-999', HPXML::ResidentialTypeSFA] => 872, # AHS 2021, 1 attached
-               ['750-999', HPXML::ResidentialTypeApartment] => 854, # AHS 2021, multi-family weighted average
-               ['750-999', HPXML::ResidentialTypeManufactured] => 881, # AHS 2021, 1 detached and mobile home weighted average
-               ['1000-1499', HPXML::ResidentialTypeSFD] => 1228, # AHS 2021, 1 detached and mobile home weighted average
-               ['1000-1499', HPXML::ResidentialTypeSFA] => 1207, # AHS 2021, 1 attached
-               ['1000-1499', HPXML::ResidentialTypeApartment] => 1138, # AHS 2021, multi-family weighted average
-               ['1000-1499', HPXML::ResidentialTypeManufactured] => 1228, # AHS 2021, 1 detached and mobile home weighted average
-               ['1500-1999', HPXML::ResidentialTypeSFD] => 1698, # AHS 2021, 1 detached and mobile home weighted average
-               ['1500-1999', HPXML::ResidentialTypeSFA] => 1678, # AHS 2021, 1 attached
-               ['1500-1999', HPXML::ResidentialTypeApartment] => 1682, # AHS 2021, multi-family weighted average
-               ['1500-1999', HPXML::ResidentialTypeManufactured] => 1698, # AHS 2021, 1 detached and mobile home weighted average
-               ['2000-2499', HPXML::ResidentialTypeSFD] => 2179, # AHS 2021, 1 detached and mobile home weighted average
-               ['2000-2499', HPXML::ResidentialTypeSFA] => 2152, # AHS 2021, 1 attached
-               ['2000-2499', HPXML::ResidentialTypeApartment] => 2115, # AHS 2021, multi-family weighted average
-               ['2000-2499', HPXML::ResidentialTypeManufactured] => 2179, # AHS 2021, 1 detached and mobile home weighted average
-               ['2500-2999', HPXML::ResidentialTypeSFD] => 2678, # AHS 2021, 1 detached and mobile home weighted average
-               ['2500-2999', HPXML::ResidentialTypeSFA] => 2663, # AHS 2021, 1 attached
-               ['2500-2999', HPXML::ResidentialTypeApartment] => 2648, # AHS 2021, multi-family weighted average
-               ['2500-2999', HPXML::ResidentialTypeManufactured] => 2678, # AHS 2021, 1 detached and mobile home weighted average
-               ['3000-3999', HPXML::ResidentialTypeSFD] => 3310, # AHS 2021, 1 detached and mobile home weighted average
-               ['3000-3999', HPXML::ResidentialTypeSFA] => 3228, # AHS 2021, 1 attached
-               ['3000-3999', HPXML::ResidentialTypeApartment] => 3171, # AHS 2021, multi-family weighted average
-               ['3000-3999', HPXML::ResidentialTypeManufactured] => 3310, # AHS 2021, 1 detached and mobile home weighted average
-               ['4000+', HPXML::ResidentialTypeSFD] => 5587, # AHS 2021, 1 detached and mobile home weighted average
-               ['4000+', HPXML::ResidentialTypeSFA] => 7414, # AHS 2019, 1 attached
-               ['4000+', HPXML::ResidentialTypeApartment] => 6348, # AHS 2021, 4,000 or more all unit average
-               ['4000+', HPXML::ResidentialTypeManufactured] => 5587 } # AHS 2021, 1 detached and mobile home weighted average
+      cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 360,  # From RECS2020
+               ['0-499', HPXML::ResidentialTypeSFA] => 367,  # From RECS2020
+               ['0-499', HPXML::ResidentialTypeApartment] => 377,  # From RECS2020
+               ['0-499', HPXML::ResidentialTypeManufactured] => 386,  # From RECS2020
+               ['500-749', HPXML::ResidentialTypeSFD] => 575,  # From RECS2020
+               ['500-749', HPXML::ResidentialTypeSFA] => 550,  # From RECS2020
+               ['500-749', HPXML::ResidentialTypeApartment] => 589,  # From RECS2020
+               ['500-749', HPXML::ResidentialTypeManufactured] => 614,  # From RECS2020
+               ['750-999', HPXML::ResidentialTypeSFD] => 814,  # From RECS2020
+               ['750-999', HPXML::ResidentialTypeSFA] => 804,  # From RECS2020
+               ['750-999', HPXML::ResidentialTypeApartment] => 818,  # From RECS2020
+               ['750-999', HPXML::ResidentialTypeManufactured] => 856,  # From RECS2020
+               ['1000-1499', HPXML::ResidentialTypeSFD] => 1171,  # From RECS2020
+               ['1000-1499', HPXML::ResidentialTypeSFA] => 1161,  # From RECS2020
+               ['1000-1499', HPXML::ResidentialTypeApartment] => 1119,  # From RECS2020
+               ['1000-1499', HPXML::ResidentialTypeManufactured] => 1177,  # From RECS2020
+               ['1500-1999', HPXML::ResidentialTypeSFD] => 1596,  # From RECS2020
+               ['1500-1999', HPXML::ResidentialTypeSFA] => 1571,  # From RECS2020
+               ['1500-1999', HPXML::ResidentialTypeApartment] => 1603,  # From RECS2020
+               ['1500-1999', HPXML::ResidentialTypeManufactured] => 1615,  # From RECS2020
+               ['2000-2499', HPXML::ResidentialTypeSFD] => 2062,  # From RECS2020
+               ['2000-2499', HPXML::ResidentialTypeSFA] => 1983,  # From RECS2020
+               ['2000-2499', HPXML::ResidentialTypeApartment] => 2135,  # From RECS2020
+               ['2000-2499', HPXML::ResidentialTypeManufactured] => 2082,  # From RECS2020
+               ['2500-2999', HPXML::ResidentialTypeSFD] => 2451,  # From RECS2020
+               ['2500-2999', HPXML::ResidentialTypeSFA] => 2299,  # From RECS2020
+               ['2500-2999', HPXML::ResidentialTypeApartment] => 2818,  # From RECS2020
+               ['2500-2999', HPXML::ResidentialTypeManufactured] => 2616,  # From RECS2020
+               ['3000-3999', HPXML::ResidentialTypeSFD] => 2998,  # From RECS2020
+               ['3000-3999', HPXML::ResidentialTypeSFA] => 3077,  # From RECS2020
+               ['3000-3999', HPXML::ResidentialTypeApartment] => 3106,  # From RECS2020
+               ['3000-3999', HPXML::ResidentialTypeManufactured] => 3000,  # From RECS2020
+               ['4000+', HPXML::ResidentialTypeSFD] => 4277,  # From RECS2020
+               ['4000+', HPXML::ResidentialTypeSFA] => 3795,  # From RECS2020
+               ['4000+', HPXML::ResidentialTypeApartment] => 5000,  # From RECS2020
+               ['4000+', HPXML::ResidentialTypeManufactured] => 5587,  # From AHS 2021, 1 detached and mobile home weighted average
+      }
       cfa = cfas[[args[:geometry_unit_cfa_bin], args[:geometry_unit_type]]]
       if cfa.nil?
         runner.registerError("ResStockArguments: Could not look up conditioned floor area for '#{args[:geometry_unit_cfa_bin]}' and '#{args[:geometry_unit_type]}'.")
