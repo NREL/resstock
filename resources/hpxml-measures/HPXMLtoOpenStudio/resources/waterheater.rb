@@ -2014,7 +2014,7 @@ class Waterheater
       unmet_wh_loads_program.addLine('EndIf')
       unmet_wh_loads_program.addLine("If (#{shower_flow_sensor.name} > 0) && (#{wh_temp_sensor.name} < #{mixed_setpoint_sensor.name})")
       unmet_wh_loads_program.addLine('Set ShowerSagTime=SystemTimeStep')
-      unmet_wh_loads_program.addLine("Set ShowerE=#{shower_flow_sensor.name} * #{showers_peak_flows[water_heating_system.id]} * 4141170 * (#{mixed_setpoint_sensor.name} - #{wh_temp_sensor.name})")
+      unmet_wh_loads_program.addLine("Set ShowerE=#{shower_flow_sensor.name} * #{showers_peak_flows[water_heating_system.id]} * 4141170 * (3600 / #{model.getTimestep.numberOfTimestepsPerHour}) * (#{mixed_setpoint_sensor.name} - #{wh_temp_sensor.name})")
       unmet_wh_loads_program.addLine('Else')
       unmet_wh_loads_program.addLine('Set ShowerSagTime=0')
       unmet_wh_loads_program.addLine('Set ShowerE=0')
