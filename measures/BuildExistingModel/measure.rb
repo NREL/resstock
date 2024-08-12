@@ -338,36 +338,38 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../existing.xml')
 
     # AddSharedHPWH measure
-    shared_heating_system_type = 'none'
+    shared_water_heater_type = 'none'
+    shared_water_heater_fuel_type = 'none'
     if bldg_data['Water Heater In Unit'] == 'No'
+      require_relative '../AddSharedHPWH/resources/constants'
       if bldg_data['Water Heater Efficiency'].include?('Heat Pump')
-        shared_heating_system_type = 'heat pump water heater'
+        shared_water_heater_type = Constants.WaterHeaterTypeHeatPump
         if bldg_data['Water Heater Fuel'].include?('Electricity')
-          shared_heating_system_fuel_type = HPXML::FuelTypeElectricity
+          shared_water_heater_fuel_type = HPXML::FuelTypeElectricity
         elsif bldg_data['Water Heater Fuel'].include?('Natural Gas')
-          shared_heating_system_fuel_type = HPXML::FuelTypeNaturalGas
+          shared_water_heater_fuel_type = HPXML::FuelTypeNaturalGas
         elsif bldg_data['Water Heater Fuel'].include?('Fuel Oil')
-          shared_heating_system_fuel_type = HPXML::FuelTypeOil
+          shared_water_heater_fuel_type = HPXML::FuelTypeOil
         elsif bldg_data['Water Heater Fuel'].include?('Propane')
-          shared_heating_system_fuel_type = HPXML::FuelTypePropane
+          shared_water_heater_fuel_type = HPXML::FuelTypePropane
         elsif bldg_data['Water Heater Fuel'].include?('Other Fuel')
-          shared_heating_system_fuel_type = HPXML::FuelTypeWoodCord
+          shared_water_heater_fuel_type = HPXML::FuelTypeWoodCord
         end
       end
 
-      if bldg_data['HVAC Shared Efficiencies'].include?('Boiler')
-        shared_heating_system_type = 'space-heating boiler'
-      elsif bldg_data['HVAC Shared Efficiencies'].include?('Heat Pump')
-        shared_heating_system_type = 'space-heating heat pump water heater'
+      if bldg_data['HVAC Shared Efficiencies'].include?('Heat Pump')
+        shared_water_heater_type = Constants.WaterHeaterTypeCombiHeatPump
+      elsif bldg_data['HVAC Shared Efficiencies'].include?('Boiler')
+        shared_water_heater_type = Constants.WaterHeaterTypeCombiBoiler
       end
 
-      if shared_heating_system_type.include?('space-heating')
+      if shared_water_heater_type.include?('space-heating')
         if bldg_data['HVAC Heating Type And Fuel'].include?('Electricity')
-          shared_heating_system_fuel_type = HPXML::FuelTypeElectricity
+          shared_water_heater_fuel_type = HPXML::FuelTypeElectricity
         elsif bldg_data['HVAC Heating Type And Fuel'].include?('Natural Gas')
-          shared_heating_system_fuel_type = HPXML::FuelTypeNaturalGas
+          shared_water_heater_fuel_type = HPXML::FuelTypeNaturalGas
         elsif bldg_data['HVAC Heating Type And Fuel'].include?('Fuel Oil')
-          shared_heating_system_fuel_type = HPXML::FuelTypeOil
+          shared_water_heater_fuel_type = HPXML::FuelTypeOil
         end
       end
     end
@@ -376,7 +378,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     geometry_corridor_position = bldg_data['Corridor']
 
     # Optional whole SFA/MF building simulation and unit multipliers
-    whole_sfa_or_mf_building_sim = (shared_heating_system_type != 'none')
+    whole_sfa_or_mf_building_sim = (shared_water_heater_type != 'none')
     use_unit_multipliers = whole_sfa_or_mf_building_sim
 
     geometry_building_num_units = 1
@@ -442,8 +444,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       additional_properties << "geometry_building_num_units=#{geometry_building_num_units}" # Used by ReportSimulationOutput reporting measure
       additional_properties << "geometry_num_floors_above_grade=#{geometry_num_floors_above_grade}" # Used by AddSharedHPWH reporting measure
       additional_properties << "geometry_corridor_position=#{['Double-Loaded Interior', 'Double Exterior'].include?(geometry_corridor_position)}" # Used by AddSharedHPWH reporting measure
-      additional_properties << "shared_heating_system_type=#{shared_heating_system_type}" # Used by AddSharedHPWH reporting measure
-      additional_properties << "shared_heating_system_fuel_type=#{shared_heating_system_fuel_type}" # Used by AddSharedHPWH reporting measure
+      additional_properties << "shared_water_heater_type=#{shared_water_heater_type}" # Used by AddSharedHPWH reporting measure
+      additional_properties << "shared_water_heater_fuel_type=#{shared_water_heater_fuel_type}" # Used by AddSharedHPWH reporting measure
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
       # Get software program used and version
