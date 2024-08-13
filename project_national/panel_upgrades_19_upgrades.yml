@@ -241,7 +241,7 @@ references:
         # fixed cost is the wiring cost 1384
         # Assume $3844 cost for an average capacity (in euss results), then use a ratio to get cost 
         # The average heating system size in euss is 45 kBtu/h .
-          - value: 1384 
+          - value: 1384 #0 + 1384
             multiplier: Fixed (1)
           - value: 85.42
             multiplier: Size, Heating System Primary (kBtu/h)
@@ -252,13 +252,16 @@ references:
           - HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Fuel
         costs:
         # assume the same as Boiler Baseboards Heating Only, Fuel
-          - value: 1384 
+          - value: 1384 #0 + 1384
             multiplier: Fixed (1)
           - value: 85.42
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 24
 
     #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
+    # Note: HP costs represent typical projects which assumes two 240V wiring (for ODU and IDU with <= 10kW backup)
+    # The cost for HP configuration that require additional wiring (e.g., larger backup) or fewer wiring (e.g., with CAC) is adjusted in post-processing
+    # Source: Regression by Brennan Less that includes CA TECH data. Based on "TEA Cost review and updates by Brennan" sent on 06/11/2024.
       - &fed_min_ashp_ducted
         option: HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, HERS, Supplemental Backup Sizing # same as base option
         apply_logic:
@@ -268,12 +271,10 @@ references:
             - HVAC Cooling Type|None
           - not: HVAC Heating Type And Fuel|Electricity ASHP
         costs: &costs_ashp_ducted_8-82_HSPF
-        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
-        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
-        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
-          - value: 3680.19 # for HSPF 8.82
+       
+          - value: 9989.73
             multiplier: Fixed (1)
-          - value: 167.64
+          - value: 133.16
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: &lifetime_HP 15
 
@@ -286,16 +287,9 @@ references:
             - HVAC Cooling Type|None
           - not: HVAC Heating Type And Fuel|Electricity MSHP
         costs: &costs_mshp_ductless_8-33_HSPF
-        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
-        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
-        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
-        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
-        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
-        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
-        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
-          - value: 2679.52
+          - value: 1474
             multiplier: Fixed (1)
-          - value: 347.97
+          - value: 391.26
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: *lifetime_HP
       
@@ -457,6 +451,7 @@ references:
         lifetime: *lifetime_HP
 
     #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
+    # See 1.2 for notes and source
       - &high_eff_ashp_ducted
         option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Max Load, Supplemental Backup Sizing
         apply_logic:
@@ -466,12 +461,9 @@ references:
             - HVAC Cooling Type|None
           - not: HVAC Heating Type And Fuel|Electricity ASHP
         costs: &costs_ashp_ducted_SEER_20_11_HSPF
-        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
-        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
-        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
-          - value: 10229.58 # for HSPF 11
+          - value: 14405.68
             multiplier: Fixed (1)
-          - value: 167.64
+          - value: 133.16
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: *lifetime_HP
 
@@ -484,16 +476,9 @@ references:
             - HVAC Cooling Type|None
           - not: HVAC Heating Type And Fuel|Electricity MSHP
         costs: &costs_mshp_ductless_SEER_20_11_HSPF
-        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
-        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
-        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
-        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
-        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
-        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
-        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
-          - value: 2844.81
+          - value: 2797.4
             multiplier: Fixed (1)
-          - value: 369.43
+          - value: 391.26
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: *lifetime_HP
 
@@ -596,7 +581,7 @@ references:
           - Bedrooms|4
         costs:
         # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
-          - value: 5366 #5366-1384  
+          - value: 5366
             multiplier: Fixed (1)
         lifetime: *hpwh_lifetime
       - &240V_hpwh_80_gal_existing_ele
@@ -618,7 +603,7 @@ references:
           - Bedrooms|5
         costs:
         # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
-          - value: 9080
+          - value: 6080
             multiplier: Fixed (1)
         lifetime: *hpwh_lifetime
 
@@ -688,7 +673,7 @@ references:
         costs:
         # Updated per Brennan feedback, adds 7% tax and $100 install cost, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
         # then add wiring cost 1384
-          - value: 2374.24 #990+1384
+          - value: 2374 #990+1384
             multiplier: Fixed (1)
         lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
       - &120v_clothes_dryer 
