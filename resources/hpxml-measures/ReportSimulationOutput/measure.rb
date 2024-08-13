@@ -2885,11 +2885,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
           return { [FT::Elec, EUT::Heating] => ["Baseboard #{EPlus::FuelTypeElectricity} Energy"] }
         end
 
-      elsif object.to_CoilHeatingWaterBaseboard.is_initialized
-        if object_type == Constants.ObjectNameSharedHotWater
-          return { [to_ft[fuel], EUT::Heating] => ['Baseboard Total Heating Energy'] }
-        end
-
       elsif object.to_BoilerHotWater.is_initialized
         is_combi_boiler = false
         if object.additionalProperties.getFeatureAsBoolean('IsCombiBoiler').is_initialized
