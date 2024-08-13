@@ -3,15 +3,14 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-#output_directory: /kfs2/projects/panels/ochre/resstock_model/30k/upgrade8
-output_directory: upgrade8_test2
-weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
-# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+output_directory: /kfs2/projects/panels/run/test_run_30000_upgrade8_0809
+#weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
 sampler:
   type: precomputed
   args:
-    sample_file: ../technoeconomic_analysis/Postprocessing/data_/baseline_buildstock_csv/buildstock_30k_8_test.csv
+    sample_file: /kfs2/projects/panels/run/test_run_30000_20240419/housing_characteristics/buildstock.csv
 
 workflow_generator:
   type: residential_hpxml
@@ -935,9 +934,23 @@ upgrades:
       - *electric_spa_heaters 
 
 kestrel:
-  n_jobs: 10
+  n_jobs: 100
   minutes_per_sim: 20
   account: panels
   sampling:
     time: 10
+  postprocessing:
+    time: 2000 
+    n_workers: 20
+
+postprocessing:
+  aws:
+    region_name: us-west-2
+    s3:
+      bucket: resstock-panels
+      prefix: resstock-panels_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: resstock_panels 
+      max_crawling_time: 2000
 

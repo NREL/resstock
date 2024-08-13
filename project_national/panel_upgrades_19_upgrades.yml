@@ -3,7 +3,7 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /kfs2/projects/panels/run/full_run_20240505
+output_directory: /kfs2/projects/panels/run/full_run_20240813
 #weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
@@ -11,7 +11,7 @@ weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIP
 sampler:
   type: precomputed
   args:
-    sample_file: ../technoeconomic_analysis/Postprocessing/data_/buildstock_csv/buildstock_30k_1.csv
+    sample_file: /kfs2/projects/panels/run/full_run_20240505/housing_characteristics/buildstock.csv
 
 workflow_generator:
   type: residential_hpxml
@@ -310,76 +310,9 @@ references:
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
 
-      # Set secondary heating fuel type
-      - &secondary_heating_type_fuel_natural_gas
-        option: HVAC Secondary Heating Fuel|Natural Gas
-        apply_logic:
-          - or: 
-            - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
-            - HVAC Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
-      - &secondary_heating_type_fuel_propane
-        option: HVAC Secondary Heating Fuel|Propane
-        apply_logic:
-          - or:
-            - HVAC Heating Type And Fuel|Propane Fuel Boiler
-            - HVAC Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
-      - &secondary_heating_type_fuel_fuel_oil
-        option: HVAC Secondary Heating Fuel|Fuel Oil
-        apply_logic:
-          - or:
-            - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
-            - HVAC Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
-      - &secondary_heating_type_fuel_other_fuel
-        option: HVAC Secondary Heating Fuel|Other Fuel
-        apply_logic:
-          - or:
-            - HVAC Heating Type And Fuel|Other Fuel Fuel Boiler
-            - HVAC Heating Type And Fuel|Other Fuel Fuel Wall/Floor Furnace
-      - &secondary_heating_type_fuel_electricity
-        option: HVAC Secondary Heating Fuel|Electricity
-        apply_logic:
-          - or:
-            - HVAC Heating Type And Fuel|Electricity Baseboard
-            - HVAC Heating Type And Fuel|Electricity Electric Boiler
-            - HVAC Heating Type And Fuel|Electricity Electric Wall Furnace
-
-      # Set secondary fuel boiler efficiency levels
-      - &secondary_boiler_76
-        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-      - &secondary_boiler_80
-        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-      - &secondary_boiler_90
-        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-      - &secondary_ele_boiler
-        option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-
-      # Set secondary fuel Wall/Floor Furnace efficiency levels
-      - &secondary_wallfloor_furnace_60
-        option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-      - &secondary_wallfloor_furnace_68
-        option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-      - &secondary_ele_wallfloor_furnace
-        option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-      
-      # Set secondary electric Wall/Floor Furnace efficiency levels
-      - &secondary_ele_baseboard
-        option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
-        apply_logic:
-          - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
+      # Set existing fuel as backup
+      - &existing_heating_as_backup
+        option: Heat Pump Backup|Use Existing System
 
       ## ASHP ducted heating ##
       # Natural Gas as backup
@@ -1191,6 +1124,7 @@ upgrades:
       - *electric_spa_heaters
 
   - upgrade_name: 1.8 BAU Electrification with Existing Fuel Backup
+    package_apply_logic: *with_heat_pump_existing_backup
     options:
     #### 1.0 Common Options For Heat Pump with existing backup, 8 options ####
       - *hp_exist_bkup_heating_fuel
@@ -1203,19 +1137,7 @@ upgrades:
       - *hp_exist_bkup_heating_setpoint_offset_period_none
     #### 1.3 Federal Minimum Level Heat Pump With Existing Heating Backup, 32 options  ####
       - *fed_min_ashp_exist_backup_no_shared_ducts
-      - *secondary_heating_type_fuel_natural_gas
-      - *secondary_heating_type_fuel_propane
-      - *secondary_heating_type_fuel_fuel_oil
-      - *secondary_heating_type_fuel_other_fuel
-      - *secondary_heating_type_fuel_electricity
-      - *secondary_boiler_76
-      - *secondary_boiler_80
-      - *secondary_boiler_90
-      - *secondary_ele_boiler
-      - *secondary_wallfloor_furnace_60
-      - *secondary_wallfloor_furnace_68
-      - *secondary_ele_wallfloor_furnace
-      - *secondary_ele_baseboard
+      - *existing_heating_as_backup
       - *fed_min_ashp_exist_backup_shared_ducts_60_ng
       - *fed_min_ashp_exist_backup_shared_ducts_76_ng
       - *fed_min_ashp_exist_backup_shared_ducts_80_ng
@@ -1498,19 +1420,7 @@ upgrades:
       - *hp_exist_bkup_heating_setpoint_offset_period_none
     #### 1.3 Federal Minimum Level Heat Pump With Existing Heating Backup, 32 options  ####
       - *fed_min_ashp_exist_backup_no_shared_ducts
-      - *secondary_heating_type_fuel_natural_gas
-      - *secondary_heating_type_fuel_propane
-      - *secondary_heating_type_fuel_fuel_oil
-      - *secondary_heating_type_fuel_other_fuel
-      - *secondary_heating_type_fuel_electricity
-      - *secondary_boiler_76
-      - *secondary_boiler_80
-      - *secondary_boiler_90
-      - *secondary_ele_boiler
-      - *secondary_wallfloor_furnace_60
-      - *secondary_wallfloor_furnace_68
-      - *secondary_ele_wallfloor_furnace
-      - *secondary_ele_baseboard
+      - *existing_heating_as_backup
       - *fed_min_ashp_exist_backup_shared_ducts_60_ng
       - *fed_min_ashp_exist_backup_shared_ducts_76_ng
       - *fed_min_ashp_exist_backup_shared_ducts_80_ng
@@ -1676,10 +1586,10 @@ upgrades:
 
 kestrel:
   n_jobs: 300
-  minutes_per_sim: 2
+  minutes_per_sim: 20
   account: panels
   sampling:
-    time: 100
+    time: 10
   postprocessing:
     time: 2000 
     n_workers: 20

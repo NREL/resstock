@@ -41,7 +41,6 @@ def data_cleaning(file_path, up_list):
         df = df.loc[~df['building_id'].isin(vacant)]
         df = df.loc[~df['building_id'].isin(failed_baseline)]
         df = df.loc[df['completed_status'] == 'Success']
-        df['report_simulation_output.unmet_loads_hot_water_shower_energy_j'] = df['report_simulation_output.unmet_loads_hot_water_shower_energy_j']*900
         if up == '00':
             df['build_existing_model.heating_fuel'].fillna(value='None', inplace=True)
         df.to_csv(f'{file_path}/data_cleaning_results_up{up}.csv', index=False)
