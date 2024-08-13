@@ -1787,7 +1787,8 @@ module Schedule
       end
     end
 
-    fail "Could not find row='#{schedule_name}' in unavailable_periods.csv"
+    runner.registerWarning("Could not find row='#{schedule_name}' in unavailable_periods.csv; it will not be affected by the '#{col_name}' unavailable period.")
+    return false
   end
 
   # Ensure that the defined schedule value array (or string of numbers) is the correct length.
@@ -1895,8 +1896,8 @@ class SchedulesFile
     WaterHeaterSetpoint: Column.new('water_heater_setpoint', false, false, :setpoint),
     WaterHeaterOperatingMode: Column.new('water_heater_operating_mode', false, false, :zero_or_one),
     Battery: Column.new('battery', false, false, :neg_one_to_one),
-    BatteryCharging: Column.new('battery_charging', false, false, nil),
-    BatteryDischarging: Column.new('battery_discharging', false, false, nil),
+    BatteryCharging: Column.new('battery_charging', true, false, nil),
+    BatteryDischarging: Column.new('battery_discharging', true, false, nil),
     HVAC: Column.new('hvac', true, false, nil),
     HVACMaximumPowerRatio: Column.new('hvac_maximum_power_ratio', false, false, :frac),
     WaterHeater: Column.new('water_heater', true, false, nil),

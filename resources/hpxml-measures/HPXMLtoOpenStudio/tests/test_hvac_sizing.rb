@@ -121,24 +121,18 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
 
             if (charge_defect_ratio != 0) || (airflow_defect_ratio != 0)
               # Check HP capacity is greater than max(htg_load, clg_load)
-              if hp.fraction_heat_load_served == 0
-                assert_operator(clg_cap, :>, clg_load)
-              elsif hp.fraction_cool_load_served == 0
-                assert_operator(htg_cap, :>, htg_load)
-              else
-                assert_operator(htg_cap, :>, [htg_load, clg_load].max)
-                assert_operator(clg_cap, :>, [htg_load, clg_load].max)
-              end
+              operator = :>
             else
-              # Check HP capacity equals max(htg_load, clg_load)
-              if hp.fraction_heat_load_served == 0
-                assert_in_delta(clg_cap, clg_load, 1.0)
-              elsif hp.fraction_cool_load_served == 0
-                assert_in_delta(htg_cap, htg_load, 1.0)
-              else
-                assert_in_delta(htg_cap, [htg_load, clg_load].max, 1.0)
-                assert_in_delta(clg_cap, [htg_load, clg_load].max, 1.0)
-              end
+              # Check HP capacity equals at least max(htg_load, clg_load)
+              operator = :>=
+            end
+            if hp.fraction_heat_load_served == 0
+              assert_operator(clg_cap, operator, clg_load)
+            elsif hp.fraction_cool_load_served == 0
+              assert_operator(htg_cap, operator, htg_load)
+            else
+              assert_operator(htg_cap, operator, [htg_load, clg_load].max)
+              assert_operator(clg_cap, operator, [htg_load, clg_load].max)
             end
           end
 

@@ -1,14 +1,16 @@
 ## OpenStudio-HPXML v1.9.0
 
 __New Features__
+- Updates to HPXML v4.0-rc5.
 - Adds inputs for modeling skylight curbs and/or shafts.
 - Allows alternative infiltration input `AirInfiltrationMeasurement/LeakinessDescription`, in which the infiltration level is estimated using age of home, climate zone, foundation type, etc.
 - Central Fan Integrated Supply (CFIS) mechanical ventilation enhancements:
-  - Allows modeling systems with no strategy to meet remainder of ventilation target (`CFISControls/AdditionalRuntimeOperatingMode="none"`).
+  - CFIS systems with no strategy to meet remainder of ventilation target (`CFISControls/AdditionalRuntimeOperatingMode="none"`).
 - HVAC Manual J design load and sizing calculations:
   - Adds optional inputs and outputs for blower fan heat and piping load.
   - Adds optional `HVACSizingControl/ManualJInputs/InfiltrationMethod` input to specify which infiltration method to use for design load calculations.
-  - Miscellaneous improvements.
+  - Updates heat pump HERS sizing methodology to better prevent unmet hours in warmer climates.
+  - Misc Manual J design load calculation improvements.
 - Advanced research features:
   - Optional input `SimulationControl/AdvancedResearchFeatures/OnOffThermostatDeadbandTemperature` to model on/off thermostat deadband with start-up degradation for single and two speed AC/ASHP systems and time-based realistic staging for two speed AC/ASHP systems.
   - Optional input `SimulationControl/AdvancedResearchFeatures/HeatPumpBackupCapacityIncrement` to model multi-stage electric backup coils with time-based staging.
@@ -25,7 +27,6 @@ __Bugfixes__
 - Fixes utility bill calculations if there is battery storage or a generator.
 - BuildResidentialScheduleFile measure: Fixes possible divide by zero error during generation of stochastic clothes washer and dishwasher schedules.
 - Allows negative values for `Building/Site/Elevation`.
-- Misc Manual J design load calculation improvements.
 
 ## OpenStudio-HPXML v1.8.1
 
