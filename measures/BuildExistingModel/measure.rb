@@ -337,11 +337,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Initialize measure keys with hpxml_path arguments
     hpxml_path = File.expand_path('../existing.xml')
 
-    # AddSharedHPWH measure
+    # AddSharedWaterHeater measure
     shared_water_heater_type = 'none'
     shared_water_heater_fuel_type = 'none'
     if bldg_data['Water Heater In Unit'] == 'No'
-      require_relative '../AddSharedHPWH/resources/constants'
+      require_relative '../AddSharedWaterHeater/resources/constants.rb'
+
       if bldg_data['Water Heater Efficiency'].include?('Heat Pump')
         shared_water_heater_type = Constants.WaterHeaterTypeHeatPump
         if bldg_data['Water Heater Fuel'].include?('Electricity')
@@ -441,11 +442,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         arg_value = measures['ResStockArguments'][0][arg_name]
         additional_properties << "#{arg_name}=#{arg_value}"
       end
-      additional_properties << "geometry_building_num_units=#{geometry_building_num_units}" # Used by ReportSimulationOutput reporting measure
-      additional_properties << "geometry_num_floors_above_grade=#{geometry_num_floors_above_grade}" # Used by AddSharedHPWH reporting measure
-      additional_properties << "geometry_corridor_position=#{['Double-Loaded Interior', 'Double Exterior'].include?(geometry_corridor_position)}" # Used by AddSharedHPWH reporting measure
-      additional_properties << "shared_water_heater_type=#{shared_water_heater_type}" # Used by AddSharedHPWH reporting measure
-      additional_properties << "shared_water_heater_fuel_type=#{shared_water_heater_fuel_type}" # Used by AddSharedHPWH reporting measure
+      additional_properties << "geometry_building_num_units=#{geometry_building_num_units}" # Used by ReportSimulationOutput and ReportUtilityBills reporting measure
+      additional_properties << "geometry_num_floors_above_grade=#{geometry_num_floors_above_grade}" # Used by AddSharedWaterHeater reporting measure
+      additional_properties << "geometry_corridor_position=#{['Double-Loaded Interior', 'Double Exterior'].include?(geometry_corridor_position)}" # Used by AddSharedWaterHeater reporting measure
+      additional_properties << "shared_water_heater_type=#{shared_water_heater_type}" # Used by AddSharedWaterHeater reporting measure
+      additional_properties << "shared_water_heater_fuel_type=#{shared_water_heater_fuel_type}" # Used by AddSharedWaterHeater reporting measure
       measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
       # Get software program used and version

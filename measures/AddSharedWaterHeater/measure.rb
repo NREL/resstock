@@ -1,25 +1,22 @@
 # frozen_string_literal: true
 
-Dir["#{File.dirname(__FILE__)}/resources/*.rb"].each do |resource_file|
-  require resource_file
-end
+require_relative 'resources/constants.rb'
 
 # start the measure
-class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
+class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
-    # Measure name should be the title case of the class name.
-    return 'AddSharedHPWH'
+    return 'AddSharedWaterHeater'
   end
 
   # human readable description
   def description
-    return "Replace in-unit water heaters and boilers with shared '#{Constants.WaterHeaterTypeHeatPump}', '#{Constants.WaterHeaterTypeCombiHeatPump}', or '#{Constants.WaterHeaterTypeCombiBoiler}'."
+    return "Replace in-unit water heaters and boilers with shared '#{Constants.WaterHeaterTypeHeatPump}', '#{Constants.WaterHeaterTypeCombiHeatPump}', or '#{Constants.WaterHeaterTypeCombiBoiler}'. This measure assumes that water use connections (and optionally baseboards) already exist in the model."
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return 'Remove all existing domestic/solar/boiler hot water loops and associated EMS objects. Add new recirculation loop with main storage and swing tanks on the supply side, and existing water use connections on the demand side. Add new heat pump loop with main storage tank on the demand side along with any space-heating baseboards, and heat pump water heater on the supply side.'
+    return 'Replace existing hot water loops and associated EMS objects. Add new supply loop(s) with water heating (and optionally space-heating) components on the supply side, and main storage and swing tanks (in series) on the demand side. Add new source (recirculation) loop with main storage and swing tanks on the supply side, and domestic hot water loop heat exchanger (and optionally space-heating loop heat exchanger) on the demand side. Add new domestic how water loop (and optionally space-heating loop) with heat exchanger(s) on the supply side, and water use connections (and optionally baseboards) on the demand side.'
   end
 
   # define the arguments that the user will input
@@ -43,7 +40,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     if File.exist?(hpxml_path)
       hpxml = HPXML.new(hpxml_path: hpxml_path)
     else
-      runner.registerWarning("AddSharedHPWH measure could not find '#{hpxml_path}'.")
+      runner.registerWarning("AddSharedWaterHeater: Could not find '#{hpxml_path}'.")
       return true
     end
 
@@ -57,7 +54,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 
     # Skip measure if no shared heating system
     if shared_water_heater_type == 'none'
-      runner.registerAsNotApplicable('Building does not have shared heating system. Skipping AddSharedHPWH measure ...')
+      runner.registerAsNotApplicable('AddSharedWaterHeater: Building does not have shared water heater. Skipping...')
       return true
     end
 
@@ -83,9 +80,9 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Sizing is based on CA code requirements: https://efiling.energy.ca.gov/GetDocument.aspx?tn=234434&DocumentContentId=67301
     # FIXME: How to adjust size when used for space heating?
     supply_count = ((0.037 * num_beds + 0.106 * num_units) * (154.0 / 123.5)).ceil # ratio is assumed capacity from code / nominal capacity from Robur spec sheet
-    supply_count *= 2 # FIXME
+    # supply_count *= 2 # FIXME
     if shared_water_heater_type.include?('space-heating')
-      supply_count *= 2 # FIXME
+      supply_count *= 4 # FIXME
     end
 
     # Storage tank volume
@@ -119,20 +116,6 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     other_loop_sp = 180.0 # FIXME: final setpoint? Should it vary if used for space heating?
     other_loop_sp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
     other_loop_sp_schedule.setValue(UnitConversions.convert(other_loop_sp, 'F', 'C'))
-
-    # Register values
-    runner.registerValue('geometry_building_num_units', geometry_building_num_units)
-    runner.registerValue('geometry_building_num_units_modeled', hpxml.buildings.size)
-    runner.registerValue('unit_multipliers', unit_multipliers.join(','))
-    runner.registerValue('shared_water_heater_type', shared_water_heater_type)
-    runner.registerValue('shared_water_heater_fuel_type', shared_water_heater_fuel_type)
-    runner.registerValue('num_units', num_units)
-    runner.registerValue('num_beds', num_beds)
-    runner.registerValue('supply_count', supply_count)
-    runner.registerValue('storage_tank_volume', storage_tank_volume)
-    runner.registerValue('swing_tank_volume', swing_tank_volume)
-    runner.registerValue('dhw_loop_sp_f', dhw_loop_sp)
-    runner.registerValue('other_loop_sp_f', other_loop_sp)
 
     # Add Loops
     dhw_loop = add_loop(model, 'DHW Loop', dhw_loop_sp, 10.0)
@@ -183,15 +166,6 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     end
     add_pump(model, source_loop, 'Source Loop Pump', source_pump_gpm)
 
-    # Register values
-    runner.registerValue('supply_length_ft', supply_length)
-    runner.registerValue('return_length_ft', return_length)
-    runner.registerValue('supply_pump_gpm', supply_pump_gpm)
-    runner.registerValue('dhw_pump_gpm', dhw_pump_gpm)
-    runner.registerValue('space_heating_pump_gpm', space_heating_pump_gpm)
-    runner.registerValue('source_pump_gpm', source_pump_gpm)
-    runner.registerValue('swing_tank_capacity', swing_tank_capacity)    
-
     # Add Setpoint Managers
     add_setpoint_manager(model, dhw_loop, dhw_loop_sp_schedule, 'DHW Loop Setpoint Manager')
     if shared_water_heater_type.include?('space-heating')
@@ -206,13 +180,13 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     prev_storage_tank = nil
     supply_loops.each do |supply_loop, components|
       storage_tank = add_storage_tank(model, source_loop, supply_loop, storage_tank_volume, prev_storage_tank, "#{supply_loop.name} Main Storage Tank", shared_water_heater_fuel_type)
-      storage_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedHotWater) # Used by reporting measure
+      storage_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) # Used by reporting measure
 
       components << storage_tank
       prev_storage_tank = components[0]
     end
     swing_tank = add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank', shared_water_heater_fuel_type)
-    swing_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedHotWater) if !swing_tank.nil? # Used by reporting measure
+    swing_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) if !swing_tank.nil? # Used by reporting measure
 
     # Add Heat Exchangers
     add_heat_exchanger(model, dhw_loop, source_loop, 'DHW Heat Exchanger')
@@ -241,7 +215,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     runner.registerValue('model.getWaterUseConnectionss.size', model.getWaterUseConnectionss.size)
     model.getWaterUseConnectionss.each do |wuc|
       wuc.setName("#{wuc.name}_reconnected")
-      # wuc.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedHotWater) # Used by reporting measure
+      # wuc.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) # Used by reporting measure
       dhw_loop.addDemandBranchForComponent(wuc)
     end
 
@@ -251,7 +225,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
       if model.getCoilHeatingWaterBaseboards.size > 0 # no existing baseboards(s)
         model.getCoilHeatingWaterBaseboards.each do |chwb|
           chwb.setName("#{chwb.name}_reconnected")
-          chwb.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedHotWater) # Used by reporting measure
+          chwb.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) # Used by reporting measure
           space_heating_loop.addDemandBranchForComponent(chwb)
         end
 
@@ -262,6 +236,27 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     # Remove Existing
     remove_loops(runner, model, shared_water_heater_type)
     remove_ems(runner, model, shared_water_heater_type)
+
+    # Register values
+    runner.registerValue('geometry_building_num_units', geometry_building_num_units)
+    runner.registerValue('geometry_building_num_units_modeled', hpxml.buildings.size)
+    runner.registerValue('unit_multipliers', unit_multipliers.join(','))
+    runner.registerValue('shared_water_heater_type', shared_water_heater_type)
+    runner.registerValue('shared_water_heater_fuel_type', shared_water_heater_fuel_type)
+    runner.registerValue('num_units', num_units)
+    runner.registerValue('num_beds', num_beds)
+    runner.registerValue('supply_count', supply_count)
+    runner.registerValue('storage_tank_volume', storage_tank_volume)
+    runner.registerValue('swing_tank_volume', swing_tank_volume)
+    runner.registerValue('dhw_loop_sp_f', dhw_loop_sp)
+    runner.registerValue('other_loop_sp_f', other_loop_sp)
+    runner.registerValue('supply_length_ft', supply_length)
+    runner.registerValue('return_length_ft', return_length)
+    runner.registerValue('supply_pump_gpm', supply_pump_gpm)
+    runner.registerValue('dhw_pump_gpm', dhw_pump_gpm)
+    runner.registerValue('space_heating_pump_gpm', space_heating_pump_gpm)
+    runner.registerValue('source_pump_gpm', source_pump_gpm)
+    runner.registerValue('swing_tank_capacity', swing_tank_capacity)
 
     return true
   end
@@ -440,7 +435,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     return UnitConversions.convert(supply_thickness, 'in', 'm'), UnitConversions.convert(return_thickness, 'in', 'm')
   end
 
-  def calc_recirc_flow_rate(hpxml_buildings, supply_length, supply_pipe_ins_r_value)
+  def calc_recirc_flow_rate(_hpxml_buildings, supply_length, supply_pipe_ins_r_value)
     # ASHRAE calculation of the recirculation loop flow rate
     # Based on Equation 9 on p50.7 in 2011 ASHRAE Handbook--HVAC Applications
 
@@ -449,8 +444,8 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     len_ins = 0
     len_unins = 0
     # hpxml_buildings.each do |hpxml_bldg|
-      # avg_num_bath += hpxml_bldg.building_construction.number_of_bathrooms / hpxml_buildings.size
-      # avg_ffa += hpxml_bldg.building_construction.conditioned_floor_area / hpxml_buildings.size
+    # avg_num_bath += hpxml_bldg.building_construction.number_of_bathrooms / hpxml_buildings.size
+    # avg_ffa += hpxml_bldg.building_construction.conditioned_floor_area / hpxml_buildings.size
     # end
 
     if supply_pipe_ins_r_value > 0
@@ -474,7 +469,7 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
     pump.setName(name)
     pump.setRatedFlowRate(UnitConversions.convert(pump_gpm, 'gal/min', 'm^3/s')) # FIXME: correct setter?
     pump.addToNode(loop.supplyInletNode)
-    pump.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedHotWater) # Used by reporting measure
+    pump.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) # Used by reporting measure
   end
 
   def add_setpoint_manager(model, loop, schedule, name, control_variable = nil)
@@ -780,4 +775,4 @@ class AddSharedHPWH < OpenStudio::Measure::ModelMeasure
 end
 
 # register the measure to be used by the application
-AddSharedHPWH.new.registerWithApplication
+AddSharedWaterHeater.new.registerWithApplication

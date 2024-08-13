@@ -3,8 +3,8 @@
 module Constants
   # Strings --------------------
 
-  def self.ObjectNameSharedHotWater
-    return 'shared hot water'
+  def self.ObjectNameSharedWaterHeater
+    return 'shared water heater'
   end
 
   def self.WaterHeaterTypeHeatPump
