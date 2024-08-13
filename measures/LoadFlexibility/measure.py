@@ -26,7 +26,7 @@ sys.path.insert(0, str(RESOURCES_DIR))
 from setpoint import modify_all_setpoints
 from input_helper import OffsetType, RelativeOffsetData, AbsoluteOffsetData, ALL_MEASURE_ARGS
 from xml_helper import HPXML
-from setpoint_helper import HVACSetpoints, BuildingInfo
+from setpoint_helper import HVACSetpointVals, BuildingInfo
 sys.path.pop(0)
 
 
@@ -79,7 +79,7 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
                       if 'HPXMLtoOpenStudio' in step['measure_dir_name']][0]
         return hpxml_path
 
-    def get_setpoint_csv(self, setpoint: HVACSetpoints):
+    def get_setpoint_csv(self, setpoint: HVACSetpointVals):
         header = 'heating_setpoint,cooling_setpoint'
         vals = '\n'.join([','.join([str(v) for v in val_pair])
                          for val_pair in zip(setpoint.heating_setpoint, setpoint.cooling_setpoint)])
@@ -123,7 +123,7 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
         result = subprocess.run(["openstudio", f"{RESOURCES_DIR}/create_setpoint_schedules.rb",
                                  hpxml_path, osw_path],
                                 capture_output=True)
-        setpoints = [HVACSetpoints(**setpoint) for setpoint in json.loads(result.stdout)
+        setpoints = [HVACSetpointVals(**setpoint) for setpoint in json.loads(result.stdout)
                      ]  # [{"heating setpoint": [], "cooling setpoint": []}]
         if result.returncode != 0:
             runner.registerError(f"Failed to run create_setpoint_schedules.rb : {result.stderr}")

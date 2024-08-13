@@ -1,8 +1,9 @@
 from input_helper import OffsetTypeData, OffsetTimingData, RelativeOffsetData, AbsoluteOffsetData, OffsetType
-from typing import List
-from setpoint_helper import HVACSetpoints, BuildingInfo
+from typing import List, Tuple
+from setpoint_helper import HVACSetpointVals, BuildingInfo
 import pandas as pd
 import numpy as np
+import math
 from datetime import datetime
 from dataclasses import dataclass, fields
 import os
@@ -36,7 +37,6 @@ class HVACSetpoints:
         self.num_timsteps_per_hour = self.total_indices // 8760
         self.shift = np.random.randint(-self.num_timsteps_per_hour, self.num_timsteps_per_hour, 1)[0]
 
-        
         current_dir = os.path.dirname(os.path.realpath(__file__))
         # csv file is generated from on_peak_hour_generation.py
         on_peak_hour_weekday = pd.read_csv(f"{current_dir}/on_peak_hour/{building_info.state}_weekday_on_peak.csv")
@@ -47,7 +47,7 @@ class HVACSetpoints:
         self.log_input()
         self._modify_setpoint()
 
-    def _get_month_day(self, indx):
+    def _get_month_day(self, indx) -> Tuple[int, str]:
         """
         for each setpoint temperature,
         get the month and day type (weekday for weekend) that it belongs.
@@ -57,7 +57,7 @@ class HVACSetpoints:
         num_timsteps_per_hour = self.total_indices / 8760
         hour_num = indx // num_timsteps_per_hour
         day_num = int(hour_num // 24 + 1)
-        month = datetime.strptime(str(self.sim_year) + "-" + str(day_num), "%Y-%j").strftime("%m")
+        month = int(datetime.strptime(str(self.sim_year) + "-" + str(day_num), "%Y-%j").strftime("%m"))
 
         # need to modify based on the simulation year what the first day is
         # the first day in 2007 is Monday
@@ -77,8 +77,10 @@ class HVACSetpoints:
 
         if setpoint_type == 'heating':
             pre_peak_duration = OffsetTimingData.heating_pre_peak_duration.val
+            on_peak_duration = OffsetTimingData.heating_on_peak_duration.val
         elif setpoint_type == 'cooling':
             pre_peak_duration = OffsetTimingData.cooling_pre_peak_duration.val
+            on_peak_duration = OffsetTimingData.cooling_on_peak_duration.val
         else:
             raise ValueError(f"setpoint type {setpoint_type} is not supported")
 
@@ -90,18 +92,25 @@ class HVACSetpoints:
             raise ValueError(f"day type {day_type} is not supported")
 
         assert pre_peak_duration is not None, "Pre-peak duration not set"
+        assert on_peak_duration is not None, "On-peak duration not set"
 
         row_morning = list(row.values())[:15]
         row_afternoon = list(row.values())[11:]
 
         offset_time = PeakTimeDefaults()
         if 1 in row_morning:
-            offset_time.peak_start_morning = row_morning.index(1)
-            offset_time.peak_end_morning = len(row_morning) - row_morning[::-1].index(1) - 1
+            on_peak_start_index = row_morning.index(1)
+            on_peak_end_index = len(row_morning) - row_morning[::-1].index(1) - 1
+            on_peak_mid_index = math.ceil((on_peak_start_index + on_peak_end_index) / 2)
+            offset_time.peak_start_morning = math.ceil(on_peak_mid_index - on_peak_duration / 2)
+            offset_time.peak_end_morning = math.ceil(on_peak_mid_index + on_peak_duration / 2)-1
             offset_time.pre_peak_start_morning = offset_time.peak_start_morning - pre_peak_duration
         if 1 in row_afternoon:
-            offset_time.peak_start_afternoon = row_afternoon.index(1) + 11
-            offset_time.peak_end_afternoon = len(row_afternoon) - row_afternoon[::-1].index(1) - 1 + 11
+            on_peak_start_index = row_afternoon.index(1) + 11
+            on_peak_end_index = len(row_afternoon) - row_afternoon[::-1].index(1) - 1 + 11
+            on_peak_mid_index = math.ceil((on_peak_start_index + on_peak_end_index)/2)
+            offset_time.peak_start_afternoon = math.ceil(on_peak_mid_index - on_peak_duration / 2)
+            offset_time.peak_end_afternoon =  math.ceil(on_peak_mid_index + on_peak_duration / 2) - 1
             offset_time.pre_peak_start_afternoon = offset_time.peak_start_afternoon - pre_peak_duration
         return offset_time
 

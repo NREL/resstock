@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-import openstudio
+#import openstudio
 from typing import Optional
 from typing import TypeVar, Generic, List
 T = TypeVar('T')
@@ -87,7 +87,7 @@ class __RelativeOffsetData:
         type=int,
         default=4,
         displayname="Heating Pre-Peak Offset (deg F)",
-        description="How much offset to apply to the heating schedule in degree fahrenheit before the peak. Only used"
+        description="How much increase offset to apply to the heating schedule in degree fahrenheit before the peak. Only used"
                     " if offset type is relative."
     )
     heating_on_peak_offset: Argument[int] = Argument(
@@ -95,7 +95,7 @@ class __RelativeOffsetData:
         type=int,
         default=4,
         displayname="Heating On-Peak Offset (deg F)",
-        description="How much offset to apply to the heating schedule in degree fahrenheit on the peak. Only used"
+        description="How much decrease offset to apply to the heating schedule in degree fahrenheit on the peak. Only used"
                     " if offset type is relative."
     )
     heating_max: Argument[int] = Argument(
@@ -119,7 +119,7 @@ class __RelativeOffsetData:
         type=int,
         default=4,
         displayname="Cooling Pre-Peak Offset (deg F)",
-        description="How much offset to apply to the cooling schedule in degree fahrenheit before the peak."
+        description="How much decrease offset to apply to the cooling schedule in degree fahrenheit before the peak."
                     " Only used if offset type is relative."
     )
     cooling_on_peak_offset: Argument[int] = Argument(
@@ -127,7 +127,7 @@ class __RelativeOffsetData:
         type=int,
         default=4,
         displayname="Cooling On-Peak Offset (deg F)",
-        description="How much offset to apply to the cooling schedule in degree fahrenheit on the peak."
+        description="How much increase offset to apply to the cooling schedule in degree fahrenheit on the peak."
                     " Only used if offset type is relative."
     )
     cooling_max: Argument[int] = Argument(
