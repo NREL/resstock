@@ -1,7 +1,12 @@
 import unittest
-import setpoint
 import pandas as pd
 from dataclasses import fields
+from pathlib import Path
+import sys
+# update python path to include parent folder
+CURRENT_DIR_PATH = Path(__file__).parent.absolute()
+sys.path.insert(0, str(CURRENT_DIR_PATH.parent)+'/resources')
+import setpoint
 
 class Testsetpoint(unittest.TestCase):
 
@@ -28,7 +33,7 @@ class Testsetpoint(unittest.TestCase):
         print('test_get_month_day')
         self.assertEqual(setpoint.get_month_day(8755, 8760), (12, 'weekday'))
         self.assertEqual(setpoint.get_month_day(2, 8760), (1, 'weekday'))
-    
+   
     def test_get_prepeak_and_peak_start_end_winter(self):
         print('test_get_prepeak_and_peak_start_end_winter')
         offset_time = setpoint.get_prepeak_and_peak_start_end(2, 8760, self.on_peak_hour_weekday_dict, self.on_peak_hour_weekend_dict, 'heating')
