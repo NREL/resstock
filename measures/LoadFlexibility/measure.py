@@ -13,7 +13,7 @@ import subprocess
 import dataclasses
 import xml.etree.ElementTree as ET
 import sys
-
+from dataclasses import fields
 
 if os.environ.get('DEBUGPY', '') == 'true':
     import debugpy
@@ -23,8 +23,8 @@ if os.environ.get('DEBUGPY', '') == 'true':
 
 RESOURCES_DIR = Path(__file__).parent / "resources"
 sys.path.insert(0, str(RESOURCES_DIR))
-from setpoint import modify_all_setpoints
-from input_helper import OffsetType, RelativeOffsetData, AbsoluteOffsetData, ALL_MEASURE_ARGS
+from setpoint import HVACSetpoints
+from input_helper import OffsetType, RelativeOffsetData, AbsoluteOffsetData, OffsetTimingData, ALL_MEASURE_ARGS
 from xml_helper import HPXML
 from setpoint_helper import HVACSetpointVals, BuildingInfo
 sys.path.pop(0)
@@ -79,10 +79,10 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
                       if 'HPXMLtoOpenStudio' in step['measure_dir_name']][0]
         return hpxml_path
 
-    def get_setpoint_csv(self, setpoint: HVACSetpointVals):
+    def get_setpoint_csv(self, setpoint: HVACSetpoints):
         header = 'heating_setpoint,cooling_setpoint'
         vals = '\n'.join([','.join([str(v) for v in val_pair])
-                         for val_pair in zip(setpoint.heating_setpoint, setpoint.cooling_setpoint)])
+                         for val_pair in zip(setpoint.heating_setpoints, setpoint.cooling_setpoints)])
         return f"{header}\n{vals}"
 
     def process_arguments(self, runner, arg_dict: dict, passed_arg: set):
@@ -99,6 +99,11 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
 
         for arg in ALL_MEASURE_ARGS:
             arg.set_val(arg_dict[arg.name])
+
+        # apply random shift to the start and end times to avoid coincident peaks
+        for f in fields(OffsetTimingData):
+            value = getattr(OffsetTimingData, f.name)
+            value = self._time_shift(value)
 
     def run(
         self,
@@ -123,13 +128,21 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
         result = subprocess.run(["openstudio", f"{RESOURCES_DIR}/create_setpoint_schedules.rb",
                                  hpxml_path, osw_path],
                                 capture_output=True)
-        setpoints = [HVACSetpointVals(**setpoint) for setpoint in json.loads(result.stdout)
+        building_info = BuildingInfo()
+
+        setpoints = [HVACSetpoints(os_runner=runner,
+                                   building_info=building_info,
+                                   heating_setpoints=setpoint['heating setpoint'],
+                                   cooling_setpoints=setpoint['cooling setpoint'])
+                     for setpoint in json.loads(result.stdout)
                      ]  # [{"heating setpoint": [], "cooling setpoint": []}]
         if result.returncode != 0:
             runner.registerError(f"Failed to run create_setpoint_schedules.rb : {result.stderr}")
             return False
-        building_info = BuildingInfo()
-        modify_all_setpoints(runner, setpoints, building_info)
+
+        for setpoint in setpoints:
+            setpoint._modify_setpoint()
+
         hpxml = HPXML(hpxml_path)
         doc_buildings = hpxml.findall("Building")
         for (indx, building) in enumerate(doc_buildings):

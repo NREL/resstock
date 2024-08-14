@@ -10,3 +10,4 @@ class HVACSetpointVals:
 @dataclass(frozen=True)
 class BuildingInfo:
     state: str = "CO"
+    sim_year: int = 2019

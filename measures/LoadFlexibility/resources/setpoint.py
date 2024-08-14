@@ -22,20 +22,19 @@ class PeakTimeDefaults:
 
 class HVACSetpoints:
     def __init__(self, os_runner: openstudio.measure.OSRunner,
-                 sim_year: int,
                  building_info: BuildingInfo,
                  cooling_setpoints: List[int],
                  heating_setpoints: List[int]):
 
         self.runner = os_runner
-        self.sim_year = sim_year
+        self.sim_year = building_info.sim_year
         self.building_info = building_info
         self.cooling_setpoints = cooling_setpoints
         self.heating_setpoints = heating_setpoints
         self.total_indices = len(cooling_setpoints)
         assert len(cooling_setpoints) == len(heating_setpoints)
         self.num_timsteps_per_hour = self.total_indices // 8760
-        self.shift = np.random.randint(-self.num_timsteps_per_hour, self.num_timsteps_per_hour, 1)[0]
+        self.shift = self._get_random_shift_amount()
 
         current_dir = os.path.dirname(os.path.realpath(__file__))
         # csv file is generated from on_peak_hour_generation.py
@@ -45,7 +44,12 @@ class HVACSetpoints:
         self.on_peak_hour_weekday_dict = on_peak_hour_weekday.set_index('month').transpose().to_dict()
         self.on_peak_hour_weekend_dict = on_peak_hour_weekend.set_index('month').transpose().to_dict()
         self.log_input()
-        self._modify_setpoint()
+
+    def _get_random_shift_amount(self):
+        assert OffsetTimingData.timing_shift_hr.val is not None, "Timing shift not set"
+        min_shift = round(-self.num_timsteps_per_hour * OffsetTimingData.timing_shift_hr.val)
+        max_shift = round(self.num_timsteps_per_hour * OffsetTimingData.timing_shift_hr.val)
+        return np.random.randint(min_shift, max_shift, 1)[0]
 
     def _get_month_day(self, indx) -> Tuple[int, str]:
         """
@@ -54,8 +58,7 @@ class HVACSetpoints:
         the year number need to modify if the simulation year is not 2007.
         """
 
-        num_timsteps_per_hour = self.total_indices / 8760
-        hour_num = indx // num_timsteps_per_hour
+        hour_num = indx // self.num_timsteps_per_hour
         day_num = int(hour_num // 24 + 1)
         month = int(datetime.strptime(str(self.sim_year) + "-" + str(day_num), "%Y-%j").strftime("%m"))
 
@@ -67,7 +70,7 @@ class HVACSetpoints:
             day_type = 'weekend'
         return month, day_type
 
-    def _get_prepeak_and_peak_start_end(self, index, setpoint_type):
+    def _get_offset_time(self, index, setpoint_type):
         """
         determine the prepeak start time, on peak start and end time,
         in the unit of hour
@@ -103,22 +106,36 @@ class HVACSetpoints:
             on_peak_end_index = len(row_morning) - row_morning[::-1].index(1) - 1
             on_peak_mid_index = math.ceil((on_peak_start_index + on_peak_end_index) / 2)
             offset_time.peak_start_morning = math.ceil(on_peak_mid_index - on_peak_duration / 2)
-            offset_time.peak_end_morning = math.ceil(on_peak_mid_index + on_peak_duration / 2)-1
+            offset_time.peak_end_morning = math.ceil(on_peak_mid_index + on_peak_duration / 2) - 1
             offset_time.pre_peak_start_morning = offset_time.peak_start_morning - pre_peak_duration
         if 1 in row_afternoon:
             on_peak_start_index = row_afternoon.index(1) + 11
             on_peak_end_index = len(row_afternoon) - row_afternoon[::-1].index(1) - 1 + 11
             on_peak_mid_index = math.ceil((on_peak_start_index + on_peak_end_index)/2)
             offset_time.peak_start_afternoon = math.ceil(on_peak_mid_index - on_peak_duration / 2)
-            offset_time.peak_end_afternoon =  math.ceil(on_peak_mid_index + on_peak_duration / 2) - 1
+            offset_time.peak_end_afternoon = math.ceil(on_peak_mid_index + on_peak_duration / 2) - 1
             offset_time.pre_peak_start_afternoon = offset_time.peak_start_afternoon - pre_peak_duration
+        offset_time = self._shift_offsettime(offset_time)
         return offset_time
 
-    def _time_shift(self, time):
-        time_shift = time * self.num_timsteps_per_hour + self.shift
-        return time_shift
+    def _shift_offsettime(self, offset_time: PeakTimeDefaults):
+        offset_time.pre_peak_start_morning = self._time_shift(offset_time.pre_peak_start_morning)
+        offset_time.peak_start_morning = self._time_shift(offset_time.peak_start_morning)
+        offset_time.peak_end_morning = self._time_shift(offset_time.peak_end_morning)
+        offset_time.pre_peak_start_afternoon = self._time_shift(offset_time.pre_peak_start_afternoon)
+        offset_time.peak_start_afternoon = self._time_shift(offset_time.peak_start_afternoon)
+        offset_time.peak_end_afternoon = self._time_shift(offset_time.peak_end_afternoon)
+        return offset_time
 
-    def _get_setpoint_offset(self, index, setpoint_type) -> int:
+    def _time_shift(self, indx_in_day):
+        indx_in_day = indx_in_day + self.shift
+        if indx_in_day > self.num_timsteps_per_hour * 24:
+            indx_in_day = self.num_timsteps_per_hour * 24
+        if indx_in_day < 0:
+            indx_in_day = 0
+        return indx_in_day
+
+    def _get_setpoint_offset(self, index_in_year, setpoint_type) -> int:
         """
         offset the setpoint to a certain value given by user inputs,
         the defalut offset value for heating is:
@@ -127,39 +144,33 @@ class HVACSetpoints:
         decrease 4F during prepeak time, increase 4F during on peak time
         """
 
-        offset_time = self._get_prepeak_and_peak_start_end(index, setpoint_type)
-
-        # To avoid coincidence response, randomly shift the demand response from - 1hour to 1 hour
-        for f in fields(offset_time):
-            value = getattr(offset_time, f.name)
-            value = self._time_shift(value)
-            if isinstance(value, (int, float)):
-                setattr(offset_time, f.name, value)
+        offset_time = self._get_offset_time(index_in_year, setpoint_type)
 
         if setpoint_type == 'heating':
-            pre_peak_offset = RelativeOffsetData.heating_pre_peak_offset
-            on_peak_offset = RelativeOffsetData.heating_on_peak_offset
+            pre_peak_offset = RelativeOffsetData.heating_pre_peak_offset.val
+            on_peak_offset = RelativeOffsetData.heating_on_peak_offset.val
         elif setpoint_type == 'cooling':
-            pre_peak_offset = RelativeOffsetData.cooling_pre_peak_offset
-            on_peak_offset = RelativeOffsetData.cooling_on_peak_offset
+            pre_peak_offset = RelativeOffsetData.cooling_pre_peak_offset.val
+            on_peak_offset = RelativeOffsetData.cooling_on_peak_offset.val
         else:
             raise ValueError(f"setpoint type {setpoint_type} is not supported")
 
-        day_index = int(year_index % (24 * num_timsteps_per_hour))
-        if (offset_time.pre_peak_start_morning <= day_index < offset_time.peak_start_morning)\
-                or (offset_time.pre_peak_start_afternoon <= day_index < offset_time.peak_start_afternoon):
+        assert pre_peak_offset is not None, "Pre-peak offset not set"
+        assert on_peak_offset is not None, "On-peak offset not set"
+
+        index_in_day = int(index_in_year % (24 * self.num_timsteps_per_hour))
+        if (offset_time.pre_peak_start_morning <= index_in_day < offset_time.peak_start_morning)\
+                or (offset_time.pre_peak_start_afternoon <= index_in_day < offset_time.peak_start_afternoon):
             setpoint_offset = pre_peak_offset
-        elif (offset_time.peak_start_morning <= day_index <= offset_time.peak_end_morning)\
-                or (offset_time.peak_start_afternoon <= day_index <= offset_time.peak_end_afternoon):
+        elif (offset_time.peak_start_morning <= index_in_day <= offset_time.peak_end_morning)\
+                or (offset_time.peak_start_afternoon <= index_in_day <= offset_time.peak_end_afternoon):
             setpoint_offset = on_peak_offset
         else:
             setpoint_offset = 0
 
         return setpoint_offset
 
-
-    def _get_setpoint_absolute_value(self, year_index, total_indices, on_peak_hour_weekday_dict, on_peak_hour_weekend_dict, shift,
-                                    setpoint_type, setpoint_default):
+    def _get_setpoint_absolute_value(self, year_index, setpoint_type, existing_setpoint):
         """
         set the setpoint to a fixed value given by user inputs
         the default setpoint for heating is:
@@ -167,16 +178,7 @@ class HVACSetpoints:
         the defalut setpoint for cooling is:
         60F during prepeak time, 80F during on peak time
         """
-        num_timsteps_per_hour = total_indices / 8760
-        offset_time = get_prepeak_and_peak_start_end(
-            year_index, total_indices, on_peak_hour_weekday_dict, on_peak_hour_weekend_dict, setpoint_type)
-
-        # To avoid coincidence response, randomly shift the demand response from - 1hour to 1 hour
-        for f in fields(offset_time):
-            value = getattr(offset_time, f.name)
-            value = time_shift(value, num_timsteps_per_hour, shift)
-            if isinstance(value, (int, float)):
-                setattr(offset_time, f.name, value)
+        offset_time = self._get_offset_time(year_index, setpoint_type)
 
         if setpoint_type == 'heating':
             pre_peak_setpoint = AbsoluteOffsetData.heating_pre_peak_setpoint.val
@@ -187,20 +189,22 @@ class HVACSetpoints:
         else:
             raise ValueError(f"setpoint type {setpoint_type} is not supported")
 
-        day_index = int(year_index % (24 * num_timsteps_per_hour))
-        if (offset_time.pre_peak_start_morning <= day_index < offset_time.peak_start_morning)\
-                or (offset_time.pre_peak_start_afternoon <= day_index < offset_time.peak_start_afternoon):
+        assert pre_peak_setpoint is not None, "Pre-peak offset not set"
+        assert on_peak_setpoint is not None, "On-peak offset not set"
+
+        index_in_day = int(year_index % (24 * self.num_timsteps_per_hour))
+        if (offset_time.pre_peak_start_morning <= index_in_day < offset_time.peak_start_morning)\
+                or (offset_time.pre_peak_start_afternoon <= index_in_day < offset_time.peak_start_afternoon):
             setpoint_reponse = pre_peak_setpoint
-        elif (offset_time.peak_start_morning <= day_index <= offset_time.peak_end_morning)\
-                or (offset_time.peak_start_afternoon <= day_index <= offset_time.peak_end_afternoon):
+        elif (offset_time.peak_start_morning <= index_in_day <= offset_time.peak_end_morning)\
+                or (offset_time.peak_start_afternoon <= index_in_day <= offset_time.peak_end_afternoon):
             setpoint_reponse = on_peak_setpoint
         else:
-            setpoint_reponse = setpoint_default
+            setpoint_reponse = existing_setpoint
 
         return setpoint_reponse
 
-
-    def _clip_setpoints(self, setpoint, setpoint_type):
+    def _clip_setpoints(self, setpoint: int, setpoint_type):
         """
         control the range of setpoint given by user inputs
         the default range for heating is: 55-80F
@@ -208,32 +212,42 @@ class HVACSetpoints:
         """
 
         if setpoint_type == 'heating':
-            setpoint_max = RelativeOffsetData.heating_max
-            setpoint_min = RelativeOffsetData.heating_min
+            setpoint_max = RelativeOffsetData.heating_max.val
+            setpoint_min = RelativeOffsetData.heating_min.val
         elif setpoint_type == 'cooling':
-            setpoint_max = RelativeOffsetData.cooling_max
-            setpoint_min = RelativeOffsetData.cooling_min
+            setpoint_max = RelativeOffsetData.cooling_max.val
+            setpoint_min = RelativeOffsetData.cooling_min.val
+        else:
+            raise ValueError(f"setpoint type {setpoint_type} is not supported")
+        assert setpoint_max is not None, "Max setpoint not set"
+        assert setpoint_min is not None, "Min setpoint not set"
 
         if setpoint > setpoint_max:
             setpoint = setpoint_max
         elif setpoint < setpoint_min:
             setpoint = setpoint_min
+        else:
+            setpoint = setpoint
         return setpoint
 
+    def _get_updated_setpoint(self, index_in_year, setpoint_type):
+        if setpoint_type == 'heating':
+            existing_setpoint = self.heating_setpoints[index_in_year]
+        else:
+            existing_setpoint = self.cooling_setpoints[index_in_year]
+        if OffsetTypeData.offset_type == OffsetType.relative:  # make a setpoint offset compared with the default setpoint
+            new_setpoint = existing_setpoint + self._get_setpoint_offset(index_in_year, setpoint_type)
+        elif OffsetTypeData.offset_type == OffsetType.absolute:  # set the setpoint to a fixed value
+            new_setpoint = self._get_setpoint_absolute_value(index_in_year, setpoint_type, existing_setpoint)
+        else:
+            raise ValueError(f"offset type {OffsetTypeData.offset_type} is not supported")
+        new_setpoint = self._clip_setpoints(new_setpoint, setpoint_type)
+        return new_setpoint
 
     def _modify_setpoint(self):
         for index in range(self.total_indices):
-            if OffsetTypeData.offset_type == OffsetType.relative:  # make a setpoint offset compared with the default setpoint
-                self.heating_setpoints[index] += self._get_setpoint_offset(index, 'heating')
-                self.cooling_setpoints[index] += self._get_setpoint_offset(index, 'cooling')
-            # elif OffsetTypeData.offset_type == OffsetType.absolute:  # set the setpoint to a fixed value
-            #     setpoints.heating_setpoint[index] = get_setpoint_absolute_value(
-            #         index, total_indices, on_peak_hour_weekday_dict, on_peak_hour_weekend_dict, shift, 'heating', setpoints.heating_setpoint)
-            #     setpoints.cooling_setpoint[index] = get_setpoint_absolute_value(
-            #         index, total_indices, on_peak_hour_weekday_dict, on_peak_hour_weekend_dict, shift, 'cooling', setpoints.cooling_setpoint)
-
-            # setpoints.heating_setpoint = clip_setpoints(setpoints.heating_setpoint, 'heating')
-            # setpoints.cooling_setpoint = clip_setpoints(setpoints.cooling_setpoint, 'cooling')
+            self.heating_setpoints[index] = self._get_updated_setpoint(index, 'heating')
+            self.cooling_setpoints[index] = self._get_updated_setpoint(index, 'cooling')
 
     def log_input(self):
         """Modify setpoints based on user arguments."""
@@ -264,4 +278,4 @@ class HVACSetpoints:
                             f"{AbsoluteOffsetData.heating_on_peak_setpoint.val}")
         self.runner.registerInfo(f"{AbsoluteOffsetData.heating_pre_peak_setpoint.name}="
                             f"{AbsoluteOffsetData.heating_pre_peak_setpoint.val}")
-        self.runner.registerInfo(f"state={building_info.state}")
+        self.runner.registerInfo(f"state={self.building_info.state}")

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-#import openstudio
+import openstudio
 from typing import Optional
 from typing import TypeVar, Generic, List
 T = TypeVar('T')
@@ -217,6 +217,13 @@ class __OffsetTimingData:
         default=4,
         displayname="Cooling On-Peak Duration (hours)",
         description="The duration of the on-peak period in hours."
+    )
+    timing_shift_hr: Argument[float] = Argument(
+        name='random_timing_shift',
+        type=bool,
+        default=1.0,
+        displayname="Random Timing Shift",
+        description="Random shift to the start and end times in hour to avoid coincident peaks. If the value is 1, start and end time will be shifted by a maximum of +- 1 hour."
     )
 
 

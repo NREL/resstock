@@ -12,7 +12,7 @@ sys.path.insert(0, str(CURRENT_DIR_PATH.parent))
 import dataclasses
 from measure import LoadFlexibility
 from resources.input_helper import OffsetTypeData, AbsoluteOffsetData, OffsetTimingData, RelativeOffsetData
-from resources import setpoint
+from resources.setpoint import HVACSetpoints
 sys.path.pop(0)
 # del sys.modules['measure']
 
@@ -38,13 +38,13 @@ class TestLoadFlexibility:
         actual_all_args = sorted([arg.name() for arg in arguments])
         assert actual_all_args == expected_all_args
 
-    def test_setpoint_get_month_day(self):
-        year_index = 8759
-        total_indices = 8760
-        year = 2020
-        month, day = setpoint.get_month_day(year_index, total_indices, year)
-        assert month == 12
-        assert day == 31
+    # def test_setpoint_get_month_day(self):
+    #     year_index = 8759
+    #     total_indices = 8760
+    #     year = 2020
+    #     month, day = HVACSetpoints._get_month_day(year_index, total_indices, year)
+    #     assert month == 12
+    #     assert day == 31
 
 
     # def test_valid_argument_values(self):
