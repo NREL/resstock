@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-class EPlus
+# TODO
+module EPlus
   # Constants
   EMSActuatorElectricEquipmentPower = 'ElectricEquipment', 'Electricity Rate'
   EMSActuatorOtherEquipmentPower = 'OtherEquipment', 'Power Level'
@@ -8,6 +9,7 @@ class EPlus
   EMSActuatorPumpPressureRise = 'Pump', 'Pump Pressure Rise'
   EMSActuatorFanPressureRise = 'Fan', 'Fan Pressure Rise'
   EMSActuatorFanTotalEfficiency = 'Fan', 'Fan Total Efficiency'
+  EMSActuatorCurveResult = 'Curve', 'Curve Result'
   EMSActuatorUnitarySystemCoilSpeedLevel = 'Coil Speed Control', 'Unitary System DX Coil Speed Value'
   EMSActuatorScheduleConstantValue = 'Schedule:Constant', 'Schedule Value'
   EMSActuatorScheduleYearValue = 'Schedule:Year', 'Schedule Value'
@@ -24,6 +26,10 @@ class EPlus
   FuelTypeWoodPellets = 'OtherFuel2'
   FuelTypeCoal = 'Coal'
 
+  # TODO
+  #
+  # @param hpxml_fuel [TODO] TODO
+  # @return [TODO] TODO
   def self.fuel_type(hpxml_fuel)
     # Name of fuel used as inputs to E+ objects
     if [HPXML::FuelTypeElectricity].include? hpxml_fuel

@@ -4,7 +4,7 @@ require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minite
 require_relative '../test/analysis'
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/unit_conversions.rb'
 
-class TesBuildStockBatch < Minitest::Test
+class TestBuildStockBatch < Minitest::Test
   def before_setup
     @testing_baseline = 'project_testing/testing_baseline'
     @national_baseline = 'project_national/national_baseline'
@@ -111,11 +111,10 @@ class TesBuildStockBatch < Minitest::Test
 
     actual_extras = actual_names - expected_names
     puts "Input Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
-
-    expected_extras = expected_names - actual_names
-    puts "Input Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
-
     assert_equal(0, actual_extras.size)
+
+    # expected_extras = expected_names - actual_names
+    # puts "Input Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
     # assert_equal(0, expected_extras.size) # allow
   end
 
@@ -133,12 +132,10 @@ class TesBuildStockBatch < Minitest::Test
 
     actual_extras = actual_names - expected_names
     puts "Input Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
+    assert_equal(0, actual_extras.size)
 
     expected_extras = expected_names - actual_names
-    expected_extras -= ['report_simulation_output.user_output_variables']
     puts "Input Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
-
-    assert_equal(0, actual_extras.size)
     assert_equal(0, expected_extras.size)
   end
 
@@ -159,11 +156,10 @@ class TesBuildStockBatch < Minitest::Test
 
     actual_extras = actual_annual_names - expected_annual_names
     puts "Annual Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
-
-    expected_extras = expected_annual_names - actual_annual_names
-    puts "Annual Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
-
     assert_equal(0, actual_extras.size)
+
+    # expected_extras = expected_annual_names - actual_annual_names
+    # puts "Annual Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
     # assert_equal(0, expected_extras.size) # allow
 
     tol = 0.001
@@ -198,11 +194,10 @@ class TesBuildStockBatch < Minitest::Test
 
     actual_extras = actual_annual_names - expected_annual_names
     puts "Annual Name, actual - expected: #{actual_extras}" if !actual_extras.empty?
-
-    expected_extras = expected_annual_names - actual_annual_names
-    puts "Annual Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
-
     assert_equal(0, actual_extras.size)
+
+    # expected_extras = expected_annual_names - actual_annual_names
+    # puts "Annual Name, expected - actual: #{expected_extras}" if !expected_extras.empty?
     # assert_equal(0, expected_extras.size) # allow
 
     tol = 0.001
@@ -236,11 +231,10 @@ class TesBuildStockBatch < Minitest::Test
     actual_extras = actual_timeseries_names - expected_timeseries_names
     actual_extras -= ['PROJECT']
     puts "#{ts_col}, actual - expected: #{actual_extras}" if !actual_extras.empty?
-
-    expected_extras = expected_timeseries_names - actual_timeseries_names
-    puts "#{ts_col}, expected - actual: #{expected_extras}" if !expected_extras.empty?
-
     assert_equal(0, actual_extras.size)
+
+    # expected_extras = expected_timeseries_names - actual_timeseries_names
+    # puts "#{ts_col}, expected - actual: #{expected_extras}" if !expected_extras.empty?
     # assert_equal(0, expected_extras.size) # allow
 
     tol = 0.001
@@ -282,11 +276,10 @@ class TesBuildStockBatch < Minitest::Test
     actual_extras = actual_timeseries_names - expected_timeseries_names
     actual_extras -= ['PROJECT']
     puts "#{ts_col}, actual - expected: #{actual_extras}" if !actual_extras.empty?
-
-    expected_extras = expected_timeseries_names - actual_timeseries_names
-    puts "#{ts_col}, expected - actual: #{expected_extras}" if !expected_extras.empty?
-
     assert_equal(0, actual_extras.size)
+
+    # expected_extras = expected_timeseries_names - actual_timeseries_names
+    # puts "#{ts_col}, expected - actual: #{expected_extras}" if !expected_extras.empty?
     # assert_equal(0, expected_extras.size) # allow
 
     tol = 0.001

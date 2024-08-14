@@ -1,6 +1,7 @@
 Stochastic Occupancy Modeling introduces major changes to most occupant-related schedules.
 Occupant activities are now generated on-the-fly and saved to CSV files used by `OpenStudio` Schedule:File objects.
 Schedules are generated using time-inhomogenous Markov chains derived from American Time Use Survey data, supplemented with sampling duration and power level from NEEA RBSA data, as well as DHW draw duration and flow rate data from Aquacraft/AWWA data.
+See [Stochastic simulation of occupant-driven energy use in a bottom-up residential building stock model](https://www.sciencedirect.com/science/article/pii/S0306261922011540) for a more complete description of the methodology.
 
 The `BuildResidentialScheduleFile` measure outputs a schedule CSV file (available inside the `run` folder of each building simulation output).
 The schedule CSV file contains the following columns:
@@ -17,14 +18,12 @@ The schedule CSV file contains the following columns:
 * `hot_water_dishwasher`
 * `hot_water_clothes_washer`
 * `hot_water_fixtures`
-* `sleep`*
-
-*Column `sleep` is optionally exported only when "debug" mode is enabled.
+* `sleeping` (exported only when "debug" mode is enabled)
 
 Each of the columns, except `occupants`, represent schedule values (kW for power schedules, and gallons per minute for water schedules) normalized using universal maximum values found in `constants.rb`.
 
 The `occupants` column represents the fractional percent of occupants present out of the total number of occupants assigned to the unit.
-The `sleep` column represents the fractional percent of the total number of occupants who are sleeping.
+The `sleeping` column represents the fractional percent of the total number of occupants who are sleeping.
 
 There are the same number of rows as the total simulation time-step (e.g., 35040 if 15-min, 8760 if hourly [8784, if leap year]).
 

@@ -87,7 +87,7 @@ resstockarguments_xml.each do |name, properties|
   end
 
   # Add "auto" to Choices for optional String/Double/Integer
-  if properties['description'].include?('OS-HPXML default') && ['String', 'Double', 'Integer'].include?(properties['type'])
+  if (properties['description'].include?('OS-HPXML default') && ['String', 'Double', 'Integer'].include?(properties['type'])) || (name == 'year_built') || (name == 'geometry_unit_num_occupants') # these last 2 are special because ResStockArguments provides the default instead of OS-HPXML
     resstockarguments_xml[name]['choices'].unshift('auto')
   end
 
@@ -127,14 +127,14 @@ f.puts('.. [#] May be "String", "Double", "Integer", "Boolean", or "Choice".')
 f.puts
 f.puts('Furthermore, all *optional* Choice arguments include "auto" as one of the possible **Choices**.')
 f.puts('Most *optional* String/Double/Integer/Boolean arguments can also be assigned a value of "auto" (e.g., ``site_ground_conductivity``).')
-f.puts('Assigning "auto" means that downstream OS-HPXML default values (if applicable) will be used.')
-f.puts('When applicable, the **Description** field will include link(s) to `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.')
+f.puts('Assigning "auto" means that downstream default values (e.g., from OpenStudio-HPXML) will be used (if applicable).')
+f.puts('When an argument is defaulted using OpenStudio-HPXML, the **Description** field will include link(s) to `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.')
 f.puts
 
 lookup_file = File.join(resources_dir, 'options_lookup.tsv')
 option_sat_file = File.join('project_national', 'resources', 'options_saturations.csv')
 lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
-option_sat_csv_data = CSV.open(option_sat_file,quote_char: '"', col_sep: ",").each.to_a
+option_sat_csv_data = CSV.open(option_sat_file, quote_char: '"', col_sep: ',').each.to_a
 
 source_report = CSV.read(File.join(File.dirname(__FILE__), '../../../../project_national/resources/source_report.csv'), headers: true)
 source_report.each do |row|
@@ -203,7 +203,7 @@ source_report.each do |row|
   f.puts(name)
   f.puts('*' * name.size)
   f.puts
-  f.puts("From ``project_national`` the list of options, option stock sturation, and option arguments for the **#{parameter}** characteristic." )
+  f.puts("From ``project_national`` the list of options, option stock sturation, and option arguments for the **#{parameter}** characteristic.")
   f.puts
   f.puts('.. list-table::')
   f.puts('   :header-rows: 1')
@@ -225,46 +225,46 @@ source_report.each do |row|
   option_sat_csv_data.each do |param_option_row|
     # If the parameter does not match next
     next if param_option_row[1] != parameter
-    
+
     # Insert the options and the stock saturation
     option = param_option_row[2]
     f.puts("   * - #{option}")
-    sat_percent = Float(param_option_row[3])*100.0
+    sat_percent = Float(param_option_row[3]) * 100.0
     if Integer(sat_percent.truncate()) == 100
-      f.puts("     - %.3g%%" % [sat_percent])
+      f.puts('     - %.3g%%' % [sat_percent])
     else
-      f.puts("     - %.2g%%" % [sat_percent])
+      f.puts('     - %.2g%%' % [sat_percent])
     end
 
     # Check if there are arguments
-    if !r_arguments.empty?
-      # If there are arguments, go through options lookup to find the option
-      lookup_csv_data.each do |lookup_row|
-        next if lookup_row[0] != parameter
-        next if lookup_row[1] != option
-        
-        # When the option is found
-        if lookup_row[2] != 'ResStockArguments'
-          # Put all blank rows if there is no arguments
-          for a in 1..r_arguments.length() do
-            f.puts("     - ")
+    next unless !r_arguments.empty?
+
+    # If there are arguments, go through options lookup to find the option
+    lookup_csv_data.each do |lookup_row|
+      next if lookup_row[0] != parameter
+      next if lookup_row[1] != option
+
+      # When the option is found
+      if lookup_row[2] != 'ResStockArguments'
+        # Put all blank rows if there is no arguments
+        for _a in 1..r_arguments.length() do
+          f.puts('     - ')
+        end
+      else
+        # If option specifies arguments, insert arguments according to the order of r_arguements
+        r_arguments.each do |argument|
+          # Look for each argument in r_arguments
+          found_arg = false
+          lookup_row[3..-1].each do |argument_value|
+            arg, value = argument_value.split('=')
+            if argument == arg
+              found_arg = true
+              f.puts("     - #{value}")
+            end
           end
-        else
-          # If option specifies arguments, insert arguments according to the order of r_arguements
-          r_arguments.each do |argument|
-            # Look for each argument in r_arguments
-            found_arg = false
-            lookup_row[3..-1].each do |argument_value|
-              arg, value = argument_value.split('=')
-              if argument == arg
-                found_arg=true
-                f.puts("     - #{value}")
-              end
-            end
-            # if the argument is not found (a not specified optional argument)
-            if !found_arg
-              f.puts("     - ")
-            end
+          # if the argument is not found (a not specified optional argument)
+          if !found_arg
+            f.puts('     - ')
           end
         end
       end

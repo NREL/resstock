@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Constants
+module Constants
   def self.SeasonHeating
     return 'Heating'
   end

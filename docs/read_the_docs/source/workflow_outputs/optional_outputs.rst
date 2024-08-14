@@ -45,8 +45,12 @@ See the list of all available emissions scenario name choices at https://github.
 Utility Bills
 *************
 
-Optional utility bill outputs include annual fixed and marginal costs (total, by fuel type), and PV credits for electricity, for each utility bill scenario requested.
-See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``utility_bills`` section) for more information on how to request utility bill outputs by scenario.
+For each utility bill scenario requested, optional utility bill outputs include:
+
+- Annual: fixed costs and energy costs by fuel type (including PV credits for electricity), and total costs (including by fuel type)
+- Monthly: total costs (including by fuel type)
+
+See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page (i.e., ``utility_bills`` and ``simulation_output_report`` sections) for more information on how to request utility bill outputs by scenario.
 
 See the OpenStudio-HPXML Workflow Outputs section on `Utility Bill Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#utility-bill-outputs>`_ for more information about utility bill outputs.
 

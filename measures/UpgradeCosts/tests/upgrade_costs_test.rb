@@ -2,7 +2,6 @@
 
 require 'openstudio'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
-require_relative '../../../measures/ReportHPXMLOutput/measure.rb'
 require_relative '../measure.rb'
 
 class UpgradeCostsTest < Minitest::Test
@@ -675,7 +674,7 @@ class UpgradeCostsTest < Minitest::Test
     puts "\nTesting #{osw_file}..."
     this_dir = File.dirname(__FILE__)
 
-    values = { 'report_hpxml_output' => {} }
+    values = { 'hpxml_output' => {} }
 
     # Existing
     model = OpenStudio::Model::Model.new
@@ -702,40 +701,39 @@ class UpgradeCostsTest < Minitest::Test
     _set_additional_properties(existing_hpxml.buildings[0], upgraded_hpxml.buildings[0])
 
     # Create instance of the measures
-    hpxml_output_report = ReportHPXMLOutput.new
     upgrade_costs = UpgradeCosts.new
 
     hpxml_in.buildings.each do |hpxml_bldg|
       # Check for correct cost multiplier values
-      hpxml_output_report.assign_primary_and_secondary(hpxml_bldg, cost_multipliers)
-      hpxml = values['report_hpxml_output']
+      upgrade_costs.assign_primary_and_secondary(hpxml_bldg, cost_multipliers)
+      hpxml = values['hpxml_output']
       cost_multipliers.keys.each do |cost_mult_type|
         if cost_mult_type == 'Wall Area, Above-Grade, Conditioned (ft^2)'
-          hpxml['enclosure_wall_area_thermal_boundary_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Wall Area Thermal Boundary')
+          hpxml['enclosure_wall_area_thermal_boundary_ft_2'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Wall Area Thermal Boundary')
         elsif cost_mult_type == 'Wall Area, Above-Grade, Exterior (ft^2)'
-          hpxml['enclosure_wall_area_exterior_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Wall Area Exterior')
+          hpxml['enclosure_wall_area_exterior_ft_2'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Wall Area Exterior')
         elsif cost_mult_type == 'Wall Area, Below-Grade (ft^2)'
-          hpxml['enclosure_foundation_wall_area_exterior_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Foundation Wall Area Exterior')
+          hpxml['enclosure_foundation_wall_area_exterior_ft_2'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Foundation Wall Area Exterior')
         elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
-          hpxml['enclosure_floor_area_conditioned_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Floor Area Conditioned')
+          hpxml['enclosure_floor_area_conditioned_ft_2'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Floor Area Conditioned')
         elsif cost_mult_type == 'Floor Area, Lighting (ft^2)'
-          hpxml['enclosure_floor_area_lighting_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Floor Area Lighting')
+          hpxml['enclosure_floor_area_lighting_ft_2'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Floor Area Lighting')
         elsif cost_mult_type == 'Floor Area, Foundation (ft^2)'
-          hpxml['enclosure_floor_area_foundation_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Floor Area Foundation')
+          hpxml['enclosure_floor_area_foundation_ft_2'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Floor Area Foundation')
         elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
-          hpxml['enclosure_ceiling_area_thermal_boundary_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Ceiling Area Thermal Boundary')
+          hpxml['enclosure_ceiling_area_thermal_boundary_ft_2'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Ceiling Area Thermal Boundary')
         elsif cost_mult_type == 'Roof Area (ft^2)'
-          hpxml['enclosure_roof_area_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Roof Area')
+          hpxml['enclosure_roof_area_ft_2'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Roof Area')
         elsif cost_mult_type == 'Window Area (ft^2)'
-          hpxml['enclosure_window_area_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Window Area')
+          hpxml['enclosure_window_area_ft_2'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Window Area')
         elsif cost_mult_type == 'Door Area (ft^2)'
-          hpxml['enclosure_door_area_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Door Area')
+          hpxml['enclosure_door_area_ft_2'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Door Area')
         elsif cost_mult_type == 'Duct Unconditioned Surface Area (ft^2)'
-          hpxml['enclosure_duct_area_unconditioned_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Duct Area Unconditioned')
+          hpxml['enclosure_duct_area_unconditioned_ft_2'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Duct Area Unconditioned')
         elsif cost_mult_type == 'Rim Joist Area, Above-Grade, Exterior (ft^2)'
-          hpxml['enclosure_rim_joist_area_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Rim Joist Area')
+          hpxml['enclosure_rim_joist_area_ft_2'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Rim Joist Area')
         elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
-          hpxml['enclosure_slab_exposed_perimeter_thermal_boundary_ft'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Enclosure: Slab Exposed Perimeter Thermal Boundary')
+          hpxml['enclosure_slab_exposed_perimeter_thermal_boundary_ft'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Enclosure: Slab Exposed Perimeter Thermal Boundary')
         elsif cost_mult_type == 'Size, Heating System Primary (kBtu/h)'
           hpxml['primary_systems_heating_capacity_btu_h'] = 0.0
           if cost_multipliers.keys.include?('Primary Systems: Heating Capacity')
@@ -757,9 +755,9 @@ class UpgradeCostsTest < Minitest::Test
             hpxml['primary_systems_heat_pump_backup_capacity_btu_h'] = cost_multipliers['Primary Systems: Heat Pump Backup Capacity'].output
           end
         elsif cost_mult_type == 'Size, Water Heater (gal)'
-          hpxml['systems_water_heater_tank_volume_gal'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Systems: Water Heater Tank Volume')
+          hpxml['systems_water_heater_tank_volume_gal'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Systems: Water Heater Tank Volume')
         elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
-          hpxml['systems_mechanical_ventilation_flow_rate_cfm'] = hpxml_output_report.get_bldg_output(hpxml_bldg, 'Systems: Mechanical Ventilation Flow Rate')
+          hpxml['systems_mechanical_ventilation_flow_rate_cfm'] = upgrade_costs.get_hpxml_output(hpxml_bldg, 'Systems: Mechanical Ventilation Flow Rate')
         end
       end
 
