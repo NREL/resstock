@@ -109,7 +109,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     end
 
     # Setpoint Schedules
-    dhw_loop_sp = 125.0
+    dhw_loop_sp = 140.0
     dhw_loop_sp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
     dhw_loop_sp_schedule.setValue(UnitConversions.convert(dhw_loop_sp, 'F', 'C'))
 
@@ -117,17 +117,36 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     other_loop_sp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
     other_loop_sp_schedule.setValue(UnitConversions.convert(other_loop_sp, 'F', 'C'))
 
-    # Add Loops
-    dhw_loop = add_loop(model, 'DHW Loop', dhw_loop_sp, 10.0)
+    # Pipes
+    supply_length, return_length = calc_recirc_supply_return_lengths(hpxml_bldg, num_units, num_stories, has_double_loaded_corridor)
+    supply_pipe_ins_r_value = 6.0
+    return_pipe_ins_r_value = 4.0
+
+    # Pump Flow Rates
+    supply_gpm = 13.6 # gal/min, nominal from Robur spec sheet
+    dhw_gpm, swing_tank_capacity = calc_recirc_flow_rate(hpxml.buildings, supply_length, supply_pipe_ins_r_value)
+    space_heating_gpm = 0.0
+    source_gpm = dhw_gpm
     if shared_water_heater_type.include?('space-heating')
-      space_heating_loop = add_loop(model, 'Space Heating Loop', other_loop_sp)
+      space_heating_gpm = supply_gpm # FIXME
+      source_gpm = supply_gpm # FIXME
+    end
+
+    # Add Loops
+    # dhw_loop = add_loop(model, 'DHW Loop', dhw_loop_sp, 10.0, dhw_gpm)
+    dhw_loop = add_loop(model, 'DHW Loop', dhw_loop_sp, 10.0, UnitConversions.convert(0.01, 'm^3/s', 'gal/min')) # 0.01 from OS-HPXML
+    if shared_water_heater_type.include?('space-heating')
+      space_heating_loop = add_loop(model, 'Space Heating Loop', other_loop_sp, 20.0, space_heating_gpm)
+      # space_heating_loop = add_loop(model, 'Space Heating Loop', other_loop_sp, 20.0)
     end
     supply_loops = {}
     (1..supply_count).to_a.each do |i|
-      supply_loop = add_loop(model, "Supply Loop #{i}", other_loop_sp)
+      # supply_loop = add_loop(model, "Supply Loop #{i}", other_loop_sp, 20.0, supply_gpm)
+      supply_loop = add_loop(model, "Supply Loop #{i}", other_loop_sp, 20.0)
       supply_loops[supply_loop] = []
     end
-    source_loop = add_loop(model, 'Source Loop', other_loop_sp)
+    # source_loop = add_loop(model, 'Source Loop', other_loop_sp, 20.0, source_gpm)
+    source_loop = add_loop(model, 'Source Loop', other_loop_sp, 20.0)
 
     # Add Adiabatic Pipes
     dhw_loop_demand_inlet, dhw_loop_demand_bypass = add_adiabatic_pipes(model, dhw_loop)
@@ -139,32 +158,18 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     end
     _source_loop_demand_inlet, _source_loop_demand_bypass = add_adiabatic_pipes(model, source_loop)
 
-    # Pipe Lengths
-    supply_length, return_length = calc_recirc_supply_return_lengths(hpxml_bldg, num_units, num_stories, has_double_loaded_corridor)
-
     # Add Indoor Pipes
-    supply_pipe_ins_r_value = 6.0
-    return_pipe_ins_r_value = 4.0
     add_indoor_pipes(model, dhw_loop_demand_inlet, dhw_loop_demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value, num_units)
 
-    # Pump Flow Rates
-    supply_pump_gpm = 13.6 # gal/min, nominal from Robur spec sheet
-    dhw_pump_gpm, swing_tank_capacity = calc_recirc_flow_rate(hpxml.buildings, supply_length, supply_pipe_ins_r_value)
-    space_heating_pump_gpm = 0.0
-    source_pump_gpm = dhw_pump_gpm
+    # Add Pumps
+    add_pump(model, dhw_loop, 'DHW Loop Pump', dhw_gpm)
     if shared_water_heater_type.include?('space-heating')
-      space_heating_pump_gpm = supply_pump_gpm # FIXME
-      source_pump_gpm = supply_pump_gpm # FIXME
-    end
-
-    add_pump(model, dhw_loop, 'DHW Loop Pump', dhw_pump_gpm)
-    if shared_water_heater_type.include?('space-heating')
-      add_pump(model, space_heating_loop, 'Space Heating Loop Pump', space_heating_pump_gpm) # FIXME: need to re-consider the pump here
+      add_pump(model, space_heating_loop, 'Space Heating Loop Pump', space_heating_gpm) # FIXME: need to re-consider the pump here
     end
     supply_loops.each do |supply_loop, _|
-      add_pump(model, supply_loop, "#{supply_loop.name} Pump", supply_pump_gpm)
+      add_pump(model, supply_loop, "#{supply_loop.name} Pump", supply_gpm)
     end
-    add_pump(model, source_loop, 'Source Loop Pump', source_pump_gpm)
+    add_pump(model, source_loop, 'Source Loop Pump', source_gpm)
 
     # Add Setpoint Managers
     add_setpoint_manager(model, dhw_loop, dhw_loop_sp_schedule, 'DHW Loop Setpoint Manager')
@@ -179,13 +184,13 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     # Add Tanks
     prev_storage_tank = nil
     supply_loops.each do |supply_loop, components|
-      storage_tank = add_storage_tank(model, source_loop, supply_loop, storage_tank_volume, prev_storage_tank, "#{supply_loop.name} Main Storage Tank", shared_water_heater_fuel_type)
+      storage_tank = add_storage_tank(model, source_loop, supply_loop, storage_tank_volume, prev_storage_tank, "#{supply_loop.name} Main Storage Tank", shared_water_heater_fuel_type, dhw_loop_sp)
       storage_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) # Used by reporting measure
 
       components << storage_tank
       prev_storage_tank = components[0]
     end
-    swing_tank = add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank', shared_water_heater_fuel_type)
+    swing_tank = add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank', shared_water_heater_fuel_type, dhw_loop_sp)
     swing_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) if !swing_tank.nil? # Used by reporting measure
 
     # Add Heat Exchangers
@@ -252,18 +257,19 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     runner.registerValue('other_loop_sp_f', other_loop_sp)
     runner.registerValue('supply_length_ft', supply_length)
     runner.registerValue('return_length_ft', return_length)
-    runner.registerValue('supply_pump_gpm', supply_pump_gpm)
-    runner.registerValue('dhw_pump_gpm', dhw_pump_gpm)
-    runner.registerValue('space_heating_pump_gpm', space_heating_pump_gpm)
-    runner.registerValue('source_pump_gpm', source_pump_gpm)
+    runner.registerValue('supply_gpm', supply_gpm)
+    runner.registerValue('dhw_gpm', dhw_gpm)
+    runner.registerValue('space_heating_gpm', space_heating_gpm)
+    runner.registerValue('source_gpm', source_gpm)
     runner.registerValue('swing_tank_capacity', swing_tank_capacity)
 
     return true
   end
 
-  def add_loop(model, name, design_temp = 180.0, deltaF = 20.0)
+  def add_loop(model, name, design_temp, deltaF = 20.0, max_gpm = nil)
     loop = OpenStudio::Model::PlantLoop.new(model)
     loop.setName(name)
+    loop.setMaximumLoopFlowRate(UnitConversions.convert(max_gpm, 'gal/min', 'm^3/s')) if !max_gpm.nil? # FIXME
 
     loop_sizing = loop.sizingPlant
     loop_sizing.setLoopType('Heating')
@@ -479,7 +485,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     manager.addToNode(loop.supplyOutletNode)
   end
 
-  def add_storage_tank(model, source_loop, heat_pump_loop, volume, prev_storage_tank, name, fuel_type)
+  def add_storage_tank(model, source_loop, heat_pump_loop, volume, prev_storage_tank, name, fuel_type, setpoint)
     h_tank = 2.0 # m, assumed
     h_source_in = 0.01 * h_tank
     h_source_out = 0.99 * h_tank
@@ -493,9 +499,14 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     # TODO: set volume, height, deadband, control
     capacity = 0
     storage_tank.setTankHeight(h_tank)
+    storage_tank.setTankVolume(UnitConversions.convert(volume, 'gal', 'm^3'))
     storage_tank.setHeater1Capacity(capacity)
     storage_tank.setHeater2Capacity(capacity)
-    storage_tank.setTankVolume(UnitConversions.convert(volume, 'gal', 'm^3'))
+    setpoint_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+    setpoint_schedule.setName("#{name} Temperature Schedule")
+    setpoint_schedule.setValue(UnitConversions.convert(setpoint, 'F', 'C'))
+    storage_tank.setHeater1SetpointTemperatureSchedule(setpoint_schedule)
+    storage_tank.setHeater2SetpointTemperatureSchedule(setpoint_schedule)
     # storage_tank.setAmbientTemperatureZone # FIXME: What zone do we want to assume the tanks are in?
     storage_tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(tank_u) # FIXME: typical loss values?
     storage_tank.setSourceSideInletHeight(h_source_in)
@@ -504,6 +515,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     storage_tank.setOnCycleParasiticFuelConsumptionRate(0.0)
     storage_tank.setNumberofNodes(6)
     storage_tank.setUseSideDesignFlowRate(UnitConversions.convert(volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
+    # storage_tank.setSourceSideDesignFlowRate() # FIXME
     storage_tank.setEndUseSubcategory(name)
     storage_tank.setHeaterFuelType(EPlus.fuel_type(fuel_type))
     if heat_pump_loop.nil? # stratified tank on supply side of source loop (e.g., shared electric hpwh)
@@ -527,7 +539,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     return storage_tank
   end
 
-  def add_swing_tank(model, last_storage_tank, volume, capacity, name, fuel_type)
+  def add_swing_tank(model, last_storage_tank, volume, capacity, name, fuel_type, setpoint)
     return if volume == 0
 
     # this would be in series with the main storage tanks, downstream of it
@@ -544,6 +556,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     h_source_out = 0.99 * h_tank
 
     swing_tank.setTankHeight(h_tank)
+    swing_tank.setTankVolume(UnitConversions.convert(volume, 'gal', 'm^3'))
     swing_tank.setHeaterPriorityControl('MasterSlave')
     swing_tank.setHeater1Capacity(capacity)
     swing_tank.setHeater1Height(h_ue)
@@ -551,7 +564,11 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     swing_tank.setHeater2Capacity(capacity)
     swing_tank.setHeater2Height(h_le)
     swing_tank.setHeater2DeadbandTemperatureDifference(5.56)
-    swing_tank.setTankVolume(UnitConversions.convert(volume, 'gal', 'm^3'))
+    setpoint_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+    setpoint_schedule.setName("#{name} Temperature Schedule")
+    setpoint_schedule.setValue(UnitConversions.convert(setpoint, 'F', 'C'))
+    swing_tank.setHeater1SetpointTemperatureSchedule(setpoint_schedule)
+    swing_tank.setHeater2SetpointTemperatureSchedule(setpoint_schedule)
     # swing_tank.setAmbientTemperatureZone # FIXME: What zone do we want to assume the tanks are in?
     swing_tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(tank_u) # FIXME: typical loss values?
     swing_tank.setSourceSideInletHeight(h_source_in)
@@ -560,6 +577,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     swing_tank.setOnCycleParasiticFuelConsumptionRate(0.0)
     swing_tank.setNumberofNodes(6)
     swing_tank.setUseSideDesignFlowRate(UnitConversions.convert(volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
+    # swing_tank.setSourceSideDesignFlowRate() # FIXME
     swing_tank.setEndUseSubcategory(name)
     swing_tank.setHeaterFuelType(EPlus.fuel_type(fuel_type))
 
@@ -578,7 +596,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     source_loop.addDemandBranchForComponent(hx)
   end
 
-  def add_component(model, system_type, fuel_type, heat_pump_loop, name)
+  def add_component(model, system_type, fuel_type, supply_loop, name)
     if system_type.include?('boiler')
       component = OpenStudio::Model::BoilerHotWater.new(model)
       component.setName(name)
@@ -591,11 +609,12 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       component.setWaterOutletUpperTemperatureLimit(99.9)
       component.setOnCycleParasiticElectricLoad(0)
       component.additionalProperties.setFeature('IsCombiBoiler', true) # Used by reporting measure
-      heat_pump_loop.addSupplyBranchForComponent(component)
+      # component.setDesignWaterFlowRate() # FIXME
+      supply_loop.addSupplyBranchForComponent(component)
     elsif system_type.include?('heat pump water heater')
       if fuel_type == HPXML::FuelTypeElectricity
         component = OpenStudio::Model::WaterHeaterHeatPump.new(model)
-        tank = add_storage_tank(model, heat_pump_loop, nil, 80.0, nil, name, fuel_type)
+        tank = add_storage_tank(model, supply_loop, nil, 80.0, nil, name, fuel_type)
         tank.additionalProperties.setFeature('IsCombiBoiler', true) # Used by reporting measure
         component.setTank(tank)
         fan = component.fan
@@ -612,7 +631,8 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
         # if system_type.include?('space-heating')
         # component.additionalProperties.setFeature('IsCombiHP', true) # Used by reporting measure
         # end
-        heat_pump_loop.addSupplyBranchForComponent(component)
+        # component.setDesignFlowRate() # FIXME
+        supply_loop.addSupplyBranchForComponent(component)
       end
     end
 
