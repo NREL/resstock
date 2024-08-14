@@ -109,13 +109,25 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     end
 
     # Setpoint Schedules
-    dhw_loop_sp = 140.0
+    dhw_loop_sp = 130.0
     dhw_loop_sp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
     dhw_loop_sp_schedule.setValue(UnitConversions.convert(dhw_loop_sp, 'F', 'C'))
 
-    other_loop_sp = 180.0 # FIXME: final setpoint? Should it vary if used for space heating?
-    other_loop_sp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-    other_loop_sp_schedule.setValue(UnitConversions.convert(other_loop_sp, 'F', 'C'))
+    heat_pump_loop_sp = 140.0
+    heat_pump_loop_sp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+    heat_pump_loop_sp_schedule.setValue(UnitConversions.convert(heat_pump_loop_sp, 'F', 'C'))
+
+    boiler_loop_sp = 180.0 # FIXME: final setpoint? Should it vary if used for space heating?
+    boiler_loop_sp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+    boiler_loop_sp_schedule.setValue(UnitConversions.convert(boiler_loop_sp, 'F', 'C'))
+
+    if shared_water_heater_type.include?('boiler')
+      other_loop_sp = boiler_loop_sp
+      other_loop_sp_schedule = boiler_loop_sp_schedule
+    else
+      other_loop_sp = heat_pump_loop_sp
+      other_loop_sp_schedule = heat_pump_loop_sp_schedule
+    end
 
     # Pipes
     supply_length, return_length = calc_recirc_supply_return_lengths(hpxml_bldg, num_units, num_stories, has_double_loaded_corridor)
@@ -133,20 +145,16 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     end
 
     # Add Loops
-    # dhw_loop = add_loop(model, 'DHW Loop', dhw_loop_sp, 10.0, dhw_gpm)
     dhw_loop = add_loop(model, 'DHW Loop', dhw_loop_sp, 10.0, UnitConversions.convert(0.01, 'm^3/s', 'gal/min')) # 0.01 from OS-HPXML
     if shared_water_heater_type.include?('space-heating')
       space_heating_loop = add_loop(model, 'Space Heating Loop', other_loop_sp, 20.0, space_heating_gpm)
-      # space_heating_loop = add_loop(model, 'Space Heating Loop', other_loop_sp, 20.0)
     end
     supply_loops = {}
     (1..supply_count).to_a.each do |i|
-      # supply_loop = add_loop(model, "Supply Loop #{i}", other_loop_sp, 20.0, supply_gpm)
       supply_loop = add_loop(model, "Supply Loop #{i}", other_loop_sp, 20.0)
       supply_loops[supply_loop] = []
     end
-    # source_loop = add_loop(model, 'Source Loop', other_loop_sp, 20.0, source_gpm)
-    source_loop = add_loop(model, 'Source Loop', other_loop_sp, 20.0)
+    source_loop = add_loop(model, 'Source Loop', other_loop_sp, 20.0, source_gpm)
 
     # Add Adiabatic Pipes
     dhw_loop_demand_inlet, dhw_loop_demand_bypass = add_adiabatic_pipes(model, dhw_loop)
@@ -184,13 +192,13 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     # Add Tanks
     prev_storage_tank = nil
     supply_loops.each do |supply_loop, components|
-      storage_tank = add_storage_tank(model, source_loop, supply_loop, storage_tank_volume, prev_storage_tank, "#{supply_loop.name} Main Storage Tank", shared_water_heater_fuel_type, dhw_loop_sp)
+      storage_tank = add_storage_tank(model, source_loop, supply_loop, storage_tank_volume, prev_storage_tank, "#{supply_loop.name} Main Storage Tank", shared_water_heater_fuel_type, other_loop_sp)
       storage_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) # Used by reporting measure
 
       components << storage_tank
       prev_storage_tank = components[0]
     end
-    swing_tank = add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank', shared_water_heater_fuel_type, dhw_loop_sp)
+    swing_tank = add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank', shared_water_heater_fuel_type, other_loop_sp)
     swing_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) if !swing_tank.nil? # Used by reporting measure
 
     # Add Heat Exchangers
@@ -515,7 +523,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     storage_tank.setOnCycleParasiticFuelConsumptionRate(0.0)
     storage_tank.setNumberofNodes(6)
     storage_tank.setUseSideDesignFlowRate(UnitConversions.convert(volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
-    # storage_tank.setSourceSideDesignFlowRate() # FIXME
+    # storage_tank.setSourceSideDesignFlowRate(UnitConversions.convert(13.6, 'gal/min', 'm^3/s')) # FIXME
     storage_tank.setEndUseSubcategory(name)
     storage_tank.setHeaterFuelType(EPlus.fuel_type(fuel_type))
     if heat_pump_loop.nil? # stratified tank on supply side of source loop (e.g., shared electric hpwh)
@@ -624,14 +632,36 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
         component = OpenStudio::Model::HeatPumpAirToWaterFuelFiredHeating.new(model)
         component.setName(name)
         component.setFuelType(EPlus.fuel_type(fuel_type))
+        # component.setEndUseSubcategory()
+        component.setNominalHeatingCapacity(36194)
+        component.setNominalCOP(1.293)
+        # component.setDesignFlowRate(0.005) # FIXME
+        component.setDesignSupplyTemperature(60)
+        component.setDesignTemperatureLift(13)
         # component.setFlowMode('LeavingSetpointModulated') # FIXME: this almost zeros out Fuel-fired Absorption HeatPump Electricity Energy: Supply Loop 1 Water Heater
-        component.setNominalHeatingCapacity(40000) # FIXME
-        component.setNominalAuxiliaryElectricPower(0)
-        component.setStandbyElectricPower(0)
+        component.setMinimumPartLoadRatio(0.2)
+        component.setMaximumPartLoadRatio(1.0)
+        component.setDefrostControlType('OnDemand')
+        component.setDefrostOperationTimeFraction(0.0)
+        component.setResistiveDefrostHeaterCapacity(0.0)
+        component.setMaximumOutdoorDrybulbTemperatureforDefrostOperation(3.0)
+        component.setNominalAuxiliaryElectricPower(900)
+        component.setStandbyElectricPower(20)
+
+        # Curves
+        # cap_func_temp, eir_func_temp, eir_func_plr, eir_defrost_adj, cycling_ratio_factor, aux_eir_func_temp, aux_eir_func_plr = get_heat_pump_air_to_water_fuel_fired_heating_curves(model, component)
+        # component.setNormalizedCapacityFunctionofTemperatureCurve(cap_func_temp)
+        # component.setFuelEnergyInputRatioFunctionofTemperatureCurve(eir_func_temp)
+        # component.setFuelEnergyInputRatioFunctionofPLRCurve(eir_func_plr)
+        # component.setFuelEnergyInputRatioDefrostAdjustmentCurve(eir_defrost_adj)
+        # component.setCyclingRatioFactorCurve(cycling_ratio_factor)
+        # component.setAuxiliaryElectricEnergyInputRatioFunctionofTemperatureCurve(aux_eir_func_temp)
+        # component.setAuxiliaryElectricEnergyInputRatioFunctionofPLRCurve(aux_eir_func_plr)
+
         # if system_type.include?('space-heating')
         # component.additionalProperties.setFeature('IsCombiHP', true) # Used by reporting measure
         # end
-        # component.setDesignFlowRate() # FIXME
+
         supply_loop.addSupplyBranchForComponent(component)
       end
     end
@@ -791,6 +821,162 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       w = wNew
     end
     return x
+  end
+
+  def get_heat_pump_air_to_water_fuel_fired_heating_curves(model, component)
+    cap_func_temp = component.normalizedCapacityFunctionofTemperatureCurve
+    # cap_func_temp = OpenStudio::Model::CurveBicubic.new(model)
+    cap_func_temp.setName('CapCurveFuncTemp')
+    # cap_func_temp.setCoefficient1Constant(-53.99)
+    # cap_func_temp.setCoefficient2x(1.541)
+    # cap_func_temp.setCoefficient4y(-0.006523)
+    # cap_func_temp.setCoefficient3xPOW2(-0.01438)
+    # cap_func_temp.setCoefficient6xTIMESY(0.0002626)
+    # cap_func_temp.setCoefficient5yPOW2(-0.00006042)
+    # cap_func_temp.setCoefficient7xPOW3(0.0000444)
+    # cap_func_temp.setCoefficient9xPOW2TIMESY(-0.000001052)
+    # cap_func_temp.setCoefficient10xTIMESYPOW2(0.00000006212)
+    # cap_func_temp.setCoefficient8yPOW3(0.00000002424)
+    # cap_func_temp.setMinimumValueofx(5)
+    # cap_func_temp.setMaximumValueofx(60)
+    # cap_func_temp.setMinimumValueofy(5)
+    # cap_func_temp.setMaximumValueofy(60)
+
+    t_amb = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Site Outdoor Air Drybulb Temperature')
+    t_amb.setName('Tamb')
+    t_amb.setKeyName('*')
+
+    t_ret = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Fuel-fired Absorption HeatPump Inlet Temperature')
+    t_ret.setName('Tret')
+    t_ret.setKeyName(component.name.to_s)
+
+    actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(cap_func_temp, 'Curve', 'Curve Result')
+    actuator.setName('CapOutput')
+
+    program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    program.setName('Cap_fT_fixed')
+    program.addLine("Set Tret = #{t_ret.name}*(9.0/5.0)+32.0")
+    program.addLine("Set Tamb = #{t_amb.name}*(9.0/5.0)+32.0")
+    program.addLine('Set a1 = -53.99')
+    program.addLine('Set b1 = 1.541*Tret')
+    program.addLine('Set c1 = -0.006523*Tamb')
+    program.addLine('Set d1 = -0.01438*(Tret^2)')
+    program.addLine('Set e1 = 0.0002626*Tret*Tamb')
+    program.addLine('Set f1 = -0.00006042*(Tamb^2)')
+    program.addLine('Set g1 = 0.0000444*(Tret^3)')
+    program.addLine('Set h1 = -0.000001052*(Tret^2)*Tamb')
+    program.addLine('Set i1 = 0.00000006212*Tret*(Tamb^2)')
+    program.addLine('Set j1 = 0.00000002424*(Tamb^3)')
+    program.addLine("Set #{actuator.name} = a1 + b1 + c1 + d1 + e1 + f1 + g1 + h1 + i1 + j1")
+
+    ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{actuator.name}")
+    ems_output_var.setName("#{actuator.name}_outputvar")
+    ems_output_var.setTypeOfDataInVariable('Averaged')
+    ems_output_var.setUpdateFrequency('SystemTimestep')
+    ems_output_var.setEMSProgramOrSubroutineName(program)
+
+    program_cm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    program_cm.setName("#{program.name}_pcm")
+    program_cm.setCallingPoint('InsideHVACSystemIterationLoop')
+    program_cm.addProgram(program)
+
+    eir_func_temp = component.fuelEnergyInputRatioFunctionofTemperatureCurve
+    # eir_func_temp = OpenStudio::Model::CurveBiquadratic.new(model)
+    eir_func_temp.setName('EIRCurveFuncTemp')
+    # eir_func_temp.setCoefficient1Constant(0.5205)
+    # eir_func_temp.setCoefficient2x(0.00004408)
+    # eir_func_temp.setCoefficient3xPOW2(0.0000176)
+    # eir_func_temp.setCoefficient4y(0.00699)
+    # eir_func_temp.setCoefficient5yPOW2(-0.0001215)
+    # eir_func_temp.setCoefficient6xTIMESY(0.0000005196)
+    # eir_func_temp.setMinimumValueofx(5)
+    # eir_func_temp.setMaximumValueofx(60)
+    # eir_func_temp.setMinimumValueofy(5)
+    # eir_func_temp.setMaximumValueofy(60)
+
+    actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(eir_func_temp, 'Curve', 'Curve Result')
+    actuator.setName('EirOutput')
+
+    program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    program.setName('Eir_fT_fixed')
+    program.addLine("Set Tret = #{t_ret.name}*(9.0/5.0)+32.0")
+    program.addLine("Set Tamb = #{t_amb.name}*(9.0/5.0)+32.0")
+    program.addLine('Set a2 = 0.52')
+    program.addLine('Set b2 = 0.00004408*Tamb')
+    program.addLine('Set c2 = 0.0000176*Tamb^2')
+    program.addLine('Set d2 = 0.00699*(Tret)')
+    program.addLine('Set e2 = -0.0001215*Tamb*Tret')
+    program.addLine('Set f2 = 0.0000005196*(Tamb^2)*Tret')
+    program.addLine("Set #{actuator.name} = a2 + b2 + c2 + d2 + e2 + f2")
+
+    ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{actuator.name}")
+    ems_output_var.setName("#{actuator.name}_outputvar")
+    ems_output_var.setTypeOfDataInVariable('Averaged')
+    ems_output_var.setUpdateFrequency('SystemTimestep')
+    ems_output_var.setEMSProgramOrSubroutineName(program)
+
+    program_cm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    program_cm.setName("#{program.name}_pcm")
+    program_cm.setCallingPoint('InsideHVACSystemIterationLoop')
+    program_cm.addProgram(program)
+
+    eir_func_plr = OpenStudio::Model::CurveExponent.new(model)
+    eir_func_plr.setName('EIRCurveFuncPLR')
+    eir_func_plr.setCoefficient1Constant(0)
+    eir_func_plr.setCoefficient2Constant(0.9219)
+    eir_func_plr.setCoefficient3Constant(-0.188)
+    eir_func_plr.setMinimumValueofx(0)
+    eir_func_plr.setMaximumValueofx(1)
+    eir_func_plr.setMinimumCurveOutput(1)
+    eir_func_plr.setMaximumCurveOutput(2.25)
+
+    eir_defrost_adj = OpenStudio::Model::CurveQuadratic.new(model)
+    eir_defrost_adj.setName('EIRDefrostFoTCurve')
+    eir_defrost_adj.setCoefficient1Constant(1.0317)
+    eir_defrost_adj.setCoefficient2x(-0.006)
+    eir_defrost_adj.setCoefficient3xPOW2(-0.0011)
+    eir_defrost_adj.setMinimumValueofx(-8.89)
+    eir_defrost_adj.setMaximumValueofx(3.333)
+    eir_defrost_adj.setMinimumCurveOutput(1.0)
+    eir_defrost_adj.setMaximumCurveOutput(10.0)
+
+    cycling_ratio_factor = OpenStudio::Model::CurveQuadratic.new(model)
+    cycling_ratio_factor.setName('CRFCurve')
+    cycling_ratio_factor.setCoefficient1Constant(1)
+    cycling_ratio_factor.setCoefficient2x(0)
+    cycling_ratio_factor.setCoefficient3xPOW2(0)
+    cycling_ratio_factor.setMinimumValueofx(0)
+    cycling_ratio_factor.setMaximumValueofx(100)
+    cycling_ratio_factor.setMinimumCurveOutput(0)
+    cycling_ratio_factor.setMaximumCurveOutput(10.0)
+
+    aux_eir_func_temp = OpenStudio::Model::CurveBiquadratic.new(model)
+    aux_eir_func_temp.setName('auxElecEIRCurveFuncTempCurve')
+    aux_eir_func_temp.setCoefficient1Constant(1)
+    aux_eir_func_temp.setCoefficient2x(0)
+    aux_eir_func_temp.setCoefficient3xPOW2(0)
+    aux_eir_func_temp.setCoefficient4y(0)
+    aux_eir_func_temp.setCoefficient5yPOW2(0)
+    aux_eir_func_temp.setCoefficient6xTIMESY(0)
+    aux_eir_func_temp.setMinimumValueofx(-100)
+    aux_eir_func_temp.setMaximumValueofx(100)
+    aux_eir_func_temp.setMinimumValueofy(-100)
+    aux_eir_func_temp.setMaximumValueofy(100)
+
+    aux_eir_func_plr = OpenStudio::Model::CurveBiquadratic.new(model)
+    aux_eir_func_plr.setName('auxElecEIRForPLRCurve')
+    aux_eir_func_plr.setCoefficient1Constant(1.102)
+    aux_eir_func_plr.setCoefficient2x(-0.0008714)
+    aux_eir_func_plr.setCoefficient3xPOW2(-0.000009238)
+    aux_eir_func_plr.setCoefficient4y(0.00000006487)
+    aux_eir_func_plr.setCoefficient5yPOW2(0.0006447)
+    aux_eir_func_plr.setCoefficient6xTIMESY(0.0000007846)
+    aux_eir_func_plr.setMinimumValueofx(5)
+    aux_eir_func_plr.setMaximumValueofx(60)
+    aux_eir_func_plr.setMinimumValueofy(5)
+    aux_eir_func_plr.setMaximumValueofy(60)
+
+    return cap_func_temp, eir_func_temp, eir_func_plr, eir_defrost_adj, cycling_ratio_factor, aux_eir_func_temp, aux_eir_func_plr
   end
 end
 
