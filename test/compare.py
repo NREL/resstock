@@ -11,11 +11,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '../.
 from compare import BaseCompare, read_csv
 
 
-enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family Detached': 'SFD',
-                                                                  'Mobile Home': 'MH',
-                                                                  'Single-Family Attached': 'SFA',
-                                                                  'Multi-Family with 2 - 4 Units': 'MF',
-                                                                  'Multi-Family with 5+ Units': 'MF'} }
+enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family Detached': '1 - SFD',
+                                                                  'Mobile Home': '2 - MH',
+                                                                  'Single-Family Attached': '3 - SFA',
+                                                                  'Multi-Family with 2 - 4 Units': '4 - MF',
+                                                                  'Multi-Family with 5+ Units': '4 - MF'} }
 
 class MoreCompare(BaseCompare):
   def __init__(self, base_folder, feature_folder, export_folder, export_file, map_file):
