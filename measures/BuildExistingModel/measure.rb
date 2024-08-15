@@ -343,8 +343,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     if bldg_data['Water Heater In Unit'] == 'No'
       require_relative '../AddSharedWaterHeater/resources/constants.rb'
 
-      if bldg_data['Water Heater Efficiency'].include?('Heat Pump')
+      if bldg_data['Water Heater Efficiency'].include?('Natural Gas Heat Pump')
         shared_water_heater_type = Constants.WaterHeaterTypeHeatPump
+      elsif bldg_data['Water Heater Efficiency'].include?('Natural Gas Standard') || bldg_data['Water Heater Efficiency'].include?('Natural Gas Premium')
+        shared_water_heater_type = Constants.WaterHeaterTypeBoiler
+      end
+
+      if shared_water_heater_type.include?('storage')
         if bldg_data['Water Heater Fuel'].include?('Electricity')
           shared_water_heater_fuel_type = HPXML::FuelTypeElectricity
         elsif bldg_data['Water Heater Fuel'].include?('Natural Gas')
@@ -358,19 +363,21 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         end
       end
 
-      if bldg_data['HVAC Shared Efficiencies'].include?('Heat Pump')
-        shared_water_heater_type = Constants.WaterHeaterTypeCombiHeatPump
-      elsif bldg_data['HVAC Shared Efficiencies'].include?('Boiler')
-        shared_water_heater_type = Constants.WaterHeaterTypeCombiBoiler
-      end
+      if bldg_data['HVAC Heating Type And Fuel'] == 'Natural Gas Shared Heating'
+        if bldg_data['HVAC Shared Efficiencies'].include?('Natural Gas Heat Pump')
+          shared_water_heater_type = Constants.WaterHeaterTypeCombiHeatPump
+        elsif bldg_data['HVAC Shared Efficiencies'].include?('Boiler') || bldg_data['HVAC Shared Efficiencies'].include?('Fan Coil')
+          shared_water_heater_type = Constants.WaterHeaterTypeCombiBoiler
+        end
 
-      if shared_water_heater_type.include?('space-heating')
-        if bldg_data['HVAC Heating Type And Fuel'].include?('Electricity')
-          shared_water_heater_fuel_type = HPXML::FuelTypeElectricity
-        elsif bldg_data['HVAC Heating Type And Fuel'].include?('Natural Gas')
-          shared_water_heater_fuel_type = HPXML::FuelTypeNaturalGas
-        elsif bldg_data['HVAC Heating Type And Fuel'].include?('Fuel Oil')
-          shared_water_heater_fuel_type = HPXML::FuelTypeOil
+        if shared_water_heater_type.include?('space-heating')
+          if bldg_data['HVAC Heating Type And Fuel'].include?('Electricity')
+            shared_water_heater_fuel_type = HPXML::FuelTypeElectricity
+          elsif bldg_data['HVAC Heating Type And Fuel'].include?('Natural Gas')
+            shared_water_heater_fuel_type = HPXML::FuelTypeNaturalGas
+          elsif bldg_data['HVAC Heating Type And Fuel'].include?('Fuel Oil')
+            shared_water_heater_fuel_type = HPXML::FuelTypeOil
+          end
         end
       end
     end

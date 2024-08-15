@@ -11,6 +11,10 @@ module Constants
     return 'heat pump water heater with storage and swing tanks'
   end
 
+  def self.WaterHeaterTypeBoiler
+    return 'boiler with storage tanks'
+  end
+
   def self.WaterHeaterTypeCombiHeatPump
     return 'space-heating heat pump water heater with storage and swing tanks'
   end
