@@ -1919,7 +1919,7 @@ class SchedulesFile
                  output_path:,
                  offset_db: nil)
     return if schedules_paths.empty?
-
+    @runner = runner
     @year = year
     import(schedules_paths)
     create_battery_charging_discharging_schedules
@@ -2032,7 +2032,7 @@ class SchedulesFile
         csv << row
       end
     end
-
+    @runner.registerInfo("Exported detailed schedules to #{@output_schedules_path}")
     return true
   end
 

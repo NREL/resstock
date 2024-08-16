@@ -2,12 +2,19 @@ from dataclasses import dataclass, field
 import openstudio
 from typing import Optional
 from typing import TypeVar, Generic, List
+import dataclasses
 T = TypeVar('T')
 
 
 class OffsetType:
     relative: str = 'relative'
     absolute: str = 'absolute'
+
+
+@dataclass(frozen=True)
+class BuildingInfo:
+    state: str = "CO"
+    sim_year: int = 2019
 
 
 @dataclass(frozen=True)
@@ -62,201 +69,176 @@ class Argument(Generic[T]):
 
 
 @dataclass(frozen=True)
-class __OffsetTypeData:
-    offset_type: Argument[str] = Argument(
-        name='offset_type',
-        type=tuple,
-        displayname="Setpoint offset type",
-        description="Whether to apply the demand response setpoints relative to the default setpoints"
-                    " or as absolute values.",
-        required=True,
-        choices=(OffsetType.relative, OffsetType.absolute),
-        default=OffsetType.relative
-    )
-
-
-# Create an instance of the class.
-# This is the only instance that should be created and is used everywhere the module is imported.
-OffsetTypeData = __OffsetTypeData()
-
-
-@dataclass(frozen=True)
-class __RelativeOffsetData:
-    heating_pre_peak_offset: Argument[int] = Argument(
+class RelativeOffsetData:
+    heating_pre_peak_offset: Argument[int] = field(default_factory=lambda: Argument(
         name='heating_pre_peak_offset',
         type=int,
         default=4,
         displayname="Heating Pre-Peak Offset (deg F)",
         description="How much increase offset to apply to the heating schedule in degree fahrenheit before the peak. Only used"
                     " if offset type is relative."
-    )
-    heating_on_peak_offset: Argument[int] = Argument(
+    ))
+    heating_on_peak_offset: Argument[int] = field(default_factory=lambda: Argument(
         name='heating_on_peak_offset',
         type=int,
         default=4,
         displayname="Heating On-Peak Offset (deg F)",
         description="How much decrease offset to apply to the heating schedule in degree fahrenheit on the peak. Only used"
                     " if offset type is relative."
-    )
-    heating_max: Argument[int] = Argument(
+    ))
+    heating_max: Argument[int] = field(default_factory=lambda: Argument(
         name='heating_max',
         type=int,
         default=80,
         displayname="Heating Max Setpoint (deg F)",
         description="The maximum heating setpoint in degree fahrenheit offsets should honor. Only used if offset"
                     " type is relative."
-    )
-    heating_min: Argument[int] = Argument(
+    ))
+    heating_min: Argument[int] = field(default_factory=lambda: Argument(
         name='heating_min',
         type=int,
         default=55,
         displayname="Heating Min Setpoint (deg F)",
         description="The minimum heating setpoint in degree fahrenheit that offsets should honor. Only used if"
                     " offset type is relative."
-    )
-    cooling_pre_peak_offset: Argument[int] = Argument(
+    ))
+    cooling_pre_peak_offset: Argument[int] = field(default_factory=lambda: Argument(
         name='cooling_pre_peak_offset',
         type=int,
         default=4,
         displayname="Cooling Pre-Peak Offset (deg F)",
         description="How much decrease offset to apply to the cooling schedule in degree fahrenheit before the peak."
                     " Only used if offset type is relative."
-    )
-    cooling_on_peak_offset: Argument[int] = Argument(
+    ))
+    cooling_on_peak_offset: Argument[int] = field(default_factory=lambda: Argument(
         name='cooling_on_peak_offset',
         type=int,
         default=4,
         displayname="Cooling On-Peak Offset (deg F)",
         description="How much increase offset to apply to the cooling schedule in degree fahrenheit on the peak."
                     " Only used if offset type is relative."
-    )
-    cooling_max: Argument[int] = Argument(
+    ))
+    cooling_max: Argument[int] = field(default_factory=lambda: Argument(
         name='cooling_max',
         type=int,
         default=80,
         displayname="Cooling Max Setpoint (deg F)",
         description="The maximum cooling setpoint in degree fahrenheit offsets should honor. Only used"
                     " if offset type is relative."
-    )
-    cooling_min: Argument[int] = Argument(
+    ))
+    cooling_min: Argument[int] = field(default_factory=lambda: Argument(
         name='cooling_min',
         type=int,
         default=60,
         displayname="Cooling Min Setpoint (deg F)",
         description="The minimum cooling setpoint in degree fahrenheit that offsets should honor."
                     " Only used if offset type is relative."
-    )
-
-
-# Create an instance of the class.
-# This is the only instance that should be created and is used everywhere the module is imported.
-RelativeOffsetData = __RelativeOffsetData()
+    ))
 
 
 @dataclass(frozen=True)
-class __AbsoluteOffsetData:
-    heating_on_peak_setpoint: Argument[int] = Argument(
+class AbsoluteOffsetData:
+    heating_on_peak_setpoint: Argument[int] = field(default_factory=lambda: Argument(
         name='heating_on_peak_setpoint',
         type=int,
         default=55,
         displayname="Heating On-Peak Setpoint (deg F)",
         description="The heating setpoint in degree fahrenheit on the peak. Only used if offset type is absolute."
-    )
-    heating_pre_peak_setpoint: Argument[int] = Argument(
+    ))
+    heating_pre_peak_setpoint: Argument[int] = field(default_factory=lambda: Argument(
         name='heating_pre_peak_setpoint',
         type=int,
         default=80,
         displayname="Heating Pre-Peak Setpoint (deg F)",
         description="The heating setpoint in degree fahrenheit before the peak. Only used if offset type is absolute."
-    )
-    cooling_on_peak_setpoint: Argument[int] = Argument(
+    ))
+    cooling_on_peak_setpoint: Argument[int] = field(default_factory=lambda: Argument(
         name='cooling_on_peak_setpoint',
         type=int,
         default=80,
         displayname="Cooling On-Peak Setpoint (deg F)",
         description="The cooling setpoint in degree fahrenheit on the peak. Only used if offset type is absolute."
-    )
-    cooling_pre_peak_setpoint: Argument[int] = Argument(
+    ))
+    cooling_pre_peak_setpoint: Argument[int] = field(default_factory=lambda: Argument(
         name='cooling_pre_peak_setpoint',
         type=int,
         default=60,
         displayname="Cooling Pre-Peak Setpoint (deg F)",
         description="The cooling setpoint in degree fahrenheit before the peak. Only used if offset type is absolute."
-    )
-
-
-AbsoluteOffsetData = __AbsoluteOffsetData()
+    ))
 
 
 @dataclass(frozen=True)
-class __OffsetTimingData:
-    heating_pre_peak_duration: Argument[int] = Argument(
+class OffsetTimingData:
+    heating_pre_peak_duration: Argument[int] = field(default_factory=lambda: Argument(
         name='heating_pre_peak_duration',
         type=int,
         default=4,
         displayname="Heating Pre-Peak Duration (hours)",
         description="The duration of the pre-peak period in hours."
-    )
-    cooling_pre_peak_duration: Argument[int] = Argument(
+    ))
+    cooling_pre_peak_duration: Argument[int] = field(default_factory=lambda: Argument(
         name='cooling_pre_peak_duration',
         type=int,
         default=4,
         displayname="Cooling Pre-Peak Duration (hours)",
         description="The duration of the pre-peak period in hours."
-    )
-    heating_on_peak_duration: Argument[int] = Argument(
+    ))
+    heating_on_peak_duration: Argument[int] = field(default_factory=lambda: Argument(
         name='heating_on_peak_duration',
         type=int,
         default=4,
         displayname="Heating On-Peak Duration (hours)",
         description="The duration of the on-peak period in hours."
-    )
-    cooling_on_peak_duration: Argument[int] = Argument(
+    ))
+    cooling_on_peak_duration: Argument[int] = field(default_factory=lambda: Argument(
         name='cooling_on_peak_duration',
         type=int,
         default=4,
         displayname="Cooling On-Peak Duration (hours)",
         description="The duration of the on-peak period in hours."
-    )
-    timing_shift_hr: Argument[float] = Argument(
+    ))
+    random_timing_shift: Argument[float] = field(default_factory=lambda: Argument(
         name='random_timing_shift',
-        type=bool,
+        type=float,
         default=1.0,
         displayname="Random Timing Shift",
         description="Random shift to the start and end times in hour to avoid coincident peaks. If the value is 1, start and end time will be shifted by a maximum of +- 1 hour."
-    )
+    ))
 
 
-# Create an instance of the class.
-# This is the only instance that should be created and is used everywhere the module is imported.
-OffsetTimingData = __OffsetTimingData()
+@dataclass
+class Inputs:
+    upgrade_name: Argument[str] = field(default_factory=lambda: Argument(
+        name='upgrade_name',
+        type=str,
+        default="None",
+        displayname='Upgrade Name',
+        description='The name of the upgrade when used as a part of upgrade measure'
+    ))
+    offset_type: Argument[str] = field(default_factory=lambda: Argument(
+        name='offset_type',
+        type=tuple,
+        displayname="Setpoint offset type",
+        description="Whether to apply the demand response setpoints relative to the default setpoints"
+        " or as absolute values.",
+        required=True,
+        choices=(OffsetType.relative, OffsetType.absolute),
+        default=OffsetType.relative
+    ))
+    relative_offset: RelativeOffsetData = field(default_factory=lambda: RelativeOffsetData())
+    absolute_offset: AbsoluteOffsetData = field(default_factory=lambda: AbsoluteOffsetData())
+    offset_timing: OffsetTimingData = field(default_factory=lambda: OffsetTimingData())
 
 
-upgrade_name_arg = Argument(name='upgrade_name',
-                            type=str,
-                            required=False,
-                            displayname='Upgrade Name', default="",
-                            description='The name of the upgrade when used as a part of upgrade measure')
-
-
-def _get_args(data_obj) -> List[Argument]:
-    """
-    Returns a list of Argument instances defined in the dataclass.
-    For a dataclass defined as:
-    @dataclass
-    class MyClass:
-        arg1: Argument[int] = Argument(name='arg1', type=int, default=1)
-        arg2: Argument[str] = Argument(name='arg2', type=str, default='a')
-
-    MyClass().__dataclass_fields__.values() will return [Field(name='arg1', ...), Field(name='arg2', ...)]
-    And Field(name='arg1', ...).default will return Argument(name='arg1', type=int, default=1)
-    This function returns [Argument(name='arg1', type=int, default=1), Argument(name='arg2', type=str, default='a')]
-    """
-    return [field.default for field in data_obj.__dataclass_fields__.values()]
-
-
-ALL_MEASURE_ARGS = [upgrade_name_arg]
-ALL_MEASURE_ARGS += _get_args(OffsetTypeData)
-ALL_MEASURE_ARGS += _get_args(RelativeOffsetData)
-ALL_MEASURE_ARGS += _get_args(AbsoluteOffsetData)
-ALL_MEASURE_ARGS += _get_args(OffsetTimingData)
+def get_input_from_dict(arg_dict) -> Inputs:
+    inputs = Inputs()
+    inputs.upgrade_name.set_val(arg_dict.get('upgrade_name'))
+    inputs.offset_type.set_val(arg_dict.get('offset_type'))
+    input_args = []
+    input_args += inputs.relative_offset.__dict__.values()
+    input_args += inputs.absolute_offset.__dict__.values()
+    input_args += inputs.offset_timing.__dict__.values()
+    for input_field in input_args:
+        input_field.set_val(arg_dict[input_field.name])
+    return inputs

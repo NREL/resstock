@@ -13,6 +13,7 @@ import subprocess
 import dataclasses
 import xml.etree.ElementTree as ET
 import sys
+from typing import List, Dict
 from dataclasses import fields
 
 if os.environ.get('DEBUGPY', '') == 'true':
@@ -24,9 +25,8 @@ if os.environ.get('DEBUGPY', '') == 'true':
 RESOURCES_DIR = Path(__file__).parent / "resources"
 sys.path.insert(0, str(RESOURCES_DIR))
 from setpoint import HVACSetpoints
-from input_helper import OffsetType, RelativeOffsetData, AbsoluteOffsetData, OffsetTimingData, ALL_MEASURE_ARGS
+from input_helper import OffsetType, RelativeOffsetData, AbsoluteOffsetData, OffsetTimingData, BuildingInfo, Inputs, Argument, get_input_from_dict
 from xml_helper import HPXML
-from setpoint_helper import HVACSetpointVals, BuildingInfo
 sys.path.pop(0)
 
 
@@ -68,9 +68,15 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
         Measure arguments define which -- if any -- input parameters the user may set before running the measure.
         """
         args = openstudio.measure.OSArgumentVector()
-        for arg in ALL_MEASURE_ARGS:
+        inputs = Inputs()
+        args.append(inputs.upgrade_name.getOSArgument())
+        args.append(inputs.offset_type.getOSArgument())
+        for arg in inputs.relative_offset.__dict__.values():
             args.append(arg.getOSArgument())
-
+        for arg in inputs.absolute_offset.__dict__.values():
+            args.append(arg.getOSArgument())
+        for arg in inputs.offset_timing.__dict__.values():
+            args.append(arg.getOSArgument())
         return args
 
     def get_hpxml_path(self, runner: openstudio.measure.OSRunner):
@@ -79,31 +85,25 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
                       if 'HPXMLtoOpenStudio' in step['measure_dir_name']][0]
         return hpxml_path
 
-    def get_setpoint_csv(self, setpoint: HVACSetpoints):
+    def get_setpoint_csv(self, setpoint_dict: Dict[str, List[int]]):
         header = 'heating_setpoint,cooling_setpoint'
         vals = '\n'.join([','.join([str(v) for v in val_pair])
-                         for val_pair in zip(setpoint.heating_setpoints, setpoint.cooling_setpoints)])
+                         for val_pair in zip(setpoint_dict['heating_setpoints'],
+                                             setpoint_dict['cooling_setpoints'])])
         return f"{header}\n{vals}"
 
     def process_arguments(self, runner, arg_dict: dict, passed_arg: set):
         if arg_dict['offset_type'] == OffsetType.absolute:
             relative_offset_fields = set(f.name for f in dataclasses.fields(RelativeOffsetData))
             if intersect_args := passed_arg & relative_offset_fields:
-                runner.registerWargning(f"These inputs are ignored ({intersect_args}) since offset type is absolute.")
-                return False
+                runner.registerWarning(f"These inputs are ignored ({intersect_args}) since offset type is absolute.")
+
         if arg_dict['offset_type'] == OffsetType.relative:
             absolute_offset_fields = set(f.name for f in dataclasses.fields(AbsoluteOffsetData))
             if intersect_args := passed_arg & absolute_offset_fields:
                 runner.registerError(f"These inputs are ignored ({intersect_args}) since offset type is relative.")
-                return False
 
-        for arg in ALL_MEASURE_ARGS:
-            arg.set_val(arg_dict[arg.name])
-
-        # apply random shift to the start and end times to avoid coincident peaks
-        for f in fields(OffsetTimingData):
-            value = getattr(OffsetTimingData, f.name)
-            value = self._time_shift(value)
+        return get_input_from_dict(arg_dict)
 
     def run(
         self,
@@ -120,8 +120,7 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
         runner.registerInfo("Starting LoadFlexibility")
         arg_dict = runner.getArgumentValues(self.arguments(model), user_arguments)
         passed_args = {arg_name for arg_name, arg_value in dict(user_arguments).items() if arg_value.hasValue()}
-        self.process_arguments(runner, arg_dict, passed_args)  # sets the values of the arguments in the dataclasses
-
+        inputs = self.process_arguments(runner, arg_dict, passed_args)  # Returns Inputs object
         osw_path = str(runner.workflow().oswPath().get())
 
         hpxml_path = self.get_hpxml_path(runner)
@@ -132,16 +131,18 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
 
         setpoints = [HVACSetpoints(os_runner=runner,
                                    building_info=building_info,
-                                   heating_setpoints=setpoint['heating setpoint'],
-                                   cooling_setpoints=setpoint['cooling setpoint'])
+                                   inputs=inputs,
+                                   heating_setpoints=setpoint['heating_setpoints'],
+                                   cooling_setpoints=setpoint['cooling_setpoints'])
                      for setpoint in json.loads(result.stdout)
-                     ]  # [{"heating setpoint": [], "cooling setpoint": []}]
+                     ]  # [{"heating_setpoint": [], "cooling_setpoint": []}]
         if result.returncode != 0:
             runner.registerError(f"Failed to run create_setpoint_schedules.rb : {result.stderr}")
             return False
 
+        new_setpoints: List[Dict[str, List[int]]] = []
         for setpoint in setpoints:
-            setpoint._modify_setpoint()
+            new_setpoints.append(setpoint._get_modified_setpoints(inputs=inputs))
 
         hpxml = HPXML(hpxml_path)
         doc_buildings = hpxml.findall("Building")
@@ -149,7 +150,7 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
             doc_building_id = building.find("ns:BuildingID", hpxml.ns).get('id')
             output_csv_name = f"hvac_setpoint_schedule_{doc_building_id}.csv"
             output_csv_path = Path(hpxml_path).parent / output_csv_name
-            setpoint_dict = setpoints[indx]
+            setpoint_dict = new_setpoints[indx]
             with open(output_csv_path, 'w', newline='') as f:
                 f.write(self.get_setpoint_csv(setpoint_dict))
             extension = hpxml.create_elements_as_needed(building, ['BuildingDetails', 'BuildingSummary', 'extension'])

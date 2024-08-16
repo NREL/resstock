@@ -21,13 +21,12 @@ class SetpointScheduleGenerator
     @hpxml = hpxml
     @hpxml_bldg = @hpxml.buildings[building_index]
     @epw_path = Location.get_epw_path(@hpxml_bldg, @hpxml_path)
-    @epw_file = OpenStudio::EpwFile.new(@epw_path)
-    @sim_year = Location.get_sim_calendar_year(@hpxml.header.sim_calendar_year, @epw_file)
-    @total_days_in_year = Constants.NumDaysInYear(@sim_year)
-    @sim_start_day = DateTime.new(@sim_year, 1, 1)
     @workflow_json = OpenStudio::WorkflowJSON.new(workflow_path)
     @runner = OpenStudio::Measure::OSRunner.new(@workflow_json)
-    @weather = WeatherProcess.new(epw_path: @epw_path, runner: @runner, hpxml: @hpxml)
+    @weather = WeatherFile.new(epw_path: @epw_path, runner: @runner, hpxml: @hpxml)
+    @sim_year = Location.get_sim_calendar_year(@hpxml.header.sim_calendar_year, @weather)
+    @total_days_in_year = Constants.NumDaysInYear(@sim_year)
+    @sim_start_day = DateTime.new(@sim_year, 1, 1)
     @minutes_per_step = @hpxml.header.timestep
     @steps_in_day = 24 * 60 / @minutes_per_step
   end
@@ -56,7 +55,7 @@ class SetpointScheduleGenerator
         cooling_setpoints << cooling_setpoint_sch[day][hour]
       end
     end
-    return {"heating_setpoint": heating_setpoints, "cooling_setpoint": cooling_setpoints}
+    return {"heating_setpoints": heating_setpoints, "cooling_setpoints": cooling_setpoints}
   end
 
   def c2f(setpoint_sch)
@@ -68,8 +67,9 @@ class SetpointScheduleGenerator
     has_ceiling_fan = (@hpxml_bldg.ceiling_fans.size > 0)
     cooling_days, heating_days = get_heating_cooling_days(hvac_control)
     hvac_control = @hpxml_bldg.hvac_controls[0]
-    htg_weekday_setpoints, htg_weekend_setpoints = HVAC.get_heating_setpoints(hvac_control, @sim_year)
-    clg_weekday_setpoints, clg_weekend_setpoints = HVAC.get_cooling_setpoints(hvac_control, has_ceiling_fan, @sim_year, @weather)
+    onoff_thermostat_ddb = @hpxml.header.hvac_onoff_thermostat_deadband.to_f
+    htg_weekday_setpoints, htg_weekend_setpoints = HVAC.get_heating_setpoints(hvac_control, @sim_year, onoff_thermostat_ddb)
+    clg_weekday_setpoints, clg_weekend_setpoints = HVAC.get_cooling_setpoints(hvac_control, has_ceiling_fan, @sim_year, @weather, onoff_thermostat_ddb)
 
     htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints = HVAC.create_setpoint_schedules(@runner, heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, @sim_year)
     return c2f(clg_weekday_setpoints), c2f(clg_weekend_setpoints), c2f(htg_weekday_setpoints), c2f(htg_weekend_setpoints)

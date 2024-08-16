@@ -11,7 +11,7 @@ CURRENT_DIR_PATH = Path(__file__).parent.absolute()
 sys.path.insert(0, str(CURRENT_DIR_PATH.parent))
 import dataclasses
 from measure import LoadFlexibility
-from resources.input_helper import OffsetTypeData, AbsoluteOffsetData, OffsetTimingData, RelativeOffsetData
+from resources.input_helper import Inputs, AbsoluteOffsetData, OffsetTimingData, RelativeOffsetData
 from resources.setpoint import HVACSetpoints
 sys.path.pop(0)
 # del sys.modules['measure']
@@ -27,14 +27,14 @@ class TestLoadFlexibility:
 
         # make an empty model
         model = openstudio.model.Model()
-
+        example_inputs = Inputs()
         # get arguments and test that they are what we are expecting
         arguments = measure.arguments(model)
-        offset_type_fields = [f.name for f in dataclasses.fields(OffsetTypeData)]
-        absolute_fields = [f.name for f in dataclasses.fields(AbsoluteOffsetData)]
-        relative_fields = [f.name for f in dataclasses.fields(RelativeOffsetData)]
-        offset_timing_fields = [f.name for f in dataclasses.fields(OffsetTimingData)]
-        expected_all_args = sorted(offset_type_fields + absolute_fields + relative_fields + offset_timing_fields)
+        single_fields = [example_inputs.upgrade_name.name, example_inputs.offset_type.name]
+        absolute_fields = [f.name for f in example_inputs.absolute_offset.__dict__.values()]
+        relative_fields = [f.name for f in example_inputs.relative_offset.__dict__.values()]
+        offset_timing_fields = [f.name for f in example_inputs.offset_timing.__dict__.values()]
+        expected_all_args = sorted(single_fields + absolute_fields + relative_fields + offset_timing_fields)
         actual_all_args = sorted([arg.name() for arg in arguments])
         assert actual_all_args == expected_all_args
 
