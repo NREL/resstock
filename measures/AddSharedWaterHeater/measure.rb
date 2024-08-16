@@ -94,6 +94,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     boiler_efficiency_curve = get_boiler_efficiency_curve(model)
 
     if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
+      # supply_count *= 2
       supply_capacity = 36194
     elsif shared_water_heater_type == Constants.WaterHeaterTypeBoiler
       supply_count = 1
@@ -103,8 +104,8 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       supply_capacity = 36194
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
       supply_count = 1
-      supply_capacity = water_heating_capacity + space_heating_capacity
-      storage_tank_volume = 2.5 * water_heating_tank_volume # FIXME
+      supply_capacity = 2 * (water_heating_capacity + space_heating_capacity) # FIXME
+      storage_tank_volume = 3 * water_heating_tank_volume # FIXME
     end
 
     # Swing tank volume
@@ -235,24 +236,24 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     add_indoor_pipes(model, dhw_loop_demand_inlet, dhw_loop_demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value, num_units)
 
     # Add Pumps
-    add_pump(model, dhw_loop, 'DHW Loop Pump', dhw_pump_gpm)
+    add_pump(model, dhw_loop, dhw_pump_gpm)
     if shared_water_heater_type.include?('space-heating')
-      add_pump(model, space_heating_loop, 'Space Heating Loop Pump', space_heating_pump_gpm)
+      add_pump(model, space_heating_loop, space_heating_pump_gpm)
     end
     supply_loops.each do |supply_loop, _|
-      add_pump(model, supply_loop, "#{supply_loop.name} Pump", supply_pump_gpm)
+      add_pump(model, supply_loop, supply_pump_gpm)
     end
-    add_pump(model, source_loop, 'Source Loop Pump', source_pump_gpm)
+    add_pump(model, source_loop, source_pump_gpm)
 
     # Add Setpoint Managers
-    add_setpoint_manager(model, dhw_loop, dhw_loop_sp_schedule, 'DHW Loop Setpoint Manager')
+    add_setpoint_manager(model, dhw_loop, dhw_loop_sp_schedule)
     if shared_water_heater_type.include?('space-heating')
-      add_setpoint_manager(model, space_heating_loop, space_heating_loop_sp_schedule, 'Space Heating Loop Setpoint Manager')
+      add_setpoint_manager(model, space_heating_loop, space_heating_loop_sp_schedule)
     end
     supply_loops.each do |supply_loop, _|
-      add_setpoint_manager(model, supply_loop, supply_loop_sp_schedule, "#{supply_loop.name} Setpoint Manager", 'Temperature')
+      add_setpoint_manager(model, supply_loop, supply_loop_sp_schedule)
     end
-    add_setpoint_manager(model, source_loop, source_loop_sp_schedule, 'Source Loop Setpoint Manager', 'Temperature')
+    add_setpoint_manager(model, source_loop, source_loop_sp_schedule)
 
     # Add Tanks
     prev_storage_tank = nil
@@ -569,20 +570,20 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     return gpm, cap
   end
 
-  def add_pump(model, loop, name, pump_gpm)
+  def add_pump(model, loop, pump_gpm)
     return if loop.nil?
 
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
-    pump.setName(name)
+    pump.setName("#{loop.name} Pump")
     pump.setRatedFlowRate(UnitConversions.convert(pump_gpm, 'gal/min', 'm^3/s')) if !pump_gpm.nil?
     pump.addToNode(loop.supplyInletNode)
     pump.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) # Used by reporting measure
   end
 
-  def add_setpoint_manager(model, loop, schedule, name, control_variable = nil)
+  def add_setpoint_manager(model, loop, schedule)
     manager = OpenStudio::Model::SetpointManagerScheduled.new(model, schedule)
-    manager.setName(name)
-    manager.setControlVariable(control_variable) if !control_variable.nil?
+    manager.setName("#{loop.name} Setpoint Manager")
+    manager.setControlVariable('Temperature')
     manager.addToNode(loop.supplyOutletNode)
   end
 
