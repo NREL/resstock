@@ -56,6 +56,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       runner.registerAsNotApplicable('AddSharedWaterHeater: Building does not have shared water heater. Skipping...')
       return true
     end
+    # return true
 
     # TODO
     # 1: Remove any existing WHs and associated plant loops. Keep WaterUseEquipment objects.
@@ -81,25 +82,29 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     supply_count = ((0.037 * num_beds + 0.106 * num_units) * (154.0 / 123.5)).ceil # ratio is assumed capacity from code / nominal capacity from Robur spec sheet
     # supply_count *= 2 # FIXME
 
+    # Storage tank volume
+    # TODO: Do we model these as x tanks in series or combine them into a single tank?
+    # Right now we have single tank for boiler and x 80 gal tanks in series for HP
+    storage_tank_volume = 80.0
+
     # Get existing capacities
     water_heating_capacity = get_total_water_heating_capacity(model)
     space_heating_capacity = get_total_space_heating_capacity(model)
+    water_heating_tank_volume = get_total_water_heating_tank_volume(model)
 
     if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
       supply_capacity = 36194
     elsif shared_water_heater_type == Constants.WaterHeaterTypeBoiler
       supply_count = 1
       supply_capacity = water_heating_capacity
+      storage_tank_volume = water_heating_tank_volume
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
       supply_capacity = 36194
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
       supply_count = 1
       supply_capacity = water_heating_capacity + space_heating_capacity
+      storage_tank_volume = 2.5 * water_heating_tank_volume # FIXME
     end
-
-    # Storage tank volume
-    # TODO: Do we model these as x tanks in series or combine them into a single tank?
-    storage_tank_volume = 80.0
 
     # Swing tank volume
     swing_tank_volume = 0.0
@@ -123,31 +128,32 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     supply_length, return_length = calc_recirc_supply_return_lengths(hpxml_bldg, num_units, num_stories, has_double_loaded_corridor)
     supply_pipe_ins_r_value = 6.0
     return_pipe_ins_r_value = 4.0
-    dhw_pump_gpm, swing_tank_capacity = calc_recirc_flow_rate(hpxml.buildings, supply_length, supply_pipe_ins_r_value, swing_tank_volume)
 
     # Flow Rates (gal/min)
-    supply_loop_gpm = nil
     dhw_loop_gpm = UnitConversions.convert(0.01, 'm^3/s', 'gal/min') # OS-HPXML
-    space_heating_loop_gpm = 0.0
+    dhw_pump_gpm, swing_tank_capacity = calc_recirc_flow_rate(hpxml.buildings, supply_length, supply_pipe_ins_r_value, swing_tank_volume)
     if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
       gpm = 13.6 # nominal from Robur spec sheet
 
+      supply_loop_gpm = nil
       source_loop_gpm = gpm
 
       supply_pump_gpm = gpm
       source_pump_gpm = dhw_pump_gpm
 
     elsif shared_water_heater_type == Constants.WaterHeaterTypeBoiler
-      gpm = 7.5 # ?
+      gpm = nil
 
+      supply_loop_gpm = gpm
       source_loop_gpm = gpm
 
       supply_pump_gpm = gpm
-      source_pump_gpm = dhw_pump_gpm
+      source_pump_gpm = gpm
 
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
       gpm = 13.6 # nominal from Robur spec sheet
 
+      supply_loop_gpm = nil
       source_loop_gpm = gpm
       space_heating_loop_gpm = gpm
 
@@ -156,8 +162,9 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       space_heating_pump_gpm = gpm
 
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
-      gpm = 7.5 # ?
+      gpm = nil
 
+      supply_loop_gpm = gpm
       source_loop_gpm = gpm
       space_heating_loop_gpm = gpm
 
@@ -551,7 +558,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
 
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
     pump.setName(name)
-    pump.setRatedFlowRate(UnitConversions.convert(pump_gpm, 'gal/min', 'm^3/s')) # FIXME: correct setter?
+    pump.setRatedFlowRate(UnitConversions.convert(pump_gpm, 'gal/min', 'm^3/s')) if !pump_gpm.nil?
     pump.addToNode(loop.supplyInletNode)
     pump.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) # Used by reporting measure
   end
@@ -1069,6 +1076,15 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       total_space_heating_capacity += boiler_hot_water.nominalCapacity.get
     end
     return total_space_heating_capacity
+  end
+
+  def get_total_water_heating_tank_volume(model)
+    # FIXME: need to use unit multipliers here?
+    total_water_heating_tank_volume = 0.0
+    model.getWaterHeaterMixeds.each do |water_heater_mixed|
+      total_water_heating_tank_volume += water_heater_mixed.tankVolume.get
+    end
+    return UnitConversions.convert(total_water_heating_tank_volume, 'm^3', 'gal')
   end
 end
 
