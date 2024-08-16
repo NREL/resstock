@@ -114,68 +114,64 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     dhw_pump_gpm, swing_tank_capacity = calc_recirc_flow_rate(hpxml.buildings, supply_length, supply_pipe_ins_r_value, swing_tank_volume)
 
     # Flow Rates (gal/min)
+    supply_loop_gpm = nil
     dhw_loop_gpm = UnitConversions.convert(0.01, 'm^3/s', 'gal/min') # OS-HPXML
+    space_heating_loop_gpm = 0.0
     if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
-      # 13.6 gal/min, nominal from Robur spec sheet
-      supply_loop_gpm = nil
-      source_loop_gpm = 13.6
-      space_heating_loop_gpm = 0.0
+      gpm = 13.6 # nominal from Robur spec sheet
 
-      supply_pump_gpm = 13.6
+      source_loop_gpm = gpm
+
+      supply_pump_gpm = gpm
       source_pump_gpm = dhw_pump_gpm
-      dhw_pump_gpm = dhw_pump_gpm
-      space_heating_pump_gpm = space_heating_loop_gpm
 
     elsif shared_water_heater_type == Constants.WaterHeaterTypeBoiler
+      gpm = 7.5 # ?
 
-      supply_loop_gpm = nil
-      source_loop_gpm = 13.6
-      space_heating_loop_gpm = 0.0
+      source_loop_gpm = gpm
 
-      supply_pump_gpm = 13.6
+      supply_pump_gpm = gpm
       source_pump_gpm = dhw_pump_gpm
-      dhw_pump_gpm = dhw_pump_gpm
-      space_heating_pump_gpm = space_heating_loop_gpm
 
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
-      # 13.6 gal/min, nominal from Robur spec sheet
-      supply_loop_gpm = nil
-      source_loop_gpm = 13.6
-      space_heating_loop_gpm = 13.6
+      gpm = 13.6 # nominal from Robur spec sheet
 
-      supply_pump_gpm = 13.6
+      source_loop_gpm = gpm
+      space_heating_loop_gpm = gpm
+
+      supply_pump_gpm = gpm
       source_pump_gpm = dhw_pump_gpm
-      dhw_pump_gpm = dhw_pump_gpm
-      space_heating_pump_gpm = space_heating_loop_gpm
-      
-    elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
-      supply_loop_gpm = nil
-      source_loop_gpm = 13.6
-      space_heating_loop_gpm = 13.6
+      space_heating_pump_gpm = gpm
 
-      supply_pump_gpm = 13.6
-      source_pump_gpm = 13.6
-      dhw_pump_gpm = dhw_pump_gpm
-      space_heating_pump_gpm = 13.6
+    elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
+      gpm = 7.5 # ?
+
+      source_loop_gpm = gpm
+      space_heating_loop_gpm = gpm
+
+      supply_pump_gpm = gpm
+      source_pump_gpm = gpm
+      space_heating_pump_gpm = gpm
     end
 
     # Setpoints (deg-F)
-    dhw_loop_sp = 130.0
+    # dhw_loop_sp = 130.0
+    dhw_loop_sp = 140.0
     if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
       supply_loop_sp = 140.0
-      source_loop_sp = 140.0
+      source_loop_sp = supply_loop_sp
       space_heating_loop_sp = nil
     elsif shared_water_heater_type == Constants.WaterHeaterTypeBoiler
       supply_loop_sp = 180.0
-      source_loop_sp = 180.0
+      source_loop_sp = supply_loop_sp
       space_heating_loop_sp = nil
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
       supply_loop_sp = 140.0
-      source_loop_sp = 140.0
+      source_loop_sp = supply_loop_sp
       space_heating_loop_sp = 180.0 # this has a boiler on it
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
       supply_loop_sp = 180.0
-      source_loop_sp = 180.0
+      source_loop_sp = supply_loop_sp
       space_heating_loop_sp = 180.0
     end
 
@@ -334,6 +330,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
   def add_loop(model, name, design_temp, deltaF, max_gpm)
     loop = OpenStudio::Model::PlantLoop.new(model)
     loop.setName(name)
+    # loop.setMaximumLoopTemperature(UnitConversions.convert(design_temp, 'F', 'C'))
     loop.setMaximumLoopFlowRate(UnitConversions.convert(max_gpm, 'gal/min', 'm^3/s')) if !max_gpm.nil?
 
     loop_sizing = loop.sizingPlant
@@ -664,7 +661,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
 
     use_loop.addSupplyBranchForComponent(hx)
     source_loop.addDemandBranchForComponent(hx)
-    
+
     return hx
   end
 
@@ -676,12 +673,13 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       component.setMinimumPartLoadRatio(0.0)
       component.setMaximumPartLoadRatio(1.0)
       component.setBoilerFlowMode('LeavingSetpointModulated')
-      component.setNominalCapacity(40000) # FIXME
+      component.setNominalCapacity(50000) # FIXME
       component.setOptimumPartLoadRatio(1.0)
       component.setWaterOutletUpperTemperatureLimit(99.9)
       component.setOnCycleParasiticElectricLoad(0)
       component.additionalProperties.setFeature('IsCombiBoiler', true) # Used by reporting measure
       return component if system_type == Constants.WaterHeaterTypeCombiHeatPump
+
       # component.setDesignWaterFlowRate() # FIXME
       supply_loop.addSupplyBranchForComponent(component)
     elsif system_type.include?('heat pump water heater')
