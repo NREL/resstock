@@ -319,6 +319,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     # Remove Existing
     remove_loops(runner, model, shared_water_heater_type)
     remove_ems(runner, model, shared_water_heater_type)
+    remove_other(runner, model)
 
     # Register values
     runner.registerValue('shared_water_heater_type', shared_water_heater_type)
@@ -805,7 +806,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       'water heater EC_adj ProgramManager',
       'water heater ProgramManager',
       'water heater hpwh EC_adj ProgramManager',
-      'solar hot water Control' # FIXME: this may be a nonfactor if GAHP is only applied (sampled) for buildings without solar hw
+      'solar hot water Control'
     ]
     ems_pcm_to_remove += [
       'boiler hydronic pump power program calling manager',
@@ -851,7 +852,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     end
 
     # Actuators
-    ems_actuator_to_remove = []
+    ems_actuator_to_remove = ['water heater ec adj']
     ems_actuator_to_remove += [
       'boiler hydronic pump'
     ] if shared_water_heater_type.include?('space-heating')
@@ -887,6 +888,19 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
 
       runner.registerInfo("#{ems_internal_variable.class} '#{ems_internal_variable.name}' removed.")
       ems_internal_variable.remove
+    end
+  end
+
+  def remove_other(runner, model)
+    other_equip_to_remove = [
+      'water heater energy adjustment'
+    ]
+    other_equip_to_remove += other_equip_to_remove.map { |p| p.gsub(' ', '_') }
+    model.getOtherEquipments.each do |other_equip|
+      next if other_equip_to_remove.select { |e| other_equip.name.to_s.include?(e) }.size == 0
+
+      runner.registerInfo("#{other_equip.class} '#{other_equip.name}' removed.")
+      other_equip.remove
     end
   end
 
