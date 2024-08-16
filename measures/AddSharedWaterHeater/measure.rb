@@ -91,6 +91,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     water_heating_capacity = get_total_water_heating_capacity(model)
     space_heating_capacity = get_total_space_heating_capacity(model)
     water_heating_tank_volume = get_total_water_heating_tank_volume(model)
+    boiler_efficiency_curve = get_boiler_efficiency_curve(model)
 
     if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
       supply_capacity = 36194
@@ -273,13 +274,27 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
 
     # Add Space Heating Component
     if shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
-      component = add_component(model, 'boiler', shared_water_heater_fuel_type, space_heating_loop, "#{space_heating_loop.name} Space Heater", space_heating_capacity)
+      component = add_component(model, 'boiler', shared_water_heater_fuel_type, space_heating_loop, "#{space_heating_loop.name} Space Heater", space_heating_capacity, boiler_efficiency_curve)
       component.addToNode(space_heating_hx.supplyOutletModelObject.get.to_Node.get)
     end
 
     # Add Supply Components
     supply_loops.each do |supply_loop, components|
-      components << add_component(model, shared_water_heater_type, shared_water_heater_fuel_type, supply_loop, "#{supply_loop.name} Water Heater", supply_capacity)
+      component = add_component(model, shared_water_heater_type, shared_water_heater_fuel_type, supply_loop, "#{supply_loop.name} Water Heater", supply_capacity, boiler_efficiency_curve)
+
+      # Curves
+      if component.to_HeatPumpAirToWaterFuelFiredHeating.is_initialized
+        # cap_func_temp, eir_func_temp, eir_func_plr, eir_defrost_adj, cycling_ratio_factor, aux_eir_func_temp, aux_eir_func_plr = get_heat_pump_air_to_water_fuel_fired_heating_curves(model, component)
+        # component.setNormalizedCapacityFunctionofTemperatureCurve(cap_func_temp)
+        # component.setFuelEnergyInputRatioFunctionofTemperatureCurve(eir_func_temp)
+        # component.setFuelEnergyInputRatioFunctionofPLRCurve(eir_func_plr)
+        # component.setFuelEnergyInputRatioDefrostAdjustmentCurve(eir_defrost_adj)
+        # component.setCyclingRatioFactorCurve(cycling_ratio_factor)
+        # component.setAuxiliaryElectricEnergyInputRatioFunctionofTemperatureCurve(aux_eir_func_temp)
+        # component.setAuxiliaryElectricEnergyInputRatioFunctionofPLRCurve(aux_eir_func_plr)
+      end
+
+      components << component
     end
 
     # Add Availability Manager
@@ -684,7 +699,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     return hx
   end
 
-  def add_component(model, system_type, fuel_type, supply_loop, name, capacity)
+  def add_component(model, system_type, fuel_type, supply_loop, name, capacity, boiler_eff_curve)
     if system_type.include?('boiler')
       component = OpenStudio::Model::BoilerHotWater.new(model)
       component.setName(name)
@@ -696,10 +711,12 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       component.setOptimumPartLoadRatio(1.0)
       component.setWaterOutletUpperTemperatureLimit(99.9)
       component.setOnCycleParasiticElectricLoad(0)
+      # component.setDesignWaterFlowRate() # FIXME
+      component.setEfficiencyCurveTemperatureEvaluationVariable('LeavingBoiler')
+      component.setNormalizedBoilerEfficiencyCurve(boiler_eff_curve)
       component.additionalProperties.setFeature('IsCombiBoiler', true) # Used by reporting measure
       return component if system_type == Constants.WaterHeaterTypeCombiHeatPump
 
-      # component.setDesignWaterFlowRate() # FIXME
       supply_loop.addSupplyBranchForComponent(component)
     elsif system_type.include?('heat pump water heater')
       if fuel_type == HPXML::FuelTypeElectricity
@@ -730,16 +747,6 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
         component.setNominalAuxiliaryElectricPower(900)
         component.setStandbyElectricPower(20)
 
-        # Curves
-        # cap_func_temp, eir_func_temp, eir_func_plr, eir_defrost_adj, cycling_ratio_factor, aux_eir_func_temp, aux_eir_func_plr = get_heat_pump_air_to_water_fuel_fired_heating_curves(model, component)
-        # component.setNormalizedCapacityFunctionofTemperatureCurve(cap_func_temp)
-        # component.setFuelEnergyInputRatioFunctionofTemperatureCurve(eir_func_temp)
-        # component.setFuelEnergyInputRatioFunctionofPLRCurve(eir_func_plr)
-        # component.setFuelEnergyInputRatioDefrostAdjustmentCurve(eir_defrost_adj)
-        # component.setCyclingRatioFactorCurve(cycling_ratio_factor)
-        # component.setAuxiliaryElectricEnergyInputRatioFunctionofTemperatureCurve(aux_eir_func_temp)
-        # component.setAuxiliaryElectricEnergyInputRatioFunctionofPLRCurve(aux_eir_func_plr)
-
         # if system_type.include?('space-heating')
         # component.additionalProperties.setFeature('IsCombiHP', true) # Used by reporting measure
         # end
@@ -753,6 +760,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
 
   def add_availability_manager(model, loop, hot_node, cold_node)
     availability_manager = OpenStudio::Model::AvailabilityManagerDifferentialThermostat.new(model)
+    availability_manager.setName("#{loop.name} Availability Manager")
     availability_manager.setHotNode(hot_node)
     availability_manager.setColdNode(cold_node)
     availability_manager.setTemperatureDifferenceOnLimit(0)
@@ -1099,6 +1107,14 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       total_water_heating_tank_volume += water_heater_mixed.tankVolume.get
     end
     return UnitConversions.convert(total_water_heating_tank_volume, 'm^3', 'gal')
+  end
+
+  def get_boiler_efficiency_curve(model)
+    model.getBoilerHotWaters.each do |boiler|
+      curve = boiler.normalizedBoilerEfficiencyCurve.get
+      curve.setName('Non Condensing Boiler Efficiency Curve')
+      return curve
+    end
   end
 end
 
