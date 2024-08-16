@@ -46,7 +46,6 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
 
     # Extension properties
     hpxml_bldg = hpxml.buildings[0]
-    geometry_building_num_units = hpxml_bldg.header.extension_properties['geometry_building_num_units'].to_f
     num_stories = hpxml_bldg.header.extension_properties['geometry_num_floors_above_grade'].to_f
     has_double_loaded_corridor = hpxml_bldg.header.extension_properties['geometry_corridor_position']
     shared_water_heater_type = hpxml_bldg.header.extension_properties['shared_water_heater_type']
@@ -80,13 +79,26 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     # Sizing is based on CA code requirements: https://efiling.energy.ca.gov/GetDocument.aspx?tn=234434&DocumentContentId=67301
     # FIXME: How to adjust size when used for space heating?
     supply_count = ((0.037 * num_beds + 0.106 * num_units) * (154.0 / 123.5)).ceil # ratio is assumed capacity from code / nominal capacity from Robur spec sheet
-    if shared_water_heater_type.include?('space-heating boiler')
-      supply_count *= 2 # FIXME
+    # supply_count *= 2 # FIXME
+
+    # Get existing capacities
+    water_heating_capacity = get_total_water_heating_capacity(model)
+    space_heating_capacity = get_total_space_heating_capacity(model)
+
+    if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
+      supply_capacity = 36194
+    elsif shared_water_heater_type == Constants.WaterHeaterTypeBoiler
+      supply_count = 1
+      supply_capacity = water_heating_capacity
+    elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
+      supply_capacity = 36194
+    elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
+      supply_count = 1
+      supply_capacity = water_heating_capacity + space_heating_capacity
     end
 
     # Storage tank volume
-    # storage_tank_volume = 80.0 * supply_count
-    # storage_tank_count = storage_tank_volume / 80.0 # TODO: Do we model these as x tanks in series or combine them into a single tank?
+    # TODO: Do we model these as x tanks in series or combine them into a single tank?
     storage_tank_volume = 80.0
 
     # Swing tank volume
@@ -254,13 +266,13 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
 
     # Add Space Heating Component
     if shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
-      component = add_component(model, 'boiler', shared_water_heater_fuel_type, space_heating_loop, "#{space_heating_loop.name} Space Heater")
+      component = add_component(model, 'boiler', shared_water_heater_fuel_type, space_heating_loop, "#{space_heating_loop.name} Space Heater", space_heating_capacity)
       component.addToNode(space_heating_hx.supplyOutletModelObject.get.to_Node.get)
     end
 
     # Add Supply Components
     supply_loops.each do |supply_loop, components|
-      components << add_component(model, shared_water_heater_type, shared_water_heater_fuel_type, supply_loop, "#{supply_loop.name} Water Heater")
+      components << add_component(model, shared_water_heater_type, shared_water_heater_fuel_type, supply_loop, "#{supply_loop.name} Water Heater", supply_capacity)
     end
 
     # Add Availability Manager
@@ -276,7 +288,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     end
 
     # Re-connect WaterUseConections
-    runner.registerValue('model.getWaterUseConnectionss.size', model.getWaterUseConnectionss.size)
+    # runner.registerValue('model.getWaterUseConnectionss.size', model.getWaterUseConnectionss.size)
     model.getWaterUseConnectionss.each do |wuc|
       wuc.setName("#{wuc.name}_reconnected")
       # wuc.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) # Used by reporting measure
@@ -284,7 +296,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     end
 
     # Re-connect CoilHeatingWaterBaseboards
-    runner.registerValue('model.getCoilHeatingWaterBaseboards.size', model.getCoilHeatingWaterBaseboards.size)
+    # runner.registerValue('model.getCoilHeatingWaterBaseboards.size', model.getCoilHeatingWaterBaseboards.size)
     if shared_water_heater_type.include?('space-heating')
       if model.getCoilHeatingWaterBaseboards.size > 0 # no existing baseboards(s)
         model.getCoilHeatingWaterBaseboards.each do |chwb|
@@ -302,27 +314,26 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     remove_ems(runner, model, shared_water_heater_type)
 
     # Register values
-    runner.registerValue('geometry_building_num_units', geometry_building_num_units)
-    runner.registerValue('geometry_building_num_units_modeled', hpxml.buildings.size)
-    runner.registerValue('unit_multipliers', unit_multipliers.join(','))
     runner.registerValue('shared_water_heater_type', shared_water_heater_type)
     runner.registerValue('shared_water_heater_fuel_type', shared_water_heater_fuel_type)
+    runner.registerValue('unit_models', hpxml.buildings.size)
+    runner.registerValue('unit_multipliers', unit_multipliers.join(','))
     runner.registerValue('num_units', num_units)
     runner.registerValue('num_beds', num_beds)
     runner.registerValue('supply_count', supply_count)
-    runner.registerValue('storage_tank_volume', storage_tank_volume)
-    runner.registerValue('swing_tank_volume', swing_tank_volume)
-    runner.registerValue('supply_length_ft', supply_length)
-    runner.registerValue('return_length_ft', return_length)
-    runner.registerValue('supply_loop_gpm', supply_loop_gpm) if !supply_loop_gpm.nil?
-    runner.registerValue('source_loop_gpm', source_loop_gpm) if !source_loop_gpm.nil?
-    runner.registerValue('dhw_loop_gpm', dhw_loop_gpm) if !dhw_loop_gpm.nil?
-    runner.registerValue('space_heating_loop_gpm', space_heating_loop_gpm) if !space_heating_loop_gpm.nil?
-    runner.registerValue('supply_loop_sp', supply_loop_sp) if !supply_loop_sp.nil?
-    runner.registerValue('source_loop_sp', source_loop_sp) if !source_loop_sp.nil?
-    runner.registerValue('dhw_loop_sp', dhw_loop_sp) if !dhw_loop_sp.nil?
-    runner.registerValue('space_heating_loop_sp', space_heating_loop_sp) if !space_heating_loop_sp.nil?
-    runner.registerValue('swing_tank_capacity', swing_tank_capacity)
+    runner.registerValue('length_ft_supply', supply_length)
+    runner.registerValue('length_ft_supply', return_length)
+    runner.registerValue('loop_gpm_supply', supply_loop_gpm) if !supply_loop_gpm.nil?
+    runner.registerValue('loop_gpm_source', source_loop_gpm) if !source_loop_gpm.nil?
+    runner.registerValue('loop_gpm_dhw', dhw_loop_gpm) if !dhw_loop_gpm.nil?
+    runner.registerValue('loop_gpm_space_heating', space_heating_loop_gpm) if !space_heating_loop_gpm.nil?
+    runner.registerValue('loop_sp_supply', supply_loop_sp) if !supply_loop_sp.nil?
+    runner.registerValue('loop_sp_source', source_loop_sp) if !source_loop_sp.nil?
+    runner.registerValue('loop_sp_dhw', dhw_loop_sp) if !dhw_loop_sp.nil?
+    runner.registerValue('loop_sp_space_heating', space_heating_loop_sp) if !space_heating_loop_sp.nil?
+    runner.registerValue('tank_volume_storage', storage_tank_volume)
+    runner.registerValue('tank_volume_swing', swing_tank_volume)
+    runner.registerValue('tank_capacity_swing', swing_tank_capacity)
 
     return true
   end
@@ -665,7 +676,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     return hx
   end
 
-  def add_component(model, system_type, fuel_type, supply_loop, name)
+  def add_component(model, system_type, fuel_type, supply_loop, name, capacity)
     if system_type.include?('boiler')
       component = OpenStudio::Model::BoilerHotWater.new(model)
       component.setName(name)
@@ -673,7 +684,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       component.setMinimumPartLoadRatio(0.0)
       component.setMaximumPartLoadRatio(1.0)
       component.setBoilerFlowMode('LeavingSetpointModulated')
-      component.setNominalCapacity(50000) # FIXME
+      component.setNominalCapacity(capacity)
       component.setOptimumPartLoadRatio(1.0)
       component.setWaterOutletUpperTemperatureLimit(99.9)
       component.setOnCycleParasiticElectricLoad(0)
@@ -696,7 +707,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
         component.setName(name)
         component.setFuelType(EPlus.fuel_type(fuel_type))
         # component.setEndUseSubcategory()
-        component.setNominalHeatingCapacity(36194)
+        component.setNominalHeatingCapacity(capacity)
         component.setNominalCOP(1.293)
         # component.setDesignFlowRate(0.005) # FIXME
         component.setDesignSupplyTemperature(60)
@@ -1040,6 +1051,24 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     aux_eir_func_plr.setMaximumValueofy(60)
 
     return cap_func_temp, eir_func_temp, eir_func_plr, eir_defrost_adj, cycling_ratio_factor, aux_eir_func_temp, aux_eir_func_plr
+  end
+
+  def get_total_water_heating_capacity(model)
+    # FIXME: need to use unit multipliers here?
+    total_water_heating_capacity = 0.0
+    model.getWaterHeaterMixeds.each do |water_heater_mixed|
+      total_water_heating_capacity += water_heater_mixed.heaterMaximumCapacity.get
+    end
+    return total_water_heating_capacity
+  end
+
+  def get_total_space_heating_capacity(model)
+    # FIXME: need to use unit multipliers here?
+    total_space_heating_capacity = 0.0
+    model.getBoilerHotWaters.each do |boiler_hot_water|
+      total_space_heating_capacity += boiler_hot_water.nominalCapacity.get
+    end
+    return total_space_heating_capacity
   end
 end
 
