@@ -132,7 +132,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     return_pipe_ins_r_value = 4.0
 
     # Flow Rates (gal/min)
-    dhw_loop_gpm = UnitConversions.convert(0.01, 'm^3/s', 'gal/min') # OS-HPXML
+    dhw_loop_gpm = UnitConversions.convert(0.01, 'm^3/s', 'gal/min') * num_units # OS-HPXML
     dhw_pump_gpm, swing_tank_capacity = calc_recirc_flow_rate(hpxml.buildings, supply_length, supply_pipe_ins_r_value, swing_tank_volume)
     if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
       gpm = 13.6 # nominal from Robur spec sheet
@@ -211,7 +211,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     dhw_loop_sp_schedule.setValue(UnitConversions.convert(dhw_loop_sp, 'F', 'C'))
 
     # Add Loops
-    dhw_loop = add_loop(model, 'DHW Loop', dhw_loop_sp, 10.0, dhw_loop_gpm)
+    dhw_loop = add_loop(model, 'DHW Loop', dhw_loop_sp, 10.0, dhw_loop_gpm, num_units)
     if shared_water_heater_type.include?('space-heating')
       space_heating_loop = add_loop(model, 'Space Heating Loop', space_heating_loop_sp, 20.0, space_heating_loop_gpm)
     end
@@ -346,7 +346,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     runner.registerValue('num_beds', num_beds)
     runner.registerValue('supply_count', supply_count)
     runner.registerValue('length_ft_supply', supply_length)
-    runner.registerValue('length_ft_supply', return_length)
+    runner.registerValue('length_ft_return', return_length)
     runner.registerValue('loop_gpm_supply', supply_loop_gpm) if !supply_loop_gpm.nil?
     runner.registerValue('loop_gpm_source', source_loop_gpm) if !source_loop_gpm.nil?
     runner.registerValue('loop_gpm_dhw', dhw_loop_gpm) if !dhw_loop_gpm.nil?
@@ -362,11 +362,12 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     return true
   end
 
-  def add_loop(model, name, design_temp, deltaF, max_gpm)
+  def add_loop(model, name, design_temp, deltaF, max_gpm, num_units = nil)
     loop = OpenStudio::Model::PlantLoop.new(model)
     loop.setName(name)
     # loop.setMaximumLoopTemperature(UnitConversions.convert(design_temp, 'F', 'C'))
     loop.setMaximumLoopFlowRate(UnitConversions.convert(max_gpm, 'gal/min', 'm^3/s')) if !max_gpm.nil?
+    loop.setPlantLoopVolume(0.003 * num_units) if !num_units.nil? # ~1 gal
 
     loop_sizing = loop.sizingPlant
     loop_sizing.setLoopType('Heating')
@@ -401,7 +402,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     return demand_inlet, demand_bypass
   end
 
-  def add_indoor_pipes(model, demand_inlet, demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value, _n_units)
+  def add_indoor_pipes(model, demand_inlet, demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value, num_units)
     # Copper Pipe
     roughness = 'Smooth'
     thickness = 0.003
@@ -471,8 +472,8 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       dhw_recirc_supply_pipe.setAmbientTemperatureZone(thermal_zone)
       dhw_recirc_supply_pipe.setConstruction(insulated_supply_pipe_construction)
       dhw_recirc_supply_pipe.setPipeInsideDiameter(UnitConversions.convert(supply_diameter, 'in', 'm'))
-      # dhw_recirc_supply_pipe.setPipeLength(UnitConversions.convert(supply_length / n_units, 'ft', 'm')) # FIXME
-      dhw_recirc_supply_pipe.setPipeLength(UnitConversions.convert(supply_length / thermal_zone.multiplier, 'ft', 'm'))
+      # dhw_recirc_supply_pipe.setPipeLength(UnitConversions.convert(supply_length / num_units, 'ft', 'm')) # FIXME: if unit multiplier DOES account for this
+      dhw_recirc_supply_pipe.setPipeLength(UnitConversions.convert((supply_length / num_units) * thermal_zone.multiplier, 'ft', 'm')) # FIXME: if unit multiplier DOES NOT account for this
 
       dhw_recirc_supply_pipe.addToNode(demand_inlet.outletModelObject.get.to_Node.get) # FIXME: check IDF branches to make sure everything looks ok
 
@@ -482,20 +483,20 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       dhw_recirc_return_pipe.setAmbientTemperatureZone(thermal_zone)
       dhw_recirc_return_pipe.setConstruction(insulated_return_pipe_construction)
       dhw_recirc_return_pipe.setPipeInsideDiameter(UnitConversions.convert(return_diameter, 'in', 'm'))
-      # dhw_recirc_return_pipe.setPipeLength(UnitConversions.convert(return_length / n_units, 'ft', 'm')) # FIXME
-      dhw_recirc_return_pipe.setPipeLength(UnitConversions.convert(return_length / thermal_zone.multiplier, 'ft', 'm'))
+      # dhw_recirc_return_pipe.setPipeLength(UnitConversions.convert(return_length / num_units, 'ft', 'm')) # FIXME: if unit multiplier DOES account for this
+      dhw_recirc_return_pipe.setPipeLength(UnitConversions.convert((return_length / num_units) * thermal_zone.multiplier, 'ft', 'm')) # FIXME: if unit multiplier DOES NOT account for this
 
       dhw_recirc_return_pipe.addToNode(demand_bypass.outletModelObject.get.to_Node.get)
     end
   end
 
-  def calc_recirc_supply_return_lengths(hpxml_bldg, n_units, n_stories, has_double_loaded_corridor)
+  def calc_recirc_supply_return_lengths(hpxml_bldg, num_units, num_stories, has_double_loaded_corridor)
     l_mech = 8 # ft, Horizontal pipe length in mech room (Per T-24 ACM: 2013 Residential Alternative Calculation Method Reference Manual, June 2013, CEC-400-2013-003-CMF-REV)
     unit_type = hpxml_bldg.building_construction.residential_facility_type
     footprint = hpxml_bldg.building_construction.conditioned_floor_area
     h_floor = hpxml_bldg.building_construction.average_ceiling_height
 
-    n_units_per_floor = n_units / n_stories
+    n_units_per_floor = num_units / num_stories
     if [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include?(unit_type)
       aspect_ratio = 1.8
     elsif [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(unit_type)
@@ -505,14 +506,17 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     lr = footprint / fb
     l_bldg = [fb, lr].max * n_units_per_floor
 
-    supply_length = (l_mech + h_floor * (n_stories / 2.0).ceil + l_bldg) # ft
+    supply_length = (l_mech + h_floor * (num_stories / 2.0).ceil + l_bldg) # ft
 
     if has_double_loaded_corridor
-      return_length = (l_mech + h_floor * (n_stories / 2.0).ceil) # ft
+      return_length = (l_mech + h_floor * (num_stories / 2.0).ceil) # ft
     else
       return_length = supply_length
     end
 
+    # supply_length and return_length are per building (?)
+    # therefore, we'd expect these lengths to not scale with num_units linearly
+    # meaning, more building units equals less per unit distribution loss
     return supply_length, return_length
   end
 
@@ -620,6 +624,8 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     # storage_tank.setSourceSideDesignFlowRate(UnitConversions.convert(13.6, 'gal/min', 'm^3/s')) # FIXME
     storage_tank.setEndUseSubcategory(name)
     storage_tank.setHeaterFuelType(EPlus.fuel_type(fuel_type))
+    # storage_tank.setSkinLossFractiontoZone(1.0 / unit_multiplier) # Tank losses are multiplied by E+ zone multiplier, so need to compensate here
+    # storage_tank.setOffCycleFlueLossFractiontoZone(1.0 / unit_multiplier)
     if heat_pump_loop.nil? # stratified tank on supply side of source loop (e.g., shared electric hpwh)
       storage_tank.setHeaterThermalEfficiency(1.0)
       storage_tank.setAdditionalDestratificationConductivity(0)
@@ -704,12 +710,13 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     if system_type.include?('boiler')
       component = OpenStudio::Model::BoilerHotWater.new(model)
       component.setName(name)
+      component.setNominalThermalEfficiency(0.78)
+      component.setNominalCapacity(capacity)
       component.setFuelType(EPlus.fuel_type(fuel_type))
       component.setMinimumPartLoadRatio(0.0)
       component.setMaximumPartLoadRatio(1.0)
-      component.setBoilerFlowMode('LeavingSetpointModulated')
-      component.setNominalCapacity(capacity)
       component.setOptimumPartLoadRatio(1.0)
+      component.setBoilerFlowMode('LeavingSetpointModulated')
       component.setWaterOutletUpperTemperatureLimit(99.9)
       component.setOnCycleParasiticElectricLoad(0)
       # component.setDesignWaterFlowRate() # FIXME
@@ -1084,7 +1091,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
   end
 
   def get_total_water_heating_capacity(model)
-    # FIXME: need to use unit multipliers here?
+    # already accounts for unit multipliers
     total_water_heating_capacity = 0.0
     model.getWaterHeaterMixeds.each do |water_heater_mixed|
       total_water_heating_capacity += water_heater_mixed.heaterMaximumCapacity.get
@@ -1093,7 +1100,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
   end
 
   def get_total_space_heating_capacity(model)
-    # FIXME: need to use unit multipliers here?
+    # already accounts for unit multipliers
     total_space_heating_capacity = 0.0
     model.getBoilerHotWaters.each do |boiler_hot_water|
       total_space_heating_capacity += boiler_hot_water.nominalCapacity.get
@@ -1102,7 +1109,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
   end
 
   def get_total_water_heating_tank_volume(model)
-    # FIXME: need to use unit multipliers here?
+    # already accounts for unit multipliers
     total_water_heating_tank_volume = 0.0
     model.getWaterHeaterMixeds.each do |water_heater_mixed|
       total_water_heating_tank_volume += water_heater_mixed.tankVolume.get
