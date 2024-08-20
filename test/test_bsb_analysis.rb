@@ -62,7 +62,7 @@ class TestBuildStockBatch < Minitest::Test
     assert(File.exist?(File.join(@testing_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000001', 'run')))
     contents = Dir[File.join(@testing_upgrades, 'simulation_output', "up#{num_upgrade_scenarios}", 'bldg0000001', 'run/*')].collect { |x| File.basename(x) }
 
-    # _test_contents(contents, true, true) # FIXME: remove this comment eventually -- tsvs likely to change
+    _test_contents(contents, true, true)
 
     timeseries = _get_timeseries_columns(Dir[File.join(@testing_upgrades, 'simulation_output/up*/bldg*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries, true))

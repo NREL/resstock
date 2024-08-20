@@ -390,7 +390,7 @@ class TestRunAnalysis < Minitest::Test
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'PackageUpgrade', '1-existing.osw')))
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'PackageUpgrade', '1-upgraded.osw')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'PackageUpgrade', '1-existing.xml')))
-    # assert(File.exist?(File.join(@testing_upgrades, 'xml', 'PackageUpgrade', '1-upgraded.xml'))) # FIXME: remove this comment eventually -- tsvs likely to change
+    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'PackageUpgrade', '1-upgraded.xml')))
 
     FileUtils.cp(results_packageupgrade, File.join(File.dirname(@testing_upgrades), 'project_testing'))
   end
