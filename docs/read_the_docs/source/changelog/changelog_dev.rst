@@ -10,7 +10,7 @@ Development Changelog
         :tags: workflow, infiltration, bugfix
         :pullreq: 1257
 
-        **Date**: 2024-07-25
+        **Date**: 2024-08-20
 
         Title:
         Air leakage type "unit total"
