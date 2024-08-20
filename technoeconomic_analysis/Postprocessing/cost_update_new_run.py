@@ -28,11 +28,8 @@ def er_heating_cost(df):
     option = df.columns[df.isin(['HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Electricity']).any()]
     if len(option) != 0:
         option_num = option[0][:-5]
-        df[f'{option_num}_cost_usd'] = pd.Series(dtype='float') # check the full run to see whether need add these two columns
-        df[f'{option_num}_lifetime_yrs'] = pd.Series(dtype='float')
         temp_cost = c_shared_v * df['upgrade_costs.size_heating_system_primary_k_btu_h']+ c_wiring_shared
-        df.loc[~pd.isnull(df[f'{option_num}_name']), 'upgrade_cost_hvac_usd'] = temp_cost
-        df.loc[~pd.isnull(df[f'{option_num}_name']), f'{option_num}_lifetime_yrs'] = 24       
+        df.loc[~pd.isnull(df[f'{option_num}_name']), 'upgrade_cost_hvac_usd'] = temp_cost     
     return df
 
 def hp_heating_cost_adjustment(df):
@@ -153,24 +150,24 @@ def hp_heating_existing_backup_cost(df):
     # add wiring cost
     df = hp_heating_existing_backup_cost_adjustment(df)
     
-    ashp_list = ['HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, Separate Backup, HERS, Supplemental Backup Sizing',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 60% AFUE NG, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 76% AFUE NG, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 80% AFUE NG, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 92.5% AFUE NG, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 60% AFUE Fuel Oil, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 76% AFUE Fuel Oil, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 80% AFUE Fuel Oil, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 92.5% AFUE Fuel Oil, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 60% AFUE Propane, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 76% AFUE Propane, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 80% AFUE Propane, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 92.5% AFUE Propane, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 60% AFUE Other Fuel, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 76% AFUE Other Fuel, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 80% AFUE Other Fuel, 0F-40F switchover band',
-                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 92.5% AFUE Other Fuel, 0F-40F switchover band',
-                'HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, HERS, Supplemental Backup Sizing']
+    ashp_list = ['HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, Separate Backup, HERS, Emergency Backup Sizing',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 60% AFUE NG, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 76% AFUE NG, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 80% AFUE NG, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 92.5% AFUE NG, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 60% AFUE Fuel Oil, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 76% AFUE Fuel Oil, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 80% AFUE Fuel Oil, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 92.5% AFUE Fuel Oil, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 60% AFUE Propane, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 76% AFUE Propane, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 80% AFUE Propane, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 92.5% AFUE Propane, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 60% AFUE Other Fuel, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 76% AFUE Other Fuel, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 80% AFUE Other Fuel, 0F-40F switchover band',
+                'HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 92.5% AFUE Other Fuel, 0F-40F switchover band',
+                'HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, HERS, Emergency Backup Sizing']
     
     for hp in ashp_list:
         option = df.columns[df.isin([hp]).any()]
@@ -180,7 +177,7 @@ def hp_heating_existing_backup_cost(df):
             c_v = c_ashp15_v
             df = hp_heating_cost_calculation(df, option_num, c, c_v)
             
-    option = df.columns[df.isin(['HVAC Heating Efficiency|MSHP, SEER 14.5, 8.33 HSPF, Separate Backup, HERS, Supplemental Backup Sizing']).any()]
+    option = df.columns[df.isin(['HVAC Heating Efficiency|MSHP, SEER 14.5, 8.33 HSPF, Separate Backup, HERS, Emergency Backup Sizing']).any()]
     if len(option) != 0:
         option_num = option[0][:-5]
         c = c_mshp14
@@ -211,23 +208,31 @@ def water_heating_cost(df):
     option = df.columns[df.isin(['Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF']).any()]
     if len(option) != 0:
         option_num = option[0][:-5]
-        df.loc[~pd.isnull(df[f'{option_num}_name']), f'{option_num}_lifetime_yrs'] = 13
+        df.loc[(~pd.isnull(df[f'{option_num}_name'])) & (df['build_existing_model.water_heater_fuel'] == 'Electricity'), 'upgrade_cost_water_heater_usd'] = c_hpwh50 - c_wiring
+        df.loc[(~pd.isnull(df[f'{option_num}_name'])) & (df['build_existing_model.water_heater_fuel'] != 'Electricity'), 'upgrade_cost_water_heater_usd'] = c_hpwh50
+    if len(option) == 2:
+        option_num = option[1][:-5]
         df.loc[(~pd.isnull(df[f'{option_num}_name'])) & (df['build_existing_model.water_heater_fuel'] == 'Electricity'), 'upgrade_cost_water_heater_usd'] = c_hpwh50 - c_wiring
         df.loc[(~pd.isnull(df[f'{option_num}_name'])) & (df['build_existing_model.water_heater_fuel'] != 'Electricity'), 'upgrade_cost_water_heater_usd'] = c_hpwh50
 
     option = df.columns[df.isin(['Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF']).any()]
     if len(option) != 0:
         option_num = option[0][:-5]
-        df.loc[~pd.isnull(df[f'{option_num}_name']), f'{option_num}_lifetime_yrs'] = 13
         df.loc[(~pd.isnull(df[f'{option_num}_name'])) & (df['build_existing_model.water_heater_fuel'] == 'Electricity'), 'upgrade_cost_water_heater_usd'] = c_hpwh66 - c_wiring 
         df.loc[(~pd.isnull(df[f'{option_num}_name'])) & (df['build_existing_model.water_heater_fuel'] != 'Electricity'), 'upgrade_cost_water_heater_usd'] = c_hpwh66 
-     
+    if len(option) == 2:
+        option_num = option[1][:-5]
+        df.loc[(~pd.isnull(df[f'{option_num}_name'])) & (df['build_existing_model.water_heater_fuel'] == 'Electricity'), 'upgrade_cost_water_heater_usd'] = c_hpwh66 - c_wiring
+        df.loc[(~pd.isnull(df[f'{option_num}_name'])) & (df['build_existing_model.water_heater_fuel'] != 'Electricity'), 'upgrade_cost_water_heater_usd'] = c_hpwh66 
     
     option = df.columns[df.isin(['Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF']).any()]
     if len(option) != 0:
         option_num = option[0][:-5]
-        df.loc[~pd.isnull(df[f'{option_num}_name']), f'{option_num}_lifetime_yrs'] = 13
         df.loc[(~pd.isnull(df[f'{option_num}_name'])) & (df['build_existing_model.water_heater_fuel'] == 'Electricity'), 'upgrade_cost_water_heater_usd'] = c_hpwh80 - c_wiring 
+        df.loc[(~pd.isnull(df[f'{option_num}_name'])) & (df['build_existing_model.water_heater_fuel'] != 'Electricity'), 'upgrade_cost_water_heater_usd'] = c_hpwh80
+    if len(option) == 2:
+        option_num = option[1][:-5]
+        df.loc[(~pd.isnull(df[f'{option_num}_name'])) & (df['build_existing_model.water_heater_fuel'] == 'Electricity'), 'upgrade_cost_water_heater_usd'] = c_hpwh80 - c_wiring
         df.loc[(~pd.isnull(df[f'{option_num}_name'])) & (df['build_existing_model.water_heater_fuel'] != 'Electricity'), 'upgrade_cost_water_heater_usd'] = c_hpwh80
 
     option = df.columns[df.isin(['Water Heater Efficiency|Electric Heat Pump, 50 gal, 120 V Shared']).any()]
@@ -357,10 +362,10 @@ def cost_update_validation(df):
                 'upgrade_cost_hot_tub_spa_usd',
                 'upgrade_cost_envelope_usd']
     df['upgrade_costs.upgrade_cost_usd_validation']= df[colNames].sum(axis=1)
-    df['validation'] = df['upgrade_costs.upgrade_cost_usd'] - df['upgrade_costs.upgrade_cost_usd_validation']
-    if (df['validation'] > 1).any():
+    df['validation'] = (df['upgrade_costs.upgrade_cost_usd'] - df['upgrade_costs.upgrade_cost_usd_validation'])/df['upgrade_costs.upgrade_cost_usd']
+    if (df['validation'] > 0.001).any():
         print('!!! Cost Validation Error'+df['apply_upgrade.upgrade_name'].unique())
-    elif (df['validation'] < -1).any():
+    elif (df['validation'] < -0.001).any():
         print('!!! Cost Validation Error'+df['apply_upgrade.upgrade_name'].unique())
     else:
         print('Cost Validation Pass '+df['apply_upgrade.upgrade_name'].unique())
@@ -419,7 +424,7 @@ df0.to_parquet(f'{file_path}/cost_updated_results_up00.parquet', index=False)
 # cost update
 up_list_er = ['01']
 up_list_hp = ['02','03','04','05','06','07','09','10','11','12','13','14',
-              '16_up06_only_hpwh_dryer', '17_up07_only_hpwh_dryer', '18_up13_only_hpwh_dryer', '19_up14_only_hpwh_dryer']
+              '16', '17', '18', '19']
 up_list_hp_existing_backup = ['08','15']
 up_list_all = up_list_er+up_list_hp+up_list_hp_existing_backup
 
