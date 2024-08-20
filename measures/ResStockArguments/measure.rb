@@ -532,12 +532,17 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       else
         # args[hvac_control_season_period] = 'Jan 1 - Dec 31' # FIXME
         if args[hvac_control_season_period].include?('Unavailable')
-          if args[hvac_control_season_period].include?('All Days') # year-round unavailability; set heating or cooling system to none
-            args["#{htg_or_clg}_system_type".to_sym] = 'none'
-            args[:heat_pump_fraction_heat_load_served] = 0 if htg_or_clg == 'heating'
-            args[:heat_pump_fraction_cool_load_served] = 0 if htg_or_clg == 'cooling'
-            args[hvac_control_season_period] = 'None'
-          else # partial-year unavailability
+          if args[hvac_control_season_period].include?('All Days') # year-round unavailability; limit heating or cooling season to 1-day
+            if htg_or_clg == 'heating'
+              # limit heating season to 1 day in Jul
+              unavail_begin_day_num = 182 # Jul 1
+              unavail_end_day_num = 182 # Jul 1
+            elsif htg_or_clg == 'cooling'
+              # limit cooling season to 1 day in Jan
+              unavail_begin_day_num = 1 # Jan 1
+              unavail_end_day_num = 1 # Jan 1
+            end
+          else # partial-year unavailability; select n-day period start/end dates during BA heating/cooling months
             if htg_or_clg == 'heating'
               months = heating_months
             elsif htg_or_clg == 'cooling'
@@ -549,16 +554,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
             else # no defined BA heating/cooling months
               runner.registerWarning("ResStockArguments: Sampled option '#{args[hvac_control_season_period]}' for #{htg_or_clg} unavailable days but there are no BA #{htg_or_clg} months.")
               if htg_or_clg == 'heating' # Dec/Jan/Feb
-                begin_month = 12
-                begin_day = 1
-                end_month = 2
-                end_day = 28
+                begin_month, begin_day, end_month, end_day = 12, 1, 2, 28
                 end_day += 1 if Date.leap?(sim_calendar_year)
               elsif htg_or_clg == 'cooling' # Jun/Jul/Aug
-                begin_month = 6
-                begin_day = 1
-                end_month = 8
-                end_day = 31
+                begin_month, begin_day, end_month, end_day = 6, 1, 8, 31
               end
             end
 
@@ -577,18 +576,14 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
               return false
             end
             unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], n_days, begin_day_num, end_day_num, sim_calendar_year)
-
-            begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year) # begin the htg_or_clg season period at the end of unavailability
-            end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year) # end the htg_or_clg season period at the beginning of unavailability
-
-            args[hvac_control_season_period] = "#{begin_date} - #{end_date}"
           end
+
+          begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year) # begin the htg_or_clg season period at the end of unavailability
+          end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year) # end the htg_or_clg season period at the beginning of unavailability
+
+          args[hvac_control_season_period] = "#{begin_date} - #{end_date}"
         end
       end
-    end
-
-    if (args[:heat_pump_fraction_heat_load_served] == 0) && (args[:heat_pump_fraction_cool_load_served] == 0)
-      args[:heat_pump_type] = 'none'
     end
 
     # Flue or Chimney
