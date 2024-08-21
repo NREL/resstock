@@ -575,6 +575,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
               runner.registerError("ResStockArguments: Undefined number of #{htg_or_clg} unavailable days for sampled option '#{args[hvac_control_season_period]}'.")
               return false
             end
+
             unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], n_days, begin_day_num, end_day_num, sim_calendar_year)
           end
 
