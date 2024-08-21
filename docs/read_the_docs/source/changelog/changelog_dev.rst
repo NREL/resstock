@@ -13,7 +13,7 @@ Development Changelog
         **Date**: 2024-08-21
 
         Title:
-        HVAC Seasons
+        Heating and Cooling Unavailable Days
 
         Description:
         The purpose of this PR is to account for dwelling units whose HVAC system (heating/cooling) is unavailable for some number of days during the year (per RECS 2020).
