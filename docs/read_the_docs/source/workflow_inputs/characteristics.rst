@@ -39995,7 +39995,7 @@ Arguments
      - 
      - Choice
      - none, Furnace, WallFurnace, FloorFurnace, Boiler, ElectricResistance, Stove, SpaceHeater, Fireplace
-     - The type of the second heating system.
+     - The type of the second heating system. If a heat pump is specified and the backup type is 'separate', this heating system represents 'separate' backup heating. For ducted heat pumps where the backup heating system is a 'Furnace', the backup would typically be characterized as 'integrated' in that the furnace and heat pump share the same distribution system and blower fan; a 'Furnace' as 'separate' backup to a ducted heat pump is not supported.
    * - ``heating_system_2_heating_efficiency``
      - true
      - Frac
