@@ -40,9 +40,9 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
   def seasons
     return {
-      Constants.SeasonHeating => [-1e9, 55],
-      Constants.SeasonCooling => [70, 1e9],
-      Constants.SeasonOverlap => [55, 70]
+      Constants::SeasonHeating => [-1e9, 55],
+      Constants::SeasonCooling => [70, 1e9],
+      Constants::SeasonOverlap => [55, 70]
     }
   end
 
@@ -115,14 +115,14 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
     # Top 10 daily seasonal peak magnitude (2)
     seasons.each do |season, temperature_range|
-      next if season == Constants.SeasonOverlap
+      next if season == Constants::SeasonOverlap
 
       report_sim_output(runner, "qoi_average_of_top_ten_highest_peaks_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'max', 10), '', '')
     end
 
     # Top 10 seasonal timing of peak (2)
     seasons.each do |season, temperature_range|
-      next if season == Constants.SeasonOverlap
+      next if season == Constants::SeasonOverlap
 
       report_sim_output(runner, "qoi_average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max', 10), '', '')
     end

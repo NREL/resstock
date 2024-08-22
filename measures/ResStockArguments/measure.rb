@@ -35,20 +35,20 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     @build_residential_hpxml_measure_arguments = get_measure_instance(full_measure_path).arguments(model)
 
     @build_residential_hpxml_measure_arguments.each do |arg|
-      next if Constants.build_residential_hpxml_excludes.include? arg.name
+      next if Constants::BuildResidentialHPXMLExcludes.include? arg.name
 
       # Following are arguments with the same name but different options
       next if arg.name == 'geometry_unit_cfa'
 
-      # Convert optional arguments to string arguments that allow Constants.Auto for defaulting
+      # Convert optional arguments to string arguments that allow Constants::Auto for defaulting
       if !arg.required
         case arg.type.valueName.downcase
         when 'choice'
           choices = arg.choiceValues.map(&:to_s)
-          choices.unshift(Constants.Auto)
+          choices.unshift(Constants::Auto)
           new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
         when 'boolean'
-          choices = [Constants.Auto, 'true', 'false']
+          choices = [Constants::Auto, 'true', 'false']
           new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
         else
           new_arg = OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
@@ -68,7 +68,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     @build_residential_schedule_file_measure_arguments = get_measure_instance(full_measure_path).arguments(model)
 
     @build_residential_schedule_file_measure_arguments.each do |arg|
-      next if Constants.build_residential_schedule_file_excludes.include? arg.name
+      next if Constants::BuildResidentialScheduleFileExcludes.include? arg.name
 
       args << arg
     end
@@ -84,7 +84,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # Adds a geometry_unit_cfa argument similar to the BuildResidentialHPXML measure, but as a string with "auto" allowed
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_unit_cfa', true)
     arg.setDisplayName('Geometry: Unit Conditioned Floor Area')
-    arg.setDescription("E.g., '2000' or '#{Constants.Auto}'.")
+    arg.setDescription("E.g., '2000' or '#{Constants::Auto}'.")
     arg.setUnits('sqft')
     arg.setDefaultValue('2000')
     args << arg
@@ -306,19 +306,19 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_has_flue_or_chimney', true)
     arg.setDisplayName('Heating System: Has Flue or Chimney')
     arg.setDescription('Whether the heating system has a flue or chimney.')
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDefaultValue(Constants::Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_2_has_flue_or_chimney', true)
     arg.setDisplayName('Heating System 2: Has Flue or Chimney')
     arg.setDescription('Whether the second heating system has a flue or chimney.')
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDefaultValue(Constants::Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('water_heater_has_flue_or_chimney', true)
     arg.setDisplayName('Water Heater: Has Flue or Chimney')
     arg.setDescription('Whether the water heater has a flue or chimney.')
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDefaultValue(Constants::Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_rated_cfm_per_ton', false)
@@ -391,8 +391,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args = convert_args(args)
 
     arg_names = []
-    { @build_residential_hpxml_measure_arguments => Constants.build_residential_hpxml_excludes,
-      @build_residential_schedule_file_measure_arguments => Constants.build_residential_schedule_file_excludes }.each do |measure_arguments, measure_excludes|
+    { @build_residential_hpxml_measure_arguments => Constants::BuildResidentialHPXMLExcludes,
+      @build_residential_schedule_file_measure_arguments => Constants::BuildResidentialScheduleFileExcludes }.each do |measure_arguments, measure_excludes|
       measure_arguments.each do |arg|
         next if measure_excludes.include? arg.name
 
@@ -403,7 +403,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
 
     # Conditioned floor area
-    if args[:geometry_unit_cfa] == Constants.Auto
+    if args[:geometry_unit_cfa] == Constants::Auto
       # TODO: Disaggregate detached and mobile home
       cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 298, # AHS 2021, 1 detached and mobile home weighted average
                ['0-499', HPXML::ResidentialTypeSFA] => 273, # AHS 2021, 1 attached
@@ -452,12 +452,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Vintage
-    if !args[:vintage].nil? && args[:year_built] == Constants.Auto
+    if !args[:vintage].nil? && args[:year_built] == Constants::Auto
       args[:year_built] = Integer(Float(args[:vintage].gsub(/[^0-9]/, ''))) # strip non-numeric
     end
 
     # Num Occupants
-    if args[:geometry_unit_num_occupants] == Constants.Auto
+    if args[:geometry_unit_num_occupants] == Constants::Auto
       args[:geometry_unit_num_occupants] = Geometry.get_occupancy_default_num(args[:geometry_unit_num_bedrooms])
     end
 
@@ -468,7 +468,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:misc_plug_loads_vehicle_usage_multiplier] = args[:misc_plug_loads_vehicle_usage_multiplier] * args[:misc_plug_loads_vehicle_2_usage_multiplier]
 
     # Other
-    if args[:misc_plug_loads_other_annual_kwh] == Constants.Auto
+    if args[:misc_plug_loads_other_annual_kwh] == Constants::Auto
       # TODO: Disaggregate detached and mobile home
       if [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include?(args[:geometry_unit_type])
         args[:misc_plug_loads_other_annual_kwh] = 863.26 + 219.26 * args[:geometry_unit_num_occupants] + 0.33 * args[:geometry_unit_cfa] # RECS 2020
@@ -522,12 +522,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:hvac_control_cooling_weekend_setpoint] = weekend_cooling_setpoints.join(', ')
 
     # Seasons
-    if args[:use_auto_heating_season] && args[:hvac_control_heating_season_period] == Constants.Auto
-      args[:hvac_control_heating_season_period] = HPXML::BuildingAmerica
+    if args[:use_auto_heating_season] && args[:hvac_control_heating_season_period] == Constants::Auto
+      args[:hvac_control_heating_season_period] = Constants::BuildingAmerica
     end
 
-    if args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period] == Constants.Auto
-      args[:hvac_control_cooling_season_period] = HPXML::BuildingAmerica
+    if args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period] == Constants::Auto
+      args[:hvac_control_cooling_season_period] = Constants::BuildingAmerica
     end
 
     # Flue or Chimney
@@ -767,7 +767,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
     args.each do |arg_name, arg_value|
-      if args_to_delete.include?(arg_name) || (arg_value == Constants.Auto)
+      if args_to_delete.include?(arg_name) || (arg_value == Constants::Auto)
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
       end
 
@@ -789,7 +789,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     measure_arguments.each do |arg|
       arg_name = arg.name.to_sym
       value = args[arg_name]
-      next if value.nil? || (value == Constants.Auto)
+      next if value.nil? || (value == Constants::Auto)
 
       case arg.type.valueName.downcase
       when 'double'
