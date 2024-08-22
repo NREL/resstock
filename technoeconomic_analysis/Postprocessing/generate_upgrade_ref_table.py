@@ -12,14 +12,22 @@ import pandas as pd
 
 def get_summary(csv_dir: Path, output_file: Optional[Path]=None):
     ref_table = []
-    for file in csv_dir.glob("data_cleaning_results_up*"):
-        file_name = file.stem.removesuffix(".csv")
-        df = pd.read_csv(file, compression="infer", low_memory=False, keep_default_na=False)
+    for file in csv_dir.glob("*results_up*"):
+        suffixes = file.suffixes
+        assert suffixes != [], f"{file=} has no suffixes."
+        suffix = "".join(suffixes)
+        file_name = file.stem.removesuffix(suffix)
+        if suffix == ".csv" or suffix == ".csv.gz":
+            df = pd.read_csv(file, compression="infer", low_memory=False, keep_default_na=False)
+        elif suffix == ".parquet":
+            df = pd.read_parquet(file)
+        else:
+            raise ValueError(f"Unsupported {suffix=}")
 
         if "results_up00" in file_name:
             upgrade_name = "baseline"
         else:
-            upg_names = [x for x in df["apply_upgrade.upgrade_name"].unique() if x not in ["", None, np.nan]]
+            upg_names = [x for x in df["apply_upgrade.upgrade_name"].dropna().unique() if x not in ["", None, np.nan]]
             assert len(upg_names) == 1, f"Difficulty extracting upgrade name: {upg_names}"
             upgrade_name = upg_names[0]
 
