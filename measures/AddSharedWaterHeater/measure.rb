@@ -93,19 +93,20 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     water_heating_tank_volume = get_total_water_heating_tank_volume(model)
     boiler_efficiency_curve = get_boiler_efficiency_curve(model)
 
-    if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
-      # supply_count *= 2
-      supply_capacity = 36194
-    elsif shared_water_heater_type == Constants.WaterHeaterTypeBoiler
+    if shared_water_heater_type == Constants.WaterHeaterTypeBoiler
       supply_count = 1
       supply_capacity = water_heating_capacity
       storage_tank_volume = water_heating_tank_volume
-    elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
+    elsif shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
+      supply_count *= 2
       supply_capacity = 36194
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
       supply_count = 1
       supply_capacity = 3 * (water_heating_capacity + space_heating_capacity) # FIXME
       storage_tank_volume = 3 * water_heating_tank_volume # FIXME
+    elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
+      # supply_count *= 2
+      supply_capacity = 36194
     end
 
     # Swing tank volume
@@ -134,19 +135,10 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     # Flow Rates (gal/min)
     dhw_loop_gpm = UnitConversions.convert(0.01, 'm^3/s', 'gal/min') * num_units # OS-HPXML
     dhw_pump_gpm, swing_tank_capacity = calc_recirc_flow_rate(hpxml.buildings, supply_length, supply_pipe_ins_r_value, swing_tank_volume)
-    if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
-      # gpm = 13.6 # nominal from Robur spec sheet
-      gpm = nil
 
-      supply_loop_gpm = gpm
-      source_loop_gpm = gpm
-
-      supply_pump_gpm = 13.6
-      source_pump_gpm = 13.6 * supply_count
-
-      pump_head = 10000
-      pump_w = 50
-    elsif shared_water_heater_type == Constants.WaterHeaterTypeBoiler
+    pump_head = nil
+    pump_w = nil
+    if shared_water_heater_type == Constants.WaterHeaterTypeBoiler
       gpm = nil
 
       supply_loop_gpm = gpm
@@ -155,23 +147,20 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       supply_pump_gpm = gpm
       source_pump_gpm = gpm
 
-      # pump_head = 20000
-      # pump_w = 200
-    elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
-      # gpm = 13.6 # nominal from Robur spec sheet
-      gpm = nil
+      pump_head = 20000
+      pump_w = 10
+    elsif shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
+      gpm = 13.6 # nominal from Robur spec sheet
+      # gpm = nil
 
-      supply_loop_gpm = nil
-      supply_loop_gpm = gpm
-      source_loop_gpm = gpm
-      space_heating_loop_gpm = gpm
+      supply_loop_gpm = 100
+      source_loop_gpm = 100
 
-      supply_pump_gpm = gpm
-      source_pump_gpm = gpm
-      space_heating_pump_gpm = gpm
+      # supply_pump_gpm = 100
+      # source_pump_gpm = 100
 
-      # pump_head = 20000
-      # pump_w = 200
+      pump_head = 3000
+      pump_w = 22
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
       gpm = nil
 
@@ -184,29 +173,50 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       space_heating_pump_gpm = gpm
 
       pump_head = 20000
-      pump_w = 200
+      pump_w = 150
+    elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
+      gpm = 13.6 # nominal from Robur spec sheet
+      # gpm = nil
+
+      supply_loop_gpm = nil
+      source_loop_gpm = gpm
+      space_heating_loop_gpm = gpm
+
+      supply_pump_gpm = gpm
+      source_pump_gpm = 0.5
+      space_heating_pump_gpm = gpm
+
+      # pump_head = 20000
+      # pump_w = 75
     end
 
     # Setpoints (deg-F)
-    # dhw_loop_sp = 130.0
+    dhw_loop_sp = 130.0
     # dhw_loop_sp = 135.0
-    dhw_loop_sp = 140.0
-    if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
-      supply_loop_sp = 140.0
-      source_loop_sp = supply_loop_sp
-      space_heating_loop_sp = nil
-    elsif shared_water_heater_type == Constants.WaterHeaterTypeBoiler
+    # dhw_loop_sp = 140.0
+    if shared_water_heater_type == Constants.WaterHeaterTypeBoiler
       supply_loop_sp = 180.0
       source_loop_sp = supply_loop_sp
       space_heating_loop_sp = nil
-    elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
+    elsif shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
       supply_loop_sp = 140.0
-      source_loop_sp = supply_loop_sp
-      space_heating_loop_sp = 180.0 # this has a boiler on it
+      # source_loop_sp = supply_loop_sp
+      source_loop_sp = dhw_loop_sp
+      source_loop_sp = 150.0
+      # why is the inlet temp so high?
+      # look at loop types in os-resources?
+      # look at boiler vs gahp curves?
+      # try removing the swing tank?
+      # compare plant loop volumes
+      space_heating_loop_sp = nil
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
       supply_loop_sp = 180.0
       source_loop_sp = supply_loop_sp
       space_heating_loop_sp = 180.0
+    elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
+      supply_loop_sp = 140.0
+      source_loop_sp = supply_loop_sp
+      space_heating_loop_sp = 180.0 # this has a boiler on it
     end
 
     supply_loop_sp_schedule = OpenStudio::Model::ScheduleConstant.new(model)
@@ -280,7 +290,8 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       components << storage_tank
       prev_storage_tank = components[0]
     end
-    swing_tank = add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank', shared_water_heater_fuel_type, supply_loop_sp)
+    # swing_tank = add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank', shared_water_heater_fuel_type, supply_loop_sp)
+    swing_tank = add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank', shared_water_heater_fuel_type, dhw_loop_sp)
     swing_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) if !swing_tank.nil? # Used by reporting measure
 
     # Add Heat Exchangers
