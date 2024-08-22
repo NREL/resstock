@@ -63,12 +63,13 @@ Load can account for partial usage (per Parts III-IV)
 """
 
 import pytest
+import numpy as np
 import pandas as pd
 from pathlib import Path
 import sys
 
 
-file_dir = Path(".").resolve() / "test_data" / "nec_calculations"
+file_dir = Path(".").resolve() / "test_data"
 panel_30k_dir = Path("/Volumes/Lixi_Liu/panels_results_30k_updated_cost")
 
 @pytest.fixture
@@ -80,11 +81,16 @@ def baseline_euss():
 @pytest.fixture
 def upgrade_result_euss():
     # Electrification with min-eff HP + electric backup
-    file_path = file_dir / "euss1_2018_results_up07_100__2026nec_new_load_exploded.csv"
+    file_path = file_dir / "nec_calculations_revision" / "euss1_2018_results_up07_100__2026nec_new_load_exploded.csv"
     if not file_path.exists():
         raise FileNotFoundError(f"{file_path=}\n does not exist, run python postprocess_panel_new_load_nec_revision.py -x")
     df = pd.read_csv(file_path, low_memory=False, keep_default_na=False)
+    nec_cols = [x for x in df.columns if ("load_" in x or "amp_" in x) and "report" not in x]
+    float_cols = [x for x in nec_cols if "determinant" not in x and "upgraded" not in x and "has_ducts" not in x]
+    for col in float_cols:
+        df[col] = df[col].replace("",np.nan).astype(float).fillna(0)
     return df
+
 
 @pytest.fixture
 def baseline_panel():
@@ -93,17 +99,28 @@ def baseline_panel():
     df = pd.read_csv(file_path, low_memory=False, keep_default_na=False)
     return df
 
+@pytest.fixture
+def upgrade02_result_panel():
+    return get_upgrade_result_panel("02")
 
 @pytest.fixture
-def upgrade_result_panel():
+def upgrade08_result_panel():
+    return get_upgrade_result_panel("08")
+
+
+def get_upgrade_result_panel(upgrade_num: str):
     # Electrification with min-eff HP + existing backup
-    file_path = panel_30k_dir / "nec_calculations" / "results_up08_cost_updated__2026nec_new_load_exploded.csv"
+    file_path = panel_30k_dir / "nec_calculations_revision_test" / f"results_up{upgrade_num}_cost_updated__2026nec_new_load_exploded.csv"
     if not panel_30k_dir.exists():
         print(f"{panel_30k_dir=} does not exist, need to plug in external hard drive")
         sys.exit()
     if not file_path.exists():
         raise FileNotFoundError(f"{file_path=}\n does not exist, run python postprocess_panel_new_load_nec_revision.py -x")
     df = pd.read_csv(file_path, low_memory=False, keep_default_na=False)
+    nec_cols = [x for x in df.columns if ("load_" in x or "amp_" in x) and "report" not in x]
+    float_cols = [x for x in nec_cols if "determinant" not in x and "upgraded" not in x and "has_ducts" not in x]
+    for col in float_cols:
+        df[col] = df[col].replace("",np.nan).astype(float).fillna(0)
     return df
 
 
@@ -118,13 +135,25 @@ def filter_to_homes_with_fuels(baseline):
     return baseline.loc[cond, "building_id"].to_list()
 
 
+def filter_to_homes_with_electric_heating_and_fuel_others(baseline):
+    # buildings with non-electric non-HP heating, water heating, cooking, or dryer
+    cond = baseline["build_existing_model.heating_fuel"]=="Electricity"
+    cond &= ~baseline["build_existing_model.hvac_heating_type"].str.contains("Heat Pump")
+    cond &= baseline["build_existing_model.water_heater_fuel"]!="Electricity"
+    cond &= ~baseline["build_existing_model.cooking_range"].str.contains("Electric")
+    cond &= ~baseline["build_existing_model.clothes_dryer"].str.contains("Electric")
+    cond &= baseline["build_existing_model.cooking_range"]!="None"
+    cond &= baseline["build_existing_model.clothes_dryer"]!="None"
+    return baseline.loc[cond, "building_id"].to_list()
+
+
 def apply_demand_factor(load):
     if load < 8000:
         return load
     return 8000 + (load - 8000)*0.4
 
 
-def check_calculation_by_id(bldg_id, baseline, upgrade_result):
+def check_calculation_by_id(bldg_id, baseline, upgrade_result, existing_as_backup=False):
     dfb = baseline.loc[baseline["building_id"]==bldg_id].iloc[0]
     dfu = upgrade_result.loc[upgrade_result["building_id"]==bldg_id].iloc[0]
 
@@ -150,15 +179,18 @@ def check_calculation_by_id(bldg_id, baseline, upgrade_result):
         "load_lighting",
         "load_kitchen",
         "load_laundry",
+        "load_washer",
         "load_dishwasher",
         "load_garbage_disposal",
-        "load_garbage_compactor",
+        # "load_garbage_compactor",
         "load_well_pump",
         "load_pool_pump",
     ]
 
     # check existing loads
     primary_no_ahu_cols = [x for x in primary_load_cols if "air_handler" not in x]
+    if existing_as_backup:
+        primary_no_ahu_cols = [x for x in primary_no_ahu_cols if x != "load_hvac_primary_heating_electric_resistance"]
     assert dfu[primary_no_ahu_cols].astype(float).sum() == 0, f"{bldg_id=} should have 0 value for all \n{primary_no_ahu_cols=}"
     floor_area = float(dfu["upgrade_costs.floor_area_conditioned_ft_2"])
     garage_depth = 24 # ft
@@ -195,41 +227,53 @@ def check_calculation_by_id(bldg_id, baseline, upgrade_result):
     assert round(existing_total_load,1) == round(float(dfu["load_total_pre_upgrade_VA_220_83"]),1), f"{bldg_id=} error in load_total_pre_upgrade_VA_220_83"
 
     # check new loads
-    assert dfu["loads_upgraded"] == "['load_hvac', 'load_water_heater', 'load_dryer', 'load_range_oven']", f"{bldg_id=} error in load_upgraded"
+    assert dfu["loads_upgraded_83"] == "['load_hvac', 'load_water_heater', 'load_dryer', 'load_range_oven']", f"{bldg_id=} error in load_upgraded"
 
     new_load_hp = (0.626*float(dfu["upgrade_costs.size_cooling_system_primary_k_btu_h"])+1.634)*230
-    assert round(new_load_hp,1) == round(float(dfu["new_load_hvac_primary_heating_heat_pump"]),1), f"{bldg_id=} error in new_load_hvac_primary_heating_heat_pump"
-    new_load_hpbk = dfu["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"]*293.07107
-    assert round(new_load_hpbk, 1) == round(float(dfu["new_load_hvac_heat_pump_backup"]),1), f"{bldg_id=} error in new_load_hvac_heat_pump_backup"
+    assert round(new_load_hp,1) == round(float(dfu["new_load_hvac_primary_heating_heat_pump_83"]),1), f"{bldg_id=} error in new_load_hvac_primary_heating_heat_pump_83"
+    if existing_as_backup:
+        if dfb["build_existing_model.heating_fuel"] == "Electricity":
+            new_load_hpbk = dfb["upgrade_costs.size_heating_system_primary_k_btu_h"]*293.07107
+        else:
+            new_load_hpbk = 0
+    else:
+        new_load_hpbk = dfu["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"]*293.07107
+    assert round(new_load_hpbk, 1) == round(float(dfu["new_load_hvac_secondary_heating_electric_resistance_83"])+float(dfu["new_load_hvac_heat_pump_backup_83"]),1), f"{bldg_id=} error in new_load_hvac_heat_pump_backup_83"
 
     # specific to heat pump upgrade
     if dfb["build_existing_model.hvac_has_ducts"]=="Yes":
-        assert bool(dfu["new_load_hvac_heating_has_ducts"])==True, f"{bldg_id=} should have True for new_load_hvac_heating_has_ducts"
-        assert bool(dfu["new_load_hvac_cooling_has_ducts"])==True, f"{bldg_id=} should have True for new_load_hvac_cooling_has_ducts"
-        assert float(dfu["new_load_hvac_heating_air_handler"])>0, f"{bldg_id=} should have non-zero ew_load_hvac_heating_air_handler"
-        assert float(dfu["new_load_hvac_cooling_air_handler"])>0, f"{bldg_id=} should have non-zero ew_load_hvac_cooling_air_handler"
-
-    if dfb["build_existing_model.hvac_has_ducts"]=="No":
-        assert bool(dfu["new_load_hvac_heating_has_ducts"])==False, f"{bldg_id=} should have False for new_load_hvac_heating_has_ducts"
-        assert bool(dfu["new_load_hvac_cooling_has_ducts"])==False, f"{bldg_id=} should have False for new_load_hvac_cooling_has_ducts"
-        assert dfu["new_load_hvac_heating_air_handler"]=="", f"{bldg_id=} should have null for new_load_hvac_heating_air_handler"
-        assert dfu["new_load_hvac_cooling_air_handler"]=="", f"{bldg_id=} should have null for new_load_hvac_cooling_air_handler"
-
-    assert float(dfu["new_load_water_heater"])==4500, f"{bldg_id=} error in new_load_water_heater"
-    assert float(dfu["new_load_range_oven"])==12000, f"{bldg_id=} error in new_load_range_oven"
-    if "Ventless" in dfb["build_existing_model.clothes_dryer"]:
-        assert float(dfu["new_load_dryer"]) == 2640, f"{bldg_id=} should have 2640 for electric ventless dryer"
+        assert bool(dfu["new_load_hvac_heating_has_ducts_83"])==True, f"{bldg_id=} should have True for new_load_hvac_heating_has_ducts_83"
+        assert float(dfu["new_load_hvac_heating_air_handler_83"])>0, f"{bldg_id=} should have non-zero new_load_hvac_heating_air_handler_83"
+        assert bool(dfu["new_load_hvac_cooling_has_ducts_83"])==True, f"{bldg_id=} should have True for new_load_hvac_cooling_has_ducts_83"
+        assert float(dfu["new_load_hvac_cooling_air_handler_83"])>0, f"{bldg_id=} should have non-zero ew_load_hvac_cooling_air_handler_83"
     else:
-        assert float(dfu["new_load_dryer"]) == 5760, f"{bldg_id=} should have 5760 for electric dryer"
+        assert bool(dfu["new_load_hvac_heating_has_ducts_83"])==False, f"{bldg_id=} should have False for new_load_hvac_heating_has_ducts_83"
+        assert float(dfu["new_load_hvac_heating_air_handler_83"])==0, f"{bldg_id=} should have 0 for new_load_hvac_heating_air_handler_83"
+        assert bool(dfu["new_load_hvac_cooling_has_ducts_83"])==False, f"{bldg_id=} should have False for new_load_hvac_cooling_has_ducts_83"
+        assert float(dfu["new_load_hvac_cooling_air_handler_83"])==0, f"{bldg_id=} should have 0 for new_load_hvac_cooling_air_handler_83"
 
-    assert dfu["post_load_hvac_determinant"] == "heating", f"{bldg_id=} should have heating dominance post-upgrade"
+    if "Tankless" in dfb["build_existing_model.water_heater_efficiency"]:
+        if dfb["build_existing_model.bedrooms"] in [1,2]:
+            wh_load = 24000
+        else:
+            wh_load = 36000
+    else:
+        wh_load = 4500
+    assert float(dfu["new_load_water_heater_83"])==wh_load, f"{bldg_id=} error in new_load_water_heater_83"
+    assert float(dfu["new_load_range_oven_83"])==12000, f"{bldg_id=} error in new_load_range_oven_83"
+    if "Ventless" in dfb["build_existing_model.clothes_dryer"]:
+        assert float(dfu["new_load_dryer_83"]) == 2640, f"{bldg_id=} should have 2640 for electric ventless dryer"
+    else:
+        assert float(dfu["new_load_dryer_83"]) == 5760, f"{bldg_id=} should have 5760 for electric dryer"
+
+    assert dfu["post_load_hvac_determinant_83"] == "heating", f"{bldg_id=} should have heating dominance post-upgrade for 83"
 
     # check post-upgrade load calculations
     # 220.83
     post_existing_load = 0
     post_new_load = 0
     for col in primary_load_cols+second_load_cols:
-        new_col = "new_"+col
+        new_col = "new_"+col+"_83"
         if dfu[new_col] == "":
             dfu[new_col] = 0
         else:
@@ -240,15 +284,19 @@ def check_calculation_by_id(bldg_id, baseline, upgrade_result):
             dfu[col] = float(dfu[col])
 
         if dfu[new_col] > 0:
-            if "heating" in dfu["post_load_hvac_determinant"]:
-                if "primary_heating_electric_resistance" in new_col or "backup" in new_col:
+            if "heating" in dfu["post_load_hvac_determinant_83"]:
+                if "primary_heating_electric_resistance" in new_col:
                     post_new_load += 0.8*dfu[new_col]
                     continue
-                elif "cooling" in new_col:
+                if "backup" in new_col or "secondary_heating_electric_resistance" in new_col:
+                    if existing_as_backup:
+                        post_existing_load += dfu[new_col]
+                        continue
+                    else:
+                        post_new_load += 0.8*dfu[new_col]
+                        continue
+                if "cooling" in new_col:
                     continue  
-                elif "secondary_heating" in new_col:
-                    post_existing_load += dfu[new_col]
-                    continue
             else:
                 if "heating" in new_col or "backup" in new_col:
                     continue
@@ -265,7 +313,7 @@ def check_calculation_by_id(bldg_id, baseline, upgrade_result):
     
     # 220.87
     if dfb["build_existing_model.vacancy_status"] == "Occupied":
-        assert round(float(dfu["net_change_in_load_total_VA_220_87"]),1) == round(float(dfu["load_total_post_upgrade_VA_220_83"]) - float(dfu["load_total_pre_upgrade_VA_220_83"]),1), f"{bldg_id=} error in net_change_in_load_total_VA_220_87"
+        assert round(float(dfu["net_change_in_load_total_VA_220_87"]),1) == round(float(dfu["load_total_post_upgrade_VA_220_87"]) - float(dfu["load_total_pre_upgrade_VA_220_87"]),1), f"{bldg_id=} error in net_change_in_load_total_VA_220_87"
 
         peak_col = "report_simulation_output.peak_electricity_annual_total_w"
         mult = 1
@@ -281,12 +329,20 @@ def check_calculation_by_id(bldg_id, baseline, upgrade_result):
 def test_nec_revision_euss_test_data(baseline_euss, upgrade_result_euss):
     building_ids = filter_to_homes_with_fuels(baseline_euss)
     for bldg_id in building_ids:
-        check_calculation_by_id(bldg_id, baseline_euss, upgrade_result_euss)
+        check_calculation_by_id(bldg_id, baseline_euss, upgrade_result_euss, existing_as_backup=False)
 
 
-def test_nec_revision_existing_heating_as_backup(baseline_panel, upgrade_result_panel):
+def test_nec_revision_panel_data_bau(baseline_panel, upgrade02_result_panel):
     building_ids = filter_to_homes_with_fuels(baseline_panel)
-    if len(building_ids) > 5:
-        building_ids = building_ids[:5]
+    if len(building_ids) > 10:
+        building_ids = building_ids[:10]
     for bldg_id in building_ids:
-        check_calculation_by_id(bldg_id, baseline_panel, upgrade_result_panel)
+        check_calculation_by_id(bldg_id, baseline_panel, upgrade02_result_panel, existing_as_backup=False)
+
+
+def test_nec_revision_panel_data_existing_heating_as_backup(baseline_panel, upgrade08_result_panel):
+    building_ids = filter_to_homes_with_electric_heating_and_fuel_others(baseline_panel)
+    if len(building_ids) > 10:
+        building_ids = building_ids[:10]
+    for bldg_id in building_ids:
+        check_calculation_by_id(bldg_id, baseline_panel, upgrade08_result_panel, existing_as_backup=True)

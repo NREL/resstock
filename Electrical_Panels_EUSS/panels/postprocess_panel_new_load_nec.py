@@ -81,21 +81,24 @@ water_heater_electric_power_rating = get_nameplate_rating(nameplate_rating, 'wat
 water_heater_electric_tankless_1bath_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'electric tankless, one bathroom')
 water_heater_electric_tankless_more_1bath_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'electric tankless, more than one bathroom')
 water_heater_heat_pump_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'heat pump')
-water_heater_heat_pump_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'water heater', 'heat pump, 120V, shared')
+water_heater_heat_pump_120_power_rating = get_nameplate_rating(nameplate_rating, 'water heater', 'heat pump, 120V, shared')
 
+washer_power_rating = get_nameplate_rating(nameplate_rating, "clothes washer", "electric")
 dryer_elctric_ventless_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric ventless')
 dryer_elctric_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric')
-dryer_elctric_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric, 120V')
+dryer_elctric_120_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'electric, 120V')
 dryer_heat_pump_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'heat pump')
-dryer_heat_pump_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'clothes dryer', 'heat pump, 120V')
+dryer_heat_pump_120_power_rating = get_nameplate_rating(nameplate_rating, 'clothes dryer', 'heat pump, 120V')
 
 range_elctric_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'electric')
 range_induction_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'induction')
-range_elctric_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'range/oven', 'electric, 120V')
-range_induction_120_power_rating = 0 # get_nameplate_rating(nameplate_rating, 'range/oven', 'induction, 120V')
+range_elctric_120_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'electric, 120V')
+range_induction_120_power_rating = get_nameplate_rating(nameplate_rating, 'range/oven', 'induction, 120V')
 
+dishwasher_power_rating = get_nameplate_rating(nameplate_rating, "dishwasher", "electric")
 hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'hot tub/spa', 'electric')
 pool_heater_power_rating = get_nameplate_rating(nameplate_rating, 'pool heater', 'electric')
+EVSE_power_rating_level1 = hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'electric vehicle charger', 'electric, level 1')
 EVSE_power_rating_level2 = hot_tub_spa_power_rating = get_nameplate_rating(nameplate_rating, 'electric vehicle charger', 'electric, level 2')
 
 
@@ -176,6 +179,19 @@ def _general_load_laundry(row, n=1):
     """Laundry Branch Circuit(s). NEC 210-11(c)2, 220-16(b), 220-4(c)
         At least 1 laundry branch circuit must be included.
 
+    Args:
+        n: int | "auto"
+            number of branches for general laundry load (exclude dryer), minimum 1
+    """
+    if row["completed_status"] != "Success":
+        return np.nan
+    if n == "auto":
+        n = 1
+    return 1500*n
+
+
+def _general_load_washer(row):
+    """If washer is larger than laundry branch circuit, add
         Pecan St clothes washers: 600-1440 W (1165 wt avg)
         Pecan St gas dryers: 600-2760 W (800 wt avg)
 
@@ -185,26 +201,12 @@ def _general_load_laundry(row, n=1):
     """
     if row["completed_status"] != "Success":
         return np.nan
-    
-    washer = nameplate_rating.loc[(nameplate_rating['load_category'] == 'clothes washer') & (nameplate_rating['appliance'] == 'electric')]
-    washer_power_rating = list(washer['volt-amps'])[0]
-    
-    if n == "auto":
-        if "Single-Family" in row["build_existing_model.geometry_building_type_recs"]:
-            n = washer_power_rating # TODO, can expand based on floor_area, vintage, etc
-        elif row["build_existing_model.clothes_washer_presence"] == "Yes":
-            # for non-SF, if there's in-unit WD, then there's a branch
-            n = washer_power_rating
-        else:
-            n = 0
 
-        if "Electric" not in row["build_existing_model.clothes_dryer"] and row["build_existing_model.clothes_dryer"] != "None":
-            n += 800 # add additional laundry circuit for non-electric dryer
-    
-    if "Single-Family" in row["build_existing_model.geometry_building_type_recs"] and n < 1:
-        raise ValueError(f"n={n}, at least 1 laundry branch circuit for Laundry Load")
-   
-    return max(1500, n)
+    if row["build_existing_model.clothes_washer_presence"] == "Yes":
+        if washer_power_rating > 1500:
+            return washer_power_rating
+        return 0
+    return 0
 
 
 def _fixed_load_water_heater(row):
@@ -222,6 +224,8 @@ def _fixed_load_water_heater(row):
                 return water_heater_electric_tankless_more_1bath_power_rating
             raise ValueError("Cannot find bedrooms options.")
         if "Heat Pump" in row["build_existing_model.water_heater_efficiency"]:
+            if "120V" in row["build_existing_model.water_heater_efficiency"] or "120 V" in row["build_existing_model.water_heater_efficiency"]:
+                return water_heater_heat_pump_120_power_rating
             return water_heater_heat_pump_power_rating
         return water_heater_electric_power_rating
     return 0
@@ -234,9 +238,6 @@ def _fixed_load_dishwasher(row):
     """
     if row["completed_status"] != "Success":
         return np.nan
-    
-    dishwasher = nameplate_rating.loc[(nameplate_rating['load_category'] == 'dishwasher') & (nameplate_rating['appliance'] == 'electric')]
-    dishwasher_power_rating = list(dishwasher['volt-amps'])[0]
 
     if row["build_existing_model.dishwasher"] == "None":
         return 0
@@ -322,7 +323,7 @@ def _fixed_load_well_pump(row):
     return 0
 
 
-def _special_load_dryer(row):
+def _special_load_dryer(row, method):
     """Clothes Dryers. NEC 220-18
     Use 5000 watts or nameplate rating whichever is larger (in another version, use DF=1 for # appliance <=4)
     240V, 22/24/30A breaker (vented), 30/40A (ventless heat pump), 30A (ventless electric)
@@ -333,25 +334,23 @@ def _special_load_dryer(row):
     if "Electric" not in row["build_existing_model.clothes_dryer"] or row["build_existing_model.clothes_dryer"] == "None":
         return 0
 
+    if "Heat Pump" in row["build_existing_model.clothes_dryer"]:
+        if "120V" in row["build_existing_model.clothes_dryer"] or "120 V" in row["build_existing_model.clothes_dryer"]:
+            if method == "83":
+                return 0
+            if method == "87":
+                return dryer_heat_pump_120_power_rating
+            raise ValueError(f"Unsupported {method=}")
+        return dryer_heat_pump_power_rating
+    if "120V" in row["build_existing_model.clothes_dryer"] or "120 V" in row["build_existing_model.clothes_dryer"]:
+        if method == "83":
+            return 0
+        if method == "87":
+            return dryer_elctric_120_power_rating
+        raise ValueError(f"Unsupported {method=}")
     if "Ventless" in row["build_existing_model.clothes_dryer"]:
-        rating = dryer_elctric_ventless_power_rating
-    else:
-        rating = dryer_elctric_power_rating
-
-    return max(5000, rating)
-
-
-def _special_load_range_oven(row): 
-    """ Assuming a single electric range (combined oven/stovetop) for each dwelling unit """
-
-    if range_power <= 12000:
-        range_power_w_df = min(range_power, 8000)
-    elif range_power <= 27000:
-        range_power_w_df = 8000 + 0.05*(max(0,range_power-12000)) # footnote 2
-    else:
-        raise ValueError(f"range_power={range_power} cannot exceed 27kW")
-    
-    return range_power_w_df
+        return dryer_elctric_ventless_power_rating
+    return dryer_elctric_power_rating
 
 
 def _special_load_cooking_range_oven(row): 
@@ -363,7 +362,12 @@ def _special_load_cooking_range_oven(row):
         return 0
 
     if "Induction" in row["build_existing_model.cooking_range"]:
+        if "120V" in row["build_existing_model.cooking_range"] or "120 V" in row["build_existing_model.cooking_range"]:
+            return range_induction_120_power_rating
         return range_induction_power_rating 
+
+    if "120V" in row["build_existing_model.cooking_range"] or "120 V" in row["build_existing_model.cooking_range"]:
+        return range_elctric_120_power_rating
 
     return range_elctric_power_rating 
 
@@ -471,17 +475,20 @@ def _special_load_pool_pump(row, apply_df=True):
     return 0
 
 
-def _special_load_evse(row):
+def _special_load_evse(row, method):
     if row["completed_status"] != "Success":
         return np.nan
 
     if row["build_existing_model.electric_vehicle"] == "None":
-        EV_load = 0
-    elif "Level 1" in row["build_existing_model.electric_vehicle"]:
-        EV_load = EVSE_power_rating_level1
-    elif "Level 2" in row["build_existing_model.electric_vehicle"]:
-        EV_load = max(EVSE_power_rating_level2, 7200)
-    return EV_load
+        return 0
+    if "Level 1" in row["build_existing_model.electric_vehicle"]:
+        if method == "83":
+            return 0
+        if method == "87":
+            return EVSE_power_rating_level1
+        raise ValueError(f"Unsupported {method=}")
+    if "Level 2" in row["build_existing_model.electric_vehicle"]:
+        return EVSE_power_rating_level2
 
 
 def _special_load_heat_pump_backup(row):
@@ -495,15 +502,19 @@ def _special_load_heat_pump_backup(row):
     return heat_pump_backup
 
 ### -------- new load specs --------
-def _new_load_evse(row, option_columns):
+def _new_load_evse(row, option_columns, method):
     if row["completed_status"] != "Success":
         return np.nan
 
     for opt_col in option_columns:
         if "Electric Vehicle" in row[opt_col] and "Level 1" in row[opt_col]:
-            return EVSE_power_rating_level1
+            if method == "83":
+                return 0
+            if method == "87":
+                return EVSE_power_rating_level1
+            raise ValueError(f"Unsupported {method=}")
         if "Electric Vehicle" in row[opt_col] and "Level 2" in row[opt_col]:
-            return max(EVSE_power_rating_level2, 7200)
+            return EVSE_power_rating_level2
 
     return 0
 
@@ -535,35 +546,42 @@ def _new_load_range_oven(row, option_columns):
 
     for opt_col in option_columns:
         if "Cooking Range" in row[opt_col] and "Electric" in row[opt_col]:
-            if "120V" in row[opt_col] or "120 V" in row[opt_col]:
-                return range_elctric_120_power_rating
             if "Induction" in row[opt_col]:
                 if "120V" in row[opt_col] or "120 V" in row[opt_col]:
                     return range_induction_120_power_rating
                 return range_induction_power_rating
+            if "120V" in row[opt_col] or "120 V" in row[opt_col]:
+                return range_elctric_120_power_rating
             return range_elctric_power_rating 
 
     return 0
 
 
-def _new_load_dryer(row, option_columns):
+def _new_load_dryer(row, option_columns, method):
     if row["completed_status"] != "Success":
         return np.nan
 
     for opt_col in option_columns:
         if "Clothes Dryer" in row[opt_col] and "Electric" in row[opt_col]:
-            if "120V" in row[opt_col] or "120 V" in row[opt_col]:
-                return dryer_elctric_120_power_rating
-            if "Ventless" in row[opt_col]:
-                return dryer_elctric_ventless_power_rating
             if "Heat Pump" in row[opt_col]:
                 if "120V" in row[opt_col] or "120 V" in row[opt_col]:
-                    return dryer_heat_pump_120_power_rating
+                    if method == "83":
+                        return 0
+                    if method == "87":
+                        return dryer_heat_pump_120_power_rating
+                    raise ValueError(f"Unsupported {method=}")
                 return dryer_heat_pump_120_power_rating
+            if "120V" in row[opt_col] or "120 V" in row[opt_col]:
+                if method == "83":
+                    return 0
+                if method == "87":
+                    return dryer_elctric_120_power_rating
+                raise ValueError(f"Unsupported {method=}")
+            if "Ventless" in row[opt_col]:
+                return dryer_elctric_ventless_power_rating
             return dryer_elctric_power_rating
 
     return 0
-
 
 
 def _new_load_water_heating(row, option_columns):
@@ -593,11 +611,19 @@ def _new_load_space_conditioning(row, option_columns):
     # heating load
     heating_type = None
     secondary_heating_type = None
+    backup_heating_type = None
     for opt_col in option_columns:
         if ("HVAC Heating Efficiency" in row[opt_col]):
             heating_type = get_heating_type(row[opt_col])
         if ("HVAC Secondary Heating Efficiency" in row[opt_col]):
             secondary_heating_type = get_heating_type(row[opt_col])
+
+    # TODO: this is not a fail-safe solution
+    if heating_type == "Heat Pump":
+        if "existing" in row["apply_upgrade.upgrade_name"].lower():
+            backup_heating_type = get_heating_type(row["build_existing_model.hvac_heating_efficiency"])
+        else:
+            backup_heating_type = "Electric Resistance"
 
     heating_cols = [
         row["upgrade_costs.size_heating_system_primary_k_btu_h"],
@@ -607,7 +633,7 @@ def _new_load_space_conditioning(row, option_columns):
     system_cols = [
         heating_type,
         secondary_heating_type,
-        "Electric Resistance",
+        backup_heating_type,
         ]
 
     heating_load = sum(
@@ -652,10 +678,13 @@ def _get_air_handlers(row, heating_type, secondary_heating_type) -> (float, floa
     - if electric furnace with CAC, take max of heat/cool to determine AHU
     - if no ducted heating, use CAC (based on cool cap only)
     """
-    heating_has_ducts = _get_heating_has_ducts(row)
     if heating_type == "Heat Pump":
-        cooling_has_ducts = heating_has_ducts
+        if row["build_existing_model.hvac_has_ducts"] == "Yes":
+            cooling_has_ducts = heating_has_ducts = True
+        else:
+            cooling_has_ducts = heating_has_ducts = False
     else:
+        heating_has_ducts = _get_heating_has_ducts(row)
         cooling_has_ducts = _get_cooling_has_ducts(row)
 
     heat_ahu, cool_ahu = 0, 0
@@ -683,7 +712,7 @@ def _get_air_handlers(row, heating_type, secondary_heating_type) -> (float, floa
     return (heat_ahu, cool_ahu)
 
 
-def get_cooling_type(cool_eff):
+def get_cooling_type(cool_eff) -> Optional[str]:
     if "Room AC" in cool_eff:
         return "Room AC"
     if "AC" in cool_eff:
@@ -890,9 +919,10 @@ def existing_load_labels() -> list[str]:
         "load_lighting",
         "load_kitchen",
         "load_laundry",
+        "load_washer",
         "load_dishwasher",
         "load_garbage_disposal",
-        "load_garbage_compactor",
+        # "load_garbage_compactor",
         "load_well_pump",
         "load_pool_pump",
         
@@ -900,7 +930,7 @@ def existing_load_labels() -> list[str]:
     return existing_loads_labels
 
 
-def apply_existing_loads(row, n_kit: int = 2, n_ldr: int = 1) -> list[float]:
+def apply_existing_loads(row, method: str, n_kit: int = 2, n_ldr: int = 1) -> list[float]:
     """ Load summing method """
     if row["completed_status"] != "Success":
         return [np.nan for x in range(15)]
@@ -908,18 +938,19 @@ def apply_existing_loads(row, n_kit: int = 2, n_ldr: int = 1) -> list[float]:
     existing_loads = [
             _special_load_space_conditioning(row), # max of heating or cooling
             _fixed_load_water_heater(row),
-            _special_load_dryer(row),
+            _special_load_dryer(row, method),
             _special_load_cooking_range_oven(row),
             _fixed_load_hot_tub_spa(row),
             _special_load_pool_heater(row),
-            _special_load_evse(row),
+            _special_load_evse(row, method),
 
             _general_load_lighting(row), # sqft
             _general_load_kitchen(row, n=n_kit), # consider logic based on sqft
             _general_load_laundry(row, n=n_ldr), # consider logic based on sqft (up to 2)
+            _general_load_washer(row),
             _fixed_load_dishwasher(row),
             _fixed_load_garbage_disposal(row),
-            _fixed_load_garbage_compactor(row),
+            # _fixed_load_garbage_compactor(row),
             _fixed_load_well_pump(row),
             _special_load_pool_pump(row),
             
@@ -957,20 +988,21 @@ def apply_total_load_220_83(row, has_new_hvac_load: bool) -> float | list[float]
     return total_load
 
 
-def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool = False)-> pd.DataFrame:
+def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, method: str, result_as_map: bool = False)-> pd.DataFrame:
     ## apply new load
     # 1 add necessary baseline HC
     HC_list = [
         "build_existing_model.hvac_heating_type",
         "build_existing_model.hvac_cooling_type",
+        "build_existing_model.hvac_has_ducts",
         "build_existing_model.bedrooms",
         "build_existing_model.geometry_building_type_recs",
     ]
     HC_list = [x for x in HC_list if x not in dfu]
+    new_load_cols = [x for x in dfu.columns if "new_load" in x]
+    df_up = dfu.drop(columns=new_load_cols).copy()
     if HC_list:
-        df_up = dfu.join(df.set_index(["building_id"])[HC_list], on=["building_id"], how="left")
-    else:
-        df_up = dfu.copy()
+        df_up = df_up.join(df.set_index(["building_id"])[HC_list], on=["building_id"], how="left")
 
     # 2 obtain valid list of upgrade option columns
     option_columns = [x for x in dfu.columns if x.startswith("upgrade_costs.option") and x.endswith("name")]
@@ -993,7 +1025,7 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
 
     # [3] Appliances
     dryer_option_cols, _ = get_upgrade_columns_and_options(option_cols, upgrade_options, "Clothes Dryer")
-    df_up["new_load_dryer"] = df_up.apply(lambda x: _new_load_dryer(x, dryer_option_cols), axis=1)
+    df_up["new_load_dryer"] = df_up.apply(lambda x: _new_load_dryer(x, dryer_option_cols, method), axis=1)
 
     cooking_option_cols, _ = get_upgrade_columns_and_options(option_cols, upgrade_options, "Cooking Range")
     df_up["new_load_range_oven"] = df_up.apply(lambda x: _new_load_range_oven(x, cooking_option_cols), axis=1)
@@ -1005,15 +1037,30 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, result_as_map: bool
     df_up["new_load_pool_heater"] = df_up.apply(lambda x: _new_load_pool_heater(x, pool_heater_option_cols), axis=1)
 
     ev_option_cols, _ = get_upgrade_columns_and_options(option_cols, upgrade_options, "Electric Vehicle")
-    df_up["new_load_evse"] = df_up.apply(lambda x: _new_load_evse(x, ev_option_cols), axis=1)
+    df_up["new_load_evse"] = df_up.apply(lambda x: _new_load_evse(x, ev_option_cols, method), axis=1)
 
-    # TEMP - add EV load explicitly (for part II of TEA)
-    cond = df_up["build_existing_model.geometry_building_type_recs"].isin([
-        "Single-Family Detached",
-        "Single-Family Attached",
-        "Mobile Home",
-        ])
-    df_up.loc[cond, "new_load_evse"] = max(EVSE_power_rating_level2, 7200)
+    # Project-specific: add EV load explicitly (for part II of TEA)
+    EVSE_level = 0 # <--- 0, 1, 2
+    if EVSE_level == 0:
+        print("No EVSE postprocessing")
+    if EVSE_level == 1 and method == "87":
+        print(f"Adding {EVSE_level=} for {method=}")
+        cond = df_up["build_existing_model.geometry_building_type_recs"].isin([
+            "Single-Family Detached",
+            "Single-Family Attached",
+            "Mobile Home",
+            ])
+        df_up.loc[cond, "new_load_evse"] = EVSE_power_rating_level1
+    if EVSE_level == 2:
+        print(f"Adding {EVSE_level=} for {method=}")
+        cond = df_up["build_existing_model.geometry_building_type_recs"].isin([
+            "Single-Family Detached",
+            "Single-Family Attached",
+            "Mobile Home",
+            ])
+        df_up.loc[cond, "new_load_evse"] = EVSE_power_rating_level2
+    if EVSE_level not in [0, 1, 2]:
+        raise ValueError(f"Unsupported {EVSE_level=}")
 
     # Nullify 0 values
     new_load_cols = [x for x in df_up.columns if "new_load" in x]
@@ -1058,16 +1105,17 @@ def calculate_new_load_total_220_83(dfi: pd.DataFrame, dfu: pd.DataFrame, n_kit:
     df = dfi.copy()
 
     ## New loads
-    df_new = calculate_new_loads(df, dfu, result_as_map=True)
+    df_new = calculate_new_loads(df, dfu, "83", result_as_map=True)
     new_loads = [x for x in df_new.columns if "new_load" in x]
-    df_new_backup = dfu.apply(lambda x: _special_load_heat_pump_backup(x), axis=1).rename("new_load_hvac_hp_backup")
+    df_new_backup = dfu.apply(lambda x: _special_load_heat_pump_backup(x), axis=1).rename("new_load_hvac_hp_backup_83")
 
     # Existing loads
     existing_loads = existing_load_labels()
     df_existing = pd.DataFrame(
-        df.apply(lambda x: apply_existing_loads(x, n_kit=n_kit, n_ldr=n_ldr), axis=1).to_list(),
+        df.apply(lambda x: apply_existing_loads(x, "83", n_kit=n_kit, n_ldr=n_ldr), axis=1).to_list(),
         index = df.index, columns=existing_loads
         )
+
     df_loads = df_existing.copy() # for i/o accounting
     df_backup = df.apply(lambda x: _special_load_heat_pump_backup(x), axis=1).rename("load_hvac_hp_backup")
 
@@ -1081,7 +1129,7 @@ def calculate_new_load_total_220_83(dfi: pd.DataFrame, dfu: pd.DataFrame, n_kit:
     upgradable_loads = [x.removeprefix("new_") for x in new_loads]
     df_upgraded = df_new[new_loads].rename(columns=dict(zip(new_loads, upgradable_loads)))
     cond_upgraded = df_upgraded>0
-    loads_upgraded = cond_upgraded.apply(lambda x: list(x[x].index), axis=1).rename("loads_upgraded") # record which loads are upgraded
+    loads_upgraded = cond_upgraded.apply(lambda x: list(x[x].index), axis=1).rename("loads_upgraded_83") # record which loads are upgraded
     # replace where upgraded with nan then update with new loads
     df_change = df_loads[upgradable_loads].mask(cond_upgraded)
     df_change.update(df_upgraded, overwrite=False)
@@ -1106,7 +1154,7 @@ def calculate_new_load_total_220_83(dfi: pd.DataFrame, dfu: pd.DataFrame, n_kit:
         df_existing,
         df_backup,
         loads_upgraded,
-        df_new[new_loads],
+        df_new[new_loads].rename(columns=lambda x: x+"_83"),
         df_new_backup,
         df_loads[[total_load_post, total_amp_post]],
         ], axis=1)
@@ -1131,7 +1179,16 @@ def calculate_new_load_total_220_87(df: pd.DataFrame, dfu: pd.DataFrame, explode
     print("Performing NEC 220.87 (max-load) calculations...")
 
     # New Loads
-    df_new = calculate_new_loads(df, dfu, result_as_map=True)
+    df_new = calculate_new_loads(df, dfu, "87", result_as_map=True)
+    new_loads = [x for x in df_new.columns if "new_load" in x]
+    df_new_backup = dfu.apply(lambda x: _special_load_heat_pump_backup(x), axis=1).rename("new_load_hvac_hp_backup_87")
+
+    # record loads upgraded
+    upgradable_loads = [x.removeprefix("new_") for x in new_loads]
+    df_upgraded = df_new[new_loads].rename(columns=dict(zip(new_loads, upgradable_loads)))
+    cond_upgraded = df_upgraded>0
+    loads_upgraded = cond_upgraded.apply(lambda x: list(x[x].index), axis=1).rename("loads_upgraded_87") # record which loads are upgraded
+    df_new = pd.concat([loads_upgraded, df_new, df_new_backup], axis=1)
 
     # Total pre-upgrade load
     total_load_pre = "load_total_pre_upgrade_VA_220_87"
@@ -1164,11 +1221,11 @@ def calculate_new_load_total_220_87(df: pd.DataFrame, dfu: pd.DataFrame, explode
         df_new.set_index(["building_id"]), on=["building_id"], how="right"
         )
 
-    new_loads = [x for x in df_new.columns if "new_load" in x]
     df_new["new_load_total_VA_220_87"] = df_new[new_loads].sum(axis=1)
     df_new[total_load_post] = df_new[total_load_pre] + df_new["new_load_total_VA_220_87"]
     df_new[total_amp_post] = df_new[total_load_post] / 240
 
+    df_new = df_new.rename(columns={k:k+"_87" for k in new_loads})
     if explode_result:
         cols = df_new.columns # include new loads
     else:
@@ -1258,16 +1315,29 @@ def main(
     dfu = dfu[dfu["building_id"].isin(valid_bldgs)].reset_index(drop=True)
     assert (dfu["building_id"] == df["building_id"]).prod() == 1, "Ordering of building_id does not match between upgrade and baseline"
 
+    # Project-specific (this is to rectify the mistake of using supplemental sizing for HP backup)
+    if "existing" in dfu["apply_upgrade.upgrade_name"].replace("", np.nan).dropna().unique()[0].lower():
+        dfu["upgrade_costs.size_heating_system_secondary_k_btu_h"] = np.nan
+        cond = df["build_existing_model.hvac_heating_type"]=="Non-Ducted Heating"
+        dfu.loc[cond, "upgrade_costs.size_heating_system_secondary_k_btu_h"] = \
+            df.loc[cond, "upgrade_costs.size_heating_system_primary_k_btu_h"]
+        
+        dfu["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"] = np.nan
+        cond = df["build_existing_model.hvac_heating_type"]=="Ducted Heating"
+        dfu.loc[cond, "upgrade_costs.size_heat_pump_backup_primary_k_btu_h"] = \
+            df.loc[cond, "upgrade_costs.size_heating_system_primary_k_btu_h"]
+
+
     # --- NEW LOAD calcs ---
     # NEC 220.83 - Load Summing Method
     # NEC 220.87 - Maximum Demand Method
     if result_as_map:
         df1 = calculate_new_load_total_220_83(df, dfu, n_kit=2, n_ldr=1, explode_result=explode_result, result_as_map=result_as_map)
-        df2 = calculate_new_load_total_220_87(df, dfu, result_as_map=result_as_map)
+        df2 = calculate_new_load_total_220_87(df, dfu, explode_result=explode_result, result_as_map=result_as_map)
         dfo = df1.join(df2.set_index("building_id"), on="building_id")
     else:
         dfu1 = calculate_new_load_total_220_83(df, dfu, n_kit=2, n_ldr=1, explode_result=explode_result)
-        dfo = calculate_new_load_total_220_87(df, dfu1)
+        dfo = calculate_new_load_total_220_87(df, dfu1, explode_result=explode_result)
 
     # --- save to file ---
     if output_filename.suffix == ".csv":
