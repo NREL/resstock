@@ -104,7 +104,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       supply_capacity = 36194
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
       supply_count = 1
-      supply_capacity = 2 * (water_heating_capacity + space_heating_capacity) # FIXME
+      supply_capacity = 3 * (water_heating_capacity + space_heating_capacity) # FIXME
       storage_tank_volume = 3 * water_heating_tank_volume # FIXME
     end
 
@@ -135,14 +135,17 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     dhw_loop_gpm = UnitConversions.convert(0.01, 'm^3/s', 'gal/min') * num_units # OS-HPXML
     dhw_pump_gpm, swing_tank_capacity = calc_recirc_flow_rate(hpxml.buildings, supply_length, supply_pipe_ins_r_value, swing_tank_volume)
     if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
-      gpm = 13.6 # nominal from Robur spec sheet
+      # gpm = 13.6 # nominal from Robur spec sheet
+      gpm = nil
 
-      supply_loop_gpm = nil
+      supply_loop_gpm = gpm
       source_loop_gpm = gpm
 
-      supply_pump_gpm = gpm
-      source_pump_gpm = dhw_pump_gpm
+      supply_pump_gpm = 13.6
+      source_pump_gpm = 13.6 * supply_count
 
+      pump_head = 10000
+      pump_w = 50
     elsif shared_water_heater_type == Constants.WaterHeaterTypeBoiler
       gpm = nil
 
@@ -152,17 +155,23 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       supply_pump_gpm = gpm
       source_pump_gpm = gpm
 
+      # pump_head = 20000
+      # pump_w = 200
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
-      gpm = 13.6 # nominal from Robur spec sheet
+      # gpm = 13.6 # nominal from Robur spec sheet
+      gpm = nil
 
       supply_loop_gpm = nil
+      supply_loop_gpm = gpm
       source_loop_gpm = gpm
       space_heating_loop_gpm = gpm
 
       supply_pump_gpm = gpm
-      source_pump_gpm = dhw_pump_gpm
+      source_pump_gpm = gpm
       space_heating_pump_gpm = gpm
 
+      # pump_head = 20000
+      # pump_w = 200
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
       gpm = nil
 
@@ -173,10 +182,14 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       supply_pump_gpm = gpm
       source_pump_gpm = gpm
       space_heating_pump_gpm = gpm
+
+      pump_head = 20000
+      pump_w = 200
     end
 
     # Setpoints (deg-F)
     # dhw_loop_sp = 130.0
+    # dhw_loop_sp = 135.0
     dhw_loop_sp = 140.0
     if shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
       supply_loop_sp = 140.0
@@ -236,14 +249,17 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     add_indoor_pipes(model, dhw_loop_demand_inlet, dhw_loop_demand_bypass, supply_length, return_length, supply_pipe_ins_r_value, return_pipe_ins_r_value, num_units)
 
     # Add Pumps
-    add_pump(model, dhw_loop, dhw_pump_gpm)
+    add_pump(model, dhw_loop, dhw_loop_gpm, 1, 0)
     if shared_water_heater_type.include?('space-heating')
-      add_pump(model, space_heating_loop, space_heating_pump_gpm)
+      # add_pump(model, space_heating_loop, space_heating_pump_gpm)
+      add_pump(model, space_heating_loop, space_heating_pump_gpm, pump_head, pump_w)
     end
     supply_loops.each do |supply_loop, _|
-      add_pump(model, supply_loop, supply_pump_gpm)
+      # add_pump(model, supply_loop, supply_pump_gpm)
+      add_pump(model, supply_loop, supply_pump_gpm, pump_head, pump_w)
     end
-    add_pump(model, source_loop, source_pump_gpm)
+    # add_pump(model, source_loop, source_pump_gpm)
+    add_pump(model, source_loop, source_pump_gpm, pump_head, pump_w)
 
     # Add Setpoint Managers
     add_setpoint_manager(model, dhw_loop, dhw_loop_sp_schedule)
@@ -311,25 +327,40 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     end
 
     # Re-connect WaterUseConections
-    # runner.registerValue('model.getWaterUseConnectionss.size', model.getWaterUseConnectionss.size)
+    reconnected_water_heatings = 0
     model.getWaterUseConnectionss.each do |wuc|
       wuc.setName("#{wuc.name}_reconnected")
-      # wuc.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) # Used by reporting measure
       dhw_loop.addDemandBranchForComponent(wuc)
+      reconnected_water_heatings += 1
     end
 
     # Re-connect CoilHeatingWaterBaseboards
-    # runner.registerValue('model.getCoilHeatingWaterBaseboards.size', model.getCoilHeatingWaterBaseboards.size)
+    reconnected_space_heatings = 0
     if shared_water_heater_type.include?('space-heating')
-      if model.getCoilHeatingWaterBaseboards.size > 0 # no existing baseboards(s)
-        model.getCoilHeatingWaterBaseboards.each do |chwb|
-          chwb.setName("#{chwb.name}_reconnected")
-          chwb.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) # Used by reporting measure
-          space_heating_loop.addDemandBranchForComponent(chwb)
-        end
+      coil_heating_water_baseboards = model.getCoilHeatingWaterBaseboards
+      coil_heating_waters = model.getCoilHeatingWaters
+      coil_cooling_waters = model.getCoilCoolingWaters
 
-        # disaggregate_heating_vs_how_water(model, supply_loop, storage_tank) # FIXME: doesn't work if both distribution loops go through the source loop
+      coil_heating_water_baseboards.each do |chwb|
+        chwb.setName("#{chwb.name}_reconnected")
+        space_heating_loop.addDemandBranchForComponent(chwb)
+        reconnected_space_heatings += 1
       end
+
+      coil_heating_waters.each do |chw|
+        chw.setName("#{chw.name}_reconnected")
+        space_heating_loop.addDemandBranchForComponent(chw)
+        reconnected_space_heatings += 1
+      end
+
+      coil_cooling_waters.each do |ccw|
+        ccw.setName("#{ccw.name}_reconnected")
+        space_heating_loop.addDemandBranchForComponent(ccw)
+      end
+
+      # if coil_heating_water_baseboards.size > 0 || coil_heating_waters.size > 0
+      # disaggregate_heating_vs_how_water(model, supply_loop, storage_tank) # FIXME: doesn't work if both distribution loops go through the source loop
+      # end
     end
 
     # Remove Existing
@@ -358,6 +389,8 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     runner.registerValue('tank_volume_storage', storage_tank_volume)
     runner.registerValue('tank_volume_swing', swing_tank_volume)
     runner.registerValue('tank_capacity_swing', swing_tank_capacity)
+    runner.registerValue('reconnected_water_heatings', reconnected_water_heatings)
+    runner.registerValue('reconnected_space_heatings', reconnected_space_heatings)
 
     return true
   end
@@ -574,12 +607,21 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     return gpm, cap
   end
 
-  def add_pump(model, loop, pump_gpm)
+  def add_pump(model, loop, pump_gpm, pump_head, pump_w)
     return if loop.nil?
+
+    pump_eff = 0.85
 
     pump = OpenStudio::Model::PumpConstantSpeed.new(model)
     pump.setName("#{loop.name} Pump")
-    pump.setRatedFlowRate(UnitConversions.convert(pump_gpm, 'gal/min', 'm^3/s')) if !pump_gpm.nil?
+    pump.setMotorEfficiency(pump_eff)
+    pump.setRatedPowerConsumption(pump_w) if !pump_w.nil?
+    pump.setRatedPumpHead(pump_head) if !pump_head.nil?
+    if pump_gpm.nil?
+      pump.setRatedFlowRate(pump_eff * pump_w / pump_head) if !pump_w.nil? && !pump_head.nil?
+    else
+      pump.setRatedFlowRate(UnitConversions.convert(pump_gpm, 'gal/min', 'm^3/s')) if !pump_gpm.nil?
+    end
     pump.addToNode(loop.supplyInletNode)
     pump.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) # Used by reporting measure
   end
