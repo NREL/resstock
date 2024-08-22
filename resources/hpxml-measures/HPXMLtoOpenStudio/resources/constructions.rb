@@ -1738,7 +1738,7 @@ module Constructions
   # @param shgc [TODO] TODO
   # @return [TODO] TODO
   def self.get_default_interior_shading_factors(eri_version, shgc)
-    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2022C')
+    if Constants::ERIVersions.index(eri_version) >= Constants::ERIVersions.index('2022C')
       summer = 0.92 - (0.21 * shgc)
       winter = summer
     else
@@ -2140,7 +2140,7 @@ module Constructions
       # Building has HVAC system
       setpoint_sch = conditioned_zone.thermostatSetpointDualSetpoint.get
       sim_begin_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(sim_begin_month), sim_begin_day, sim_year)
-      sim_begin_hour = (Schedule.get_day_num_from_month_day(sim_year, sim_begin_month, sim_begin_day) - 1) * 24
+      sim_begin_hour = (Calendar.get_day_num_from_month_day(sim_year, sim_begin_month, sim_begin_day) - 1) * 24
 
       # Get heating/cooling setpoints for the simulation start
       htg_setpoint_sch = setpoint_sch.heatingSetpointTemperatureSchedule.get
@@ -2298,12 +2298,12 @@ module Constructions
 
       # Determine transmittance values throughout the year
       sf_values = []
-      num_days_in_year = Constants.NumDaysInYear(hpxml_header.sim_calendar_year)
+      num_days_in_year = Calendar.num_days_in_year(hpxml_header.sim_calendar_year)
       if not hpxml_bldg.header.shading_summer_begin_month.nil?
-        summer_start_day_num = Schedule.get_day_num_from_month_day(hpxml_header.sim_calendar_year,
+        summer_start_day_num = Calendar.get_day_num_from_month_day(hpxml_header.sim_calendar_year,
                                                                    hpxml_bldg.header.shading_summer_begin_month,
                                                                    hpxml_bldg.header.shading_summer_begin_day)
-        summer_end_day_num = Schedule.get_day_num_from_month_day(hpxml_header.sim_calendar_year,
+        summer_end_day_num = Calendar.get_day_num_from_month_day(hpxml_header.sim_calendar_year,
                                                                  hpxml_bldg.header.shading_summer_end_month,
                                                                  hpxml_bldg.header.shading_summer_end_day)
         for i in 0..(num_days_in_year - 1)
@@ -2335,7 +2335,7 @@ module Constructions
           sf_sch.setValue(sf_values[0][0])
           sf_sch.setName(sch_name)
         else
-          sf_sch = HourlyByDaySchedule.new(model, sch_name, sf_values, sf_values, Constants.ScheduleTypeLimitsFraction, false).schedule
+          sf_sch = HourlyByDaySchedule.new(model, sch_name, sf_values, sf_values, EPlus::ScheduleTypeLimitsFraction, false).schedule
         end
         shading_schedules[sf_values] = sf_sch
       end
@@ -3207,7 +3207,7 @@ class Construction
     materials = []
     @layers_materials.each_with_index do |layer_materials, layer_num|
       if layer_materials.size == 1
-        next if layer_materials[0].name == Constants.AirFilm # Do not include air films in construction
+        next if layer_materials[0].name == Constants::AirFilm # Do not include air films in construction
 
         mat = create_os_material(model, layer_materials[0])
       else

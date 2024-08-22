@@ -923,11 +923,11 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
   end
 
   # Appliances
-  tabular_map = { HPXML::ClothesWasher => Constants.ObjectNameClothesWasher,
-                  HPXML::ClothesDryer => Constants.ObjectNameClothesDryer,
-                  HPXML::Refrigerator => Constants.ObjectNameRefrigerator,
-                  HPXML::Dishwasher => Constants.ObjectNameDishwasher,
-                  HPXML::CookingRange => Constants.ObjectNameCookingRange }
+  tabular_map = { HPXML::ClothesWasher => Constants::ObjectTypeClothesWasher,
+                  HPXML::ClothesDryer => Constants::ObjectTypeClothesDryer,
+                  HPXML::Refrigerator => Constants::ObjectTypeRefrigerator,
+                  HPXML::Dishwasher => Constants::ObjectTypeDishwasher,
+                  HPXML::CookingRange => Constants::ObjectTypeCookingRange }
 
   (hpxml_bldg.clothes_washers + hpxml_bldg.clothes_dryers + hpxml_bldg.refrigerators + hpxml_bldg.dishwashers + hpxml_bldg.cooking_ranges).each do |appliance|
     next unless hpxml_bldg.water_heating_systems.size > 0

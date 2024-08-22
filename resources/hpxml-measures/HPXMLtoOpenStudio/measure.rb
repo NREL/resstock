@@ -157,7 +157,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
       eri_version = hpxml.header.eri_calculation_version # Hidden feature
       eri_version = 'latest' if eri_version.nil?
-      eri_version = Constants.ERIVersions[-1] if eri_version == 'latest'
+      eri_version = Constants::ERIVersions[-1] if eri_version == 'latest'
 
       # Process weather once upfront
       epw_path = Location.get_epw_path(hpxml.buildings[0], args[:hpxml_path])
@@ -477,7 +477,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @param schedules_file [TODO] TODO
   # @param eri_version [TODO] TODO
   # @param unit_num [TODO] TODO
-  # @return [void]
+  # @return [nil]
   def create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, weather, debug, schedules_file, eri_version, unit_num)
     @hpxml_header = hpxml.header
     @hpxml_bldg = hpxml_bldg
@@ -498,7 +498,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     # Init
     OpenStudio::Model::WeatherFile.setWeatherFile(model, OpenStudio::EpwFile.new(epw_path))
-    set_defaults_and_globals()
+    set_inits_and_globals()
     Location.apply(model, weather, @hpxml_header, @hpxml_bldg)
     add_simulation_params(model)
 
@@ -556,7 +556,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # TODO
   #
   # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
-  # @param hpxml_path [TODO] TODO
+  # @param hpxml_path [String] Path to the HPXML file
   # @return [TODO] TODO
   def check_emissions_references(hpxml_header, hpxml_path)
     # Check/update file references
@@ -575,7 +575,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # TODO
   #
   # @param hpxml_bldg_header [TODO] TODO
-  # @param hpxml_path [TODO] TODO
+  # @param hpxml_path [String] Path to the HPXML file
   # @return [TODO] TODO
   def check_schedule_references(hpxml_bldg_header, hpxml_path)
     # Check/update file references
@@ -610,7 +610,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # TODO
   #
   # @return [TODO] TODO
-  def set_defaults_and_globals()
+  def set_inits_and_globals()
     # Initialize
     @remaining_heat_load_frac = 1.0
     @remaining_cool_load_frac = 1.0
@@ -631,21 +631,18 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     @hpxml_bldg.collapse_enclosure_surfaces() # Speeds up simulation
     @hpxml_bldg.delete_adiabatic_subsurfaces() # EnergyPlus doesn't allow this
 
-    # We don't want this to be written to in.xml, because then if you ran the in.xml
-    # file, you would get different results (operational calculation) relative to the
-    # original file (asset calculation).
-    if @hpxml_bldg.building_occupancy.number_of_residents.nil?
-      @hpxml_bldg.building_occupancy.number_of_residents = Geometry.get_occupancy_default_num(nbeds: @nbeds)
-    elsif (@hpxml_bldg.building_occupancy.number_of_residents == 0) && (not @apply_ashrae140_assumptions)
+    if not @hpxml_bldg.building_occupancy.number_of_residents.nil?
       # If zero occupants, ensure end uses of interest are zeroed out
-      @hpxml_header.unavailable_periods.add(column_name: 'Vacancy',
-                                            begin_month: @hpxml_header.sim_begin_month,
-                                            begin_day: @hpxml_header.sim_begin_day,
-                                            begin_hour: 0,
-                                            end_month: @hpxml_header.sim_end_month,
-                                            end_day: @hpxml_header.sim_end_day,
-                                            end_hour: 24,
-                                            natvent_availability: HPXML::ScheduleUnavailable)
+      if (@hpxml_bldg.building_occupancy.number_of_residents == 0) && (not @apply_ashrae140_assumptions)
+        @hpxml_header.unavailable_periods.add(column_name: 'Vacancy',
+                                              begin_month: @hpxml_header.sim_begin_month,
+                                              begin_day: @hpxml_header.sim_begin_day,
+                                              begin_hour: 0,
+                                              end_month: @hpxml_header.sim_end_month,
+                                              end_day: @hpxml_header.sim_end_day,
+                                              end_hour: 24,
+                                              natvent_availability: HPXML::ScheduleUnavailable)
+      end
     end
   end
 
@@ -665,8 +662,11 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @return [TODO] TODO
   def add_num_occupants(model, runner, spaces)
     # Occupants
-    num_occ = @hpxml_bldg.building_occupancy.number_of_residents
-    return if num_occ <= 0
+    if @hpxml_bldg.building_occupancy.number_of_residents.nil? # Asset calculation
+      num_occ = Geometry.get_occupancy_default_num(nbeds: @nbeds)
+    else # Operational calculation
+      num_occ = @hpxml_bldg.building_occupancy.number_of_residents
+    end
 
     Geometry.apply_occupants(model, runner, @hpxml_bldg, num_occ, spaces[HPXML::LocationConditionedSpace],
                              @schedules_file, @hpxml_header.unavailable_periods)
@@ -690,7 +690,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
-  # @return [void]
+  # @return [nil]
   def add_roofs(runner, model, spaces)
     @hpxml_bldg.roofs.each do |roof|
       next if roof.net_area < 1.0 # skip modeling net surface area for surfaces comprised entirely of subsurface area
@@ -726,8 +726,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         else
           surface.setName(roof.id)
         end
-        surface.setSurfaceType('RoofCeiling')
-        surface.setOutsideBoundaryCondition('Outdoors')
+        surface.setSurfaceType(EPlus::SurfaceTypeRoofCeiling)
+        surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
         set_surface_interior(model, spaces, surface, roof)
       end
 
@@ -808,7 +808,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
-  # @return [void]
+  # @return [nil]
   def add_walls(runner, model, spaces)
     @hpxml_bldg.walls.each do |wall|
       next if wall.net_area < 1.0 # skip modeling net surface area for surfaces comprised entirely of subsurface area
@@ -842,12 +842,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         else
           surface.setName(wall.id)
         end
-        surface.setSurfaceType('Wall')
+        surface.setSurfaceType(EPlus::SurfaceTypeWall)
         set_surface_interior(model, spaces, surface, wall)
         set_surface_exterior(model, spaces, surface, wall)
         if wall.is_interior
-          surface.setSunExposure('NoSun')
-          surface.setWindExposure('NoWind')
+          surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+          surface.setWindExposure(EPlus::SurfaceWindExposureNo)
         end
       end
 
@@ -886,7 +886,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
-  # @return [void]
+  # @return [nil]
   def add_rim_joists(runner, model, spaces)
     @hpxml_bldg.rim_joists.each do |rim_joist|
       if rim_joist.azimuth.nil?
@@ -918,12 +918,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         else
           surface.setName(rim_joist.id)
         end
-        surface.setSurfaceType('Wall')
+        surface.setSurfaceType(EPlus::SurfaceTypeWall)
         set_surface_interior(model, spaces, surface, rim_joist)
         set_surface_exterior(model, spaces, surface, rim_joist)
         if rim_joist.is_interior
-          surface.setSunExposure('NoSun')
-          surface.setWindExposure('NoWind')
+          surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+          surface.setWindExposure(EPlus::SurfaceWindExposureNo)
         end
       end
 
@@ -964,7 +964,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
-  # @return [void]
+  # @return [nil]
   def add_floors(runner, model, spaces)
     @hpxml_bldg.floors.each do |floor|
       next if floor.net_area < 1.0 # skip modeling net surface area for surfaces comprised entirely of subsurface area
@@ -992,14 +992,14 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       set_surface_exterior(model, spaces, surface, floor)
       surface.setName(floor.id)
       if floor.is_interior
-        surface.setSunExposure('NoSun')
-        surface.setWindExposure('NoWind')
+        surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+        surface.setWindExposure(EPlus::SurfaceWindExposureNo)
       elsif floor.is_floor
-        surface.setSunExposure('NoSun')
+        surface.setSunExposure(EPlus::SurfaceSunExposureNo)
         if floor.exterior_adjacent_to == HPXML::LocationManufacturedHomeUnderBelly
           foundation = @hpxml_bldg.foundations.find { |x| x.to_location == floor.exterior_adjacent_to }
           if foundation.belly_wing_skirt_present
-            surface.setWindExposure('NoWind')
+            surface.setWindExposure(EPlus::SurfaceWindExposureNo)
           end
         end
       end
@@ -1025,7 +1025,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
           # Raised floor
           inside_film = Material.AirFilmFloorASHRAE140
           outside_film = Material.AirFilmFloorZeroWindASHRAE140
-          surface.setWindExposure('NoWind')
+          surface.setWindExposure(EPlus::SurfaceWindExposureNo)
           mat_int_finish_or_covering = Material.CoveringBare(1.0)
         else
           inside_film = Material.AirFilmFloorReduced
@@ -1128,11 +1128,11 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         surface.additionalProperties.setFeature('Tilt', 90.0)
         surface.additionalProperties.setFeature('SurfaceType', 'FoundationWall')
         surface.setName(fnd_wall.id)
-        surface.setSurfaceType('Wall')
+        surface.setSurfaceType(EPlus::SurfaceTypeWall)
         set_surface_interior(model, spaces, surface, fnd_wall)
         set_surface_exterior(model, spaces, surface, fnd_wall)
-        surface.setSunExposure('NoSun')
-        surface.setWindExposure('NoWind')
+        surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+        surface.setWindExposure(EPlus::SurfaceWindExposureNo)
 
         # Apply construction
 
@@ -1208,7 +1208,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     surface.additionalProperties.setFeature('Tilt', 90.0)
     surface.additionalProperties.setFeature('SurfaceType', 'FoundationWall')
     surface.setName(foundation_wall.id)
-    surface.setSurfaceType('Wall')
+    surface.setSurfaceType(EPlus::SurfaceTypeWall)
     set_surface_interior(model, spaces, surface, foundation_wall)
     set_surface_exterior(model, spaces, surface, foundation_wall)
 
@@ -1285,12 +1285,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     vertices = Geometry.create_floor_vertices(length: slab_length, width: slab_width, z_origin: z_origin, default_azimuths: @default_azimuths)
     surface = OpenStudio::Model::Surface.new(vertices, model)
     surface.setName(slab.id)
-    surface.setSurfaceType('Floor')
-    surface.setOutsideBoundaryCondition('Foundation')
+    surface.setSurfaceType(EPlus::SurfaceTypeFloor)
+    surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionFoundation)
     surface.additionalProperties.setFeature('SurfaceType', 'Slab')
     set_surface_interior(model, spaces, surface, slab)
-    surface.setSunExposure('NoSun')
-    surface.setWindExposure('NoWind')
+    surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+    surface.setWindExposure(EPlus::SurfaceWindExposureNo)
 
     slab_perim_r = slab.perimeter_insulation_r_value
     slab_perim_depth = slab.perimeter_insulation_depth
@@ -1396,12 +1396,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     vertices = Geometry.create_floor_vertices(length: floor_length, width: floor_width, z_origin: z_origin, default_azimuths: @default_azimuths)
     floor_surface = OpenStudio::Model::Surface.new(vertices, model)
 
-    floor_surface.setSunExposure('NoSun')
-    floor_surface.setWindExposure('NoWind')
+    floor_surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+    floor_surface.setWindExposure(EPlus::SurfaceWindExposureNo)
     floor_surface.setName('inferred conditioned floor')
-    floor_surface.setSurfaceType('Floor')
+    floor_surface.setSurfaceType(EPlus::SurfaceTypeFloor)
     floor_surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationConditionedSpace))
-    floor_surface.setOutsideBoundaryCondition('Adiabatic')
+    floor_surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
     floor_surface.additionalProperties.setFeature('SurfaceType', 'InferredFloor')
     floor_surface.additionalProperties.setFeature('Tilt', 0.0)
 
@@ -1409,12 +1409,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     vertices = Geometry.create_ceiling_vertices(length: floor_length, width: floor_width, z_origin: z_origin, default_azimuths: @default_azimuths)
     ceiling_surface = OpenStudio::Model::Surface.new(vertices, model)
 
-    ceiling_surface.setSunExposure('NoSun')
-    ceiling_surface.setWindExposure('NoWind')
+    ceiling_surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+    ceiling_surface.setWindExposure(EPlus::SurfaceWindExposureNo)
     ceiling_surface.setName('inferred conditioned ceiling')
-    ceiling_surface.setSurfaceType('RoofCeiling')
+    ceiling_surface.setSurfaceType(EPlus::SurfaceTypeRoofCeiling)
     ceiling_surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationConditionedSpace))
-    ceiling_surface.setOutsideBoundaryCondition('Adiabatic')
+    ceiling_surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
     ceiling_surface.additionalProperties.setFeature('SurfaceType', 'InferredCeiling')
     ceiling_surface.additionalProperties.setFeature('Tilt', 0.0)
 
@@ -1446,7 +1446,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
-  # @return [void]
+  # @return [nil]
   def add_windows(model, spaces)
     # We already stored @fraction_of_windows_operable, so lets remove the
     # fraction_operable properties from windows and re-collapse the enclosure
@@ -1487,14 +1487,14 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         surface.additionalProperties.setFeature('Tilt', 90.0)
         surface.additionalProperties.setFeature('SurfaceType', 'Window')
         surface.setName("surface #{window.id}")
-        surface.setSurfaceType('Wall')
+        surface.setSurfaceType(EPlus::SurfaceTypeWall)
         set_surface_interior(model, spaces, surface, window.wall)
 
         vertices = Geometry.create_wall_vertices(length: window_length, height: window_height, z_origin: z_origin, azimuth: window.azimuth)
         sub_surface = OpenStudio::Model::SubSurface.new(vertices, model)
         sub_surface.setName(window.id)
         sub_surface.setSurface(surface)
-        sub_surface.setSubSurfaceType('FixedWindow')
+        sub_surface.setSubSurfaceType(EPlus::SubSurfaceTypeWindow)
 
         set_subsurface_exterior(surface, spaces, model, window.wall)
         surfaces << surface
@@ -1523,14 +1523,14 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         surface.additionalProperties.setFeature('Tilt', 90.0)
         surface.additionalProperties.setFeature('SurfaceType', 'Door')
         surface.setName("surface #{window.id}")
-        surface.setSurfaceType('Wall')
+        surface.setSurfaceType(EPlus::SurfaceTypeWall)
         set_surface_interior(model, spaces, surface, window.wall)
 
         vertices = Geometry.create_wall_vertices(length: window_length, height: window_height, z_origin: z_origin, azimuth: window.azimuth)
         sub_surface = OpenStudio::Model::SubSurface.new(vertices, model)
         sub_surface.setName(window.id)
         sub_surface.setSurface(surface)
-        sub_surface.setSubSurfaceType('Door')
+        sub_surface.setSubSurfaceType(EPlus::SubSurfaceTypeDoor)
 
         set_subsurface_exterior(surface, spaces, model, window.wall)
         surfaces << surface
@@ -1549,7 +1549,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
-  # @return [void]
+  # @return [nil]
   def add_skylights(model, spaces)
     surfaces = []
     shading_schedules = {}
@@ -1596,9 +1596,9 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       surface.additionalProperties.setFeature('Tilt', tilt)
       surface.additionalProperties.setFeature('SurfaceType', 'Skylight')
       surface.setName("surface #{skylight.id}")
-      surface.setSurfaceType('RoofCeiling')
+      surface.setSurfaceType(EPlus::SurfaceTypeRoofCeiling)
       surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationConditionedSpace))
-      surface.setOutsideBoundaryCondition('Outdoors') # cannot be adiabatic because subsurfaces won't be created
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors) # cannot be adiabatic because subsurfaces won't be created
 
       vertices = Geometry.create_roof_vertices(length: length, width: width, z_origin: z_origin, azimuth: skylight.azimuth, tilt: tilt)
       sub_surface = OpenStudio::Model::SubSurface.new(vertices, model)
@@ -1629,11 +1629,11 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       surface.additionalProperties.setFeature('Tilt', 90.0)
       surface.additionalProperties.setFeature('SurfaceType', 'Skylight')
       surface.setName("surface #{skylight.id} shaft")
-      surface.setSurfaceType('Wall')
+      surface.setSurfaceType(EPlus::SurfaceTypeWall)
       set_surface_interior(model, spaces, surface, skylight.floor)
       set_surface_exterior(model, spaces, surface, skylight.floor)
-      surface.setSunExposure('NoSun')
-      surface.setWindExposure('NoWind')
+      surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+      surface.setWindExposure(EPlus::SurfaceWindExposureNo)
 
       # Apply construction
       shaft_assembly_r_value = [skylight.shaft_assembly_r_value - 2 * Material.AirFilmVertical.rvalue, 0.1].max
@@ -1652,7 +1652,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
-  # @return [void]
+  # @return [nil]
   def add_doors(model, spaces)
     surfaces = []
     @hpxml_bldg.doors.each do |door|
@@ -1669,14 +1669,14 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       surface.additionalProperties.setFeature('Tilt', 90.0)
       surface.additionalProperties.setFeature('SurfaceType', 'Door')
       surface.setName("surface #{door.id}")
-      surface.setSurfaceType('Wall')
+      surface.setSurfaceType(EPlus::SurfaceTypeWall)
       set_surface_interior(model, spaces, surface, door.wall)
 
       vertices = Geometry.create_wall_vertices(length: door_length, height: door_height, z_origin: z_origin, azimuth: door.azimuth)
       sub_surface = OpenStudio::Model::SubSurface.new(vertices, model)
       sub_surface.setName(door.id)
       sub_surface.setSurface(surface)
-      sub_surface.setSubSurfaceType('Door')
+      sub_surface.setSubSurfaceType(EPlus::SubSurfaceTypeDoor)
 
       set_subsurface_exterior(surface, spaces, model, door.wall)
       surfaces << surface
@@ -2006,7 +2006,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @return [void]
+  # @return [nil]
   def add_ideal_system(model, spaces, weather)
     conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
 
@@ -2125,13 +2125,13 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # Misc
     @hpxml_bldg.plug_loads.each do |plug_load|
       if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
-        obj_name = Constants.ObjectNameMiscPlugLoads
+        obj_name = Constants::ObjectTypeMiscPlugLoads
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
-        obj_name = Constants.ObjectNameMiscTelevision
+        obj_name = Constants::ObjectTypeMiscTelevision
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging
-        obj_name = Constants.ObjectNameMiscElectricVehicleCharging
+        obj_name = Constants::ObjectTypeMiscElectricVehicleCharging
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
-        obj_name = Constants.ObjectNameMiscWellPump
+        obj_name = Constants::ObjectTypeMiscWellPump
       end
       if obj_name.nil?
         runner.registerWarning("Unexpected plug load type '#{plug_load.plug_load_type}'. The plug load will not be modeled.")
@@ -2153,11 +2153,11 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # Misc
     @hpxml_bldg.fuel_loads.each do |fuel_load|
       if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
-        obj_name = Constants.ObjectNameMiscGrill
+        obj_name = Constants::ObjectTypeMiscGrill
       elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeLighting
-        obj_name = Constants.ObjectNameMiscLighting
+        obj_name = Constants::ObjectTypeMiscLighting
       elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeFireplace
-        obj_name = Constants.ObjectNameMiscFireplace
+        obj_name = Constants::ObjectTypeMiscFireplace
       end
       if obj_name.nil?
         runner.registerWarning("Unexpected fuel load type '#{fuel_load.fuel_load_type}'. The fuel load will not be modeled.")
@@ -2280,12 +2280,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # Create HVAC availability sensor
     hvac_availability_sensor = nil
     if not @hvac_unavailable_periods.empty?
-      avail_sch = ScheduleConstant.new(model, SchedulesFile::Columns[:HVAC].name, 1.0, Constants.ScheduleTypeLimitsFraction, unavailable_periods: @hvac_unavailable_periods)
+      avail_sch = ScheduleConstant.new(model, SchedulesFile::Columns[:HVAC].name, 1.0, EPlus::ScheduleTypeLimitsFraction, unavailable_periods: @hvac_unavailable_periods)
 
       hvac_availability_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
       hvac_availability_sensor.setName('hvac availability s')
       hvac_availability_sensor.setKeyName(avail_sch.schedule.name.to_s)
-      hvac_availability_sensor.additionalProperties.setFeature('ObjectType', Constants.ObjectNameHVACAvailabilitySensor)
+      hvac_availability_sensor.additionalProperties.setFeature('ObjectType', Constants::ObjectTypeHVACAvailabilitySensor)
     end
 
     Airflow.apply(model, runner, weather, spaces, @hpxml_header, @hpxml_bldg, @cfa,
@@ -2382,7 +2382,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @return [TODO] TODO
+  # @return [nil]
   def add_photovoltaics(model)
     @hpxml_bldg.pv_systems.each do |pv_system|
       next if pv_system.inverter.inverter_efficiency == @hpxml_bldg.pv_systems[0].inverter.inverter_efficiency
@@ -2397,7 +2397,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @return [TODO] TODO
+  # @return [nil]
   def add_generators(model)
     @hpxml_bldg.generators.each do |generator|
       Generator.apply(model, @nbeds, generator, @hpxml_bldg.building_construction.number_of_units)
@@ -2409,7 +2409,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
-  # @return [TODO] TODO
+  # @return [nil]
   def add_batteries(runner, model, spaces)
     @hpxml_bldg.batteries.each do |battery|
       # Assign space
@@ -2438,7 +2438,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param hpxml [HPXML] HPXML object
   # @param hpxml_osm_map [Hash] Map of HPXML::Building objects => OpenStudio Model objects for each dwelling unit
-  # @param hpxml_path [TODO] TODO
+  # @param hpxml_path [String] Path to the HPXML file
   # @param building_id [TODO] TODO
   # @param hpxml_defaults_path [TODO] TODO
   # @return [TODO] TODO
@@ -2516,14 +2516,14 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
       sim_year = @hpxml_header.sim_calendar_year
       season_day_nums[unit] = {
-        htg_start: Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_begin_month, hvac_control.seasons_heating_begin_day),
-        htg_end: Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_end_month, hvac_control.seasons_heating_end_day),
-        clg_start: Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_begin_month, hvac_control.seasons_cooling_begin_day),
-        clg_end: Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_end_month, hvac_control.seasons_cooling_end_day)
+        htg_start: Calendar.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_begin_month, hvac_control.seasons_heating_begin_day),
+        htg_end: Calendar.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_end_month, hvac_control.seasons_heating_end_day),
+        clg_start: Calendar.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_begin_month, hvac_control.seasons_cooling_begin_day),
+        clg_end: Calendar.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_end_month, hvac_control.seasons_cooling_end_day)
       }
     end
 
-    hvac_availability_sensor = model.getEnergyManagementSystemSensors.find { |s| s.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameHVACAvailabilitySensor }
+    hvac_availability_sensor = model.getEnergyManagementSystemSensors.find { |s| s.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants::ObjectTypeHVACAvailabilitySensor }
 
     # EMS program
     clg_hrs = 'clg_unmet_hours'
@@ -2532,7 +2532,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     unit_htg_hrs = 'unit_htg_unmet_hours'
     program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     program.setName('unmet hours program')
-    program.additionalProperties.setFeature('ObjectType', Constants.ObjectNameUnmetHoursProgram)
+    program.additionalProperties.setFeature('ObjectType', Constants::ObjectTypeUnmetHoursProgram)
     program.addLine("Set #{htg_hrs} = 0")
     program.addLine("Set #{clg_hrs} = 0")
     for unit in 0..hpxml_osm_map.size - 1
@@ -2664,7 +2664,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # EMS program
     program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     program.setName('total loads program')
-    program.additionalProperties.setFeature('ObjectType', Constants.ObjectNameTotalLoadsProgram)
+    program.additionalProperties.setFeature('ObjectType', Constants::ObjectTypeTotalLoadsProgram)
     program.addLine('Set loads_htg_tot = 0')
     program.addLine('Set loads_clg_tot = 0')
     for unit in 0..hpxml_osm_map.size - 1
@@ -2731,7 +2731,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # EMS program
     program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     program.setName('component loads program')
-    program.additionalProperties.setFeature('ObjectType', Constants.ObjectNameComponentLoadsProgram)
+    program.additionalProperties.setFeature('ObjectType', Constants::ObjectTypeComponentLoadsProgram)
 
     # Initialize
     [:htg, :clg].each do |mode|
@@ -2867,11 +2867,11 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
           airflow_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
           airflow_sensor.setName(name)
           airflow_sensor.setKeyName(i.name.to_s)
-          if object_type == Constants.ObjectNameInfiltration
+          if object_type == Constants::ObjectTypeInfiltration
             infil_sensors << airflow_sensor
-          elsif object_type == Constants.ObjectNameNaturalVentilation
+          elsif object_type == Constants::ObjectTypeNaturalVentilation
             natvent_sensors << airflow_sensor
-          elsif object_type == Constants.ObjectNameWholeHouseFan
+          elsif object_type == Constants::ObjectTypeWholeHouseFan
             whf_sensors << airflow_sensor
           end
         end
@@ -2880,7 +2880,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       # EMS Sensors: Mechanical Ventilation
       mechvents_sensors = []
       unit_model.getElectricEquipments.sort.each do |o|
-        next unless o.endUseSubcategory == Constants.ObjectNameMechanicalVentilation
+        next unless o.endUseSubcategory == Constants::ObjectTypeMechanicalVentilation
 
         objects_already_processed << o
         { 'Electric Equipment Convective Heating Energy' => 'mv_conv',
@@ -2892,7 +2892,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         end
       end
       unit_model.getOtherEquipments.sort.each do |o|
-        next unless o.endUseSubcategory == Constants.ObjectNameMechanicalVentilationHouseFan
+        next unless o.endUseSubcategory == Constants::ObjectTypeMechanicalVentilationHouseFan
 
         objects_already_processed << o
         { 'Other Equipment Convective Heating Energy' => 'mv_conv',
@@ -2910,7 +2910,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       ducts_mix_loss_sensor = nil
       conditioned_zone.zoneMixing.each do |zone_mix|
         object_type = zone_mix.additionalProperties.getFeatureAsString('ObjectType').to_s
-        next unless object_type == Constants.ObjectNameDuctLoad
+        next unless object_type == Constants::ObjectTypeDuctLoad
 
         ducts_mix_gain_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Mixing Sensible Heat Gain Energy')
         ducts_mix_gain_sensor.setName('duct_mix_gain')
@@ -2922,7 +2922,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       end
       unit_model.getOtherEquipments.sort.each do |o|
         next if objects_already_processed.include? o
-        next unless o.endUseSubcategory == Constants.ObjectNameDuctLoad
+        next unless o.endUseSubcategory == Constants::ObjectTypeDuctLoad
 
         objects_already_processed << o
         { 'Other Equipment Convective Heating Energy' => 'ducts_conv',
@@ -3156,7 +3156,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param hpxml_osm_map [Hash] Map of HPXML::Building objects => OpenStudio Model objects for each dwelling unit
-  # @return [void]
+  # @return [nil]
   def add_total_airflows_output(model, hpxml_osm_map)
     # Retrieve objects
     infil_vars = []
@@ -3165,17 +3165,17 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     whf_vars = []
     unit_multipliers = []
     hpxml_osm_map.each do |hpxml_bldg, unit_model|
-      infil_vars << unit_model.getEnergyManagementSystemGlobalVariables.find { |v| v.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameInfiltration }
-      mechvent_vars << unit_model.getEnergyManagementSystemGlobalVariables.find { |v| v.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameMechanicalVentilation }
-      natvent_vars << unit_model.getEnergyManagementSystemGlobalVariables.find { |v| v.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameNaturalVentilation }
-      whf_vars << unit_model.getEnergyManagementSystemGlobalVariables.find { |v| v.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants.ObjectNameWholeHouseFan }
+      infil_vars << unit_model.getEnergyManagementSystemGlobalVariables.find { |v| v.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants::ObjectTypeInfiltration }
+      mechvent_vars << unit_model.getEnergyManagementSystemGlobalVariables.find { |v| v.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants::ObjectTypeMechanicalVentilation }
+      natvent_vars << unit_model.getEnergyManagementSystemGlobalVariables.find { |v| v.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants::ObjectTypeNaturalVentilation }
+      whf_vars << unit_model.getEnergyManagementSystemGlobalVariables.find { |v| v.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants::ObjectTypeWholeHouseFan }
       unit_multipliers << hpxml_bldg.building_construction.number_of_units
     end
 
     # EMS program
     program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     program.setName('total airflows program')
-    program.additionalProperties.setFeature('ObjectType', Constants.ObjectNameTotalAirflowsProgram)
+    program.additionalProperties.setFeature('ObjectType', Constants::ObjectTypeTotalAirflowsProgram)
     program.addLine('Set total_infil_flow_rate = 0')
     program.addLine('Set total_mechvent_flow_rate = 0')
     program.addLine('Set total_natvent_flow_rate = 0')
@@ -3264,11 +3264,11 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     exterior_adjacent_to = hpxml_surface.exterior_adjacent_to
     is_adiabatic = hpxml_surface.is_adiabatic
     if [HPXML::LocationOutside, HPXML::LocationManufacturedHomeUnderBelly].include? exterior_adjacent_to
-      surface.setOutsideBoundaryCondition('Outdoors')
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
     elsif exterior_adjacent_to == HPXML::LocationGround
-      surface.setOutsideBoundaryCondition('Foundation')
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionFoundation)
     elsif is_adiabatic
-      surface.setOutsideBoundaryCondition('Adiabatic')
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
     elsif [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
            HPXML::LocationOtherNonFreezingSpace, HPXML::LocationOtherHousingUnit].include? exterior_adjacent_to
       set_surface_otherside_coefficients(surface, exterior_adjacent_to, model, spaces)
@@ -3305,8 +3305,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       otherside_coeffs.setConstantTemperatureSchedule(sch)
     end
     surface.setSurfacePropertyOtherSideCoefficients(otherside_coeffs)
-    surface.setSunExposure('NoSun')
-    surface.setWindExposure('NoWind')
+    surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+    surface.setWindExposure(EPlus::SurfaceWindExposureNo)
   end
 
   # TODO
@@ -3480,14 +3480,14 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param hpxml_surface [TODO] TODO
-  # @return [void]
+  # @return [nil]
   def set_subsurface_exterior(surface, spaces, model, hpxml_surface)
     # Set its parent surface outside boundary condition, which will be also applied to subsurfaces through OS
     # The parent surface is entirely comprised of the subsurface.
 
     # Subsurface on foundation wall, set it to be adjacent to outdoors
     if hpxml_surface.exterior_adjacent_to == HPXML::LocationGround
-      surface.setOutsideBoundaryCondition('Outdoors')
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
     else
       set_surface_exterior(model, spaces, surface, hpxml_surface)
     end
@@ -3495,7 +3495,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
   # TODO
   #
-  # @return [void]
+  # @return [nil]
   def set_foundation_and_walls_top()
     @foundation_top = 0
     @hpxml_bldg.floors.each do |floor|
@@ -3511,10 +3511,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     @walls_top = @foundation_top + @hpxml_bldg.building_construction.average_ceiling_height * @ncfl_ag
   end
 
-  # TODO
+  # Set 365 (or 366 for a leap year) heating/cooling day arrays based on heating/cooling season begin/end month/day, respectively.
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
-  # @return [void]
+  # @return [nil]
   def set_heating_and_cooling_seasons(runner)
     return if @hpxml_bldg.hvac_controls.size == 0
 
@@ -3529,8 +3529,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     clg_end_month = hvac_control.seasons_cooling_end_month
     clg_end_day = hvac_control.seasons_cooling_end_day
 
-    @heating_days = Schedule.get_daily_season(@hpxml_header.sim_calendar_year, htg_start_month, htg_start_day, htg_end_month, htg_end_day)
-    @cooling_days = Schedule.get_daily_season(@hpxml_header.sim_calendar_year, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
+    @heating_days = Calendar.get_daily_season(@hpxml_header.sim_calendar_year, htg_start_month, htg_start_day, htg_end_month, htg_end_day)
+    @cooling_days = Calendar.get_daily_season(@hpxml_header.sim_calendar_year, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
 
     if (htg_start_month != 1) || (htg_start_day != 1) || (htg_end_month != 12) || (htg_end_day != 31) || (clg_start_month != 1) || (clg_start_day != 1) || (clg_end_month != 12) || (clg_end_day != 31)
       runner.registerWarning('It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus outside of an HVAC season.')

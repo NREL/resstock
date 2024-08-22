@@ -1,14 +1,16 @@
 # frozen_string_literal: true
 
-# TODO
+# Collection of methods for adding generator-related OpenStudio objects.
 module Generator
-  # TODO
+  # Apply a on-site power generator to the model using OpenStudio GeneratorMicroTurbine and ElectricLoadCenterDistribution objects.
+  # The system may be shared, in which case annual consumption (kBtu) and output (kWh) are apportioned to the dwelling unit by total number of bedrooms served.
+  # A new ElectricLoadCenterDistribution object is created for each generator.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param nbeds [Integer] Number of bedrooms in the dwelling unit
-  # @param generator [TODO] TODO
+  # @param generator [HPXML::Generator] Object that defines a single generator that provides on-site power
   # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @return [TODO] TODO
+  # @return [nil]
   def self.apply(model, nbeds, generator, unit_multiplier)
     obj_name = generator.id
 
@@ -57,10 +59,10 @@ module Generator
     elcd.setElectricalBussType('AlternatingCurrent')
   end
 
-  # TODO
+  # Create a cubic constant curve for electrical efficiency function of temperature and part load ratio.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @return [TODO] TODO
+  # @return [OpenStudio::Model::CurveCubic] OpenStudio CurveCubic object
   def self.create_curve_cubic_constant(model)
     constant_cubic = OpenStudio::Model::CurveCubic.new(model)
     constant_cubic.setName('ConstantCubic')
@@ -73,10 +75,10 @@ module Generator
     return constant_cubic
   end
 
-  # TODO
+  # Create a biquadratic constant curve for electrical power function of temperature and elevation.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @return [TODO] TODO
+  # @return [OpenStudio::Model::CurveBiquadratic] OpenStudio CurveBiquadratic object
   def self.create_curve_biquadratic_constant(model)
     const_biquadratic = OpenStudio::Model::CurveBiquadratic.new(model)
     const_biquadratic.setName('ConstantBiquadratic')

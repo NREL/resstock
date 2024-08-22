@@ -24,7 +24,7 @@ module Waterheater
 
     act_vol = calc_storage_tank_actual_vol(water_heating_system.tank_volume, water_heating_system.fuel_type)
     u, ua, eta_c = calc_tank_UA(act_vol, water_heating_system, solar_fraction, nbeds)
-    new_heater = create_new_heater(name: Constants.ObjectNameWaterHeater,
+    new_heater = create_new_heater(name: Constants::ObjectTypeWaterHeater,
                                    water_heating_system: water_heating_system,
                                    act_vol: act_vol,
                                    t_set_c: t_set_c,
@@ -69,7 +69,7 @@ module Waterheater
 
     act_vol = 1.0 * unit_multiplier
     _u, ua, eta_c = calc_tank_UA(act_vol, water_heating_system, solar_fraction, nbeds)
-    new_heater = create_new_heater(name: Constants.ObjectNameWaterHeater,
+    new_heater = create_new_heater(name: Constants::ObjectTypeWaterHeater,
                                    water_heating_system: water_heating_system,
                                    act_vol: act_vol,
                                    t_set_c: t_set_c,
@@ -109,7 +109,7 @@ module Waterheater
   # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @return [TODO] TODO
   def self.apply_heatpump(model, runner, loc_space, loc_schedule, elevation, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, eri_version, schedules_file, unavailable_periods, unit_multiplier, nbeds)
-    obj_name_hpwh = Constants.ObjectNameWaterHeater
+    obj_name_hpwh = Constants::ObjectTypeWaterHeater
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
     t_set_c = get_t_set_c(water_heating_system.temperature, water_heating_system.water_heater_type)
     loop = create_new_loop(model, t_set_c, eri_version, unit_multiplier)
@@ -137,15 +137,15 @@ module Waterheater
       # Sensed schedule
       setpoint_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
       if not setpoint_schedule.nil?
-        Schedule.set_schedule_type_limits(model, setpoint_schedule, Constants.ScheduleTypeLimitsTemperature)
+        Schedule.set_schedule_type_limits(model, setpoint_schedule, EPlus::ScheduleTypeLimitsTemperature)
 
         # Actuated schedule
-        control_setpoint_schedule = ScheduleConstant.new(model, "#{obj_name_hpwh} ControlSetpoint", 0.0, Constants.ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
+        control_setpoint_schedule = ScheduleConstant.new(model, "#{obj_name_hpwh} ControlSetpoint", 0.0, EPlus::ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
         control_setpoint_schedule = control_setpoint_schedule.schedule
       end
     end
     if setpoint_schedule.nil?
-      setpoint_schedule = ScheduleConstant.new(model, Constants.ObjectNameWaterHeaterSetpoint, t_set_c, Constants.ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
+      setpoint_schedule = ScheduleConstant.new(model, Constants::ObjectTypeWaterHeaterSetpoint, t_set_c, EPlus::ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
       setpoint_schedule = setpoint_schedule.schedule
 
       control_setpoint_schedule = setpoint_schedule
@@ -215,7 +215,7 @@ module Waterheater
     boiler.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
     boiler.additionalProperties.setFeature('IsCombiBoiler', true) # Used by reporting measure
 
-    obj_name_combi = Constants.ObjectNameWaterHeater
+    obj_name_combi = Constants::ObjectTypeWaterHeater
 
     if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeCombiStorage
       if water_heating_system.standby_loss_value <= 0
@@ -441,7 +441,7 @@ module Waterheater
 
     dhw_loop = plantloop_map[solar_thermal_system.water_heating_system.id]
 
-    obj_name = Constants.ObjectNameSolarHotWater
+    obj_name = Constants::ObjectTypeSolarHotWater
 
     if [HPXML::SolarThermalCollectorTypeEvacuatedTube].include? solar_thermal_system.collector_type
       iam_coeff2 = 0.3023 # IAM coeff1=1 by definition, values based on a system listed by SRCC with values close to the average
@@ -455,10 +455,10 @@ module Waterheater
     end
 
     if [HPXML::SolarThermalLoopTypeIndirect].include? solar_thermal_system.collector_loop_type
-      fluid_type = Constants.FluidPropyleneGlycol
+      fluid_type = EPlus::FluidPropyleneGlycol
       heat_ex_eff = 0.7
     elsif [HPXML::SolarThermalLoopTypeDirect, HPXML::SolarThermalLoopTypeThermosyphon].include? solar_thermal_system.collector_loop_type
-      fluid_type = Constants.FluidWater
+      fluid_type = EPlus::FluidWater
       heat_ex_eff = 1.0
     end
 
@@ -473,7 +473,7 @@ module Waterheater
 
     test_flow = 55.0 / UnitConversions.convert(1.0, 'lbm/min', 'kg/hr') / Liquid.H2O_l.rho * UnitConversions.convert(1.0, 'ft^2', 'm^2') # cfm/ft^2
     coll_flow = test_flow * collector_area # cfm
-    if fluid_type == Constants.FluidWater # Direct, make the storage tank a dummy tank with 0 tank losses
+    if fluid_type == EPlus::FluidWater # Direct, make the storage tank a dummy tank with 0 tank losses
       u_tank = 0.0
     else
       r_tank = 10.0 # Btu/(hr-ft2-F)
@@ -505,10 +505,10 @@ module Waterheater
 
     plant_loop = OpenStudio::Model::PlantLoop.new(model)
     plant_loop.setName('solar hot water loop')
-    if fluid_type == Constants.FluidWater
-      plant_loop.setFluidType('Water')
+    if fluid_type == EPlus::FluidWater
+      plant_loop.setFluidType(EPlus::FluidWater)
     else
-      plant_loop.setFluidType('PropyleneGlycol')
+      plant_loop.setFluidType(EPlus::FluidPropyleneGlycol)
       plant_loop.setGlycolConcentration(50)
     end
     plant_loop.setMaximumLoopTemperature(100)
@@ -536,7 +536,7 @@ module Waterheater
     pump.setRatedFlowRate(UnitConversions.convert(coll_flow, 'cfm', 'm^3/s'))
     pump.addToNode(plant_loop.supplyInletNode)
     pump.additionalProperties.setFeature('HPXML_ID', solar_thermal_system.water_heating_system.id) # Used by reporting measure
-    pump.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSolarHotWater) # Used by reporting measure
+    pump.additionalProperties.setFeature('ObjectType', Constants::ObjectTypeSolarHotWater) # Used by reporting measure
 
     panel_length = UnitConversions.convert(collector_area, 'ft^2', 'm^2')**0.5
     run = Math::cos(solar_thermal_system.collector_tilt * Math::PI / 180) * panel_length
@@ -595,7 +595,7 @@ module Waterheater
       collector_performance = collector_plate.solarCollectorPerformance
       collector_performance.setName(obj_name + ' coll perf')
       collector_performance.setGrossArea(UnitConversions.convert(collector_area, 'ft^2', 'm^2'))
-      collector_performance.setTestFluid('Water')
+      collector_performance.setTestFluid(EPlus::FluidWater)
       collector_performance.setTestFlowRate(UnitConversions.convert(coll_flow, 'cfm', 'm^3/s'))
       collector_performance.setTestCorrelationType('Inlet')
       collector_performance.setCoefficient1ofEfficiencyEquation(solar_thermal_system.collector_rated_optical_efficiency)
@@ -625,7 +625,7 @@ module Waterheater
     storage_tank.setName(obj_name + ' storage tank')
     storage_tank.setSourceSideEffectiveness(heat_ex_eff)
     storage_tank.setTankShape('VerticalCylinder')
-    if (solar_thermal_system.collector_type == HPXML::SolarThermalCollectorTypeICS) || (fluid_type == Constants.FluidWater) # Use a 60 gal tank dummy tank for direct systems, storage volume for ICS is assumed to be collector volume
+    if (solar_thermal_system.collector_type == HPXML::SolarThermalCollectorTypeICS) || (fluid_type == EPlus::FluidWater) # Use a 60 gal tank dummy tank for direct systems, storage volume for ICS is assumed to be collector volume
       tank_volume = UnitConversions.convert(60 * unit_multiplier, 'gal', 'm^3')
     else
       tank_volume = UnitConversions.convert(storage_volume, 'gal', 'm^3')
@@ -663,7 +663,7 @@ module Waterheater
     storage_tank.setUseSideDesignFlowRate(UnitConversions.convert(storage_volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
     set_stratified_tank_ua(storage_tank, u_tank, unit_multiplier)
     storage_tank.additionalProperties.setFeature('HPXML_ID', solar_thermal_system.water_heating_system.id) # Used by reporting measure
-    storage_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSolarHotWater) # Used by reporting measure
+    storage_tank.additionalProperties.setFeature('ObjectType', Constants::ObjectTypeSolarHotWater) # Used by reporting measure
 
     plant_loop.addDemandBranchForComponent(storage_tank)
     dhw_loop.addSupplyBranchForComponent(storage_tank)
@@ -943,7 +943,7 @@ module Waterheater
     fan.setMotorInAirStreamFraction(1.0)
     fan.setDesignMaximumAirFlowRate(UnitConversions.convert(airflow_rate * unit_multiplier, 'ft^3/min', 'm^3/s'))
     fan.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
-    fan.additionalProperties.setFeature('ObjectType', Constants.ObjectNameWaterHeater) # Used by reporting measure
+    fan.additionalProperties.setFeature('ObjectType', Constants::ObjectTypeWaterHeater) # Used by reporting measure
 
     return fan
   end
@@ -1136,7 +1136,7 @@ module Waterheater
 
     # Sensor on op_mode_schedule
     if not op_mode_schedule.nil?
-      Schedule.set_schedule_type_limits(model, op_mode_schedule, Constants.ScheduleTypeLimitsFraction)
+      Schedule.set_schedule_type_limits(model, op_mode_schedule, EPlus::ScheduleTypeLimitsFraction)
 
       op_mode_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
       op_mode_sensor.setName("#{obj_name_hpwh} op_mode")
@@ -1609,8 +1609,8 @@ module Waterheater
     end
 
     # Add an other equipment object for water heating that will get actuated, has a small initial load but gets overwritten by EMS
-    cnt = model.getOtherEquipments.select { |e| e.endUseSubcategory.start_with? Constants.ObjectNameWaterHeaterAdjustment }.size # Ensure unique meter for each water heater
-    ec_adj_object = HotWaterAndAppliances.add_other_equipment(model, "#{Constants.ObjectNameWaterHeaterAdjustment}#{cnt + 1}", loc_space, 0.01, 0, 0, model.alwaysOnDiscreteSchedule, fuel_type)
+    cnt = model.getOtherEquipments.select { |e| e.endUseSubcategory.start_with? Constants::ObjectTypeWaterHeaterAdjustment }.size # Ensure unique meter for each water heater
+    ec_adj_object = HotWaterAndAppliances.add_other_equipment(model, "#{Constants::ObjectTypeWaterHeaterAdjustment}#{cnt + 1}", loc_space, 0.01, 0, 0, model.alwaysOnDiscreteSchedule, fuel_type)
     ec_adj_object.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
 
     # EMS for calculating the EC_adj
@@ -1677,7 +1677,7 @@ module Waterheater
   # @return [TODO] TODO
   def self.get_default_hot_water_temperature(eri_version)
     # Returns hot water temperature in F
-    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014A')
+    if Constants::ERIVersions.index(eri_version) >= Constants::ERIVersions.index('2014A')
       # 2014 w/ Addendum A or newer
       return 125.0
     else
@@ -2094,7 +2094,7 @@ module Waterheater
       new_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
     end
     if new_schedule.nil? # constant
-      new_schedule = ScheduleConstant.new(model, Constants.ObjectNameWaterHeaterSetpoint, t_set_c, Constants.ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
+      new_schedule = ScheduleConstant.new(model, Constants::ObjectTypeWaterHeaterSetpoint, t_set_c, EPlus::ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
       new_schedule = new_schedule.schedule
     else
       runner.registerWarning("Both '#{SchedulesFile::Columns[:WaterHeaterSetpoint].name}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
@@ -2120,7 +2120,7 @@ module Waterheater
       new_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
     end
     if new_schedule.nil? # constant
-      new_schedule = ScheduleConstant.new(model, Constants.ObjectNameWaterHeaterSetpoint, t_set_c, Constants.ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
+      new_schedule = ScheduleConstant.new(model, Constants::ObjectTypeWaterHeaterSetpoint, t_set_c, EPlus::ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
       new_schedule = new_schedule.schedule
     else
       runner.registerWarning("Both '#{SchedulesFile::Columns[:WaterHeaterSetpoint].name}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?

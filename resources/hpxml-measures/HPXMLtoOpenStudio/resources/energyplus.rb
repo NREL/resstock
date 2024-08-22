@@ -1,8 +1,14 @@
 # frozen_string_literal: true
 
-# TODO
+# Collection of methods related to the EnergyPlus simulation.
 module EPlus
   # Constants
+  BoundaryConditionAdiabatic = 'Adiabatic'
+  BoundaryConditionCoefficients = 'OtherSideCoefficients'
+  BoundaryConditionFoundation = 'Foundation'
+  BoundaryConditionGround = 'Ground'
+  BoundaryConditionOutdoors = 'Outdoors'
+  BoundaryConditionSurface = 'Surface'
   EMSActuatorElectricEquipmentPower = 'ElectricEquipment', 'Electricity Rate'
   EMSActuatorOtherEquipmentPower = 'OtherEquipment', 'Power Level'
   EMSActuatorPumpMassFlowRate = 'Pump', 'Pump Mass Flow Rate'
@@ -18,21 +24,39 @@ module EPlus
   EMSActuatorZoneMixingFlowRate = 'ZoneMixing', 'Air Exchange Flow Rate'
   EMSIntVarFanMFR = 'Fan Maximum Mass Flow Rate'
   EMSIntVarPumpMFR = 'Pump Maximum Mass Flow Rate'
+  FluidPropyleneGlycol = 'PropyleneGlycol'
+  FluidWater = 'Water'
+  FuelTypeCoal = 'Coal'
   FuelTypeElectricity = 'Electricity'
   FuelTypeNaturalGas = 'NaturalGas'
+  FuelTypeNone = 'None'
   FuelTypeOil = 'FuelOilNo2'
   FuelTypePropane = 'Propane'
   FuelTypeWoodCord = 'OtherFuel1'
   FuelTypeWoodPellets = 'OtherFuel2'
-  FuelTypeCoal = 'Coal'
+  ScheduleTypeLimitsFraction = 'Fractional'
+  ScheduleTypeLimitsOnOff = 'OnOff'
+  ScheduleTypeLimitsTemperature = 'Temperature'
+  SubSurfaceTypeDoor = 'Door'
+  SubSurfaceTypeWindow = 'FixedWindow'
+  SurfaceSunExposureNo = 'NoSun'
+  SurfaceSunExposureYes = 'SunExposed'
+  SurfaceTypeFloor = 'Floor'
+  SurfaceTypeRoofCeiling = 'RoofCeiling'
+  SurfaceTypeWall = 'Wall'
+  SurfaceWindExposureNo = 'NoWind'
+  SurfaceWindExposureYes = 'WindExposed'
 
-  # TODO
+  # Returns the fuel type used in the EnergyPlus simulation that the HPXML fuel type
+  # maps to.
   #
-  # @param hpxml_fuel [TODO] TODO
-  # @return [TODO] TODO
+  # @param hpxml_fuel [String] HPXML fuel type (HPXML::FuelTypeXXX)
+  # @return [String] EnergyPlus fuel type (EPlus::FuelTypeXXX)
   def self.fuel_type(hpxml_fuel)
     # Name of fuel used as inputs to E+ objects
-    if [HPXML::FuelTypeElectricity].include? hpxml_fuel
+    if hpxml_fuel.nil?
+      return FuelTypeNone
+    elsif [HPXML::FuelTypeElectricity].include? hpxml_fuel
       return FuelTypeElectricity
     elsif [HPXML::FuelTypeNaturalGas].include? hpxml_fuel
       return FuelTypeNaturalGas

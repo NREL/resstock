@@ -85,7 +85,7 @@ class Material
   # @param rvalue [TODO] TODO
   # @return [TODO] TODO
   def self.AirFilm(rvalue)
-    return new(name: Constants.AirFilm, thick_in: 1.0, k_in: 1.0 / rvalue)
+    return new(name: Constants::AirFilm, thick_in: 1.0, k_in: 1.0 / rvalue)
   end
 
   # TODO

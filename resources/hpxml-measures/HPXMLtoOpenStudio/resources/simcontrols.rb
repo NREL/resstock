@@ -6,7 +6,7 @@ module SimControls
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
-  # @return [void]
+  # @return [nil]
   def self.apply(model, hpxml_header)
     sim = model.getSimulationControl
     sim.setRunSimulationforSizingPeriods(false)

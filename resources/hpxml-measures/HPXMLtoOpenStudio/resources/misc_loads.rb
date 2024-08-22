@@ -38,7 +38,7 @@ module MiscLoads
     end
     if sch.nil?
       col_unavailable_periods = Schedule.get_unavailable_periods(runner, col_name, unavailable_periods)
-      sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction, unavailable_periods: col_unavailable_periods)
+      sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers, EPlus::ScheduleTypeLimitsFraction, unavailable_periods: col_unavailable_periods)
       space_design_level = sch.calc_design_level_from_daily_kwh(kwh / 365.0)
       sch = sch.schedule
     else
@@ -104,7 +104,7 @@ module MiscLoads
     end
     if sch.nil?
       col_unavailable_periods = Schedule.get_unavailable_periods(runner, col_name, unavailable_periods)
-      sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', fuel_load.weekday_fractions, fuel_load.weekend_fractions, fuel_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction, unavailable_periods: col_unavailable_periods)
+      sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', fuel_load.weekday_fractions, fuel_load.weekend_fractions, fuel_load.monthly_multipliers, EPlus::ScheduleTypeLimitsFraction, unavailable_periods: col_unavailable_periods)
       space_design_level = sch.calc_design_level_from_daily_therm(therm / 365.0)
       sch = sch.schedule
     else
@@ -156,10 +156,10 @@ module MiscLoads
     # Create schedule
     heater_sch = nil
     if pool_or_spa.is_a? HPXML::Pool
-      obj_name = Constants.ObjectNameMiscPoolHeater
+      obj_name = Constants::ObjectTypeMiscPoolHeater
       col_name = 'pool_heater'
     else
-      obj_name = Constants.ObjectNameMiscPermanentSpaHeater
+      obj_name = Constants::ObjectTypeMiscPermanentSpaHeater
       col_name = 'permanent_spa_heater'
     end
     if not schedules_file.nil?
@@ -167,7 +167,7 @@ module MiscLoads
     end
     if heater_sch.nil?
       col_unavailable_periods = Schedule.get_unavailable_periods(runner, col_name, unavailable_periods)
-      heater_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_spa.heater_weekday_fractions, pool_or_spa.heater_weekend_fractions, pool_or_spa.heater_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, unavailable_periods: col_unavailable_periods)
+      heater_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_spa.heater_weekday_fractions, pool_or_spa.heater_weekend_fractions, pool_or_spa.heater_monthly_multipliers, EPlus::ScheduleTypeLimitsFraction, unavailable_periods: col_unavailable_periods)
     else
       runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !pool_or_spa.heater_weekday_fractions.nil?
       runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !pool_or_spa.heater_weekend_fractions.nil?
@@ -240,10 +240,10 @@ module MiscLoads
     # Create schedule
     pump_sch = nil
     if pool_or_spa.is_a? HPXML::Pool
-      obj_name = Constants.ObjectNameMiscPoolPump
+      obj_name = Constants::ObjectTypeMiscPoolPump
       col_name = 'pool_pump'
     else
-      obj_name = Constants.ObjectNameMiscPermanentSpaPump
+      obj_name = Constants::ObjectTypeMiscPermanentSpaPump
       col_name = 'permanent_spa_pump'
     end
     if not schedules_file.nil?
@@ -251,7 +251,7 @@ module MiscLoads
     end
     if pump_sch.nil?
       col_unavailable_periods = Schedule.get_unavailable_periods(runner, col_name, unavailable_periods)
-      pump_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_spa.pump_weekday_fractions, pool_or_spa.pump_weekend_fractions, pool_or_spa.pump_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, unavailable_periods: col_unavailable_periods)
+      pump_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_spa.pump_weekday_fractions, pool_or_spa.pump_weekend_fractions, pool_or_spa.pump_monthly_multipliers, EPlus::ScheduleTypeLimitsFraction, unavailable_periods: col_unavailable_periods)
     else
       runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !pool_or_spa.pump_weekday_fractions.nil?
       runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !pool_or_spa.pump_weekend_fractions.nil?
