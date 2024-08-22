@@ -120,13 +120,13 @@ module Geometry
         garage_zone.setName(garage_space_name)
 
         # make points and polygons
-        if garage_position == 'Right'
+        if garage_position == Constants::PositionRight
           garage_sw_point = OpenStudio::Point3d.new(length - garage_width, -garage_protrusion * garage_depth, z)
           garage_nw_point = OpenStudio::Point3d.new(length - garage_width, garage_depth - garage_protrusion * garage_depth, z)
           garage_ne_point = OpenStudio::Point3d.new(length, garage_depth - garage_protrusion * garage_depth, z)
           garage_se_point = OpenStudio::Point3d.new(length, -garage_protrusion * garage_depth, z)
           garage_polygon = make_polygon(garage_sw_point, garage_nw_point, garage_ne_point, garage_se_point)
-        elsif garage_position == 'Left'
+        elsif garage_position == Constants::PositionLeft
           garage_sw_point = OpenStudio::Point3d.new(0, -garage_protrusion * garage_depth, z)
           garage_nw_point = OpenStudio::Point3d.new(0, garage_depth - garage_protrusion * garage_depth, z)
           garage_ne_point = OpenStudio::Point3d.new(garage_width, garage_depth - garage_protrusion * garage_depth, z)
@@ -150,7 +150,7 @@ module Geometry
         m[2, 3] = z
         garage_space.changeTransformation(OpenStudio::Transformation.new(m))
 
-        if garage_position == 'Right'
+        if garage_position == Constants::PositionRight
           sw_point = OpenStudio::Point3d.new(0, 0, z)
           nw_point = OpenStudio::Point3d.new(0, width, z)
           ne_point = OpenStudio::Point3d.new(length, width, z)
@@ -163,7 +163,7 @@ module Geometry
           else # garage fully protrudes
             conditioned_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
           end
-        elsif garage_position == 'Left'
+        elsif garage_position == Constants::PositionLeft
           sw_point = OpenStudio::Point3d.new(0, 0, z)
           nw_point = OpenStudio::Point3d.new(0, width, z)
           ne_point = OpenStudio::Point3d.new(length, width, z)
@@ -185,7 +185,7 @@ module Geometry
           garage_sw_point = OpenStudio::Point3d.new(garage_sw_point.x, garage_sw_point.y, z)
           garage_nw_point = OpenStudio::Point3d.new(garage_nw_point.x, garage_nw_point.y, z)
           garage_ne_point = OpenStudio::Point3d.new(garage_ne_point.x, garage_ne_point.y, z)
-          if garage_position == 'Right'
+          if garage_position == Constants::PositionRight
             sw_point = OpenStudio::Point3d.new(0, 0, z)
             nw_point = OpenStudio::Point3d.new(0, width, z)
             ne_point = OpenStudio::Point3d.new(length, width, z)
@@ -196,7 +196,7 @@ module Geometry
             else # garage does not protrude
               conditioned_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
             end
-          elsif garage_position == 'Left'
+          elsif garage_position == Constants::PositionLeft
             sw_point = OpenStudio::Point3d.new(0, 0, z)
             nw_point = OpenStudio::Point3d.new(0, width, z)
             ne_point = OpenStudio::Point3d.new(length, width, z)
@@ -268,7 +268,7 @@ module Geometry
       # make polygons
       polygon_floor = make_polygon(roof_nw_point, roof_ne_point, roof_se_point, roof_sw_point)
       side_type = nil
-      if roof_type == 'gable'
+      if roof_type == Constants::RoofTypeGable
         if length >= width
           roof_w_point = OpenStudio::Point3d.new(0, width / 2.0, z + attic_height)
           roof_e_point = OpenStudio::Point3d.new(length, width / 2.0, z + attic_height)
@@ -284,8 +284,8 @@ module Geometry
           polygon_w_wall = make_polygon(roof_w_point, roof_sw_point, roof_se_point)
           polygon_e_wall = make_polygon(roof_e_point, roof_ne_point, roof_nw_point)
         end
-        side_type = 'Wall'
-      elsif roof_type == 'hip'
+        side_type = EPlus::SurfaceTypeWall
+      elsif roof_type == Constants::RoofTypeHip
         if length >= width
           roof_w_point = OpenStudio::Point3d.new(width / 2.0, width / 2.0, z + attic_height)
           roof_e_point = OpenStudio::Point3d.new(length - width / 2.0, width / 2.0, z + attic_height)
@@ -301,25 +301,25 @@ module Geometry
           polygon_w_wall = make_polygon(roof_w_point, roof_sw_point, roof_se_point)
           polygon_e_wall = make_polygon(roof_e_point, roof_ne_point, roof_nw_point)
         end
-        side_type = 'RoofCeiling'
+        side_type = EPlus::SurfaceTypeRoofCeiling
       end
 
       # make surfaces
       surface_floor = create_surface(polygon: polygon_floor, model: model)
-      surface_floor.setSurfaceType('Floor')
-      surface_floor.setOutsideBoundaryCondition('Surface')
+      surface_floor.setSurfaceType(EPlus::SurfaceTypeFloor)
+      surface_floor.setOutsideBoundaryCondition(EPlus::BoundaryConditionSurface)
       surface_n_roof = create_surface(polygon: polygon_n_roof, model: model)
-      surface_n_roof.setSurfaceType('RoofCeiling')
-      surface_n_roof.setOutsideBoundaryCondition('Outdoors')
+      surface_n_roof.setSurfaceType(EPlus::SurfaceTypeRoofCeiling)
+      surface_n_roof.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
       surface_e_wall = create_surface(polygon: polygon_e_wall, model: model)
       surface_e_wall.setSurfaceType(side_type)
-      surface_e_wall.setOutsideBoundaryCondition('Outdoors')
+      surface_e_wall.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
       surface_s_roof = create_surface(polygon: polygon_s_roof, model: model)
-      surface_s_roof.setSurfaceType('RoofCeiling')
-      surface_s_roof.setOutsideBoundaryCondition('Outdoors')
+      surface_s_roof.setSurfaceType(EPlus::SurfaceTypeRoofCeiling)
+      surface_s_roof.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
       surface_w_wall = create_surface(polygon: polygon_w_wall, model: model)
       surface_w_wall.setSurfaceType(side_type)
-      surface_w_wall.setOutsideBoundaryCondition('Outdoors')
+      surface_w_wall.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
 
       # assign surfaces to the space
       attic_space = create_space(model: model)
@@ -410,9 +410,9 @@ module Geometry
 
         surfaces = space.surfaces
         surfaces.each do |surface|
-          next if surface.surfaceType.downcase != 'wall'
+          next if surface.surfaceType != EPlus::SurfaceTypeWall
 
-          surface.setOutsideBoundaryCondition('Ground')
+          surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionGround)
         end
       end
 
@@ -441,7 +441,7 @@ module Geometry
         space_with_roof_over_garage = garage_space
       end
       space_with_roof_over_garage.surfaces.each do |surface|
-        next unless (surface.surfaceType.downcase == 'roofceiling') && (surface.outsideBoundaryCondition.downcase == 'outdoors')
+        next unless (surface.surfaceType == EPlus::SurfaceTypeRoofCeiling) && (surface.outsideBoundaryCondition == EPlus::BoundaryConditionOutdoors)
 
         n_points = []
         s_points = []
@@ -488,7 +488,7 @@ module Geometry
         end
 
         if num_floors == 1
-          if not attic_type == HPXML::AtticTypeConditioned
+          if attic_type != HPXML::AtticTypeConditioned
             roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x) / 2, nw_point.y + garage_attic_height / roof_pitch, conditioned_space.zOrigin + average_ceiling_height + garage_attic_height)
             roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, conditioned_space.zOrigin + average_ceiling_height + garage_attic_height)
           else
@@ -506,16 +506,16 @@ module Geometry
         polygon_s_wall = make_polygon(sw_point, se_point, roof_s_point)
 
         wall_n = create_surface(polygon: polygon_n_wall, model: model)
-        wall_n.setSurfaceType('Wall')
+        wall_n.setSurfaceType(EPlus::SurfaceTypeWall)
         deck_e = create_surface(polygon: polygon_e_roof, model: model)
-        deck_e.setSurfaceType('RoofCeiling')
-        deck_e.setOutsideBoundaryCondition('Outdoors')
+        deck_e.setSurfaceType(EPlus::SurfaceTypeRoofCeiling)
+        deck_e.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
         wall_s = create_surface(polygon: polygon_s_wall, model: model)
-        wall_s.setSurfaceType('Wall')
-        wall_s.setOutsideBoundaryCondition('Outdoors')
+        wall_s.setSurfaceType(EPlus::SurfaceTypeWall)
+        wall_s.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
         deck_w = create_surface(polygon: polygon_w_roof, model: model)
-        deck_w.setSurfaceType('RoofCeiling')
-        deck_w.setOutsideBoundaryCondition('Outdoors')
+        deck_w.setSurfaceType(EPlus::SurfaceTypeRoofCeiling)
+        deck_w.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
 
         garage_attic_space = create_space(model: model)
         deck_w.setSpace(garage_attic_space)
@@ -556,7 +556,7 @@ module Geometry
         # remove triangular surface between unconditioned attic and garage attic
         unless attic_space.nil?
           attic_space.surfaces.each do |surface|
-            next if roof_type == 'hip'
+            next if roof_type == Constants::RoofTypeHip
             next unless surface.vertices.length == 3
             next unless (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # don't remove the vertical attic walls
             next unless surface.adjacentSurface.is_initialized
@@ -580,10 +580,10 @@ module Geometry
         # remove other unused surfaces
         # TODO: remove this once geometry methods are fixed in openstudio 3.x
         attic_space.surfaces.each do |surface1|
-          next if surface1.surfaceType != 'RoofCeiling'
+          next if surface1.surfaceType != EPlus::SurfaceTypeRoofCeiling
 
           attic_space.surfaces.each do |surface2|
-            next if surface2.surfaceType != 'RoofCeiling'
+            next if surface2.surfaceType != EPlus::SurfaceTypeRoofCeiling
             next if surface1 == surface2
 
             if has_same_vertices(surface1: surface1, surface2: surface2)
@@ -601,19 +601,19 @@ module Geometry
 
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
-      if surface.outsideBoundaryCondition.downcase == 'ground'
-        surface.setOutsideBoundaryCondition('Foundation') if foundation_type != HPXML::FoundationTypeAmbient
-        surface.setOutsideBoundaryCondition('Outdoors') if foundation_type == HPXML::FoundationTypeAmbient
+      if surface.outsideBoundaryCondition == EPlus::BoundaryConditionGround
+        surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionFoundation) if foundation_type != HPXML::FoundationTypeAmbient
+        surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors) if foundation_type == HPXML::FoundationTypeAmbient
       elsif (UnitConversions.convert(rim_joist_height, 'm', 'ft') - get_surface_height(surface: surface)).abs < 0.001
-        next if surface.surfaceType.downcase != 'wall'
+        next if surface.surfaceType != EPlus::SurfaceTypeWall
 
         garage_spaces.each do |garage_space|
           garage_space.surfaces.each do |garage_surface|
-            next if garage_surface.surfaceType.downcase != 'floor'
+            next if garage_surface.surfaceType != EPlus::SurfaceTypeFloor
 
             if get_walls_connected_to_floor(wall_surfaces: [surface], floor_surface: garage_surface, same_space: false).include? surface
-              surface.setOutsideBoundaryCondition('Foundation') if foundation_type != HPXML::FoundationTypeAmbient
-              surface.setOutsideBoundaryCondition('Outdoors') if foundation_type == HPXML::FoundationTypeAmbient
+              surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionFoundation) if foundation_type != HPXML::FoundationTypeAmbient
+              surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors) if foundation_type == HPXML::FoundationTypeAmbient
             end
           end
         end
@@ -623,19 +623,19 @@ module Geometry
     # set foundation walls adjacent to garage to adiabatic
     foundation_walls = []
     model.getSurfaces.each do |surface|
-      next if surface.surfaceType.downcase != 'wall'
-      next if surface.outsideBoundaryCondition.downcase != 'foundation'
+      next if surface.surfaceType != EPlus::SurfaceTypeWall
+      next if surface.outsideBoundaryCondition != EPlus::BoundaryConditionFoundation
 
       foundation_walls << surface
     end
 
     garage_spaces.each do |garage_space|
       garage_space.surfaces.each do |surface|
-        next if surface.surfaceType.downcase != 'floor'
+        next if surface.surfaceType != EPlus::SurfaceTypeFloor
 
         adjacent_wall_surfaces = get_walls_connected_to_floor(wall_surfaces: foundation_walls, floor_surface: surface, same_space: false)
         adjacent_wall_surfaces.each do |adjacent_wall_surface|
-          adjacent_wall_surface.setOutsideBoundaryCondition('Adiabatic')
+          adjacent_wall_surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
         end
       end
     end
@@ -749,14 +749,14 @@ module Geometry
     conditioned_space.setThermalZone(conditioned_zone)
 
     # Adiabatic surfaces for walls
-    adb_facade_hash = { 'left' => adiabatic_left_wall, 'right' => adiabatic_right_wall, 'front' => adiabatic_front_wall, 'back' => adiabatic_back_wall }
+    adb_facade_hash = { Constants::FacadeLeft => adiabatic_left_wall, Constants::FacadeRight => adiabatic_right_wall, Constants::FacadeFront => adiabatic_front_wall, Constants::FacadeBack => adiabatic_back_wall }
     adb_facades = adb_facade_hash.select { |_, v| v == true }.keys
 
     # Make surfaces adiabatic
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
         os_facade = get_facade_for_surface(surface: surface)
-        next unless surface.surfaceType == 'Wall'
+        next unless surface.surfaceType == EPlus::SurfaceTypeWall
         next unless adb_facades.include? os_facade
 
         x_ft = UnitConversions.convert(x, 'm', 'ft')
@@ -764,7 +764,7 @@ module Geometry
         min_x = get_surface_x_values(surfaceArray: [surface]).min
         next if ((max_x - x_ft).abs >= 0.01) && (min_x > 0)
 
-        surface.setOutsideBoundaryCondition('Adiabatic')
+        surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
       end
     end
 
@@ -856,16 +856,16 @@ module Geometry
 
         surfaces = space.surfaces
         surfaces.each do |surface|
-          next if surface.surfaceType.downcase != 'wall'
+          next if surface.surfaceType != EPlus::SurfaceTypeWall
 
           os_facade = get_facade_for_surface(surface: surface)
           if adb_facades.include? os_facade
-            surface.setOutsideBoundaryCondition('Adiabatic')
+            surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
           elsif get_surface_z_values(surfaceArray: [surface]).min < 0
-            surface.setOutsideBoundaryCondition('Foundation') if foundation_type != HPXML::FoundationTypeAmbient
-            surface.setOutsideBoundaryCondition('Outdoors') if foundation_type == HPXML::FoundationTypeAmbient
+            surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionFoundation) if foundation_type != HPXML::FoundationTypeAmbient
+            surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors) if foundation_type == HPXML::FoundationTypeAmbient
           else
-            surface.setOutsideBoundaryCondition('Outdoors')
+            surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
           end
         end
       end
@@ -910,7 +910,7 @@ module Geometry
     if [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented, HPXML::AtticTypeConditioned].include? attic_type
       attic_space.surfaces.each do |surface|
         os_facade = get_facade_for_surface(surface: surface)
-        next unless surface.surfaceType == 'Wall'
+        next unless surface.surfaceType == EPlus::SurfaceTypeWall
         next unless adb_facades.include? os_facade
 
         x_ft = UnitConversions.convert(x, 'm', 'ft')
@@ -918,7 +918,7 @@ module Geometry
         min_x = get_surface_x_values(surfaceArray: [surface]).min
         next if ((max_x - x_ft).abs >= 0.01) && (min_x > 0)
 
-        surface.setOutsideBoundaryCondition('Adiabatic')
+        surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
       end
     end
 
@@ -934,10 +934,10 @@ module Geometry
 
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
-      next if surface.outsideBoundaryCondition.downcase != 'ground'
+      next if surface.outsideBoundaryCondition != EPlus::BoundaryConditionGround
 
-      surface.setOutsideBoundaryCondition('Foundation') if foundation_type != HPXML::FoundationTypeAmbient
-      surface.setOutsideBoundaryCondition('Outdoors') if foundation_type == HPXML::FoundationTypeAmbient
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionFoundation) if foundation_type != HPXML::FoundationTypeAmbient
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors) if foundation_type == HPXML::FoundationTypeAmbient
     end
 
     assign_remaining_surface_indexes(model: model)
@@ -1049,34 +1049,34 @@ module Geometry
     conditioned_space.setThermalZone(conditioned_zone)
 
     # Map surface facades to adiabatic walls
-    adb_facade_hash = { 'left' => adiabatic_left_wall, 'right' => adiabatic_right_wall, 'front' => adiabatic_front_wall, 'back' => adiabatic_back_wall }
+    adb_facade_hash = { Constants::FacadeLeft => adiabatic_left_wall, Constants::FacadeRight => adiabatic_right_wall, Constants::FacadeFront => adiabatic_front_wall, Constants::FacadeBack => adiabatic_back_wall }
     adb_facades = adb_facade_hash.select { |_, v| v == true }.keys
 
     # Adiabatic floor/ceiling
     adb_levels = []
     if attic_type == HPXML::LocationOtherHousingUnit
-      adb_levels += ['RoofCeiling']
+      adb_levels += [EPlus::SurfaceTypeRoofCeiling]
     end
     if foundation_type == HPXML::LocationOtherHousingUnit
-      adb_levels += ['Floor']
+      adb_levels += [EPlus::SurfaceTypeFloor]
     end
 
     # Make conditioned space surfaces adiabatic
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
         os_facade = get_facade_for_surface(surface: surface)
-        if surface.surfaceType == 'Wall'
+        if surface.surfaceType == EPlus::SurfaceTypeWall
           if adb_facades.include? os_facade
             x_ft = UnitConversions.convert(x, 'm', 'ft')
             max_x = get_surface_x_values(surfaceArray: [surface]).max
             min_x = get_surface_x_values(surfaceArray: [surface]).min
             next if ((max_x - x_ft).abs >= 0.01) && (min_x > 0)
 
-            surface.setOutsideBoundaryCondition('Adiabatic')
+            surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
           end
         else
           if (adb_levels.include? surface.surfaceType)
-            surface.setOutsideBoundaryCondition('Adiabatic')
+            surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
           end
         end
       end
@@ -1147,16 +1147,16 @@ module Geometry
 
         surfaces = space.surfaces
         surfaces.each do |surface|
-          next unless surface.surfaceType.downcase == 'wall'
+          next unless surface.surfaceType == EPlus::SurfaceTypeWall
 
           os_facade = get_facade_for_surface(surface: surface)
-          if adb_facades.include?(os_facade) && (os_facade != 'RoofCeiling') && (os_facade != 'Floor')
-            surface.setOutsideBoundaryCondition('Adiabatic')
+          if adb_facades.include?(os_facade) && (os_facade != EPlus::SurfaceTypeRoofCeiling) && (os_facade != EPlus::SurfaceTypeFloor)
+            surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
           elsif get_surface_z_values(surfaceArray: [surface]).min < 0
-            surface.setOutsideBoundaryCondition('Foundation') if foundation_type != HPXML::FoundationTypeAmbient
-            surface.setOutsideBoundaryCondition('Outdoors') if foundation_type == HPXML::FoundationTypeAmbient
+            surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionFoundation) if foundation_type != HPXML::FoundationTypeAmbient
+            surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors) if foundation_type == HPXML::FoundationTypeAmbient
           else
-            surface.setOutsideBoundaryCondition('Outdoors')
+            surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
           end
         end
       end
@@ -1198,7 +1198,7 @@ module Geometry
       # Adiabatic surfaces for attic walls
       attic_space.surfaces.each do |surface|
         os_facade = get_facade_for_surface(surface: surface)
-        next unless surface.surfaceType == 'Wall'
+        next unless surface.surfaceType == EPlus::SurfaceTypeWall
         next unless adb_facades.include? os_facade
 
         x_ft = UnitConversions.convert(x, 'm', 'ft')
@@ -1206,7 +1206,7 @@ module Geometry
         min_x = get_surface_x_values(surfaceArray: [surface]).min
         next if ((max_x - x_ft).abs >= 0.01) && (min_x > 0)
 
-        surface.setOutsideBoundaryCondition('Adiabatic')
+        surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
       end
     end
 
@@ -1222,10 +1222,10 @@ module Geometry
 
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
-      next if surface.outsideBoundaryCondition.downcase != 'ground'
+      next if surface.outsideBoundaryCondition != EPlus::BoundaryConditionGround
 
-      surface.setOutsideBoundaryCondition('Foundation') if foundation_type != HPXML::FoundationTypeAmbient
-      surface.setOutsideBoundaryCondition('Outdoors') if foundation_type == HPXML::FoundationTypeAmbient
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionFoundation) if foundation_type != HPXML::FoundationTypeAmbient
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors) if foundation_type == HPXML::FoundationTypeAmbient
     end
 
     assign_remaining_surface_indexes(model: model)
@@ -1256,7 +1256,7 @@ module Geometry
     door_offset = 0.5 # ft
 
     # Get all exterior walls prioritized by front, then back, then left, then right
-    facades = [Constants.FacadeFront, Constants.FacadeBack]
+    facades = [Constants::FacadeFront, Constants::FacadeBack]
     avail_walls = []
     facades.each do |_facade|
       sorted_spaces = model.getSpaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
@@ -1265,8 +1265,8 @@ module Geometry
 
         sorted_surfaces = space.surfaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
         sorted_surfaces.each do |surface|
-          next unless get_facade_for_surface(surface: surface) == Constants.FacadeFront
-          next unless (surface.outsideBoundaryCondition.downcase == 'outdoors') || (surface.outsideBoundaryCondition.downcase == 'adiabatic')
+          next unless get_facade_for_surface(surface: surface) == Constants::FacadeFront
+          next unless (surface.outsideBoundaryCondition == EPlus::BoundaryConditionOutdoors) || (surface.outsideBoundaryCondition == EPlus::BoundaryConditionAdiabatic)
           next if (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # Not a vertical wall
 
           avail_walls << surface
@@ -1312,7 +1312,7 @@ module Geometry
 
       num_existing_doors_on_this_surface = 0
       min_story_avail_wall.subSurfaces.each do |sub_surface|
-        if sub_surface.subSurfaceType.downcase == 'door'
+        if sub_surface.subSurfaceType == EPlus::SubSurfaceTypeDoor
           num_existing_doors_on_this_surface += 1
         end
       end
@@ -1326,20 +1326,20 @@ module Geometry
 
       # Convert to 3D geometry; assign to surface
       door_polygon = OpenStudio::Point3dVector.new
-      if facade == Constants.FacadeFront
+      if facade == Constants::FacadeFront
         multx = 1
         multy = 0
-      elsif facade == Constants.FacadeBack
+      elsif facade == Constants::FacadeBack
         multx = -1
         multy = 0
-      elsif facade == Constants.FacadeLeft
+      elsif facade == Constants::FacadeLeft
         multx = 0
         multy = -1
-      elsif facade == Constants.FacadeRight
+      elsif facade == Constants::FacadeRight
         multx = 0
         multy = 1
       end
-      if (facade == Constants.FacadeBack) || (facade == Constants.FacadeLeft)
+      if (facade == Constants::FacadeBack) || (facade == Constants::FacadeLeft)
         leftx = get_surface_x_values(surfaceArray: [min_story_avail_wall]).max
         lefty = get_surface_y_values(surfaceArray: [min_story_avail_wall]).max
       else
@@ -1359,7 +1359,7 @@ module Geometry
       door_sub_surface = create_sub_surface(polygon: door_polygon, model: model)
       door_sub_surface.setName("#{min_story_avail_wall.name} - Door")
       door_sub_surface.setSurface(min_story_avail_wall)
-      door_sub_surface.setSubSurfaceType('Door')
+      door_sub_surface.setSubSurfaceType(EPlus::SubSurfaceTypeDoor)
 
       break
     end
@@ -1405,38 +1405,38 @@ module Geometry
                                         skylight_area_left:,
                                         skylight_area_right:,
                                         **)
-    facades = [Constants.FacadeBack, Constants.FacadeRight, Constants.FacadeFront, Constants.FacadeLeft]
+    facades = [Constants::FacadeBack, Constants::FacadeRight, Constants::FacadeFront, Constants::FacadeLeft]
 
     wwrs = {}
-    wwrs[Constants.FacadeBack] = window_back_wwr
-    wwrs[Constants.FacadeRight] = window_right_wwr
-    wwrs[Constants.FacadeFront] = window_front_wwr
-    wwrs[Constants.FacadeLeft] = window_left_wwr
+    wwrs[Constants::FacadeBack] = window_back_wwr
+    wwrs[Constants::FacadeRight] = window_right_wwr
+    wwrs[Constants::FacadeFront] = window_front_wwr
+    wwrs[Constants::FacadeLeft] = window_left_wwr
     window_areas = {}
-    window_areas[Constants.FacadeBack] = window_area_back
-    window_areas[Constants.FacadeRight] = window_area_right
-    window_areas[Constants.FacadeFront] = window_area_front
-    window_areas[Constants.FacadeLeft] = window_area_left
+    window_areas[Constants::FacadeBack] = window_area_back
+    window_areas[Constants::FacadeRight] = window_area_right
+    window_areas[Constants::FacadeFront] = window_area_front
+    window_areas[Constants::FacadeLeft] = window_area_left
 
     skylight_areas = {}
-    skylight_areas[Constants.FacadeBack] = skylight_area_back
-    skylight_areas[Constants.FacadeRight] = skylight_area_right
-    skylight_areas[Constants.FacadeFront] = skylight_area_front
-    skylight_areas[Constants.FacadeLeft] = skylight_area_left
-    skylight_areas['none'] = 0
+    skylight_areas[Constants::FacadeBack] = skylight_area_back
+    skylight_areas[Constants::FacadeRight] = skylight_area_right
+    skylight_areas[Constants::FacadeFront] = skylight_area_front
+    skylight_areas[Constants::FacadeLeft] = skylight_area_left
+    skylight_areas[Constants::FacadeNone] = 0
 
     # Store surfaces that should get windows by facade
-    wall_surfaces = { Constants.FacadeFront => [], Constants.FacadeBack => [],
-                      Constants.FacadeLeft => [], Constants.FacadeRight => [] }
-    roof_surfaces = { Constants.FacadeFront => [], Constants.FacadeBack => [],
-                      Constants.FacadeLeft => [], Constants.FacadeRight => [],
-                      'none' => [] }
+    wall_surfaces = { Constants::FacadeFront => [], Constants::FacadeBack => [],
+                      Constants::FacadeLeft => [], Constants::FacadeRight => [] }
+    roof_surfaces = { Constants::FacadeFront => [], Constants::FacadeBack => [],
+                      Constants::FacadeLeft => [], Constants::FacadeRight => [],
+                      Constants::FacadeNone => [] }
 
     sorted_spaces = model.getSpaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
     get_conditioned_spaces(spaces: sorted_spaces).each do |space|
       sorted_surfaces = space.surfaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
       sorted_surfaces.each do |surface|
-        next unless (surface.surfaceType.downcase == 'wall') && (surface.outsideBoundaryCondition.downcase == 'outdoors')
+        next unless (surface.surfaceType == EPlus::SurfaceTypeWall) && (surface.outsideBoundaryCondition == EPlus::BoundaryConditionOutdoors)
         next if (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # Not a vertical wall
 
         facade = get_facade_for_surface(surface: surface)
@@ -1448,12 +1448,12 @@ module Geometry
     sorted_spaces.each do |space|
       sorted_surfaces = space.surfaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
       sorted_surfaces.each do |surface|
-        next unless (surface.surfaceType.downcase == 'roofceiling') && (surface.outsideBoundaryCondition.downcase == 'outdoors')
+        next unless (surface.surfaceType == EPlus::SurfaceTypeRoofCeiling) && (surface.outsideBoundaryCondition == EPlus::BoundaryConditionOutdoors)
 
         facade = get_facade_for_surface(surface: surface)
         if facade.nil?
           if surface.tilt == 0 # flat roof
-            roof_surfaces['none'] << surface
+            roof_surfaces[Constants::FacadeNone] << surface
           end
           next
         end
@@ -1566,13 +1566,13 @@ module Geometry
     end
 
     # Skylights
-    unless roof_surfaces['none'].empty?
+    unless roof_surfaces[Constants::FacadeNone].empty?
       tot_sky_area = 0
       skylight_areas.each do |facade, skylight_area|
-        next if facade == 'none'
+        next if facade == Constants::FacadeNone
 
-        skylight_area /= roof_surfaces['none'].length
-        skylight_areas['none'] += skylight_area
+        skylight_area /= roof_surfaces[Constants::FacadeNone].length
+        skylight_areas[Constants::FacadeNone] += skylight_area
         skylight_areas[facade] = 0
       end
     end
@@ -1583,7 +1583,7 @@ module Geometry
 
       surfaces = roof_surfaces[facade]
 
-      if surfaces.empty? && (not facade == 'none')
+      if surfaces.empty? && (facade != Constants::FacadeNone)
         runner.registerError("There are no #{facade} roof surfaces, but #{skylight_area} ft^2 of skylights were specified.")
         return false
       end
@@ -1602,19 +1602,19 @@ module Geometry
         leftx = skylight_bottom_left.x
         lefty = skylight_bottom_left.y
         bottomz = skylight_bottom_left.z
-        if (facade == Constants.FacadeFront) || (facade == 'none')
+        if (facade == Constants::FacadeFront) || (facade == Constants::FacadeNone)
           skylight_top_left = OpenStudio::Point3d.new(leftx, lefty + Math.cos(surface.tilt) * skylight_length, bottomz + Math.sin(surface.tilt) * skylight_length)
           skylight_top_right = OpenStudio::Point3d.new(leftx + skylight_width, lefty + Math.cos(surface.tilt) * skylight_length, bottomz + Math.sin(surface.tilt) * skylight_length)
           skylight_bottom_right = OpenStudio::Point3d.new(leftx + skylight_width, lefty, bottomz)
-        elsif facade == Constants.FacadeBack
+        elsif facade == Constants::FacadeBack
           skylight_top_left = OpenStudio::Point3d.new(leftx, lefty - Math.cos(surface.tilt) * skylight_length, bottomz + Math.sin(surface.tilt) * skylight_length)
           skylight_top_right = OpenStudio::Point3d.new(leftx - skylight_width, lefty - Math.cos(surface.tilt) * skylight_length, bottomz + Math.sin(surface.tilt) * skylight_length)
           skylight_bottom_right = OpenStudio::Point3d.new(leftx - skylight_width, lefty, bottomz)
-        elsif facade == Constants.FacadeLeft
+        elsif facade == Constants::FacadeLeft
           skylight_top_left = OpenStudio::Point3d.new(leftx + Math.cos(surface.tilt) * skylight_length, lefty, bottomz + Math.sin(surface.tilt) * skylight_length)
           skylight_top_right = OpenStudio::Point3d.new(leftx + Math.cos(surface.tilt) * skylight_length, lefty - skylight_width, bottomz + Math.sin(surface.tilt) * skylight_length)
           skylight_bottom_right = OpenStudio::Point3d.new(leftx, lefty - skylight_width, bottomz)
-        elsif facade == Constants.FacadeRight
+        elsif facade == Constants::FacadeRight
           skylight_top_left = OpenStudio::Point3d.new(leftx - Math.cos(surface.tilt) * skylight_length, lefty, bottomz + Math.sin(surface.tilt) * skylight_length)
           skylight_top_right = OpenStudio::Point3d.new(leftx - Math.cos(surface.tilt) * skylight_length, lefty + skylight_width, bottomz + Math.sin(surface.tilt) * skylight_length)
           skylight_bottom_right = OpenStudio::Point3d.new(leftx, lefty + skylight_width, bottomz)
@@ -1702,7 +1702,7 @@ module Geometry
         foundation_space = ground_floor_surface.space.get
         wall_surfaces = []
         foundation_space.surfaces.each do |surface|
-          next if not surface.surfaceType.downcase == 'wall'
+          next if surface.surfaceType != EPlus::SurfaceTypeWall
           next if surface.adjacentSurface.is_initialized
 
           wall_surfaces << surface
@@ -1718,8 +1718,8 @@ module Geometry
     # Get bottom edges of exterior walls (building footprint)
     surfaces = []
     model.getSurfaces.each do |surface|
-      next if not surface.surfaceType.downcase == 'wall'
-      next if surface.outsideBoundaryCondition.downcase != 'outdoors'
+      next if surface.surfaceType != EPlus::SurfaceTypeWall
+      next if surface.outsideBoundaryCondition != EPlus::BoundaryConditionOutdoors
 
       surfaces << surface
     end
@@ -1773,23 +1773,23 @@ module Geometry
     facade = nil
     if n.z.abs < tol
       if (n.x.abs < tol) && ((n.y + 1).abs < tol)
-        facade = Constants.FacadeFront
+        facade = Constants::FacadeFront
       elsif ((n.x - 1).abs < tol) && (n.y.abs < tol)
-        facade = Constants.FacadeRight
+        facade = Constants::FacadeRight
       elsif (n.x.abs < tol) && ((n.y - 1).abs < tol)
-        facade = Constants.FacadeBack
+        facade = Constants::FacadeBack
       elsif ((n.x + 1).abs < tol) && (n.y.abs < tol)
-        facade = Constants.FacadeLeft
+        facade = Constants::FacadeLeft
       end
     else
       if (n.x.abs < tol) && (n.y < 0)
-        facade = Constants.FacadeFront
+        facade = Constants::FacadeFront
       elsif (n.x > 0) && (n.y.abs < tol)
-        facade = Constants.FacadeRight
+        facade = Constants::FacadeRight
       elsif (n.x.abs < tol) && (n.y > 0)
-        facade = Constants.FacadeBack
+        facade = Constants::FacadeBack
       elsif (n.x < 0) && (n.y.abs < tol)
-        facade = Constants.FacadeLeft
+        facade = Constants::FacadeLeft
       end
     end
     return facade
@@ -1802,13 +1802,13 @@ module Geometry
   # @return [Double] the absolute azimuth based on relative azimuth of the facade and building orientation
   def self.get_azimuth_from_facade(facade:,
                                    orientation:)
-    if facade == Constants.FacadeFront
+    if facade == Constants::FacadeFront
       return get_abs_azimuth(relative_azimuth: 0, building_orientation: orientation)
-    elsif facade == Constants.FacadeBack
+    elsif facade == Constants::FacadeBack
       return get_abs_azimuth(relative_azimuth: 180, building_orientation: orientation)
-    elsif facade == Constants.FacadeLeft
+    elsif facade == Constants::FacadeLeft
       return get_abs_azimuth(relative_azimuth: 90, building_orientation: orientation)
-    elsif facade == Constants.FacadeRight
+    elsif facade == Constants::FacadeRight
       return get_abs_azimuth(relative_azimuth: 270, building_orientation: orientation)
     else
       fail 'Unexpected facade.'
@@ -1822,19 +1822,19 @@ module Geometry
   # @return [OpenStudio::Model::Surface] the adiabatic adjacent OpenStudio Surface
   def self.get_adiabatic_adjacent_surface(model:,
                                           surface:)
-    return if surface.outsideBoundaryCondition != 'Adiabatic'
+    return if surface.outsideBoundaryCondition != EPlus::BoundaryConditionAdiabatic
 
-    adjacentSurfaceType = 'Wall'
-    if surface.surfaceType == 'RoofCeiling'
-      adjacentSurfaceType = 'Floor'
-    elsif surface.surfaceType == 'Floor'
-      adjacentSurfaceType = 'RoofCeiling'
+    adjacentSurfaceType = EPlus::SurfaceTypeWall
+    if surface.surfaceType == EPlus::SurfaceTypeRoofCeiling
+      adjacentSurfaceType = EPlus::SurfaceTypeFloor
+    elsif surface.surfaceType == EPlus::SurfaceTypeFloor
+      adjacentSurfaceType = EPlus::SurfaceTypeRoofCeiling
     end
 
     model.getSurfaces.sort.each do |adjacent_surface|
       next if surface == adjacent_surface
       next if adjacent_surface.surfaceType != adjacentSurfaceType
-      next if adjacent_surface.outsideBoundaryCondition != 'Adiabatic'
+      next if adjacent_surface.outsideBoundaryCondition != EPlus::BoundaryConditionAdiabatic
       next unless has_same_vertices(surface1: surface, surface2: adjacent_surface)
 
       return adjacent_surface
@@ -1871,8 +1871,8 @@ module Geometry
     get_conditioned_spaces(spaces: spaces).each do |space|
       space.surfaces.each do |surface|
         next if surface.vertices.size != 3
-        next if surface.outsideBoundaryCondition != 'Outdoors'
-        next if surface.surfaceType != 'Wall'
+        next if surface.outsideBoundaryCondition != EPlus::BoundaryConditionOutdoors
+        next if surface.surfaceType != EPlus::SurfaceTypeWall
 
         return get_height_of_spaces(spaces: [space])
       end
@@ -1881,8 +1881,8 @@ module Geometry
     # hip roof type
     get_conditioned_spaces(spaces: spaces).each do |space|
       space.surfaces.each do |surface|
-        next if surface.outsideBoundaryCondition != 'Outdoors'
-        next if surface.surfaceType != 'RoofCeiling'
+        next if surface.outsideBoundaryCondition != EPlus::BoundaryConditionOutdoors
+        next if surface.surfaceType != EPlus::SurfaceTypeRoofCeiling
 
         return get_height_of_spaces(spaces: [space])
       end
@@ -1919,7 +1919,7 @@ module Geometry
   # @param space [OpenStudio::Model::Space] the foundation space adjacent to the rim joist
   # @param rim_joist_height [Double] height of the rim joists (ft)
   # @param z [Double] z coordinate of the bottom of the rim joists
-  # @return [void]
+  # @return [nil]
   def self.add_rim_joist(model:,
                          polygon:,
                          space:,
@@ -1939,13 +1939,13 @@ module Geometry
       assign_indexes(model: model, footprint_polygon: rim_joist_polygon, space: rim_joist_space)
 
       space.surfaces.each do |surface|
-        next if surface.surfaceType.downcase != 'roofceiling'
+        next if surface.surfaceType != EPlus::SurfaceTypeRoofCeiling
 
         surface.remove
       end
 
       rim_joist_space.surfaces.each do |surface|
-        next if surface.surfaceType.downcase != 'floor'
+        next if surface.surfaceType != EPlus::SurfaceTypeFloor
 
         surface.remove
       end
@@ -1963,14 +1963,14 @@ module Geometry
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param footprint_polygon [OpenStudio::Point3dVector] an OpenStudio::Point3dVector object
   # @param space [OpenStudio::Model::Space] an OpenStudio::Model::Space object
-  # @return [void]
+  # @return [nil]
   def self.assign_indexes(model:,
                           footprint_polygon:,
                           space:)
     space.additionalProperties.setFeature('Index', indexer(model: model))
 
     space.surfaces.each do |surface|
-      next if surface.surfaceType != 'Floor'
+      next if surface.surfaceType != EPlus::SurfaceTypeFloor
 
       surface.additionalProperties.setFeature('Index', indexer(model: model))
     end
@@ -1982,7 +1982,7 @@ module Geometry
       polygon_points = [pt1, pt2]
 
       space.surfaces.each do |surface|
-        next if surface.surfaceType != 'Wall'
+        next if surface.surfaceType != EPlus::SurfaceTypeWall
 
         num_points_matched = 0
         polygon_points.each do |polygon_point|
@@ -1990,7 +1990,7 @@ module Geometry
             x = polygon_point.x - surface_point.x
             y = polygon_point.y - surface_point.y
             z = polygon_point.z - surface_point.z
-            num_points_matched += 1 if x.abs < Constants.small && y.abs < Constants.small && z.abs < Constants.small
+            num_points_matched += 1 if x.abs < Constants::Small && y.abs < Constants::Small && z.abs < Constants::Small
           end
         end
         next if num_points_matched < 2 # match at least 2 points of the footprint_polygon and you've found the correct wall surface
@@ -2000,7 +2000,7 @@ module Geometry
     end
 
     space.surfaces.each do |surface|
-      next if surface.surfaceType != 'RoofCeiling'
+      next if surface.surfaceType != EPlus::SurfaceTypeRoofCeiling
 
       surface.additionalProperties.setFeature('Index', indexer(model: model))
     end
@@ -2010,7 +2010,7 @@ module Geometry
   # We can't deterministically assign indexes to these surfaces.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @return [void]
+  # @return [nil]
   def self.assign_remaining_surface_indexes(model:)
     model.getSurfaces.each do |surface|
       next if surface.additionalProperties.getFeatureAsInteger('Index').is_initialized
@@ -2115,7 +2115,7 @@ module Geometry
   # @return [Double] the z value corresponding to floor surface in the provided space
   def self.get_space_floor_z(space:)
     space.surfaces.each do |surface|
-      next unless surface.surfaceType.downcase == 'floor'
+      next unless surface.surfaceType == EPlus::SurfaceTypeFloor
 
       return get_surface_z_values(surfaceArray: [surface])[0]
     end
@@ -2228,7 +2228,7 @@ module Geometry
       sub_surface = create_sub_surface(polygon: window_vertices, model: model)
       sub_surface.setName("#{surface.name} - Window 1")
       sub_surface.setSurface(surface)
-      sub_surface.setSubSurfaceType('FixedWindow')
+      sub_surface.setSubSurfaceType(EPlus::SubSurfaceTypeWindow)
       return true
     end
 
@@ -2273,7 +2273,7 @@ module Geometry
   # @param win_num [Integer] The window number for the current surface
   # @param facade [String] front, back, left, or right
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @return [void]
+  # @return [nil]
   def self.add_window_to_wall(surface:,
                               win_width:,
                               win_height:,
@@ -2290,20 +2290,20 @@ module Geometry
 
     # Convert to 3D geometry; assign to surface
     window_polygon = OpenStudio::Point3dVector.new
-    if facade == Constants.FacadeFront
+    if facade == Constants::FacadeFront
       multx = 1
       multy = 0
-    elsif facade == Constants.FacadeBack
+    elsif facade == Constants::FacadeBack
       multx = -1
       multy = 0
-    elsif facade == Constants.FacadeLeft
+    elsif facade == Constants::FacadeLeft
       multx = 0
       multy = -1
-    elsif facade == Constants.FacadeRight
+    elsif facade == Constants::FacadeRight
       multx = 0
       multy = 1
     end
-    if (facade == Constants.FacadeBack) || (facade == Constants.FacadeLeft)
+    if (facade == Constants::FacadeBack) || (facade == Constants::FacadeLeft)
       leftx = get_surface_x_values(surfaceArray: [surface]).max
       lefty = get_surface_y_values(surfaceArray: [surface]).max
     else
@@ -2321,7 +2321,7 @@ module Geometry
     sub_surface = create_sub_surface(polygon: window_polygon, model: model)
     sub_surface.setName("#{surface.name} - Window #{win_num}")
     sub_surface.setSurface(surface)
-    sub_surface.setSubSurfaceType('FixedWindow')
+    sub_surface.setSubSurfaceType(EPlus::SubSurfaceTypeWindow)
   end
 
   # From a provided array of OpenStudio spaces, return the subset for which the standards space type is equal to the HPXML location for conditioned space.
@@ -2360,7 +2360,7 @@ module Geometry
   # @param surface [OpenStudio::Model::Surface] the surface of interest
   # @return [Boolean] true if surface satisfies rectangular wall criteria
   def self.is_rectangular_wall(surface:)
-    if ((surface.surfaceType.downcase != 'wall') || (surface.outsideBoundaryCondition.downcase != 'outdoors'))
+    if ((surface.surfaceType != EPlus::SurfaceTypeWall) || (surface.outsideBoundaryCondition != EPlus::BoundaryConditionOutdoors))
       return false
     end
     if surface.vertices.size != 4
@@ -2374,7 +2374,7 @@ module Geometry
             ((xvalues.uniq.size == 2) && (yvalues.uniq.size == 1)))
       return false
     end
-    if not zvalues.uniq.size == 2
+    if zvalues.uniq.size != 2
       return false
     end
 
@@ -2390,7 +2390,7 @@ module Geometry
   # @param surface [OpenStudio::Model::Surface] the surface of interest
   # @return [Boolean] true if surface satisfies gable wall criteria
   def self.is_gable_wall(surface:)
-    if ((surface.surfaceType.downcase != 'wall') || (surface.outsideBoundaryCondition.downcase != 'outdoors'))
+    if ((surface.surfaceType != EPlus::SurfaceTypeWall) || (surface.outsideBoundaryCondition != EPlus::BoundaryConditionOutdoors))
       return false
     end
     if surface.vertices.size != 3
@@ -2417,8 +2417,8 @@ module Geometry
   # @return [Boolean] true if space has a roof deck
   def self.space_has_roof(space:)
     space.surfaces.each do |surface|
-      next if surface.surfaceType.downcase != 'roofceiling'
-      next if surface.outsideBoundaryCondition.downcase != 'outdoors'
+      next if surface.surfaceType != EPlus::SurfaceTypeRoofCeiling
+      next if surface.outsideBoundaryCondition != EPlus::BoundaryConditionOutdoors
       next if surface.tilt == 0
 
       return true
@@ -2458,15 +2458,15 @@ module Geometry
     attic_height = (y_tot / 2.0) * roof_pitch + rim_joist_height # Roof always has same orientation
 
     side_type = nil
-    if roof_type == 'gable'
+    if roof_type == Constants::RoofTypeGable
       roof_w_point = OpenStudio::Point3d.new(0, y_peak, average_ceiling_height * num_floors + attic_height)
       roof_e_point = OpenStudio::Point3d.new(x, y_peak, average_ceiling_height * num_floors + attic_height)
       polygon_w_roof = make_polygon(roof_w_point, roof_e_point, ne_point, nw_point)
       polygon_e_roof = make_polygon(roof_e_point, roof_w_point, sw_point, se_point)
       polygon_s_wall = make_polygon(roof_w_point, nw_point, sw_point)
       polygon_n_wall = make_polygon(roof_e_point, se_point, ne_point)
-      side_type = 'Wall'
-    elsif roof_type == 'hip'
+      side_type = EPlus::SurfaceTypeWall
+    elsif roof_type == Constants::RoofTypeHip
       if y > 0
         if x <= (y + y_rear)
           roof_n_point = OpenStudio::Point3d.new(x / 2.0, y_rear - x / 2.0, average_ceiling_height * num_floors + attic_height)
@@ -2500,24 +2500,24 @@ module Geometry
           polygon_n_wall = make_polygon(roof_w_point, nw_point, sw_point)
         end
       end
-      side_type = 'RoofCeiling'
+      side_type = EPlus::SurfaceTypeRoofCeiling
     end
 
     surface_floor = create_surface(polygon: attic_polygon, model: model)
-    surface_floor.setSurfaceType('Floor')
-    surface_floor.setOutsideBoundaryCondition('Surface')
+    surface_floor.setSurfaceType(EPlus::SurfaceTypeFloor)
+    surface_floor.setOutsideBoundaryCondition(EPlus::BoundaryConditionSurface)
     surface_w_roof = create_surface(polygon: polygon_w_roof, model: model)
-    surface_w_roof.setSurfaceType('RoofCeiling')
-    surface_w_roof.setOutsideBoundaryCondition('Outdoors')
+    surface_w_roof.setSurfaceType(EPlus::SurfaceTypeRoofCeiling)
+    surface_w_roof.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
     surface_e_roof = create_surface(polygon: polygon_e_roof, model: model)
-    surface_e_roof.setSurfaceType('RoofCeiling')
-    surface_e_roof.setOutsideBoundaryCondition('Outdoors')
+    surface_e_roof.setSurfaceType(EPlus::SurfaceTypeRoofCeiling)
+    surface_e_roof.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
     surface_s_wall = create_surface(polygon: polygon_s_wall, model: model)
     surface_s_wall.setSurfaceType(side_type)
-    surface_s_wall.setOutsideBoundaryCondition('Outdoors')
+    surface_s_wall.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
     surface_n_wall = create_surface(polygon: polygon_n_wall, model: model)
     surface_n_wall.setSurfaceType(side_type)
-    surface_n_wall.setOutsideBoundaryCondition('Outdoors')
+    surface_n_wall.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
 
     attic_space = create_space(model: model)
 
@@ -2535,7 +2535,7 @@ module Geometry
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param foundation_type [String] HPXML location for foundation type
   # @param foundation_height [Double] height of the foundation (m)
-  # @return [void]
+  # @return [nil]
   def self.apply_ambient_foundation_shift(model:,
                                           foundation_type:,
                                           foundation_height:)
@@ -2557,8 +2557,8 @@ module Geometry
   # @return [Boolean] true if space is below grade
   def self.space_is_below_grade(space:)
     space.surfaces.each do |surface|
-      next if surface.surfaceType.downcase != 'wall'
-      if surface.outsideBoundaryCondition.downcase == 'foundation'
+      next if surface.surfaceType != EPlus::SurfaceTypeWall
+      if surface.outsideBoundaryCondition == EPlus::BoundaryConditionFoundation
         return true
       end
     end

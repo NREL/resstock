@@ -243,7 +243,7 @@ module XMLHelper
 
   # TODO
   #
-  # @param hpxml_path [TODO] TODO
+  # @param hpxml_path [String] Path to the HPXML file
   # @return [TODO] TODO
   def self.parse_file(hpxml_path)
     file_read = File.read(hpxml_path)
