@@ -112,7 +112,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       supply_capacity = 3 * (water_heating_capacity + space_heating_capacity) # FIXME
       storage_tank_volume = 3 * water_heating_tank_volume # FIXME
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
-      # supply_count *= 2
+      supply_count *= 2 # FIXME
       supply_capacity = 36194
     end
 
@@ -194,7 +194,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       space_heating_pump_gpm = gpm
 
       pump_head = 20000
-      pump_w = 150
+      pump_w = 20
     end
 
     # Setpoints (deg-F)
@@ -674,7 +674,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     storage_tank.setOffCycleParasiticFuelConsumptionRate(0.0)
     storage_tank.setOnCycleParasiticFuelConsumptionRate(0.0)
     storage_tank.setNumberofNodes(6)
-    storage_tank.setUseSideDesignFlowRate(UnitConversions.convert(volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
+    # storage_tank.setUseSideDesignFlowRate(UnitConversions.convert(volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
     # storage_tank.setSourceSideDesignFlowRate(UnitConversions.convert(13.6, 'gal/min', 'm^3/s')) # FIXME
     storage_tank.setEndUseSubcategory(name)
     storage_tank.setHeaterFuelType(EPlus.fuel_type(fuel_type))
@@ -728,7 +728,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     swing_tank.setHeater2Capacity(capacity)
     swing_tank.setHeater2Height(h_le)
     swing_tank.setHeater2DeadbandTemperatureDifference(5.56)
-    setpoint = 150.0
+    setpoint = 150.0 # FIXME
     setpoint_schedule = OpenStudio::Model::ScheduleConstant.new(model)
     setpoint_schedule.setName("#{name} Temperature #{setpoint.round}F")
     setpoint_schedule.setValue(UnitConversions.convert(setpoint, 'F', 'C'))
@@ -741,7 +741,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     swing_tank.setOffCycleParasiticFuelConsumptionRate(0.0)
     swing_tank.setOnCycleParasiticFuelConsumptionRate(0.0)
     swing_tank.setNumberofNodes(6)
-    swing_tank.setUseSideDesignFlowRate(UnitConversions.convert(volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
+    # swing_tank.setUseSideDesignFlowRate(UnitConversions.convert(volume, 'gal', 'm^3') / 60.1) # Sized to ensure that E+ never autosizes the design flow rate to be larger than the tank volume getting drawn out in a hour (60 minutes)
     # swing_tank.setSourceSideDesignFlowRate() # FIXME
     swing_tank.setEndUseSubcategory(name)
     swing_tank.setHeaterFuelType(EPlus.fuel_type(fuel_type))
