@@ -87,6 +87,13 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     # Right now we have single tank for boiler and x 80 gal tanks in series for HP
     storage_tank_volume = 80.0
 
+    # why is the inlet temp so high?
+    # look at loop types in os-resources?
+    # look at boiler vs gahp curves?
+    # try removing the swing tank?
+    # compare plant loop volumes
+    # storage tank max temp limit
+
     # Get existing capacities
     water_heating_capacity = get_total_water_heating_capacity(model)
     space_heating_capacity = get_total_space_heating_capacity(model)
@@ -98,7 +105,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       supply_capacity = water_heating_capacity
       storage_tank_volume = water_heating_tank_volume
     elsif shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
-      supply_count *= 2
+      # supply_count *= 2
       supply_capacity = 36194
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
       supply_count = 1
@@ -150,17 +157,17 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       pump_head = 20000
       pump_w = 10
     elsif shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
-      gpm = 13.6 # nominal from Robur spec sheet
-      # gpm = nil
+      # gpm = 13.6 # nominal from Robur spec sheet
+      gpm = nil
 
-      supply_loop_gpm = 100
-      source_loop_gpm = 100
+      supply_loop_gpm = gpm
+      source_loop_gpm = gpm
 
-      # supply_pump_gpm = 100
-      # source_pump_gpm = 100
+      supply_pump_gpm = gpm
+      source_pump_gpm = gpm
 
-      pump_head = 3000
-      pump_w = 22
+      pump_head = 20000
+      pump_w = 10
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
       gpm = nil
 
@@ -175,39 +182,32 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       pump_head = 20000
       pump_w = 150
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiHeatPump
-      gpm = 13.6 # nominal from Robur spec sheet
-      # gpm = nil
+      # gpm = 13.6 # nominal from Robur spec sheet
+      gpm = nil
 
-      supply_loop_gpm = nil
+      supply_loop_gpm = gpm
       source_loop_gpm = gpm
       space_heating_loop_gpm = gpm
 
       supply_pump_gpm = gpm
-      source_pump_gpm = 0.5
+      source_pump_gpm = gpm
       space_heating_pump_gpm = gpm
 
-      # pump_head = 20000
-      # pump_w = 75
+      pump_head = 20000
+      pump_w = 150
     end
 
     # Setpoints (deg-F)
-    dhw_loop_sp = 130.0
+    # dhw_loop_sp = 130.0
     # dhw_loop_sp = 135.0
-    # dhw_loop_sp = 140.0
+    dhw_loop_sp = 140.0
     if shared_water_heater_type == Constants.WaterHeaterTypeBoiler
       supply_loop_sp = 180.0
       source_loop_sp = supply_loop_sp
       space_heating_loop_sp = nil
     elsif shared_water_heater_type == Constants.WaterHeaterTypeHeatPump
       supply_loop_sp = 140.0
-      # source_loop_sp = supply_loop_sp
-      source_loop_sp = dhw_loop_sp
-      source_loop_sp = 150.0
-      # why is the inlet temp so high?
-      # look at loop types in os-resources?
-      # look at boiler vs gahp curves?
-      # try removing the swing tank?
-      # compare plant loop volumes
+      source_loop_sp = supply_loop_sp
       space_heating_loop_sp = nil
     elsif shared_water_heater_type == Constants.WaterHeaterTypeCombiBoiler
       supply_loop_sp = 180.0
@@ -234,16 +234,17 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     dhw_loop_sp_schedule.setValue(UnitConversions.convert(dhw_loop_sp, 'F', 'C'))
 
     # Add Loops
+    loop_temp_diff = 20.0
     dhw_loop = add_loop(model, 'DHW Loop', dhw_loop_sp, 10.0, dhw_loop_gpm, num_units)
     if shared_water_heater_type.include?('space-heating')
-      space_heating_loop = add_loop(model, 'Space Heating Loop', space_heating_loop_sp, 20.0, space_heating_loop_gpm)
+      space_heating_loop = add_loop(model, 'Space Heating Loop', space_heating_loop_sp, loop_temp_diff, space_heating_loop_gpm)
     end
     supply_loops = {}
     (1..supply_count).to_a.each do |i|
-      supply_loop = add_loop(model, "Supply Loop #{i}", supply_loop_sp, 20.0, supply_loop_gpm)
+      supply_loop = add_loop(model, "Supply Loop #{i}", supply_loop_sp, loop_temp_diff, supply_loop_gpm)
       supply_loops[supply_loop] = []
     end
-    source_loop = add_loop(model, 'Source Loop', source_loop_sp, 20.0, source_loop_gpm)
+    source_loop = add_loop(model, 'Source Loop', source_loop_sp, loop_temp_diff, source_loop_gpm)
 
     # Add Adiabatic Pipes
     dhw_loop_demand_inlet, dhw_loop_demand_bypass = add_adiabatic_pipes(model, dhw_loop)
@@ -290,8 +291,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
       components << storage_tank
       prev_storage_tank = components[0]
     end
-    # swing_tank = add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank', shared_water_heater_fuel_type, supply_loop_sp)
-    swing_tank = add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank', shared_water_heater_fuel_type, dhw_loop_sp)
+    swing_tank = add_swing_tank(model, prev_storage_tank, swing_tank_volume, swing_tank_capacity, 'Swing Tank', shared_water_heater_fuel_type, supply_loop_sp)
     swing_tank.additionalProperties.setFeature('ObjectType', Constants.ObjectNameSharedWaterHeater) if !swing_tank.nil? # Used by reporting measure
 
     # Add Heat Exchangers
@@ -639,12 +639,12 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
 
   def add_setpoint_manager(model, loop, schedule)
     manager = OpenStudio::Model::SetpointManagerScheduled.new(model, schedule)
-    manager.setName("#{loop.name} Setpoint Manager")
+    manager.setName("#{loop.name} Setpoint Manager #{UnitConversions.convert(schedule.value, 'C', 'F').round}F")
     manager.setControlVariable('Temperature')
     manager.addToNode(loop.supplyOutletNode)
   end
 
-  def add_storage_tank(model, source_loop, heat_pump_loop, volume, prev_storage_tank, name, fuel_type, setpoint)
+  def add_storage_tank(model, source_loop, supply_loop, volume, prev_storage_tank, name, fuel_type, setpoint)
     h_tank = 2.0 # m, assumed
     h_source_in = 0.01 * h_tank
     h_source_out = 0.99 * h_tank
@@ -661,8 +661,9 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     storage_tank.setTankVolume(UnitConversions.convert(volume, 'gal', 'm^3'))
     storage_tank.setHeater1Capacity(capacity)
     storage_tank.setHeater2Capacity(capacity)
+    setpoint = 180.0 # FIXME
     setpoint_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-    setpoint_schedule.setName("#{name} Temperature Schedule")
+    setpoint_schedule.setName("#{name} Temperature #{setpoint.round}F")
     setpoint_schedule.setValue(UnitConversions.convert(setpoint, 'F', 'C'))
     storage_tank.setHeater1SetpointTemperatureSchedule(setpoint_schedule)
     storage_tank.setHeater2SetpointTemperatureSchedule(setpoint_schedule)
@@ -679,7 +680,9 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     storage_tank.setHeaterFuelType(EPlus.fuel_type(fuel_type))
     # storage_tank.setSkinLossFractiontoZone(1.0 / unit_multiplier) # Tank losses are multiplied by E+ zone multiplier, so need to compensate here
     # storage_tank.setOffCycleFlueLossFractiontoZone(1.0 / unit_multiplier)
-    if heat_pump_loop.nil? # stratified tank on supply side of source loop (e.g., shared electric hpwh)
+    # storage_tank.setMaximumTemperatureLimit(UnitConversions.convert(setpoint, 'F', 'C')) # FIXME
+    # storage_tank.setMaximumTemperatureLimit(UnitConversions.convert(140, 'F', 'C')) # FIXME
+    if supply_loop.nil? # stratified tank on supply side of source loop (e.g., shared electric hpwh)
       storage_tank.setHeaterThermalEfficiency(1.0)
       storage_tank.setAdditionalDestratificationConductivity(0)
       storage_tank.setSourceSideDesignFlowRate(0)
@@ -693,8 +696,8 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     else
       storage_tank.addToNode(prev_storage_tank.useSideOutletModelObject.get.to_Node.get) # remaining are added in series
     end
-    if !heat_pump_loop.nil?
-      heat_pump_loop.addDemandBranchForComponent(storage_tank)
+    if !supply_loop.nil?
+      supply_loop.addDemandBranchForComponent(storage_tank)
     end
 
     return storage_tank
@@ -725,8 +728,9 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     swing_tank.setHeater2Capacity(capacity)
     swing_tank.setHeater2Height(h_le)
     swing_tank.setHeater2DeadbandTemperatureDifference(5.56)
+    setpoint = 150.0
     setpoint_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-    setpoint_schedule.setName("#{name} Temperature Schedule")
+    setpoint_schedule.setName("#{name} Temperature #{setpoint.round}F")
     setpoint_schedule.setValue(UnitConversions.convert(setpoint, 'F', 'C'))
     swing_tank.setHeater1SetpointTemperatureSchedule(setpoint_schedule)
     swing_tank.setHeater2SetpointTemperatureSchedule(setpoint_schedule)
@@ -741,6 +745,7 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
     # swing_tank.setSourceSideDesignFlowRate() # FIXME
     swing_tank.setEndUseSubcategory(name)
     swing_tank.setHeaterFuelType(EPlus.fuel_type(fuel_type))
+    # swing_tank.setMaximumTemperatureLimit(UnitConversions.convert(setpoint, 'F', 'C')) # FIXME
 
     swing_tank.addToNode(last_storage_tank.useSideOutletModelObject.get.to_Node.get) # in series
     # swing_tank.addToNode(source_loop.supplyOutletNode)
@@ -796,9 +801,12 @@ class AddSharedWaterHeater < OpenStudio::Measure::ModelMeasure
         component.setNominalHeatingCapacity(capacity)
         component.setNominalCOP(1.293)
         # component.setDesignFlowRate(0.005) # FIXME
+        lift = UnitConversions.convert(20.0, 'deltaF', 'deltaC')
+        component.setDesignTemperatureLift(lift)
         component.setDesignSupplyTemperature(60)
-        component.setDesignTemperatureLift(13)
+        # component.setDesignSupplyTemperature(60 - lift)
         # component.setFlowMode('LeavingSetpointModulated') # FIXME: this almost zeros out Fuel-fired Absorption HeatPump Electricity Energy: Supply Loop 1 Water Heater
+        # component.setFlowMode('ConstantFlow')
         component.setMinimumPartLoadRatio(0.2)
         component.setMaximumPartLoadRatio(1.0)
         component.setDefrostControlType('OnDemand')
