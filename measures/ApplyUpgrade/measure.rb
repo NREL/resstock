@@ -334,7 +334,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Assign ResStockArgument's runner arguments to BuildResidentialHPXML
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
-        next if value == ''
+        next if value == '' || Constants.arguments_to_exclude.include?(step_value.name)
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
