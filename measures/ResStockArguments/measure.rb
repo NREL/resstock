@@ -486,14 +486,14 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # PV
-    if args[:pv_system_present] == 'true'
+    if args[:pv_system_present]
       args[:pv_system_num_bedrooms_served] = args[:geometry_unit_num_bedrooms]
     else
       args[:pv_system_num_bedrooms_served] = 0
     end
 
     # Battery
-    if args[:battery_present] == 'true'
+    if args[:battery_present]
       args[:battery_num_bedrooms_served] = args[:geometry_unit_num_bedrooms]
     else
       args[:battery_num_bedrooms_served] = 0
