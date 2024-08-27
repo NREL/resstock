@@ -100,8 +100,14 @@ module Constants
   end
 
   def self.arguments_to_register
-    # list of resstock arguments; reported as build_existing_model.<argument_name>, ...
-    return ['hvac_control_heating_season_period',
-            'hvac_control_cooling_season_period']
+    # list of arguments assigned in ResStockArguments; reported as build_existing_model.<argument_name>, ...
+    return ['hvac_control_heating_unavailable_period',
+            'hvac_control_cooling_unavailable_period']
+  end
+
+  def self.arguments_to_exclude
+    # list of arguments assigned in ResStockArguments; will not be passed into BuildResidentialHPXML measure
+    return ['hvac_control_heating_unavailable_period',
+            'hvac_control_cooling_unavailable_period']
   end
 end

@@ -526,23 +526,30 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     ['heating', 'cooling'].each do |htg_or_clg|
       hvac_control_season_period = "hvac_control_#{htg_or_clg}_season_period".to_sym
+      hvac_control_unavailable_period = "hvac_control_#{htg_or_clg}_unavailable_period".to_sym
+
+      args[hvac_control_unavailable_period] = 'Never'
 
       if args["use_auto_#{htg_or_clg}_season".to_sym]
         args[hvac_control_season_period] = HPXML::BuildingAmerica
       else
-        # args[hvac_control_season_period] = 'Jan 1 - Dec 31' # FIXME
         if args[hvac_control_season_period].include?('Unavailable')
           if args[hvac_control_season_period].include?('All Days') # year-round unavailability; limit heating or cooling season to 1-day
             if htg_or_clg == 'heating'
               # limit heating season to 1 day in Jul
-              unavail_begin_day_num = 182 # Jul 1
-              unavail_end_day_num = 182 # Jul 1
+              season_begin_day_num = 182 # Jul 1
+              season_end_day_num = 182 # Jul 1
+              unavail_begin_day_num = 1
+              unavail_end_day_num = 365
             elsif htg_or_clg == 'cooling'
               # limit cooling season to 1 day in Jan
-              unavail_begin_day_num = 1 # Jan 1
-              unavail_end_day_num = 1 # Jan 1
+              season_begin_day_num = 1 # Jan 1
+              season_end_day_num = 1 # Jan 1
+              unavail_begin_day_num = 1
+              unavail_end_day_num = 365
             end
-          else # partial-year unavailability; select n-day period start/end dates during BA heating/cooling months
+            unavail_end_day_num += 1 if Date.leap?(sim_calendar_year)
+          else # partial-year unavailability; select n-day period start date during BA heating/cooling months
             if htg_or_clg == 'heating'
               months = heating_months
             elsif htg_or_clg == 'cooling'
@@ -576,13 +583,18 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
               return false
             end
 
-            unavail_begin_day_num, unavail_end_day_num = get_subset_begin_end_day_num(args[:building_id], n_days, begin_day_num, end_day_num, sim_calendar_year)
+            season_begin_day_num, season_end_day_num, unavail_begin_day_num, unavail_end_day_num = get_begin_end_day_nums(args[:building_id], n_days, begin_day_num, end_day_num, sim_calendar_year)
           end
 
-          begin_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year) # begin the htg_or_clg season period at the end of unavailability
-          end_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year) # end the htg_or_clg season period at the beginning of unavailability
+          season_begin_date = get_month_day_from_day_num(season_begin_day_num, sim_calendar_year)
+          season_end_date = get_month_day_from_day_num(season_end_day_num, sim_calendar_year)
+          args[hvac_control_season_period] = "#{season_begin_date} - #{season_end_date}"
 
-          args[hvac_control_season_period] = "#{begin_date} - #{end_date}"
+          unavail_begin_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year)
+          unavail_end_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year)
+          unavailable_period = "#{unavail_begin_date} - #{unavail_end_date}"
+          unavailable_period = 'Year round' if unavailable_period == 'Jan 1 - Dec 31'
+          args[hvac_control_unavailable_period] = unavailable_period
         end
       end
     end
@@ -852,25 +864,32 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     return heating_months, cooling_months, sim_calendar_year
   end
 
-  def get_subset_begin_end_day_num(building_id, n_days, begin_day_num, end_day_num, year)
+  def get_begin_end_day_nums(building_id, n_days, begin_day_num, end_day_num, year)
     if begin_day_num > end_day_num
       num_days = Constants.NumDaysInYear(year)
-      day_nums = (begin_day_num..num_days).to_a + (1..end_day_num).to_a
+      begin_day_nums = (begin_day_num..num_days).to_a + (1..end_day_num).to_a
     else
-      day_nums = (begin_day_num..end_day_num).to_a
+      begin_day_nums = (begin_day_num..end_day_num).to_a
     end
 
-    begin_day_nums = day_nums[0...(-n_days - 1)]
-    if begin_day_nums.empty? # if n_days is longer than the season, set equal to the whole season
-      subset_begin_day_num = day_nums[0]
-      subset_end_day_num = day_nums[-1]
-    else
-      subset_begin_day_num = begin_day_nums.sample(1, random: Random.new(building_id))
-      subset_begin_day_num = subset_begin_day_num[0]
-      subset_end_day_num = day_nums[day_nums.index(subset_begin_day_num) + n_days + 1]
-    end
+    unavail_begin_day_nums = begin_day_nums.sample(1, random: Random.new(building_id))
+    unavail_begin_day_num = unavail_begin_day_nums[0]
+    unavail_begin_date = OpenStudio::Date::fromDayOfYear(unavail_begin_day_num, year)
+    unavail_end_date = unavail_begin_date + OpenStudio::Time.new(n_days - 1)
+    unavail_end_month = unavail_end_date.monthOfYear.value
+    unavail_end_day = unavail_end_date.dayOfMonth
+    unavail_end_day_num = Schedule.get_day_num_from_month_day(year, unavail_end_month, unavail_end_day)
 
-    return subset_begin_day_num, subset_end_day_num
+    season_begin_date = unavail_end_date + OpenStudio::Time.new(1)
+    season_begin_month = season_begin_date.monthOfYear.value
+    season_begin_day = season_begin_date.dayOfMonth
+    season_begin_day_num = Schedule.get_day_num_from_month_day(year, season_begin_month, season_begin_day)
+    season_end_date = unavail_begin_date - OpenStudio::Time.new(1)
+    season_end_month = season_end_date.monthOfYear.value
+    season_end_day = season_end_date.dayOfMonth
+    season_end_day_num = Schedule.get_day_num_from_month_day(year, season_end_month, season_end_day)
+
+    return season_begin_day_num, season_end_day_num, unavail_begin_day_num, unavail_end_day_num
   end
 
   def get_month_day_from_day_num(day_num, year)
