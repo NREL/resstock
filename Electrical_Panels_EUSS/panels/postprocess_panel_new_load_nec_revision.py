@@ -1143,6 +1143,7 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, method: str, result
         "build_existing_model.hvac_has_ducts",
         "build_existing_model.bedrooms",
         "build_existing_model.geometry_building_type_recs",
+        "build_existing_model.hvac_heating_efficiency",
     ]
     HC_list = [x for x in HC_list if x not in dfu]
     new_load_cols = [x for x in dfu.columns if "new_load" in x]
@@ -1198,7 +1199,7 @@ def calculate_new_loads(df: pd.DataFrame, dfu: pd.DataFrame, method: str, result
     df_up["new_load_evse"] = df_up.apply(lambda x: _new_load_evse(x, ev_option_cols, method), axis=1)
 
     # Project-specific: add EV load explicitly (for part II of TEA)
-    EVSE_level = 2 # <--- 0, 1, 2
+    EVSE_level = 0 # <--- 0, 1, 2
     if EVSE_level == 0:
         print("No EVSE postprocessing")
     if EVSE_level == 1 and method == "87":
@@ -1619,17 +1620,18 @@ def main(
     dfu = dfu[dfu["building_id"].isin(valid_bldgs)].reset_index(drop=True)
     assert (dfu["building_id"] == df["building_id"]).prod() == 1, "Ordering of building_id does not match between upgrade and baseline"
 
-    # Project-specific (this is to rectify the mistake of using supplemental sizing for HP backup)
-    if "existing" in dfu["apply_upgrade.upgrade_name"].replace("", np.nan).dropna().unique()[0].lower():
-        dfu["upgrade_costs.size_heating_system_secondary_k_btu_h"] = np.nan
-        cond = df["build_existing_model.hvac_heating_type"]=="Non-Ducted Heating"
-        dfu.loc[cond, "upgrade_costs.size_heating_system_secondary_k_btu_h"] = \
-            df.loc[cond, "upgrade_costs.size_heating_system_primary_k_btu_h"]
+    # # Project-specific (this is to rectify the mistake of using supplemental sizing for HP backup)
+    # # To be turned on for 30k run results
+    # if "existing" in dfu["apply_upgrade.upgrade_name"].replace("", np.nan).dropna().unique()[0].lower():
+    #     dfu["upgrade_costs.size_heating_system_secondary_k_btu_h"] = np.nan
+    #     cond = df["build_existing_model.hvac_heating_type"]=="Non-Ducted Heating"
+    #     dfu.loc[cond, "upgrade_costs.size_heating_system_secondary_k_btu_h"] = \
+    #         df.loc[cond, "upgrade_costs.size_heating_system_primary_k_btu_h"]
         
-        dfu["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"] = np.nan
-        cond = df["build_existing_model.hvac_heating_type"]=="Ducted Heating"
-        dfu.loc[cond, "upgrade_costs.size_heat_pump_backup_primary_k_btu_h"] = \
-            df.loc[cond, "upgrade_costs.size_heating_system_primary_k_btu_h"]
+    #     dfu["upgrade_costs.size_heat_pump_backup_primary_k_btu_h"] = np.nan
+    #     cond = df["build_existing_model.hvac_heating_type"]=="Ducted Heating"
+    #     dfu.loc[cond, "upgrade_costs.size_heat_pump_backup_primary_k_btu_h"] = \
+    #         df.loc[cond, "upgrade_costs.size_heating_system_primary_k_btu_h"]
 
 
     # --- NEW LOAD calcs ---

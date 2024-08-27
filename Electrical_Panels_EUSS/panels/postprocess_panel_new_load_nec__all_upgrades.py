@@ -21,15 +21,17 @@ def main(
     if revision:
         nec_file = "postprocess_panel_new_load_nec_revision.py"
         msg = "using 2026 NEC REVISION"
+        output_folder = "nec_calculations_revision"
     else:
         nec_file = "postprocess_panel_new_load_nec.py"
         msg = "using 2023 NEC"
+        output_folder = "nec_calculations"
 
     upgrade_files = sorted([x for x in directory.glob("*results_up*") if "up00" not in str(x)])
     baseline_file = [x for x in directory.glob("*results_up*") if "up00" in str(x)][0]
 
     completed_files = []
-    output_filedir = directory / "nec_calculations"
+    output_filedir = directory / output_folder
     output_filedir.mkdir(exist_ok=True, parents=True)
     for file in output_filedir.glob("*results_up*"):
         completed_upgrade = file.stem[:12]
