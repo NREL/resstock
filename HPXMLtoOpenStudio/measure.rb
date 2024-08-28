@@ -58,13 +58,13 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('annual_output_file_name', false)
     arg.setDisplayName('Annual Output File Name')
-    arg.setDescription("The name of the file w/ HVAC design loads and capacities. If not provided, defaults to 'results_annual.csv' (or 'results_annual.json' or 'results_annual.msgpack').")
+    arg.setDescription("The name of the file w/ HVAC design loads and capacities. If not provided, defaults to 'results_annual.csv' (or '.json' or '.msgpack').")
     arg.setDefaultValue('results_annual')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('design_load_details_output_file_name', false)
     arg.setDisplayName('Design Load Details Output File Name')
-    arg.setDescription("The name of the file w/ additional HVAC design load details. If not provided, defaults to 'results_design_load_details.csv' (or 'results_design_load_details.json' or 'results_design_load_details.msgpack').")
+    arg.setDescription("The name of the file w/ additional HVAC design load details. If not provided, defaults to 'results_design_load_details.csv' (or '.json' or '.msgpack').")
     arg.setDefaultValue('results_design_load_details')
     args << arg
 

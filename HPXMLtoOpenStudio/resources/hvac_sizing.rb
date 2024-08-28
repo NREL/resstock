@@ -1431,20 +1431,7 @@ module HVACSizing
       ela = sla * cfa
       ncfl_ag = hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade
 
-      # Determine if we are in a higher or lower shielding class
-      # Combines the effects of terrain and wind shielding
-      shielding_class = 4
-      if hpxml_bldg.site.shielding_of_home == HPXML::ShieldingWellShielded
-        shielding_class += 1
-      elsif hpxml_bldg.site.shielding_of_home == HPXML::ShieldingExposed
-        shielding_class -= 1
-      end
-      if hpxml_bldg.site.site_type == HPXML::SiteTypeUrban
-        shielding_class += 1
-      elsif hpxml_bldg.site.site_type == HPXML::SiteTypeRural
-        shielding_class -= 1
-      end
-      shielding_class = [[shielding_class, 5].min, 1].max
+      shielding_class = hpxml_bldg.header.manualj_infiltration_shielding_class
 
       # Set stack/wind coefficients from Tables 5D/5E
       c_s = 0.015 * ncfl_ag
