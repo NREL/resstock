@@ -46,8 +46,8 @@ module HPXMLDefaults
     apply_emissions_scenarios(hpxml.header, has_fuel)
     apply_utility_bill_scenarios(runner, hpxml.header, hpxml_bldg, has_fuel)
     apply_building_header(hpxml.header, hpxml_bldg, weather)
-    apply_building_header_sizing(runner, hpxml_bldg, weather, nbeds)
     apply_site(hpxml_bldg)
+    apply_building_header_sizing(runner, hpxml_bldg, weather, nbeds)
     apply_neighbor_buildings(hpxml_bldg)
     apply_building_occupancy(hpxml_bldg, schedules_file)
     apply_building_construction(hpxml_bldg, cfa, nbeds)
@@ -235,6 +235,8 @@ module HPXMLDefaults
   # Assigns default values for omitted optional inputs in the HPXML::BuildingHeader object
   # specific to HVAC equipment sizing
   #
+  # # Note: This needs to be called after we have applied defaults for the site.
+  #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
@@ -340,6 +342,31 @@ module HPXMLDefaults
       end
     elsif (hpxml_bldg.header.manualj_num_occupants - sum_space_manualj_num_occupants).abs >= 1 # Tolerance for rounding
       runner.registerWarning("ManualJInputs/NumberofOccupants (#{hpxml_bldg.header.manualj_num_occupants}) does not match sum of conditioned spaces (#{sum_space_manualj_num_occupants}).")
+    end
+
+    if hpxml_bldg.header.manualj_infiltration_shielding_class.nil?
+      hpxml_bldg.header.manualj_infiltration_shielding_class = 4
+      if hpxml_bldg.site.shielding_of_home.nil?
+        fail 'Unexpected error.' # Shouldn't happen, it should already be defaulted
+      elsif hpxml_bldg.site.shielding_of_home == HPXML::ShieldingWellShielded
+        hpxml_bldg.header.manualj_infiltration_shielding_class += 1
+      elsif hpxml_bldg.site.shielding_of_home == HPXML::ShieldingExposed
+        hpxml_bldg.header.manualj_infiltration_shielding_class -= 1
+      end
+      if hpxml_bldg.site.site_type.nil?
+        fail 'Unexpected error.' # Shouldn't happen, it should already be defaulted
+      elsif hpxml_bldg.site.site_type == HPXML::SiteTypeUrban
+        hpxml_bldg.header.manualj_infiltration_shielding_class += 1
+      elsif hpxml_bldg.site.site_type == HPXML::SiteTypeRural
+        hpxml_bldg.header.manualj_infiltration_shielding_class -= 1
+      end
+
+      if hpxml_bldg.header.manualj_infiltration_shielding_class < 1
+        hpxml_bldg.header.manualj_infiltration_shielding_class = 1
+      elsif hpxml_bldg.header.manualj_infiltration_shielding_class > 5
+        hpxml_bldg.header.manualj_infiltration_shielding_class = 5
+      end
+      hpxml_bldg.header.manualj_infiltration_shielding_class_isdefaulted = true
     end
 
     if hpxml_bldg.header.manualj_infiltration_method.nil?

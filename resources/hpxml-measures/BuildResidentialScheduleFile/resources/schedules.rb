@@ -110,7 +110,7 @@ class ScheduleGenerator
     # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
     # if geometry_num_occupants = 2, period_in_a_year = 35040,  num_of_states = 7, then
     # shape of all_simulated_values is [2, 35040, 7]
-    occupancy_types_probabilities = Schedule.validate_values(Constants.OccupancyTypesProbabilities, 4, 'occupancy types probabilities')
+    occupancy_types_probabilities = Schedule.validate_values(Constants::OccupancyTypesProbabilities, 4, 'occupancy types probabilities')
     for _n in 1..args[:geometry_num_occupants]
       occ_type_id = weighted_random(prng, occupancy_types_probabilities)
       init_prob_file_weekday = args[:resources_path] + "/weekday/mkv_chain_initial_prob_cluster_#{occ_type_id}.csv"
@@ -154,7 +154,7 @@ class ScheduleGenerator
             # repeat the same activity for the duration times
             simulated_values << state_vector
             j += 1
-            if j >= @mkc_ts_per_day then break end # break as soon as we have filled acitivities for the day
+            if j >= @mkc_ts_per_day then break end # break as soon as we have filled activities for the day
           end
           if j >= @mkc_ts_per_day then break end # break as soon as we have filled activities for the day
 
@@ -246,17 +246,17 @@ class ScheduleGenerator
       end
     end
 
-    sink_duration_probs = Schedule.validate_values(Constants.SinkDurationProbability, 9, 'sink_duration_probability')
-    events_per_cluster_probs = Schedule.validate_values(Constants.SinkEventsPerClusterProbs, 15, 'sink_events_per_cluster_probs')
-    hourly_onset_prob = Schedule.validate_values(Constants.SinkHourlyOnsetProb, 24, 'sink_hourly_onset_prob')
+    sink_duration_probs = Schedule.validate_values(Constants::SinkDurationProbability, 9, 'sink_duration_probability')
+    events_per_cluster_probs = Schedule.validate_values(Constants::SinkEventsPerClusterProbs, 15, 'sink_events_per_cluster_probs')
+    hourly_onset_prob = Schedule.validate_values(Constants::SinkHourlyOnsetProb, 24, 'sink_hourly_onset_prob')
     # Lookup avg_sink_clusters_per_hh from constants
-    avg_sink_clusters_per_hh = Constants.SinkAvgSinkClustersPerHH
+    avg_sink_clusters_per_hh = Constants::SinkAvgSinkClustersPerHH
     # Adjust avg_sink_clusters_per_hh for number of occupants in household
     total_clusters = avg_sink_clusters_per_hh * (0.29 * args[:geometry_num_occupants] + 0.26) # Eq based on cluster scaling in Building America DHW Event Schedule Generator (fewer sink draw clusters for larger households)
-    sink_minutes_between_event_gap = Constants.SinkMinutesBetweenEventGap
+    sink_minutes_between_event_gap = Constants::SinkMinutesBetweenEventGap
     cluster_per_day = (total_clusters / @total_days_in_year).to_i
-    sink_flow_rate_mean = Constants.SinkFlowRateMean
-    sink_flow_rate_std = Constants.SinkFlowRateStd
+    sink_flow_rate_mean = Constants::SinkFlowRateMean
+    sink_flow_rate_std = Constants::SinkFlowRateStd
     sink_flow_rate = gaussian_rand(prng, sink_flow_rate_mean, sink_flow_rate_std)
     @total_days_in_year.times do |day|
       for _n in 1..cluster_per_day
@@ -299,14 +299,14 @@ class ScheduleGenerator
     #   b. Fill in the mkc personal hygiene slot with the bath duration and flow rate.
     #      TODO If there is room in the mkc personal hygiene slot, shift uniform randomly
     # 6. Repeat process 2-6 for each occupant
-    shower_minutes_between_event_gap = Constants.ShowerMinutesBetweenEventGap
-    shower_flow_rate_mean = Constants.ShowerFlowRateMean
-    shower_flow_rate_std = Constants.ShowerFlowRateStd
-    bath_ratio = Constants.BathBathToShowerRatio
-    bath_duration_mean = Constants.BathDurationMean
-    bath_duration_std = Constants.BathDurationStd
-    bath_flow_rate_mean = Constants.BathFlowRateMean
-    bath_flow_rate_std = Constants.BathFlowRateStd
+    shower_minutes_between_event_gap = Constants::ShowerMinutesBetweenEventGap
+    shower_flow_rate_mean = Constants::ShowerFlowRateMean
+    shower_flow_rate_std = Constants::ShowerFlowRateStd
+    bath_ratio = Constants::BathToShowerRatio
+    bath_duration_mean = Constants::BathDurationMean
+    bath_duration_std = Constants::BathDurationStd
+    bath_flow_rate_mean = Constants::BathFlowRateMean
+    bath_flow_rate_std = Constants::BathFlowRateStd
     m = 0
     shower_activity_sch = [0] * mins_in_year
     bath_activity_sch = [0] * mins_in_year
@@ -369,9 +369,9 @@ class ScheduleGenerator
     #    (it's typically composed of multiple water draw events)
     # 4. For each event, sample the event duration
     # 5. Fill in the dishwasher/clothes washer time slot using those water draw events
-    dw_flow_rate_mean = Constants.HotWaterDishwasherFlowRateMean
-    dw_flow_rate_std = Constants.HotWaterDishwasherFlowRateStd
-    dw_minutes_between_event_gap = Constants.HotWaterDishwasherMinutesBetweenEventGap
+    dw_flow_rate_mean = Constants::HotWaterDishwasherFlowRateMean
+    dw_flow_rate_std = Constants::HotWaterDishwasherFlowRateStd
+    dw_minutes_between_event_gap = Constants::HotWaterDishwasherMinutesBetweenEventGap
     dw_activity_sch = [0] * mins_in_year
     m = 0
     dw_flow_rate = gaussian_rand(prng, dw_flow_rate_mean, dw_flow_rate_std)
@@ -408,11 +408,11 @@ class ScheduleGenerator
       step += step_jump
     end
 
-    cw_flow_rate_mean = Constants.HotWaterClothesWasherFlowRateMean
-    cw_flow_rate_std = Constants.HotWaterClothesWasherFlowRateStd
-    cw_minutes_between_event_gap = Constants.HotWaterClothesWasherMinutesBetweenEventGap
+    cw_flow_rate_mean = Constants::HotWaterClothesWasherFlowRateMean
+    cw_flow_rate_std = Constants::HotWaterClothesWasherFlowRateStd
+    cw_minutes_between_event_gap = Constants::HotWaterClothesWasherMinutesBetweenEventGap
     cw_activity_sch = [0] * mins_in_year # this is the clothes_washer water draw schedule
-    cw_load_size_probability = Schedule.validate_values(Constants.HotWaterClothesWasherLoadSizeProbability, 4, 'hot_water_clothes_washer_load_size_probability')
+    cw_load_size_probability = Schedule.validate_values(Constants::HotWaterClothesWasherLoadSizeProbability, 4, 'hot_water_clothes_washer_load_size_probability')
     m = 0
     cw_flow_rate = gaussian_rand(prng, cw_flow_rate_mean, cw_flow_rate_std)
     # States are: 'sleeping','shower','laundry','cooking', 'dishwashing', 'absent', 'nothingAtHome'
@@ -694,7 +694,7 @@ class ScheduleGenerator
 
   # TODO
   #
-  # @param prng [TODO] TODO
+  # @param prng [Random] Random number generator object
   # @param power_dist_map [TODO] TODO
   # @param appliance_name [TODO] TODO
   # @return [TODO] TODO
@@ -778,7 +778,7 @@ class ScheduleGenerator
 
   # TODO
   #
-  # @param prng [TODO] TODO
+  # @param prng [Random] Random number generator object
   # @param cluster_size_prob_map [TODO] TODO
   # @param activity_type_name [TODO] TODO
   # @return [TODO] TODO
@@ -789,7 +789,7 @@ class ScheduleGenerator
 
   # TODO
   #
-  # @param prng [TODO] TODO
+  # @param prng [Random] Random number generator object
   # @param duration_probabilites_map [TODO] TODO
   # @param event_type [TODO] TODO
   # @return [TODO] TODO
@@ -801,7 +801,7 @@ class ScheduleGenerator
 
   # TODO
   #
-  # @param prng [TODO] TODO
+  # @param prng [Random] Random number generator object
   # @param activity_duration_prob_map [TODO] TODO
   # @param occ_type_id [TODO] TODO
   # @param activity [TODO] TODO
@@ -864,7 +864,7 @@ class ScheduleGenerator
 
   # TODO
   #
-  # @param prng [TODO] TODO
+  # @param prng [Random] Random number generator object
   # @param mean [TODO] TODO
   # @param std [TODO] TODO
   # @param min [TODO] TODO
@@ -940,7 +940,7 @@ class ScheduleGenerator
 
   # TODO
   #
-  # @param prng [TODO] TODO
+  # @param prng [Random] Random number generator object
   # @param weights [TODO] TODO
   # @return [TODO] TODO
   def weighted_random(prng, weights)

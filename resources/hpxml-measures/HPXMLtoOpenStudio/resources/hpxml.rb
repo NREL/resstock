@@ -2526,27 +2526,28 @@ class HPXML < Object
 
   # Object for high-level Building-specific information in /HPXML/Building/BuildingDetails/BuildingSummary/extension.
   class BuildingHeader < BaseElement
-    ATTRS = [:heat_pump_sizing_methodology,        # [String] HVACSizingControl/HeatPumpSizingMethodology (HPXML::HeatPumpSizingXXX)
-             :heat_pump_backup_sizing_methodology, # [String] HVACSizingControl/HeatPumpBackupSizingMethodology (HPXML::HeatPumpBackupSizingXXX)
-             :allow_increased_fixed_capacities,    # [Boolean] HVACSizingControl/AllowIncreasedFixedCapacities
-             :manualj_heating_design_temp,         # [Double] HVACSizingControl/ManualJInputs/HeatingDesignTemperature (F)
-             :manualj_cooling_design_temp,         # [Double] HVACSizingControl/ManualJInputs/CoolingDesignTemperature (F)
-             :manualj_daily_temp_range,            # [String] HVACSizingControl/ManualJInputs/DailyTemperatureRange (HPXML::ManualJDailyTempRangeXXX)
-             :manualj_heating_setpoint,            # [Double] HVACSizingControl/ManualJInputs/HeatingSetpoint (F)
-             :manualj_cooling_setpoint,            # [Double] HVACSizingControl/ManualJInputs/CoolingSetpoint (F)
-             :manualj_humidity_setpoint,           # [Double] HVACSizingControl/ManualJInputs/HumiditySetpoint (frac)
-             :manualj_humidity_difference,         # [Double] HVACSizingControl/ManualJInputs/HumidityDifference (grains)
-             :manualj_internal_loads_sensible,     # [Double] HVACSizingControl/ManualJInputs/InternalLoadsSensible (Btu/hr)
-             :manualj_internal_loads_latent,       # [Double] HVACSizingControl/ManualJInputs/InternalLoadsLatent (Btu/hr)
-             :manualj_num_occupants,               # [Integer] HVACSizingControl/ManualJInputs/NumberofOccupants
-             :manualj_infiltration_method,         # [String] HVACSizingControl/ManualJInputs/InfiltrationMethod (HPXML::ManualJInfiltrationMethodXXX)
-             :natvent_days_per_week,               # [Integer] NaturalVentilationAvailabilityDaysperWeek
-             :schedules_filepaths,                 # [Array<String>] SchedulesFilePath
-             :shading_summer_begin_month,          # [Integer] ShadingControl/SummerBeginMonth
-             :shading_summer_begin_day,            # [Integer] ShadingControl/SummerBeginDayOfMonth
-             :shading_summer_end_month,            # [Integer] ShadingControl/SummerEndMonth
-             :shading_summer_end_day,              # [Integer] ShadingControl/SummerEndDayOfMonth
-             :extension_properties]                # [Hash] AdditionalProperties
+    ATTRS = [:heat_pump_sizing_methodology,         # [String] HVACSizingControl/HeatPumpSizingMethodology (HPXML::HeatPumpSizingXXX)
+             :heat_pump_backup_sizing_methodology,  # [String] HVACSizingControl/HeatPumpBackupSizingMethodology (HPXML::HeatPumpBackupSizingXXX)
+             :allow_increased_fixed_capacities,     # [Boolean] HVACSizingControl/AllowIncreasedFixedCapacities
+             :manualj_heating_design_temp,          # [Double] HVACSizingControl/ManualJInputs/HeatingDesignTemperature (F)
+             :manualj_cooling_design_temp,          # [Double] HVACSizingControl/ManualJInputs/CoolingDesignTemperature (F)
+             :manualj_daily_temp_range,             # [String] HVACSizingControl/ManualJInputs/DailyTemperatureRange (HPXML::ManualJDailyTempRangeXXX)
+             :manualj_heating_setpoint,             # [Double] HVACSizingControl/ManualJInputs/HeatingSetpoint (F)
+             :manualj_cooling_setpoint,             # [Double] HVACSizingControl/ManualJInputs/CoolingSetpoint (F)
+             :manualj_humidity_setpoint,            # [Double] HVACSizingControl/ManualJInputs/HumiditySetpoint (frac)
+             :manualj_humidity_difference,          # [Double] HVACSizingControl/ManualJInputs/HumidityDifference (grains)
+             :manualj_internal_loads_sensible,      # [Double] HVACSizingControl/ManualJInputs/InternalLoadsSensible (Btu/hr)
+             :manualj_internal_loads_latent,        # [Double] HVACSizingControl/ManualJInputs/InternalLoadsLatent (Btu/hr)
+             :manualj_num_occupants,                # [Integer] HVACSizingControl/ManualJInputs/NumberofOccupants
+             :manualj_infiltration_shielding_class, # [Integer] HVACSizingControl/ManualJInputs/InfiltrationShieldingClass (1-5)
+             :manualj_infiltration_method,          # [String] HVACSizingControl/ManualJInputs/InfiltrationMethod (HPXML::ManualJInfiltrationMethodXXX)
+             :natvent_days_per_week,                # [Integer] NaturalVentilationAvailabilityDaysperWeek
+             :schedules_filepaths,                  # [Array<String>] SchedulesFilePath
+             :shading_summer_begin_month,           # [Integer] ShadingControl/SummerBeginMonth
+             :shading_summer_begin_day,             # [Integer] ShadingControl/SummerBeginDayOfMonth
+             :shading_summer_end_month,             # [Integer] ShadingControl/SummerEndMonth
+             :shading_summer_end_day,               # [Integer] ShadingControl/SummerEndDayOfMonth
+             :extension_properties]                 # [Hash] AdditionalProperties
     attr_accessor(*ATTRS)
 
     # Additional error-checking beyond what's checked in Schema/Schematron validators.
@@ -2572,7 +2573,7 @@ class HPXML < Object
         XMLHelper.add_element(hvac_sizing_control, 'HeatPumpBackupSizingMethodology', @heat_pump_backup_sizing_methodology, :string, @heat_pump_backup_sizing_methodology_isdefaulted) unless @heat_pump_backup_sizing_methodology.nil?
         XMLHelper.add_element(hvac_sizing_control, 'AllowIncreasedFixedCapacities', @allow_increased_fixed_capacities, :boolean, @allow_increased_fixed_capacities_isdefaulted) unless @allow_increased_fixed_capacities.nil?
       end
-      if (not @manualj_heating_design_temp.nil?) || (not @manualj_cooling_design_temp.nil?) || (not @manualj_daily_temp_range.nil?) || (not @manualj_humidity_difference.nil?) || (not @manualj_heating_setpoint.nil?) || (not @manualj_cooling_setpoint.nil?) || (not @manualj_humidity_setpoint.nil?) || (not @manualj_internal_loads_sensible.nil?) || (not @manualj_internal_loads_latent.nil?) || (not @manualj_num_occupants.nil?) || (not @manualj_infiltration_method.nil?)
+      if (not @manualj_heating_design_temp.nil?) || (not @manualj_cooling_design_temp.nil?) || (not @manualj_daily_temp_range.nil?) || (not @manualj_humidity_difference.nil?) || (not @manualj_heating_setpoint.nil?) || (not @manualj_cooling_setpoint.nil?) || (not @manualj_humidity_setpoint.nil?) || (not @manualj_internal_loads_sensible.nil?) || (not @manualj_internal_loads_latent.nil?) || (not @manualj_num_occupants.nil?) || (not @manualj_infiltration_shielding_class.nil?) || (not @manualj_infiltration_method.nil?)
         manualj_sizing_inputs = XMLHelper.create_elements_as_needed(building_summary, ['extension', 'HVACSizingControl', 'ManualJInputs'])
         XMLHelper.add_element(manualj_sizing_inputs, 'HeatingDesignTemperature', @manualj_heating_design_temp, :float, @manualj_heating_design_temp_isdefaulted) unless @manualj_heating_design_temp.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'CoolingDesignTemperature', @manualj_cooling_design_temp, :float, @manualj_cooling_design_temp_isdefaulted) unless @manualj_cooling_design_temp.nil?
@@ -2584,6 +2585,7 @@ class HPXML < Object
         XMLHelper.add_element(manualj_sizing_inputs, 'InternalLoadsSensible', @manualj_internal_loads_sensible, :float, @manualj_internal_loads_sensible_isdefaulted) unless @manualj_internal_loads_sensible.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InternalLoadsLatent', @manualj_internal_loads_latent, :float, @manualj_internal_loads_latent_isdefaulted) unless @manualj_internal_loads_latent.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'NumberofOccupants', @manualj_num_occupants, :integer, @manualj_num_occupants_isdefaulted) unless @manualj_num_occupants.nil?
+        XMLHelper.add_element(manualj_sizing_inputs, 'InfiltrationShieldingClass', @manualj_infiltration_shielding_class, :integer, @manualj_infiltration_shielding_class_isdefaulted) unless @manualj_infiltration_shielding_class.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InfiltrationMethod', @manualj_infiltration_method, :string, @manualj_infiltration_method_isdefaulted) unless @manualj_infiltration_method.nil?
       end
       XMLHelper.add_extension(building_summary, 'NaturalVentilationAvailabilityDaysperWeek', @natvent_days_per_week, :integer, @natvent_days_per_week_isdefaulted) unless @natvent_days_per_week.nil?
@@ -2636,6 +2638,7 @@ class HPXML < Object
       @manualj_internal_loads_sensible = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InternalLoadsSensible', :float)
       @manualj_internal_loads_latent = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InternalLoadsLatent', :float)
       @manualj_num_occupants = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/NumberofOccupants', :integer)
+      @manualj_infiltration_shielding_class = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InfiltrationShieldingClass', :integer)
       @manualj_infiltration_method = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InfiltrationMethod', :string)
       @extension_properties = {}
       XMLHelper.get_elements(building_summary, 'extension/AdditionalProperties').each do |property|

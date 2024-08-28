@@ -8,8 +8,10 @@ __New Features__
 - Central Fan Integrated Supply (CFIS) mechanical ventilation enhancements:
   - CFIS systems with no strategy to meet remainder of ventilation target (`CFISControls/AdditionalRuntimeOperatingMode="none"`).
 - HVAC Manual J design load and sizing calculations:
-  - Adds optional inputs and outputs for blower fan heat and piping load.
-  - Adds optional `HVACSizingControl/ManualJInputs/InfiltrationMethod` input to specify which infiltration method to use for design load calculations.
+  - Adds optional `DistributionSystemType/AirDistribution/extension/ManualJInputs/BlowerFanHeatBtuh` input.
+  - Adds optional `DistributionSystemType/HydronicDistribution/extension/ManualJInputs/HotWaterPipingBtuh` input.
+  - Adds optional `HVACSizingControl/ManualJInputs/InfiltrationShieldingClass` input to specify wind shielding class for infiltration design load calculations.
+  - Adds optional `HVACSizingControl/ManualJInputs/InfiltrationMethod` input to specify which method to use for infiltration design load calculations.
   - Updates heat pump HERS sizing methodology to better prevent unmet hours in warmer climates.
   - Misc Manual J design load calculation improvements.
 - Advanced research features:
