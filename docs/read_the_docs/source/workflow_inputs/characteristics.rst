@@ -47622,25 +47622,25 @@ Arguments
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the front. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the front. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
    * - ``neighbor_back_height``
      - false
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the back. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the back. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
    * - ``neighbor_left_height``
      - false
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the left. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the left. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
    * - ``neighbor_right_height``
      - false
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the right. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the right. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
 
 Options
 *******
