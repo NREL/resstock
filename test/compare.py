@@ -12,7 +12,7 @@ from compare import BaseCompare, read_csv
 
 
 enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family Detached': 'SFD',
-                                                                  'Mobile Home': 'SFD',
+                                                                  'Mobile Home': 'MH',
                                                                   'Single-Family Attached': 'SFA',
                                                                   'Multi-Family with 2 - 4 Units': 'MF',
                                                                   'Multi-Family with 5+ Units': 'MF'} }
