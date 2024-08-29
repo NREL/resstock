@@ -511,15 +511,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
             return true
           end
 
-          hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
-            unit_number += 1
-
-            if unit_number == 1
-              measures['BuildResidentialHPXML'][0].delete('existing_hpxml_path')
-            else
-              measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
-            end
-
+          hpxml.buildings.each_with_index do |hpxml_bldg, _unit_number|
             capacities, _, _ = get_hvac_system_values(hpxml_bldg, [])
             if capacities['heat_pump_heating_capacity'] != capacities['heat_pump_cooling_capacity']
               runner.registerError("Heat pump heating capacity not equal to cooling capacity for #{measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology']}.")
@@ -599,15 +591,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         return true
       end
 
-      hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
-        unit_number += 1
-
-        if unit_number == 1
-          measures['BuildResidentialHPXML'][0].delete('existing_hpxml_path')
-        else
-          measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
-        end
-
+      hpxml.buildings.each_with_index do |hpxml_bldg, _unit_number|
         air_distribution_airflows = get_air_distribution_airflows(hpxml_bldg)
 
         if !baseline_max_airflow_cfm.nil? && !air_distribution_airflows.empty? # ducted -> ducted
@@ -642,15 +626,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         return true
       end
 
-      hpxml.buildings.each_with_index do |hpxml_bldg, unit_number|
-        unit_number += 1
-
-        if unit_number == 1
-          measures['BuildResidentialHPXML'][0].delete('existing_hpxml_path')
-        else
-          measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path
-        end
-
+      hpxml.buildings.each_with_index do |hpxml_bldg, _unit_number|
         capacities, _, _ = get_hvac_system_values(hpxml_bldg, [])
         if capacities['heat_pump_heating_capacity'] != capacities['heat_pump_cooling_capacity']
           runner.registerError("Heat pump heating capacity not equal to cooling capacity for #{measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology']}.")
@@ -874,6 +850,10 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
   def get_air_distribution_airflows(hpxml_bldg)
     # Assume at most one ducted system with a single heating and/or cooling system
+    # We divide airflow by fraction of load served to account for partial conditioning adjustments
+
+    fraction_heat_load_served = nil
+    fraction_cool_load_served = nil
 
     air_distribution_airflows = []
     hpxml_bldg.hvac_distributions.each do |hvac_distribution|
@@ -881,15 +861,39 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       hvac_distribution.hvac_systems.each do |hvac_system|
         if hvac_system.is_a?(HPXML::HeatingSystem)
-          air_distribution_airflows << hvac_system.heating_airflow_cfm if !hvac_system.heating_airflow_cfm.nil?
+          heating_airflow_cfm = hvac_system.heating_airflow_cfm
+          if !heating_airflow_cfm.nil?
+            fraction_heat_load_served = hvac_system.fraction_heat_load_served
+            air_distribution_airflows << heating_airflow_cfm / fraction_heat_load_served
+          end
         elsif hvac_system.is_a?(HPXML::CoolingSystem)
-          air_distribution_airflows << hvac_system.cooling_airflow_cfm if !hvac_system.cooling_airflow_cfm.nil?
+          cooling_airflow_cfm = hvac_system.cooling_airflow_cfm
+          if !cooling_airflow_cfm.nil?
+            fraction_cool_load_served = hvac_system.fraction_cool_load_served
+            air_distribution_airflows << cooling_airflow_cfm / fraction_cool_load_served
+          end
         elsif hvac_system.is_a?(HPXML::HeatPump)
-          air_distribution_airflows << hvac_system.heating_airflow_cfm if !hvac_system.heating_airflow_cfm.nil?
-          air_distribution_airflows << hvac_system.cooling_airflow_cfm if !hvac_system.cooling_airflow_cfm.nil?
+          heating_airflow_cfm = hvac_system.heating_airflow_cfm
+          if !heating_airflow_cfm.nil?
+            fraction_heat_load_served = hvac_system.fraction_heat_load_served
+            air_distribution_airflows << heating_airflow_cfm / fraction_heat_load_served
+          end
+
+          cooling_airflow_cfm = hvac_system.cooling_airflow_cfm
+          if !cooling_airflow_cfm.nil?
+            fraction_cool_load_served = hvac_system.fraction_cool_load_served
+            air_distribution_airflows << cooling_airflow_cfm / fraction_cool_load_served
+          end
         end
       end
     end
+
+    # The following assumes we will be expanding (i.e., rebuilding) the existing ducts
+    # So we avoid setting a heating/cooling autosizing limit
+    if fraction_heat_load_served.nil? && !fraction_cool_load_served.nil? && fraction_cool_load_served < 1.0
+      air_distribution_airflows = []
+    end
+
     return air_distribution_airflows
   end
 
