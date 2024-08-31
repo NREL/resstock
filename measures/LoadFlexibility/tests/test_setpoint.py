@@ -86,12 +86,78 @@ class Testsetpoint:
         assert peak_times['peak_end'] == 0
         assert peak_times['pre_peak_start'] == 14
 
-    # def test_get_prepeak_and_peak_start_end_summer(self):
-    #     print('test_get_prepeak_and_peak_start_end_summer')
-    #     offset_time = setpoint.get_prepeak_and_peak_start_end(5000, 8760, self.on_peak_hour_weekday_dict, self.on_peak_hour_weekend_dict, 'cooling')
-    #     self.assertEqual(offset_time.pre_peak_start_afternoon, 11)
-    #     self.assertEqual(offset_time.peak_start_afternoon, 15)
-    #     self.assertEqual(offset_time.peak_end_afternoon, 18)
+    @pytest.mark.parametrize("setpoint_type", ['heating'])
+    def test_get_setpoint_offset(self, setpoint_type):
+        print('test_get_setpoint_offset_heating')
+        new_args = DEFAULT_ARGS.copy()
+        inputs = get_input_from_dict(new_args)
+        print('no_offset')
+        setpoint_offset = self.hvac_setpoints._get_setpoint_offset(inputs, 1, setpoint_type=setpoint_type)
+        assert setpoint_offset == 0
+        print('pre_peak_offset')
+        setpoint_offset = self.hvac_setpoints._get_setpoint_offset(inputs, 16, setpoint_type=setpoint_type)
+        assert setpoint_offset == new_args['heating_pre_peak_offset']
+        print('peak_offset')
+        setpoint_offset = self.hvac_setpoints._get_setpoint_offset(inputs, 19, setpoint_type=setpoint_type)
+        assert setpoint_offset == new_args['heating_on_peak_offset']
+
+    @pytest.mark.parametrize("setpoint_type", ['cooling'])
+    def test_get_setpoint_offset(self, setpoint_type):
+        print('test_get_setpoint_offset_cooling')
+        new_args = DEFAULT_ARGS.copy()
+        inputs = get_input_from_dict(new_args)
+        print('no_offset')
+        setpoint_offset = self.hvac_setpoints._get_setpoint_offset(inputs, 1, setpoint_type=setpoint_type)
+        assert setpoint_offset == 0
+        print('pre_peak_offset')
+        setpoint_offset = self.hvac_setpoints._get_setpoint_offset(inputs, 16, setpoint_type=setpoint_type)
+        assert setpoint_offset == new_args['cooling_pre_peak_offset']
+        print('peak_offset')
+        setpoint_offset = self.hvac_setpoints._get_setpoint_offset(inputs, 19, setpoint_type=setpoint_type)
+        assert setpoint_offset == new_args['cooling_on_peak_offset']
+
+    
+    #@pytest.mark.parametrize("setpoint_type", ['heating'])
+    #def test_get_setpoint_absolute_value(self, setpoint_type):
+    #    print('test_get_setpoint_absolute_value')
+    #    new_args = DEFAULT_ARGS.copy()
+    #    inputs = get_input_from_dict(new_args)
+    #    print('no_offset')
+    #    setpoint_reponse = self.hvac_setpoints._get_setpoint_absolute_value(inputs, 1, setpoint_type=setpoint_type, 72)
+    #    assert setpoint_reponse == 72
+    
+    @pytest.mark.parametrize("setpoint_type", ['heating'])
+    def test_clip_setpoints(self, setpoint_type):
+        print('test_clip_setpoints_heating')
+        new_args = DEFAULT_ARGS.copy()
+        inputs = get_input_from_dict(new_args)
+        print('within range')
+        setpoint = self.hvac_setpoints._clip_setpoints(inputs, 70, setpoint_type=setpoint_type)
+        assert setpoint == 70
+        print('Setpoint is less than min setpoint')
+        setpoint = self.hvac_setpoints._clip_setpoints(inputs, 40, setpoint_type=setpoint_type)
+        assert setpoint == new_args['heating_min']
+        print('Setpoint is greater than max setpoint')
+        setpoint = self.hvac_setpoints._clip_setpoints(inputs, 90, setpoint_type=setpoint_type)
+        assert setpoint == new_args['heating_max']
+    
+    @pytest.mark.parametrize("setpoint_type", ['cooling'])
+    def test_clip_setpoints(self, setpoint_type):
+        print('test_clip_setpoints_cooling')
+        new_args = DEFAULT_ARGS.copy()
+        inputs = get_input_from_dict(new_args)
+        print('within range')
+        setpoint = self.hvac_setpoints._clip_setpoints(inputs, 70, setpoint_type=setpoint_type)
+        assert setpoint == 70
+        print('Setpoint is less than min setpoint')
+        setpoint = self.hvac_setpoints._clip_setpoints(inputs, 40, setpoint_type=setpoint_type)
+        assert setpoint == new_args['cooling_min']
+        print('Setpoint is greater than max setpoint')
+        setpoint = self.hvac_setpoints._clip_setpoints(inputs, 90, setpoint_type=setpoint_type)
+        assert setpoint == new_args['cooling_max']
+
+
+
 
     # def test_time_shift(self):
     #     print('test_time_shift')

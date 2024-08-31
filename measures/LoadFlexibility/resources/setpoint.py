@@ -200,10 +200,10 @@ class HVACSetpoints:
         assert setpoint_min is not None, "Min setpoint not set"
 
         if setpoint > setpoint_max:
-            self.runner.registerWarning(f"Setpoint {setpoint} is greater than max setpoint {setpoint_max}")
+            #self.runner.registerWarning(f"Setpoint {setpoint} is greater than max setpoint {setpoint_max}")
             setpoint = setpoint_max
         elif setpoint < setpoint_min:
-            self.runner.registerWarning(f"Setpoint {setpoint} is less than min setpoint {setpoint_min}")
+            #self.runner.registerWarning(f"Setpoint {setpoint} is less than min setpoint {setpoint_min}")
             setpoint = setpoint_min
         else:
             setpoint = setpoint
