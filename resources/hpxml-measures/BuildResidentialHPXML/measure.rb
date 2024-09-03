@@ -634,6 +634,24 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('slab_exterior_horizontal_insulation_r', false)
+    arg.setDisplayName('Slab: Exterior Horizontal Insulation Nominal R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Nominal R-value of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('slab_exterior_horizontal_insulation_width', false)
+    arg.setDisplayName('Slab: Exterior Horizontal Insulation Width')
+    arg.setUnits('ft')
+    arg.setDescription('Width of the slab exterior horizontal insulation measured from the exterior surface of the vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('slab_exterior_horizontal_insulation_depth_below_grade', false)
+    arg.setDisplayName('Slab: Exterior Horizontal Insulation Depth Below Grade')
+    arg.setUnits('ft')
+    arg.setDescription('Depth of the slab exterior horizontal insulation measured from the top surface of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('slab_under_insulation_r', true)
     arg.setDisplayName('Slab: Under Slab Insulation Nominal R-value')
     arg.setUnits('h-ft^2-R/Btu')
@@ -5163,9 +5181,12 @@ module HPXMLFile
                            area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2'),
                            thickness: args[:slab_thickness],
                            exposed_perimeter: exposed_perimeter,
-                           perimeter_insulation_depth: args[:slab_perimeter_insulation_depth],
-                           under_slab_insulation_width: under_slab_insulation_width,
                            perimeter_insulation_r_value: args[:slab_perimeter_insulation_r],
+                           perimeter_insulation_depth: args[:slab_perimeter_insulation_depth],
+                           exterior_horizontal_insulation_r_value: args[:slab_exterior_horizontal_insulation_r],
+                           exterior_horizontal_insulation_width: args[:slab_exterior_horizontal_insulation_width],
+                           exterior_horizontal_insulation_depth_below_grade: args[:slab_exterior_horizontal_insulation_depth_below_grade],
+                           under_slab_insulation_width: under_slab_insulation_width,
                            under_slab_insulation_r_value: args[:slab_under_insulation_r],
                            under_slab_insulation_spans_entire_slab: under_slab_insulation_spans_entire_slab,
                            carpet_fraction: args[:slab_carpet_fraction],
@@ -7319,13 +7340,16 @@ module HPXMLFile
         end
       end
       surf.id = "#{surf_name}#{indexes[surf_name]}"
-      if surf.respond_to? :insulation_id
+      if surf.respond_to?(:insulation_id) && (not surf.insulation_id.nil?)
         surf.insulation_id = "#{surf_name}#{indexes[surf_name]}Insulation"
       end
-      if surf.respond_to? :perimeter_insulation_id
+      if surf.respond_to?(:perimeter_insulation_id) && (not surf.perimeter_insulation_id.nil?)
         surf.perimeter_insulation_id = "#{surf_name}#{indexes[surf_name]}PerimeterInsulation"
       end
-      if surf.respond_to? :under_slab_insulation_id
+      if surf.respond_to?(:exterior_horizontal_insulation_id) && (not surf.exterior_horizontal_insulation_id.nil?)
+        surf.exterior_horizontal_insulation_id = "#{surf_name}#{indexes[surf_name]}ExteriorHorizontalInsulation"
+      end
+      if surf.respond_to?(:under_slab_insulation_id) && (not surf.under_slab_insulation_id.nil?)
         surf.under_slab_insulation_id = "#{surf_name}#{indexes[surf_name]}UnderSlabInsulation"
       end
     end

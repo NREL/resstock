@@ -433,6 +433,9 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['slab_perimeter_insulation_depth'] = 0
       args['slab_under_insulation_r'] = 0
       args['slab_under_insulation_width'] = 0
+      args['slab_exterior_horizontal_insulation_r'] = 0
+      args['slab_exterior_horizontal_insulation_width'] = 0
+      args['slab_exterior_horizontal_insulation_depth_below_grade'] = 0
       args['slab_thickness'] = 4.0
       args['slab_carpet_fraction'] = 0.0
       args['slab_carpet_r'] = 0.0

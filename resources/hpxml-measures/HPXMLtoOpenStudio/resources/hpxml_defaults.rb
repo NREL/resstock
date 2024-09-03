@@ -1446,6 +1446,18 @@ module HPXMLDefaults
           slab.depth_below_grade = nil # Ignore Slab/DepthBelowGrade; use values from adjacent foundation walls instead
         end
       end
+      if slab.exterior_horizontal_insulation_r_value.nil?
+        slab.exterior_horizontal_insulation_r_value = 0.0
+        slab.exterior_horizontal_insulation_r_value_isdefaulted = true
+      end
+      if slab.exterior_horizontal_insulation_width.nil?
+        slab.exterior_horizontal_insulation_width = 0.0
+        slab.exterior_horizontal_insulation_width_isdefaulted = true
+      end
+      if slab.exterior_horizontal_insulation_depth_below_grade.nil?
+        slab.exterior_horizontal_insulation_depth_below_grade = 0.0
+        slab.exterior_horizontal_insulation_depth_below_grade_isdefaulted = true
+      end
     end
   end
 

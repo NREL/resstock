@@ -1503,7 +1503,7 @@ module Constructions
                                  under_r, under_width, gap_r,
                                  perimeter_r, perimeter_depth,
                                  whole_r, concrete_thick_in, exposed_perimeter,
-                                 mat_carpet, soil_k_in, foundation)
+                                 mat_carpet, soil_k_in, foundation, ext_horiz_r, ext_horiz_width, ext_horiz_depth)
 
     return if surface.nil?
 
@@ -1511,7 +1511,7 @@ module Constructions
       # Create Kiva foundation for slab
       foundation = create_kiva_slab_foundation(model, under_r, under_width,
                                                gap_r, perimeter_r, perimeter_depth,
-                                               concrete_thick_in, soil_k_in)
+                                               concrete_thick_in, soil_k_in, ext_horiz_r, ext_horiz_width, ext_horiz_depth)
     else
       # Kiva foundation (for crawlspace/basement) exists
       if (under_r > 0) && (under_width > 0)
@@ -2003,9 +2003,12 @@ module Constructions
   # @param ext_vert_depth [TODO] TODO
   # @param concrete_thick_in [TODO] TODO
   # @param soil_k_in [TODO] TODO
+  # @param ext_horiz_r [TODO] TODO
+  # @param ext_horiz_width [TODO] TODO
+  # @param ext_horiz_depth [TODO] TODO
   # @return [TODO] TODO
   def self.create_kiva_slab_foundation(model, int_horiz_r, int_horiz_width, int_vert_r,
-                                       ext_vert_r, ext_vert_depth, concrete_thick_in, soil_k_in)
+                                       ext_vert_r, ext_vert_depth, concrete_thick_in, soil_k_in, ext_horiz_r, ext_horiz_width, ext_horiz_depth)
 
     # Create the Foundation:Kiva object for slab foundations
     foundation = OpenStudio::Model::FoundationKiva.new(model)
@@ -2030,6 +2033,14 @@ module Constructions
       ext_vert_mat = create_insulation_material(model, 'exterior vertical ins', ext_vert_r)
       foundation.setExteriorVerticalInsulationMaterial(ext_vert_mat)
       foundation.setExteriorVerticalInsulationDepth(UnitConversions.convert(ext_vert_depth, 'ft', 'm'))
+    end
+
+    # Exterior horizontal insulation
+    if (ext_horiz_r > 0) && (ext_horiz_width > 0)
+      ext_horiz_mat = create_insulation_material(model, 'exterior horizontal ins', ext_horiz_r)
+      foundation.setExteriorHorizontalInsulationMaterial(ext_horiz_mat)
+      foundation.setExteriorHorizontalInsulationDepth(UnitConversions.convert(ext_horiz_depth, 'ft', 'm'))
+      foundation.setExteriorHorizontalInsulationWidth(UnitConversions.convert(ext_horiz_width, 'ft', 'm'))
     end
 
     foundation.setWallHeightAboveGrade(UnitConversions.convert(concrete_thick_in, 'in', 'm'))

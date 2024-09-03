@@ -507,6 +507,9 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
           if bg_surface.is_a? HPXML::Slab
             new_bg_surface.perimeter_insulation_id = "#{bg_surface.perimeter_insulation_id}#{bg_space.id}"
             new_bg_surface.under_slab_insulation_id = "#{bg_surface.under_slab_insulation_id}#{bg_space.id}"
+            if not new_bg_surface.exterior_horizontal_insulation_id.nil?
+              new_bg_surface.exterior_horizontal_insulation_id = "#{bg_surface.exterior_horizontal_insulation_id}#{bg_space.id}"
+            end
           else
             new_bg_surface.insulation_id = "#{bg_space.id}#{bg_surface.insulation_id}"
           end

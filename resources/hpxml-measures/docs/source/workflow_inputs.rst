@@ -1450,27 +1450,31 @@ HPXML Slabs
 
 Each space type that borders the ground (i.e., basement, crawlspace, garage, and slab-on-grade foundation) should have a slab entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Slabs/Slab``.
 
-  =======================================================  ========  ============  ===========  =========  ========  ====================================================
-  Element                                                  Type      Units         Constraints  Required   Default   Notes
-  =======================================================  ========  ============  ===========  =========  ========  ====================================================
-  ``SystemIdentifier``                                     id                                   Yes                  Unique identifier
-  ``AttachedToSpace``                                      idref                   See [#]_     See [#]_             ID of attached space
-  ``InteriorAdjacentTo``                                   string                  See [#]_     Yes                  Interior adjacent space type
-  ``Area``                                                 double    ft2           > 0          Yes                  Gross area
-  ``Thickness``                                            double    in            >= 0         No         See [#]_  Thickness [#]_
-  ``ExposedPerimeter``                                     double    ft            >= 0         Yes                  Perimeter exposed to ambient conditions [#]_
-  ``DepthBelowGrade``                                      double    ft            >= 0         No         See [#]_  Depth from the top of the slab surface to grade
-  ``PerimeterInsulation/SystemIdentifier``                 id                                   Yes                  Unique identifier
-  ``PerimeterInsulation/Layer/NominalRValue``              double    F-ft2-hr/Btu  >= 0         Yes                  R-value of vertical insulation (see figure below)
-  ``PerimeterInsulation/Layer/InsulationDepth``            double    ft            >= 0         Yes                  Depth from top of slab to bottom of vertical insulation
-  ``UnderSlabInsulation/SystemIdentifier``                 id                                   Yes                  Unique identifier
-  ``UnderSlabInsulation/Layer/NominalRValue``              double    F-ft2-hr/Btu  >= 0         Yes                  R-value of horizontal insulation (see figure below)
-  ``UnderSlabInsulation/Layer/InsulationWidth``            double    ft            >= 0         See [#]_             Width from slab edge inward of horizontal insulation
-  ``UnderSlabInsulation/Layer/InsulationSpansEntireSlab``  boolean                              See [#]_             Whether horizontal insulation spans entire slab
-  ``extension/GapInsulationRValue``                        double    F-ft2-hr/Btu  >= 0         No         See [#]_  R-value of gap insulation (see figure below)
-  ``extension/CarpetFraction``                             double    frac          >= 0, <= 1   No         See [#]_  Fraction of slab covered by carpet
-  ``extension/CarpetRValue``                               double    F-ft2-hr/Btu  >= 0         No         See [#]_  Carpet R-value
-  =======================================================  ========  ============  ===========  =========  ========  ====================================================
+  ==================================================================  ========  ============  ===========  =========  ========  ===============================================================
+  Element                                                             Type      Units         Constraints  Required   Default   Notes
+  ==================================================================  ========  ============  ===========  =========  ========  ===============================================================
+  ``SystemIdentifier``                                                id                                   Yes                  Unique identifier
+  ``AttachedToSpace``                                                 idref                   See [#]_     See [#]_             ID of attached space
+  ``InteriorAdjacentTo``                                              string                  See [#]_     Yes                  Interior adjacent space type
+  ``Area``                                                            double    ft2           > 0          Yes                  Gross area
+  ``Thickness``                                                       double    in            >= 0         No         See [#]_  Thickness [#]_
+  ``ExposedPerimeter``                                                double    ft            >= 0         Yes                  Perimeter exposed to ambient conditions [#]_
+  ``DepthBelowGrade``                                                 double    ft            >= 0         No         See [#]_  Depth from the top of the slab surface to grade
+  ``PerimeterInsulation/SystemIdentifier``                            id                                   Yes                  Unique identifier
+  ``PerimeterInsulation/Layer/NominalRValue``                         double    F-ft2-hr/Btu  >= 0         Yes                  R-value of vertical insulation (see figure below)
+  ``PerimeterInsulation/Layer/InsulationDepth``                       double    ft            >= 0         Yes                  Depth from top of slab to bottom of vertical insulation
+  ``ExteriorHorizontalInsulation/SystemIdentifier``                   id                                   See [#]_             Unique identifier
+  ``ExteriorHorizontalInsulation/Layer/NominalRValue``                double    F-ft2-hr/Btu  >= 0         No         0         R-value of exterior horizontal insulation (see figure below) [#]_
+  ``ExteriorHorizontalInsulation/Layer/InsulationWidth``              double    ft            >= 0         No         0         Width of exterior horizontal insulation from slab edge outward 
+  ``ExteriorHorizontalInsulation/Layer/InsulationDepthBelowGrade``    double    ft            >= 0         No         0         Depth from grade to the top of exterior horizontal insulation
+  ``UnderSlabInsulation/SystemIdentifier``                            id                                   Yes                  Unique identifier
+  ``UnderSlabInsulation/Layer/NominalRValue``                         double    F-ft2-hr/Btu  >= 0         Yes                  R-value of horizontal insulation (see figure below)
+  ``UnderSlabInsulation/Layer/InsulationWidth``                       double    ft            >= 0         See [#]_             Width from slab edge inward of horizontal insulation
+  ``UnderSlabInsulation/Layer/InsulationSpansEntireSlab``             boolean                              See [#]_             Whether horizontal insulation spans entire slab
+  ``extension/GapInsulationRValue``                                   double    F-ft2-hr/Btu  >= 0         No         See [#]_  R-value of gap insulation (see figure below)
+  ``extension/CarpetFraction``                                        double    frac          >= 0, <= 1   No         See [#]_  Fraction of slab covered by carpet
+  ``extension/CarpetRValue``                                          double    F-ft2-hr/Btu  >= 0         No         See [#]_  Carpet R-value
+  ==================================================================  ========  ============  ===========  =========  ========  ===============================================================
 
   .. [#] If AttachedToSpace provided, it must reference a ``Space`` (within a conditioned Zone).
   .. [#] Only required if zone-level and space-level HVAC design load calculations are desired (see :ref:`zones_spaces`) and the surface is adjacent to conditioned space.
@@ -1482,6 +1486,8 @@ Each space type that borders the ground (i.e., basement, crawlspace, garage, and
          So a basement slab edge adjacent to a garage or crawlspace, for example, should not be included.
   .. [#] If DepthBelowGrade not provided, defaults to zero for foundation types without walls.
          For foundation types with walls, DepthBelowGrade is ignored as the slab's position relative to grade is determined by the ``FoundationWall/DepthBelowGrade`` value(s).
+  .. [#] SystemIdentifier only required if ExteriorHorizontalInsulation is provided.
+  .. [#] Exterior horizontal insulation (sometimes called wing or skirt insulation) is typically used `in colder regions with frost-susceptible soils to prevent the slab from heaving <https://framebuildingnews.com/below-grade-insulation-part-1/>`_.
   .. [#] InsulationWidth only required if InsulationSpansEntireSlab=true is not provided.
   .. [#] InsulationSpansEntireSlab=true only required if InsulationWidth is not provided.
   .. [#] If GapInsulationRValue not provided, defaults to 5.0 if there is under slab (horizontal) insulation, otherwise 0.0.
