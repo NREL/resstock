@@ -819,6 +819,9 @@
       <sch:assert role='ERROR' test='count(h:DepthBelowGrade) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DepthBelowGrade</sch:assert>
       <sch:assert role='ERROR' test='count(h:PerimeterInsulation/h:Layer/h:NominalRValue) = 1'>Expected 1 element(s) for xpath: PerimeterInsulation/Layer/NominalRValue</sch:assert>
       <sch:assert role='ERROR' test='count(h:PerimeterInsulation/h:Layer/h:InsulationDepth) = 1'>Expected 1 element(s) for xpath: PerimeterInsulation/Layer/InsulationDepth</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorHorizontalInsulation/h:Layer/h:NominalRValue) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorHorizontalInsulation/Layer/NominalRValue</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorHorizontalInsulation/h:Layer/h:InsulationWidth) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorHorizontalInsulation/Layer/InsulationWidth</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorHorizontalInsulation/h:Layer/h:InsulationDepthBelowGrade) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorHorizontalInsulation/Layer/InsulationDepthBelowGrade</sch:assert>
       <sch:assert role='ERROR' test='count(h:UnderSlabInsulation/h:Layer/h:NominalRValue) = 1'>Expected 1 element(s) for xpath: UnderSlabInsulation/Layer/NominalRValue</sch:assert>
       <sch:assert role='ERROR' test='count(h:UnderSlabInsulation/h:Layer/h:InsulationWidth) + count(h:UnderSlabInsulation/h:Layer/h:InsulationSpansEntireSlab[text()="true"]) = 1'>Expected 1 element(s) for xpath: UnderSlabInsulation/Layer/InsulationWidth | UnderSlabInsulation/Layer/InsulationSpansEntireSlab[text()="true"]</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:GapInsulationRValue) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/GapInsulationRValue</sch:assert>
@@ -831,6 +834,7 @@
       <sch:report role='WARN' test='number(h:ExposedPerimeter) &gt; 2*number(h:Area)'>Slab exposed perimeter is more than twice the slab area, this may indicate an input error.</sch:report>
       <sch:report role='WARN' test='number(h:Thickness) &lt; 1 and number(h:Thickness) &gt; 0'>Thickness is less than 1 inch; this may indicate incorrect units.</sch:report>
       <sch:report role='WARN' test='number(h:Thickness) &gt; 12'>Thickness is greater than 12 inches; this may indicate incorrect units.</sch:report>
+      <sch:report role='WARN' test='number(h:ExteriorHorizontalInsulation/h:Layer/h:NominalRValue) &gt; 0 and number(h:PerimeterInsulation/h:Layer/h:NominalRValue)=0'> There is ExteriorHorizontalInsulation but no PerimeterInsulation, this may indicate an input error.</sch:report>
     </sch:rule>
   </sch:pattern>
 

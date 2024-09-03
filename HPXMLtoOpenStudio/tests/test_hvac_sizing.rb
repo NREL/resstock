@@ -1435,6 +1435,9 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     slab.under_slab_insulation_width = 0
     slab.under_slab_insulation_spans_entire_slab = false
     slab.under_slab_insulation_r_value = 0
+    slab.exterior_horizontal_insulation_r_value = 0
+    slab.exterior_horizontal_insulation_width = 0
+    slab.exterior_horizontal_insulation_depth_below_grade = 0
 
     # 22A — No Edge Insulation, No insulation Below Floor, any Floor Cover
     assert_in_epsilon(1.358, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)

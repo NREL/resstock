@@ -1390,9 +1390,14 @@ module HVACSizing
         slab_is_insulated = false
         if slab.under_slab_insulation_width.to_f > 0 && slab.under_slab_insulation_r_value > 0
           slab_is_insulated = true
-        elsif slab.perimeter_insulation_depth > 0 && slab.perimeter_insulation_r_value > 0
+        end
+        if slab.perimeter_insulation_depth > 0 && slab.perimeter_insulation_r_value > 0
           slab_is_insulated = true
-        elsif slab.under_slab_insulation_spans_entire_slab && slab.under_slab_insulation_r_value > 0
+        end
+        if slab.under_slab_insulation_spans_entire_slab && slab.under_slab_insulation_r_value > 0
+          slab_is_insulated = true
+        end
+        if slab.exterior_horizontal_insulation_width > 0 && slab.exterior_horizontal_insulation_r_value > 0
           slab_is_insulated = true
         end
 
@@ -4290,31 +4295,36 @@ module HVACSizing
       u_effective = []
       for radius in 0..path_radius
         spl = [Math::PI * radius - 1, 0].max # soil path length (SPL)
-
+        r_ins = 0.0
         # Concrete, gravel, and insulation
         if radius == 0
           r_concrete = 0.0
           r_gravel = 0.0 # No gravel on edge
           if slab.perimeter_insulation_depth > 0
             r_ins = slab.perimeter_insulation_r_value # Insulation on edge
-          else
-            r_ins = 0.0
           end
         else
           r_concrete = Material.Concrete(slab.thickness).rvalue
           r_gravel = [slab_r_gravel_per_inch * (12.0 - slab.thickness), 0].max
           if slab.under_slab_insulation_spans_entire_slab
-            r_ins = slab.under_slab_insulation_r_value
-          elsif radius <= slab.under_slab_insulation_width && radius <= slab.perimeter_insulation_depth
-            r_ins = slab.under_slab_insulation_r_value + slab.perimeter_insulation_r_value
+            r_ins += slab.under_slab_insulation_r_value
           elsif radius <= slab.under_slab_insulation_width
-            r_ins = slab.under_slab_insulation_r_value
-          elsif radius <= slab.perimeter_insulation_depth
-            r_ins = slab.perimeter_insulation_r_value
-          else
-            r_ins = 0.0
+            r_ins += slab.under_slab_insulation_r_value
+          end
+          if radius <= slab.perimeter_insulation_depth
+            r_ins += slab.perimeter_insulation_r_value
+          end
+          if slab.exterior_horizontal_insulation_r_value > 0
+            if radius >= slab.exterior_horizontal_insulation_depth_below_grade
+              hypotenuse = Math.sqrt(slab.exterior_horizontal_insulation_depth_below_grade**2 + slab.exterior_horizontal_insulation_width**2)
+              if radius <= hypotenuse
+                r_ins += slab.exterior_horizontal_insulation_r_value
+              end
+            end
           end
         end
+
+
 
         # Air Films = Indoor Finish + Indoor Air Film + Exposed Air Film (Figure A12-6 pg. 517)
         r_air_film = 0.05 + 0.92 + 0.17

@@ -278,6 +278,16 @@
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
+	<xs:complexType name="SlabExteriorHorizontalInsulationInfo">
+		<xs:complexContent>
+			<xs:extension base="InsulationInfoBase">
+				<xs:sequence>
+					<xs:element maxOccurs="unbounded" minOccurs="0" name="Layer" type="SlabExteriorHorizontalInsulationLayerInfo"> </xs:element>
+					<xs:element ref="extension" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
 	<xs:complexType name="InsulationLayerInfoBase">
 		<xs:sequence>
 			<xs:element name="InstallationType" type="InstallationType" minOccurs="0"/>
@@ -347,6 +357,21 @@
 							<xs:documentation/>
 						</xs:annotation>
 					</xs:element>
+					<xs:element ref="extension" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SlabExteriorHorizontalInsulationLayerInfo">
+		<xs:complexContent>
+			<xs:extension base="InsulationLayerInfoBase">
+				<xs:sequence>
+					<xs:element name="InsulationWidth" type="LengthMeasurement" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>[ft] Width from stem wall outward of horizontal insulation</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element minOccurs="0" name="InsulationDepthBelowGrade" type="LengthMeasurement"/>
 					<xs:element ref="extension" minOccurs="0"/>
 				</xs:sequence>
 			</xs:extension>
@@ -1244,8 +1269,21 @@
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="FloorCovering" type="FloorCovering"/>
-									<xs:element maxOccurs="1" minOccurs="0" name="PerimeterInsulation" type="SlabPerimeterInsulationInfo"/>
-									<xs:element minOccurs="0" name="UnderSlabInsulation" type="UnderSlabInsulationInfo"/>
+									<xs:element maxOccurs="1" minOccurs="0" name="PerimeterInsulation" type="SlabPerimeterInsulationInfo">
+										<xs:annotation>
+											<xs:documentation>Vertical slab perimeter insulation along stem wall</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="ExteriorHorizontalInsulation" type="SlabExteriorHorizontalInsulationInfo">
+										<xs:annotation>
+											<xs:documentation>Horizontal insulation extending outward from stem wall</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="UnderSlabInsulation" type="UnderSlabInsulationInfo">
+										<xs:annotation>
+											<xs:documentation>Horizontal insulation under slab</xs:documentation>
+										</xs:annotation>
+									</xs:element>
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>

@@ -2159,6 +2159,7 @@ class HPXML < Object
       attrs_to_ignore = [:id,
                          :insulation_id,
                          :perimeter_insulation_id,
+                         :exterior_horizontal_insulation_id,
                          :under_slab_insulation_id,
                          :area,
                          :length,
@@ -5267,25 +5268,30 @@ class HPXML < Object
 
   # Object for /HPXML/Building/BuildingDetails/Enclosure/Slabs/Slab.
   class Slab < BaseElement
-    ATTRS = [:id,                                      # [String] SystemIdentifier/@id
-             :attached_to_space_idref,                 # [String] AttachedToSpace/@idref
-             :interior_adjacent_to,                    # [String] InteriorAdjacentTo (HPXML::LocationXXX)
-             :area,                                    # [Double] Area (ft2)
-             :thickness,                               # [Double] Thickness (in)
-             :exposed_perimeter,                       # [Double] ExposedPerimeter (ft)
-             :depth_below_grade,                       # [Double] DepthBelowGrade (ft)
-             :perimeter_insulation_id,                 # [String] PerimeterInsulation/SystemIdentifier/@id
-             :perimeter_insulation_material,           # [String] PerimeterInsulation/Layer/InsulationMaterial/*
-             :perimeter_insulation_r_value,            # [Double] PerimeterInsulation/Layer/NominalRValue (F-ft2-hr/Btu)
-             :perimeter_insulation_depth,              # [Double] PerimeterInsulation/Layer/InsulationDepth (ft)
-             :under_slab_insulation_id,                # [String] UnderSlabInsulation/SystemIdentifier/@id
-             :under_slab_insulation_material,          # [String] UnderSlabInsulation/Layer/InsulationMaterial/*
-             :under_slab_insulation_r_value,           # [Double] UnderSlabInsulation/Layer/NominalRValue (F-ft2-hr/Btu)
-             :under_slab_insulation_width,             # [Double] UnderSlabInsulation/Layer/InsulationWidth (ft)
-             :under_slab_insulation_spans_entire_slab, # [Boolean] UnderSlabInsulation/Layer/InsulationSpansEntireSlab
-             :gap_insulation_r_value,                  # [Double] extension/GapInsulationRValue (F-ft2-hr/Btu)
-             :carpet_fraction,                         # [Double] extension/CarpetFraction (frac)
-             :carpet_r_value]                          # [Double] extension/CarpetRValue (F-ft2-hr/Btu)
+    ATTRS = [:id,                                               # [String] SystemIdentifier/@id
+             :attached_to_space_idref,                          # [String] AttachedToSpace/@idref
+             :interior_adjacent_to,                             # [String] InteriorAdjacentTo (HPXML::LocationXXX)
+             :area,                                             # [Double] Area (ft2)
+             :thickness,                                        # [Double] Thickness (in)
+             :exposed_perimeter,                                # [Double] ExposedPerimeter (ft)
+             :depth_below_grade,                                # [Double] DepthBelowGrade (ft)
+             :perimeter_insulation_id,                          # [String] PerimeterInsulation/SystemIdentifier/@id
+             :perimeter_insulation_material,                    # [String] PerimeterInsulation/Layer/InsulationMaterial/*
+             :perimeter_insulation_r_value,                     # [Double] PerimeterInsulation/Layer/NominalRValue (F-ft2-hr/Btu)
+             :perimeter_insulation_depth,                       # [Double] PerimeterInsulation/Layer/InsulationDepth (ft)
+             :exterior_horizontal_insulation_id,                # [String] ExteriorHorizontalInsulation/SystemIdentifier/@id
+             :exterior_horizontal_insulation_material,          # [String] ExteriorHorizontalInsulation/Layer/InsulationMaterial/*
+             :exterior_horizontal_insulation_r_value,           # [Double] ExteriorHorizontalInsulation/Layer/NominalRValue (F-ft2-hr/Btu)
+             :exterior_horizontal_insulation_width,             # [Double] ExteriorHorizontalInsulation/Layer/InsulationWidth (ft)
+             :exterior_horizontal_insulation_depth_below_grade, # [Double] ExteriorHorizontalInsulation/Layer/InsulationDepthBelowGrade (ft)
+             :under_slab_insulation_id,                         # [String] UnderSlabInsulation/SystemIdentifier/@id
+             :under_slab_insulation_material,                   # [String] UnderSlabInsulation/Layer/InsulationMaterial/*
+             :under_slab_insulation_r_value,                    # [Double] UnderSlabInsulation/Layer/NominalRValue (F-ft2-hr/Btu)
+             :under_slab_insulation_width,                      # [Double] UnderSlabInsulation/Layer/InsulationWidth (ft)
+             :under_slab_insulation_spans_entire_slab,          # [Boolean] UnderSlabInsulation/Layer/InsulationSpansEntireSlab
+             :gap_insulation_r_value,                           # [Double] extension/GapInsulationRValue (F-ft2-hr/Btu)
+             :carpet_fraction,                                  # [Double] extension/CarpetFraction (frac)
+             :carpet_r_value]                                   # [Double] extension/CarpetRValue (F-ft2-hr/Btu)
     attr_accessor(*ATTRS)
 
     # Returns the space that the slab is attached to.
@@ -5395,37 +5401,63 @@ class HPXML < Object
       XMLHelper.add_element(slab, 'Thickness', @thickness, :float, @thickness_isdefaulted) unless @thickness.nil?
       XMLHelper.add_element(slab, 'ExposedPerimeter', @exposed_perimeter, :float) unless @exposed_perimeter.nil?
       XMLHelper.add_element(slab, 'DepthBelowGrade', @depth_below_grade, :float, @depth_below_grade_isdefaulted) unless @depth_below_grade.nil?
-      insulation = XMLHelper.add_element(slab, 'PerimeterInsulation')
-      sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
-      if not @perimeter_insulation_id.nil?
-        XMLHelper.add_attribute(sys_id, 'id', @perimeter_insulation_id)
-      else
-        XMLHelper.add_attribute(sys_id, 'id', @id + 'PerimeterInsulation')
+
+      if (not @perimeter_insulation_id.nil?) || (not @perimeter_insulation_r_value.nil?) || (not @perimeter_insulation_depth.nil?)
+        insulation = XMLHelper.add_element(slab, 'PerimeterInsulation')
+        sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
+        if not @perimeter_insulation_id.nil?
+          XMLHelper.add_attribute(sys_id, 'id', @perimeter_insulation_id)
+        else
+          XMLHelper.add_attribute(sys_id, 'id', @id + 'PerimeterInsulation')
+        end
+        layer = XMLHelper.add_element(insulation, 'Layer')
+        if not @perimeter_insulation_material.nil?
+          material = XMLHelper.add_element(layer, 'InsulationMaterial')
+          values = @perimeter_insulation_material.split('/')
+          XMLHelper.add_element(material, values[0], values[1], :string)
+        end
+        XMLHelper.add_element(layer, 'NominalRValue', @perimeter_insulation_r_value, :float, @perimeter_insulation_r_value_isdefaulted) unless @perimeter_insulation_r_value.nil?
+        XMLHelper.add_element(layer, 'InsulationDepth', @perimeter_insulation_depth, :float, @perimeter_insulation_depth_isdefaulted) unless @perimeter_insulation_depth.nil?
       end
-      layer = XMLHelper.add_element(insulation, 'Layer')
-      if not @perimeter_insulation_material.nil?
-        material = XMLHelper.add_element(layer, 'InsulationMaterial')
-        values = @perimeter_insulation_material.split('/')
-        XMLHelper.add_element(material, values[0], values[1], :string)
+
+      if (not @exterior_horizontal_insulation_id.nil?) || (not @exterior_horizontal_insulation_r_value.nil?) || (not @exterior_horizontal_insulation_width.nil?) || (not @exterior_horizontal_insulation_depth_below_grade.nil?)
+        insulation = XMLHelper.add_element(slab, 'ExteriorHorizontalInsulation')
+        sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
+        if not @exterior_horizontal_insulation_id.nil?
+          XMLHelper.add_attribute(sys_id, 'id', @exterior_horizontal_insulation_id)
+        else
+          XMLHelper.add_attribute(sys_id, 'id', @id + 'ExteriorHorizontalInsulation')
+        end
+        layer = XMLHelper.add_element(insulation, 'Layer')
+        if not @exterior_horizontal_insulation_material.nil?
+          material = XMLHelper.add_element(layer, 'InsulationMaterial')
+          values = @exterior_horizontal_insulation_material.split('/')
+          XMLHelper.add_element(material, values[0], values[1], :string)
+        end
+        XMLHelper.add_element(layer, 'NominalRValue', @exterior_horizontal_insulation_r_value, :float, @exterior_horizontal_insulation_r_value_isdefaulted) unless @exterior_horizontal_insulation_r_value.nil?
+        XMLHelper.add_element(layer, 'InsulationWidth', @exterior_horizontal_insulation_width, :float, @exterior_horizontal_insulation_width_isdefaulted) unless @exterior_horizontal_insulation_width.nil?
+        XMLHelper.add_element(layer, 'InsulationDepthBelowGrade', @exterior_horizontal_insulation_depth_below_grade, :float, @exterior_horizontal_insulation_depth_below_grade_isdefaulted) unless @exterior_horizontal_insulation_depth_below_grade.nil?
       end
-      XMLHelper.add_element(layer, 'NominalRValue', @perimeter_insulation_r_value, :float) unless @perimeter_insulation_r_value.nil?
-      XMLHelper.add_element(layer, 'InsulationDepth', @perimeter_insulation_depth, :float) unless @perimeter_insulation_depth.nil?
-      insulation = XMLHelper.add_element(slab, 'UnderSlabInsulation')
-      sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
-      if not @under_slab_insulation_id.nil?
-        XMLHelper.add_attribute(sys_id, 'id', @under_slab_insulation_id)
-      else
-        XMLHelper.add_attribute(sys_id, 'id', @id + 'UnderSlabInsulation')
+
+      if (not @under_slab_insulation_id.nil?) || (not @under_slab_insulation_r_value.nil?) || (not @under_slab_insulation_width.nil?) || (not @under_slab_insulation_spans_entire_slab.nil?)
+        insulation = XMLHelper.add_element(slab, 'UnderSlabInsulation')
+        sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
+        if not @under_slab_insulation_id.nil?
+          XMLHelper.add_attribute(sys_id, 'id', @under_slab_insulation_id)
+        else
+          XMLHelper.add_attribute(sys_id, 'id', @id + 'UnderSlabInsulation')
+        end
+        layer = XMLHelper.add_element(insulation, 'Layer')
+        if not @under_slab_insulation_material.nil?
+          material = XMLHelper.add_element(layer, 'InsulationMaterial')
+          values = @under_slab_insulation_material.split('/')
+          XMLHelper.add_element(material, values[0], values[1], :string)
+        end
+        XMLHelper.add_element(layer, 'NominalRValue', @under_slab_insulation_r_value, :float, @under_slab_insulation_r_value_isdefaulted) unless @under_slab_insulation_r_value.nil?
+        XMLHelper.add_element(layer, 'InsulationWidth', @under_slab_insulation_width, :float, @under_slab_insulation_width_isdefaulted) unless @under_slab_insulation_width.nil?
+        XMLHelper.add_element(layer, 'InsulationSpansEntireSlab', @under_slab_insulation_spans_entire_slab, :boolean, @under_slab_insulation_spans_entire_slab_isdefaulted) unless @under_slab_insulation_spans_entire_slab.nil?
       end
-      layer = XMLHelper.add_element(insulation, 'Layer')
-      if not @under_slab_insulation_material.nil?
-        material = XMLHelper.add_element(layer, 'InsulationMaterial')
-        values = @under_slab_insulation_material.split('/')
-        XMLHelper.add_element(material, values[0], values[1], :string)
-      end
-      XMLHelper.add_element(layer, 'NominalRValue', @under_slab_insulation_r_value, :float) unless @under_slab_insulation_r_value.nil?
-      XMLHelper.add_element(layer, 'InsulationWidth', @under_slab_insulation_width, :float) unless @under_slab_insulation_width.nil?
-      XMLHelper.add_element(layer, 'InsulationSpansEntireSlab', @under_slab_insulation_spans_entire_slab, :boolean) unless @under_slab_insulation_spans_entire_slab.nil?
+
       XMLHelper.add_extension(slab, 'GapInsulationRValue', @gap_insulation_r_value, :float, @gap_insulation_r_value_isdefaulted) unless @gap_insulation_r_value.nil?
       XMLHelper.add_extension(slab, 'CarpetFraction', @carpet_fraction, :float, @carpet_fraction_isdefaulted) unless @carpet_fraction.nil?
       XMLHelper.add_extension(slab, 'CarpetRValue', @carpet_r_value, :float, @carpet_r_value_isdefaulted) unless @carpet_r_value.nil?
@@ -5455,6 +5487,20 @@ class HPXML < Object
         @perimeter_insulation_r_value = XMLHelper.get_value(perimeter_insulation, 'Layer/NominalRValue', :float)
         @perimeter_insulation_depth = XMLHelper.get_value(perimeter_insulation, 'Layer/InsulationDepth', :float)
       end
+
+      exterior_horizontal_insulation = XMLHelper.get_element(slab, 'ExteriorHorizontalInsulation')
+      if not exterior_horizontal_insulation.nil?
+        @exterior_horizontal_insulation_id = HPXML::get_id(exterior_horizontal_insulation)
+        @exterior_horizontal_insulation_material = XMLHelper.get_child_name(exterior_horizontal_insulation, 'Layer/InsulationMaterial')
+        if not @exterior_horizontal_insulation_material.nil?
+          material_type = XMLHelper.get_value(exterior_horizontal_insulation, "Layer/InsulationMaterial/#{@pexterior_horizontal_insulation_material}", :string)
+          @exterior_horizontal_insulation_material += "/#{material_type}" unless material_type.nil?
+        end
+        @exterior_horizontal_insulation_r_value = XMLHelper.get_value(exterior_horizontal_insulation, 'Layer/NominalRValue', :float)
+        @exterior_horizontal_insulation_width = XMLHelper.get_value(exterior_horizontal_insulation, 'Layer/InsulationWidth', :float)
+        @exterior_horizontal_insulation_depth_below_grade = XMLHelper.get_value(exterior_horizontal_insulation, 'Layer/InsulationDepthBelowGrade', :float)
+      end
+
       under_slab_insulation = XMLHelper.get_element(slab, 'UnderSlabInsulation')
       if not under_slab_insulation.nil?
         @under_slab_insulation_id = HPXML::get_id(under_slab_insulation)
