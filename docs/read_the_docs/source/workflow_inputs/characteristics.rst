@@ -43555,6 +43555,24 @@ Arguments
      - Double
      -
      - Depth from grade to bottom of vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_exterior_horizontal_insulation_r``
+     - false
+     - h-ft^2-R/Btu
+     - Double
+     -
+     - Nominal R-value of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_exterior_horizontal_insulation_width``
+     - false
+     - ft
+     - Double
+     -
+     - Width of the slab exterior horizontal insulation measured from the exterior surface of the vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_exterior_horizontal_insulation_depth_below_grade``
+     - false
+     - ft
+     - Double
+     -
+     - Depth of the slab exterior horizontal insulation measured from the top surface of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
    * - ``slab_under_insulation_r``
      - true
      - h-ft^2-R/Btu
@@ -43600,6 +43618,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - Stock saturation
      - ``slab_perimeter_insulation_r``
      - ``slab_perimeter_insulation_depth``
+     - ``slab_exterior_horizontal_insulation_r``
+     - ``slab_exterior_horizontal_insulation_width``
+     - ``slab_exterior_horizontal_insulation_depth_below_grade``
      - ``slab_under_insulation_r``
      - ``slab_under_insulation_width``
      - ``slab_thickness``
@@ -43608,6 +43629,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - None
      - 61%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 0
@@ -43621,11 +43645,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - auto
      - auto
      - auto
    * - 2ft R5 Under, Horizontal
      - 2.6%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 5
@@ -43637,6 +43667,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2.3%
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - 10
      - 2
      - auto
@@ -43644,6 +43677,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
    * - 4ft R5 Under, Horizontal
      - 0%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 5
@@ -43657,6 +43693,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - auto
      - auto
      - auto
@@ -43666,11 +43705,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - auto
      - auto
      - auto
    * - R10 Whole Slab, Horizontal
      - 0%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 10
