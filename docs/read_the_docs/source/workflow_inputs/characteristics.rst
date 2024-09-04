@@ -42742,7 +42742,7 @@ Infiltration
 Description
 ***********
 
-Air leakage rates for the living and garage spaces
+Total infiltration to the dwelling unit.
 
 Created by
 **********
@@ -42769,6 +42769,8 @@ Assumption
 - \Homes are assumed to not be Weatherization Assistance Program (WAP) qualified and not ENERGY STAR certified.
 
 - \Climate zones 7AK and 8AK are averages of 6A and 6B.
+
+- \ResStock models multi-family and SFA units with the unit total air leakage type. The unit total air leakage assume that some of the sampled ACH50 value goes to neighboring units. The model infiltration value to the exterior is a smaller infiltration value that what is sampled and is adjusted by the ratio of exterior envelope surface area to total envelope surface area. The modeled infiltration to the exterior is reported in the results.
 
 - \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
