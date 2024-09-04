@@ -531,7 +531,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args[hvac_control_unavailable_period] = 'Never'
 
       if args["use_auto_#{htg_or_clg}_season".to_sym]
-        args[hvac_control_season_period] = HPXML::BuildingAmerica
+        args[hvac_control_season_period] = Constants::BuildingAmerica
       else
         if args[hvac_control_season_period].include?('Unavailable')
           if args[hvac_control_season_period].include?('All Days') # year-round unavailability; limit heating or cooling season to 1-day
