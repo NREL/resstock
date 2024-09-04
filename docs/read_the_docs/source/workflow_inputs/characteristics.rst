@@ -42864,7 +42864,7 @@ Infiltration
 Description
 ***********
 
-Air leakage rates for the living and garage spaces
+Total infiltration to the dwelling unit.
 
 Created by
 **********
@@ -42891,6 +42891,8 @@ Assumption
 - \Homes are assumed to not be Weatherization Assistance Program (WAP) qualified and not ENERGY STAR certified.
 
 - \Climate zones 7AK and 8AK are averages of 6A and 6B.
+
+- \ResStock models multi-family and SFA units with the unit total air leakage type. The unit total air leakage assume that some of the sampled ACH50 value goes to neighboring units. The model infiltration value to the exterior is a smaller infiltration value that what is sampled and is adjusted by the ratio of exterior envelope surface area to total envelope surface area. The modeled infiltration to the exterior is reported in the results.
 
 - \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
@@ -42973,7 +42975,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 1
-     - unit exterior only
+     - unit total
    * - 2 ACH50
      - 0.66%
      - normal
@@ -42981,7 +42983,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 2
-     - unit exterior only
+     - unit total
    * - 3 ACH50
      - 1.4%
      - normal
@@ -42989,7 +42991,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 3
-     - unit exterior only
+     - unit total
    * - 4 ACH50
      - 2.3%
      - normal
@@ -42997,7 +42999,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 4
-     - unit exterior only
+     - unit total
    * - 5 ACH50
      - 3.4%
      - normal
@@ -43005,7 +43007,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 5
-     - unit exterior only
+     - unit total
    * - 6 ACH50
      - 4.3%
      - normal
@@ -43013,7 +43015,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 6
-     - unit exterior only
+     - unit total
    * - 7 ACH50
      - 4.9%
      - normal
@@ -43021,7 +43023,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 7
-     - unit exterior only
+     - unit total
    * - 8 ACH50
      - 5.3%
      - normal
@@ -43029,7 +43031,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 8
-     - unit exterior only
+     - unit total
    * - 10 ACH50
      - 11%
      - normal
@@ -43037,7 +43039,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 10
-     - unit exterior only
+     - unit total
    * - 15 ACH50
      - 24%
      - normal
@@ -43045,7 +43047,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 15
-     - unit exterior only
+     - unit total
    * - 20 ACH50
      - 17%
      - normal
@@ -43053,7 +43055,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 20
-     - unit exterior only
+     - unit total
    * - 25 ACH50
      - 10%
      - normal
@@ -43061,7 +43063,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 25
-     - unit exterior only
+     - unit total
    * - 30 ACH50
      - 6.1%
      - normal
@@ -43069,7 +43071,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 30
-     - unit exterior only
+     - unit total
    * - 40 ACH50
      - 5.7%
      - normal
@@ -43077,7 +43079,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 40
-     - unit exterior only
+     - unit total
    * - 50 ACH50
      - 3.2%
      - normal
@@ -43085,7 +43087,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 50
-     - unit exterior only
+     - unit total
 
 .. _insulation_ceiling:
 

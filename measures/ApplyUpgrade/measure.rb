@@ -298,6 +298,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Run the ResStockArguments measure
       measures['ResStockArguments'][0]['building_id'] = values['building_id']
       if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+        register_logs(runner, resstock_arguments_runner)
         return false
       end
     end # apply_package_upgrade
