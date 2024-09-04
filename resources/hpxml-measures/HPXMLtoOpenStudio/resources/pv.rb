@@ -1,14 +1,16 @@
 # frozen_string_literal: true
 
-# TODO
+# Collection of methods for adding photovoltaic-related OpenStudio objects.
 module PV
-  # TODO
+  # Apply a photovoltaic system to the model using OpenStudio ElectricLoadCenterDistribution, ElectricLoadCenterInverterPVWatts, and GeneratorPVWatts objects.
+  # The system may be shared, in which case max power is apportioned to the dwelling unit by total number of bedrooms served.
+  # In case an ElectricLoadCenterDistribution object does not already exist, a new ElectricLoadCenterInverterPVWatts object is set on a new ElectricLoadCenterDistribution object.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param nbeds [Integer] Number of bedrooms in the dwelling unit
-  # @param pv_system [TODO] TODO
+  # @param pv_system [HPXML::PVSystem] Object that defines a single solar electric photovoltaic (PV) system
   # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @return [TODO] TODO
+  # @return [nil]
   def self.apply(model, nbeds, pv_system, unit_multiplier)
     obj_name = pv_system.id
 
@@ -63,39 +65,37 @@ module PV
     elcd.addGenerator(gpvwatts)
   end
 
-  # TODO
+  # Calculation from HEScore for module power from year.
   #
-  # @param year_modules_manufactured [TODO] TODO
-  # @return [TODO] TODO
+  # @param year_modules_manufactured [Integer] year of manufacture of the modules
+  # @return [Double] the calculated module power from year (W/panel)
   def self.calc_module_power_from_year(year_modules_manufactured)
-    # Calculation from HEScore
     return 13.3 * year_modules_manufactured - 26494.0 # W/panel
   end
 
-  # TODO
+  # Calculation from HEScore for losses fraction from year.
   #
-  # @param year_modules_manufactured [TODO] TODO
-  # @param default_loss_fraction [TODO] TODO
-  # @return [TODO] TODO
+  # @param year_modules_manufactured [Integer] year of manufacture of the modules
+  # @param default_loss_fraction [Double] the default loss fraction
+  # @return [Double] the calculated losses fraction from year
   def self.calc_losses_fraction_from_year(year_modules_manufactured, default_loss_fraction)
-    # Calculation from HEScore
     age = Time.new.year - year_modules_manufactured
     age_losses = 1.0 - 0.995**Float(age)
     losses_fraction = 1.0 - (1.0 - default_loss_fraction) * (1.0 - age_losses)
     return losses_fraction
   end
 
-  # TODO
+  # Get the default inverter efficiency.
   #
-  # @return [TODO] TODO
+  # @return [Double] the default inverter efficiency
   def self.get_default_inv_eff()
     return 0.96 # PVWatts default inverter efficiency
   end
 
-  # TODO
+  # Get the default system losses.
   #
-  # @param year_modules_manufactured [TODO] TODO
-  # @return [TODO] TODO
+  # @param year_modules_manufactured [Integer] year of manufacture of the modules
+  # @return [Double] the default system losses
   def self.get_default_system_losses(year_modules_manufactured = nil)
     default_loss_fraction = 0.14 # PVWatts default system losses
     if not year_modules_manufactured.nil?

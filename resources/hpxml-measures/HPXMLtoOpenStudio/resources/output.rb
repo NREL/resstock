@@ -268,7 +268,7 @@ module Outputs
     # HVAC Zone design loads
     hpxml_bldgs.each do |hpxml_bldg|
       hpxml_bldg.conditioned_zones.each do |zone|
-        next if zone.id.start_with? Constants.AutomaticallyAdded
+        next if zone.id.start_with? Constants::AutomaticallyAdded
 
         results_out << [line_break]
         results_out << ["HVAC Zone Design Load: #{zone.id}: Heating: Total (Btu/h)", zone.hdl_total.round(1)]

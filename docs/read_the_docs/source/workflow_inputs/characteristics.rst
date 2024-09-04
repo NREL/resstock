@@ -40056,7 +40056,7 @@ Arguments
      - 
      - Choice
      - none, Furnace, WallFurnace, FloorFurnace, Boiler, ElectricResistance, Stove, SpaceHeater, Fireplace
-     - The type of the second heating system.
+     - The type of the second heating system. If a heat pump is specified and the backup type is 'separate', this heating system represents 'separate' backup heating. For ducted heat pumps where the backup heating system is a 'Furnace', the backup would typically be characterized as 'integrated' in that the furnace and heat pump share the same distribution system and blower fan; a 'Furnace' as 'separate' backup to a ducted heat pump is not supported.
    * - ``heating_system_2_heating_efficiency``
      - true
      - Frac
@@ -43679,6 +43679,24 @@ Arguments
      - Double
      -
      - Depth from grade to bottom of vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_exterior_horizontal_insulation_r``
+     - false
+     - h-ft^2-R/Btu
+     - Double
+     -
+     - Nominal R-value of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_exterior_horizontal_insulation_width``
+     - false
+     - ft
+     - Double
+     -
+     - Width of the slab exterior horizontal insulation measured from the exterior surface of the vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_exterior_horizontal_insulation_depth_below_grade``
+     - false
+     - ft
+     - Double
+     -
+     - Depth of the slab exterior horizontal insulation measured from the top surface of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
    * - ``slab_under_insulation_r``
      - true
      - h-ft^2-R/Btu
@@ -43724,6 +43742,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - Stock saturation
      - ``slab_perimeter_insulation_r``
      - ``slab_perimeter_insulation_depth``
+     - ``slab_exterior_horizontal_insulation_r``
+     - ``slab_exterior_horizontal_insulation_width``
+     - ``slab_exterior_horizontal_insulation_depth_below_grade``
      - ``slab_under_insulation_r``
      - ``slab_under_insulation_width``
      - ``slab_thickness``
@@ -43732,6 +43753,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - None
      - 61%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 0
@@ -43745,11 +43769,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - auto
      - auto
      - auto
    * - 2ft R5 Under, Horizontal
      - 2.6%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 5
@@ -43761,6 +43791,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2.3%
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - 10
      - 2
      - auto
@@ -43768,6 +43801,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
    * - 4ft R5 Under, Horizontal
      - 0%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 5
@@ -43781,6 +43817,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - auto
      - auto
      - auto
@@ -43790,11 +43829,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - auto
      - auto
      - auto
    * - R10 Whole Slab, Horizontal
      - 0%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 10
@@ -47746,25 +47791,25 @@ Arguments
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the front. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the front. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
    * - ``neighbor_back_height``
      - false
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the back. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the back. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
    * - ``neighbor_left_height``
      - false
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the left. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the left. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
    * - ``neighbor_right_height``
      - false
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the right. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the right. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
 
 Options
 *******
@@ -63338,49 +63383,49 @@ Arguments
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.
+     - The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead. If the front wall is adiabatic, the value will be ignored.
    * - ``window_back_wwr``
      - true
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.
+     - The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead. If the back wall is adiabatic, the value will be ignored.
    * - ``window_left_wwr``
      - true
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.
+     - The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead. If the left wall is adiabatic, the value will be ignored.
    * - ``window_right_wwr``
      - true
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.
+     - The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead. If the right wall is adiabatic, the value will be ignored.
    * - ``window_area_front``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead. If the front wall is adiabatic, the value will be ignored.
    * - ``window_area_back``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead. If the back wall is adiabatic, the value will be ignored.
    * - ``window_area_left``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead. If the left wall is adiabatic, the value will be ignored.
    * - ``window_area_right``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead. If the right wall is adiabatic, the value will be ignored.
    * - ``window_aspect_ratio``
      - true
      - Frac

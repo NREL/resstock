@@ -6,6 +6,7 @@ require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
 require_relative '../measure.rb'
 require_relative '../resources/util.rb'
+require 'json'
 
 class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
   def setup
@@ -20,7 +21,9 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
   def teardown
     File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
     File.delete(File.join(File.dirname(__FILE__), 'results_annual.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_annual.csv')
+    File.delete(File.join(File.dirname(__FILE__), 'results_annual.json')) if File.exist? File.join(File.dirname(__FILE__), 'results_annual.json')
     File.delete(File.join(File.dirname(__FILE__), 'results_design_load_details.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_design_load_details.csv')
+    File.delete(File.join(File.dirname(__FILE__), 'results_design_load_details.json')) if File.exist? File.join(File.dirname(__FILE__), 'results_design_load_details.json')
   end
 
   def test_hvac_configurations
@@ -121,24 +124,18 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
 
             if (charge_defect_ratio != 0) || (airflow_defect_ratio != 0)
               # Check HP capacity is greater than max(htg_load, clg_load)
-              if hp.fraction_heat_load_served == 0
-                assert_operator(clg_cap, :>, clg_load)
-              elsif hp.fraction_cool_load_served == 0
-                assert_operator(htg_cap, :>, htg_load)
-              else
-                assert_operator(htg_cap, :>, [htg_load, clg_load].max)
-                assert_operator(clg_cap, :>, [htg_load, clg_load].max)
-              end
+              operator = :>
             else
-              # Check HP capacity equals max(htg_load, clg_load)
-              if hp.fraction_heat_load_served == 0
-                assert_in_delta(clg_cap, clg_load, 1.0)
-              elsif hp.fraction_cool_load_served == 0
-                assert_in_delta(htg_cap, htg_load, 1.0)
-              else
-                assert_in_delta(htg_cap, [htg_load, clg_load].max, 1.0)
-                assert_in_delta(clg_cap, [htg_load, clg_load].max, 1.0)
-              end
+              # Check HP capacity equals at least max(htg_load, clg_load)
+              operator = :>=
+            end
+            if hp.fraction_heat_load_served == 0
+              assert_operator(clg_cap, operator, clg_load)
+            elsif hp.fraction_cool_load_served == 0
+              assert_operator(htg_cap, operator, htg_load)
+            else
+              assert_operator(htg_cap, operator, [htg_load, clg_load].max)
+              assert_operator(clg_cap, operator, [htg_load, clg_load].max)
             end
           end
 
@@ -323,7 +320,7 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_in_delta(16608, hpxml_bldg.hvac_plant.hdl_walls, block_tol_btuh)
     assert_equal(0, hpxml_bldg.hvac_plant.hdl_roofs)
     assert_equal(0, hpxml_bldg.hvac_plant.hdl_floors)
-    assert_in_delta(2440, hpxml_bldg.hvac_plant.hdl_slabs, block_tol_btuh)
+    assert_in_delta(2440, hpxml_bldg.hvac_plant.hdl_slabs, 1000) # Discrepancy because we take into account basement floor depth below grade (5ft) vs Table 4A assumption of 8ft
     assert_in_delta(5435, hpxml_bldg.hvac_plant.hdl_ceilings, block_tol_btuh)
     assert_in_delta(6944, hpxml_bldg.hvac_plant.hdl_infil, block_tol_btuh)
     assert_equal(0, hpxml_bldg.hvac_plant.hdl_vent)
@@ -690,6 +687,228 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     bedroom_1_space.cdl_sens_aed_curve.split(', ').map { |s| s.to_f }.each_with_index do |aed_curve_value, i|
       assert_in_delta(bedroom_1_aed[i], aed_curve_value, [bedroom_1_aed[i] * space_tol_frac, block_tol_btuh].max)
     end
+  end
+
+  def test_manual_j_bob_ross
+    args_hash = { 'output_format' => 'json' }
+
+    # Base run
+
+    puts 'Testing Bob Ross Residence...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence.xml'))
+    _model, _hpxml, base_hpxml_bldg = _test_measure(args_hash)
+    puts "  Total heating = #{base_hpxml_bldg.hvac_plant.hdl_total}"
+    puts "  Total sensible cooling = #{base_hpxml_bldg.hvac_plant.cdl_sens_total}"
+    puts "  Total latent cooling = #{base_hpxml_bldg.hvac_plant.cdl_lat_total}"
+
+    # Sensitivity Runs
+
+    design_load_details_path = File.absolute_path(File.join(File.dirname(__FILE__), 'results_design_load_details.json'))
+
+    puts 'Testing Bob Ross Residence - 3.1...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-1.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Window and glass door loss = #{json_bldg.select { |k, _v| k.start_with?('Windows') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  Window and glass door gain = #{json_bldg.select { |k, _v| k.start_with?('Windows') }.map { |_k, v| Float(v['Cooling Sensible (Btuh)']) }.sum}"
+    puts "  Skylight loss = #{json_bldg.select { |k, _v| k.start_with?('Skylights') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  Skylight gain = #{json_bldg.select { |k, _v| k.start_with?('Skylights') }.map { |_k, v| Float(v['Cooling Sensible (Btuh)']) }.sum}"
+    puts "  AED curve = #{json['Report: MyBuilding: AED Curve']['MyBuilding: BobRossResidenceConditioned'].values}"
+
+    puts 'Testing Bob Ross Residence - 3.2...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-2.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Total window and glass door gain = #{json_bldg.select { |k, _v| k.start_with?('Windows') }.map { |_k, v| Float(v['Cooling Sensible (Btuh)']) }.sum}"
+    puts "  AED curve = #{json['Report: MyBuilding: AED Curve']['MyBuilding: BobRossResidenceConditioned'].values}"
+
+    puts 'Testing Bob Ross Residence - 3.3...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-3.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Total window and glass door gain = #{json_bldg.select { |k, _v| k.start_with?('Windows') }.map { |_k, v| Float(v['Cooling Sensible (Btuh)']) }.sum}"
+    puts "  AED curve = #{json['Report: MyBuilding: AED Curve']['MyBuilding: BobRossResidenceConditioned'].values}"
+
+    puts 'Testing Bob Ross Residence - 3.4...'
+    # FIXME: Need to handle sunscreens
+    puts "  Total window and glass door gain = #{}"
+    puts "  AED curve = #{}"
+
+    puts 'Testing Bob Ross Residence - 3.5...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-5.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Total window and glass door gain = #{json_bldg.select { |k, _v| k.start_with?('Windows') }.map { |_k, v| Float(v['Cooling Sensible (Btuh)']) }.sum}"
+    puts "  AED curve = #{json['Report: MyBuilding: AED Curve']['MyBuilding: BobRossResidenceConditioned'].values}"
+
+    puts 'Testing Bob Ross Residence - 3.6...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-6.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Total heat loss (both skylights) = #{json_bldg.select { |k, _v| k.start_with?('Skylights') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  Total sensible gain (both skylights) = #{json_bldg.select { |k, _v| k.start_with?('Skylights') }.map { |_k, v| Float(v['Cooling Sensible (Btuh)']) }.sum}"
+
+    puts 'Testing Bob Ross Residence - 3.7...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-7.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Total heat loss (both skylights) = #{json_bldg.select { |k, _v| k.start_with?('Skylights') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  Total sensible gain (both skylights) = #{json_bldg.select { |k, _v| k.start_with?('Skylights') }.map { |_k, v| Float(v['Cooling Sensible (Btuh)']) }.sum}"
+
+    puts 'Testing Bob Ross Residence - 3.8...'
+    puts "  Duct heat loss = #{}"
+    puts "  Sensible duct gain = #{}"
+    puts "  Latent duct gain = #{}"
+
+    puts 'Testing Bob Ross Residence - 3.9...'
+    puts "  Duct heat loss = #{}"
+    puts "  Sensible duct gain = #{}"
+    puts "  Latent duct gain = #{}"
+
+    puts 'Testing Bob Ross Residence - 3.10...'
+    puts "  Duct heat loss = #{}"
+    puts "  Sensible duct gain = #{}"
+    puts "  Latent duct gain = #{}"
+
+    puts 'Testing Bob Ross Residence - 3.11...'
+    puts "  Duct heat loss = #{}"
+    puts "  Sensible duct gain = #{}"
+    puts "  Latent duct gain = #{}"
+
+    puts 'Testing Bob Ross Residence - 3.12...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-12.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Total infiltration loss = #{Float(json_bldg['Infiltration']['Heating (Btuh)'])}"
+    puts "  Total sensible infiltration gain = #{Float(json_bldg['Infiltration']['Cooling Sensible (Btuh)'])}"
+    puts "  Total latent infiltration gain = #{Float(json_bldg['Infiltration']['Cooling Latent (Btuh)'])}"
+
+    puts 'Testing Bob Ross Residence - 3.13...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-13.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Total infiltration heat loss = #{Float(json_bldg['Infiltration']['Heating (Btuh)'])}"
+    puts "  Total sensible infiltration gain = #{Float(json_bldg['Infiltration']['Cooling Sensible (Btuh)'])}"
+    puts "  Total latent infiltration gain = #{Float(json_bldg['Infiltration']['Cooling Latent (Btuh)'])}"
+
+    puts 'Testing Bob Ross Residence - 3.14...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-14.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Total ceiling heat loss = #{json_bldg.select { |k, _v| k.start_with?('Ceilings') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  Total ceiling sensible gain = #{json_bldg.select { |k, _v| k.start_with?('Ceilings') }.map { |_k, v| Float(v['Cooling Sensible (Btuh)']) }.sum}"
+    puts "  Duct heat loss = #{}"
+    puts "  Sensible duct gain = #{}"
+    puts "  Latent duct gain = #{}"
+    puts "  Total heat loss for entire house = #{}"
+    puts "  Total sensible gain for entire house = #{}"
+
+    puts 'Testing Bob Ross Residence - 3.15...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-15.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Heat loss for all above grade exposed wall = #{json_bldg.select { |k, _v| k.start_with?('Above Grade Walls') && !k.include?('FoundationWall') && !k.include?('Partition') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  Sensible gain for all above grade exposed wall = #{json_bldg.select { |k, _v| k.start_with?('Above Grade Walls') && !k.include?('FoundationWall') && !k.include?('Partition') }.map { |_k, v| Float(v['Cooling Sensible (Btuh)']) }.sum}"
+    puts "  Heat loss for partition wall = #{json_bldg.select { |k, _v| k.start_with?('Above Grade Walls') && !k.include?('FoundationWall') && k.include?('Partition') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  Sensible gain for partition wall = #{json_bldg.select { |k, _v| k.start_with?('Above Grade Walls') && !k.include?('FoundationWall') && k.include?('Partition') }.map { |_k, v| Float(v['Cooling Sensible (Btuh)']) }.sum}"
+
+    puts 'Testing Bob Ross Residence - 3.16...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-16.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Table 4 Construction Number = #{}"
+    puts "  Total floor heat loss = #{json_bldg.select { |k, _v| k.start_with?('Floors') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  MJ8 Line 14 subtotal heat loss = #{json_bldg.select { |k, _v| k.start_with?('Windows') || k.start_with?('Skylights') || k.start_with?('Doors') || k.start_with?('Above Grade Walls') || k.start_with?('Ceilings') || k.start_with?('Floors') || k.start_with?('Infiltration') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  Duct Heat Loss value = #{}"
+    puts "  Duct Heat Gain value = #{}"
+
+    puts 'Testing Bob Ross Residence - 3.17...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-17.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Total infiltration heat loss = #{Float(json_bldg['Infiltration']['Heating (Btuh)'])}"
+    puts "  Total sensible infiltration gain = #{Float(json_bldg['Infiltration']['Cooling Sensible (Btuh)'])}"
+    puts "  Total latent infiltration gain = #{Float(json_bldg['Infiltration']['Cooling Latent (Btuh)'])}"
+    puts "  Total ventilation heat loss = #{Float(json_bldg['Ventilation']['Heating (Btuh)'])}"
+    puts "  Total sensible ventilation gain = #{Float(json_bldg['Ventilation']['Cooling Sensible (Btuh)'])}"
+    puts "  Total latent ventilation gain = #{Float(json_bldg['Ventilation']['Cooling Latent (Btuh)'])}"
+
+    puts 'Testing Bob Ross Residence - 3.18...'
+    puts "  Total infiltration heat loss = #{}"
+    puts "  Total sensible infiltration gain = #{}"
+    puts "  Total latent infiltration gain = #{}"
+    puts "  Total ventilation heat loss = #{}"
+    puts "  Total sensible ventilation gain = #{}"
+    puts "  Total latent ventilation gain = #{}"
+
+    puts 'Testing Bob Ross Residence - 3.19...'
+    puts "  Total infiltration heat loss = #{}"
+    puts "  Total sensible infiltration gain = #{}"
+    puts "  Total latent infiltration gain = #{}"
+    puts "  Total ventilation heat loss = #{}"
+    puts "  Total sensible ventilation gain = #{}"
+    puts "  Total latent ventilation gain = #{}"
+
+    puts 'Testing Bob Ross Residence - 3.20...'
+    puts "  Total infiltration heat loss = #{}"
+    puts "  Total sensible infiltration gain = #{}"
+    puts "  Total latent infiltration gain = #{}"
+    puts "  Total ventilation heat loss = #{}"
+    puts "  Total sensible ventilation gain = #{}"
+    puts "  Total latent ventilation gain = #{}"
+
+    puts 'Testing Bob Ross Residence - 3.21...'
+    puts "  Total infiltration heat loss = #{}"
+    puts "  Total sensible infiltration gain = #{}"
+    puts "  Total latent infiltration gain = #{}"
+    puts "  Total ventilation heat loss = #{}"
+    puts "  Total sensible ventilation gain = #{}"
+    puts "  Total latent ventilation gain = #{}"
+
+    puts 'Testing Bob Ross Residence - 3.22...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-22.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Basement above grade wall, heat loss = #{json_bldg.select { |k, _v| k.start_with?('Above Grade Walls') && k.include?('FoundationWall') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  Basement above grade wall, heat gain = #{json_bldg.select { |k, _v| k.start_with?('Above Grade Walls') && k.include?('FoundationWall') }.map { |_k, v| Float(v['Cooling Sensible (Btuh)']) }.sum}"
+    puts "  Basement below grade wall, heat loss = #{json_bldg.select { |k, _v| k.start_with?('Below Grade Walls') && k.include?('FoundationWall') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  Basement floor heat loss = #{json_bldg.select { |k, _v| k.start_with?('Floors') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  Infiltration heat loss, total envelope = #{Float(json_bldg['Infiltration']['Heating (Btuh)'])}"
+    puts "  Sensible infiltration gain = #{Float(json_bldg['Infiltration']['Cooling Sensible (Btuh)'])}"
+    puts "  Latent infiltration gain = #{Float(json_bldg['Infiltration']['Cooling Latent (Btuh)'])}"
+    puts "  Duct heat loss = #{}"
+    puts "  Sensible duct gain = #{}"
+    puts "  Latent duct gain = #{}"
+    puts "  Total heat loss for entire house = #{}"
+    puts "  Total sensible gain for entire house = #{}"
+    puts "  Total latent gain for entire house = #{}"
+
+    puts 'Testing Bob Ross Residence - 3.23...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_3-23.xml'))
+    _model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+    json = JSON.parse(File.read(design_load_details_path))
+    json_bldg = json['Report: MyBuilding: BobRossResidenceConditioned: Loads']
+    puts "  Total heat loss for conditioned space floor = #{json_bldg.select { |k, _v| k.start_with?('Floors') }.map { |_k, v| Float(v['Heating (Btuh)']) }.sum}"
+    puts "  Total heat gain for conditioned space floor floor = #{json_bldg.select { |k, _v| k.start_with?('Floors') }.map { |_k, v| Float(v['Cooling Sensible (Btuh)']) }.sum}"
+    puts "  Total duct loss = #{}"
+    puts "  Total sensible duct gain = #{}"
+    puts "  Total latent duct gain = #{}"
+    puts "  Total heat loss for entire house = #{}"
+    puts "  Total sensible gain for entire house = #{}"
+    puts "  Total latent gain for entire house = #{}"
   end
 
   def test_heat_pump_separate_backup_systems
@@ -1203,7 +1422,11 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
 
   def test_manual_j_slab_f_factor
     # Check values against MJ8 Table 5A Construction Number 22 (Concrete Slab on Grade Floor)
-    tol = 0.1
+    tol = 0.15 # 15%
+
+    high_soil_k = 1.0 / 1.25 # Heavy moist soil, R-value/ft=1.25
+    med_soil_k = 1.0 / 2.0 # Heavy dry or light moist soil, R-value/ft=2.0
+    low_soil_k = 1.0 / 5.0 # Light dry soil, R-value/ft=5.0
 
     slab = HPXML::Slab.new(nil)
     slab.thickness = 4.0 # in
@@ -1212,85 +1435,182 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     slab.under_slab_insulation_width = 0
     slab.under_slab_insulation_spans_entire_slab = false
     slab.under_slab_insulation_r_value = 0
+    slab.exterior_horizontal_insulation_r_value = 0
+    slab.exterior_horizontal_insulation_width = 0
+    slab.exterior_horizontal_insulation_depth_below_grade = 0
 
     # 22A — No Edge Insulation, No insulation Below Floor, any Floor Cover
-    assert_in_delta(1.358, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(1.180, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.989, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(1.358, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(1.180, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.989, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     # 22B — Vertical Board Insulation Covers Slab Edge and Extends Straight Down to Three Feet Below Grade, any Floor Cover
     slab.perimeter_insulation_depth = 3
     slab.perimeter_insulation_r_value = 5
-    assert_in_delta(0.589, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.449, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.289, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(0.589, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(0.449, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.289, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     slab.perimeter_insulation_r_value = 10
-    assert_in_delta(0.481, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.355, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.210, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(0.481, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(0.355, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.210, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     slab.perimeter_insulation_r_value = 15
-    assert_in_delta(0.432, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.314, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.178, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(0.432, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(0.314, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.178, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     # 22C — Horizontal Board Insulation Extends Four Feet Under Slab, any Floor Cover
     slab.perimeter_insulation_depth = 0
     slab.perimeter_insulation_r_value = 0
     slab.under_slab_insulation_width = 4
     slab.under_slab_insulation_r_value = 5
-    assert_in_delta(1.266, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(1.135, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.980, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(1.266, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(1.135, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.980, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     slab.under_slab_insulation_r_value = 10
-    assert_in_delta(1.221, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(1.108, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.937, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(1.221, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(1.108, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.937, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     slab.under_slab_insulation_r_value = 15
-    assert_in_delta(1.194, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(1.091, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.967, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(1.194, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(1.091, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.967, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     # 22D — Vertical Board Insulation Covers Slab Edge, Turns Under the Slab and Extends Four Feet Horizontally, any Floor Cover
     slab.under_slab_insulation_width = 4
     slab.under_slab_insulation_r_value = 5
     slab.perimeter_insulation_depth = 0.333 # 4" slab
     slab.perimeter_insulation_r_value = 5
-    assert_in_delta(0.574, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.442, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.287, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(0.574, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(0.442, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.287, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     slab.under_slab_insulation_r_value = 10
     slab.perimeter_insulation_r_value = 10
-    assert_in_delta(0.456, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.343, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.208, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(0.456, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(0.343, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.208, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
 
     slab.under_slab_insulation_r_value = 15
     slab.perimeter_insulation_r_value = 15
-    assert_in_delta(0.401, HVACSizing.calc_slab_f_value(slab, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.298, HVACSizing.calc_slab_f_value(slab, 1.0 / 2.0), tol) # Heavy dry or light moist soil, R-value/ft=2.0
-    assert_in_delta(0.174, HVACSizing.calc_slab_f_value(slab, 1.0 / 5.0), tol) # Light dry soil, R-value/ft=5.0
+    assert_in_epsilon(0.401, HVACSizing.calc_slab_f_value(slab, high_soil_k), tol)
+    assert_in_epsilon(0.298, HVACSizing.calc_slab_f_value(slab, med_soil_k), tol)
+    assert_in_epsilon(0.174, HVACSizing.calc_slab_f_value(slab, low_soil_k), tol)
   end
 
   def test_manual_j_basement_slab_ufactor
     # Check values against MJ8 Table 4A Construction Number 21 (Basement Floor)
-    tol = 0.002
+    tol = 0.06 # 6%
+
+    high_soil_k = 1.0 / 1.25 # Heavy moist soil, R-value/ft=1.25
 
     # 21A — No Insulation Below Floor, Any Floor Cover
-    assert_in_delta(0.027, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 20.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.025, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 24.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.022, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 28.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.020, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 32.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_epsilon(0.027, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 20.0, high_soil_k), tol)
+    assert_in_epsilon(0.025, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 24.0, high_soil_k), tol)
+    assert_in_epsilon(0.022, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 28.0, high_soil_k), tol)
+    assert_in_epsilon(0.020, HVACSizing.calc_basement_slab_ufactor(false, 8.0, 32.0, high_soil_k), tol)
 
     # 21B — Insulation Installed Below Floor, Any Floor Cover
-    assert_in_delta(0.019, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 20.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.017, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 24.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.015, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 28.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
-    assert_in_delta(0.014, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 32.0, 1.0 / 1.25), tol) # Heavy moist soil, R-value/ft=1.25
+    assert_in_epsilon(0.019, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 20.0, high_soil_k), tol)
+    assert_in_epsilon(0.017, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 24.0, high_soil_k), tol)
+    assert_in_epsilon(0.015, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 28.0, high_soil_k), tol)
+    assert_in_epsilon(0.014, HVACSizing.calc_basement_slab_ufactor(true, 8.0, 32.0, high_soil_k), tol)
+  end
+
+  def test_manual_j_basement_wall_below_grade_ufactor
+    # Check values against MJ8 Table 4A Construction Number 15 (Basement Walls)
+    tol = 0.06 # 6%
+
+    high_soil_k = 1.0 / 1.25 # Heavy moist soil, R-value/ft=1.25
+
+    fwall = HPXML::FoundationWall.new(nil)
+
+    # Test w/ Insulation Assembly R-value
+    # 15A - Concrete Block Wall with Board Insulation
+    fwall.type = HPXML::FoundationWallTypeConcreteBlock
+
+    # No insulation, open, 2ft depth
+    fwall.height = 2.0
+    fwall.depth_below_grade = 2.0
+    fwall.insulation_assembly_r_value = 1.0 / 0.584
+    assert_in_epsilon(0.257, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+    # No insulation, open, 10ft depth
+    fwall.height = 10.0
+    fwall.depth_below_grade = 10.0
+    assert_in_epsilon(0.109, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+    # Full R-20 board, filled, 2ft depth
+    fwall.height = 2.0
+    fwall.depth_below_grade = 2.0
+    fwall.insulation_assembly_r_value = 1.0 / 0.043
+    assert_in_epsilon(0.034, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+    # Full R-20 board, filled, 10ft depth
+    fwall.height = 10.0
+    fwall.depth_below_grade = 10.0
+    assert_in_epsilon(0.026, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+    # Test w/ Insulation Layers
+    # 15C - Four Inches Concrete with Board Insulation
+
+    fwall.type = HPXML::FoundationWallTypeSolidConcrete
+    fwall.thickness = 4.0 # in
+    fwall.insulation_assembly_r_value = nil
+    fwall.insulation_interior_r_value = 0.0
+    fwall.insulation_exterior_r_value = 0.0
+    fwall.insulation_interior_distance_to_top = 0.0
+    fwall.insulation_exterior_distance_to_top = 0.0
+    fwall.insulation_interior_distance_to_bottom = 0.0
+    fwall.insulation_exterior_distance_to_bottom = 0.0
+
+    # No insulation, 2ft depth
+    fwall.height = 2.0
+    fwall.depth_below_grade = 2.0
+    assert_in_epsilon(0.304, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+    # No insulation, 10ft depth
+    fwall.height = 10.0
+    fwall.depth_below_grade = 10.0
+    assert_in_epsilon(0.121, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+    [true, false].each do |use_exterior_insulation|
+      # Full R-20 board, 2ft depth
+      fwall.height = 2.0
+      fwall.depth_below_grade = 2.0
+      fwall.insulation_exterior_r_value = use_exterior_insulation ? 20.0 : 0.0
+      fwall.insulation_interior_r_value = use_exterior_insulation ? 0.0 : 20.0
+      fwall.insulation_exterior_distance_to_bottom = use_exterior_insulation ? 2.0 : 0.0
+      fwall.insulation_interior_distance_to_bottom = use_exterior_insulation ? 0.0 : 2.0
+      assert_in_epsilon(0.037, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+      # Full R-20 board, 10ft depth
+      fwall.height = 10.0
+      fwall.depth_below_grade = 10.0
+      fwall.insulation_exterior_distance_to_bottom = use_exterior_insulation ? 10.0 : 0.0
+      fwall.insulation_interior_distance_to_bottom = use_exterior_insulation ? 0.0 : 10.0
+      assert_in_epsilon(0.028, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+      # 3ft R-20 board, 2ft depth
+      fwall.height = 2.0
+      fwall.depth_below_grade = 2.0
+      fwall.insulation_exterior_r_value = use_exterior_insulation ? 20.0 : 0.0
+      fwall.insulation_interior_r_value = use_exterior_insulation ? 0.0 : 20.0
+      fwall.insulation_exterior_distance_to_bottom = use_exterior_insulation ? 3.0 : 0.0
+      fwall.insulation_interior_distance_to_bottom = use_exterior_insulation ? 0.0 : 3.0
+      assert_in_epsilon(0.037, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+
+      # 3ft R-20 board, 10ft depth
+      fwall.height = 10.0
+      fwall.depth_below_grade = 10.0
+      fwall.insulation_exterior_distance_to_bottom = use_exterior_insulation ? 3.0 : 0.0
+      fwall.insulation_interior_distance_to_bottom = use_exterior_insulation ? 0.0 : 3.0
+      assert_in_epsilon(0.057, HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, true, high_soil_k), tol)
+    end
   end
 
   def test_multiple_zones

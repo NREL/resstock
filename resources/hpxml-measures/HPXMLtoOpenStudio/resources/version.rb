@@ -9,7 +9,7 @@ module Version
   # Checks whether the version of OpenStudio that is running OpenStudio-HPXML
   # meets the version requirements; throws an error if not.
   #
-  # @return [void]
+  # @return [nil]
   def self.check_openstudio_version
     if not OpenStudio.openStudioVersion.start_with? OS_Version
       if OS_Version.count('.') == 2
@@ -24,7 +24,7 @@ module Version
   # meets the version requirements; throws an error if not.
   #
   # @param hpxml_version [String] Version of HPXML input file
-  # @return [void]
+  # @return [nil]
   def self.check_hpxml_version(hpxml_version)
     if hpxml_version != HPXML_Version
       fail "HPXML version #{HPXML_Version} is required."

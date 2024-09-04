@@ -364,8 +364,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       # Assign ResStockArgument's runner arguments to BuildResidentialHPXML
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
-        register_value(runner, step_value.name, value) if Constants.arguments_to_register.include?(step_value.name)
-        next if value == '' || Constants.arguments_to_exclude.include?(step_value.name)
+        register_value(runner, step_value.name, value) if Constants::ArgumentsToRegister.include?(step_value.name)
+        next if value == '' || Constants::ArgumentsToExclude.include?(step_value.name)
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end

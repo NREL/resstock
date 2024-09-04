@@ -1249,7 +1249,7 @@ class ReportSimulationOutputTest < Minitest::Test
   def test_timeseries_timestamp_convention
     # Expected values are arrays of time offsets (in seconds) for each reported row of output
     expected_values_array = { 'timestep' => [30 * 60] * 17520,
-                              'monthly' => Constants.NumDaysInMonths(1999).map { |n_days| n_days * 60 * 60 * 24 } }
+                              'monthly' => Calendar.num_days_in_months(1999).map { |n_days| n_days * 60 * 60 * 24 } }
 
     expected_values_array.each do |timeseries_frequency, expected_values|
       args_hash = { 'hpxml_path' => File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-timestep-30-mins.xml'),
