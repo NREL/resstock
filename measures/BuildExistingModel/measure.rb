@@ -363,7 +363,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       # Assign ResStockArgument's runner arguments to BuildResidentialHPXML
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
-        register_value(runner, step_value.name, value) if Constants.arguments_to_register.include?(step_value.name)
+        register_value(runner, step_value.name, value) if Constants::ArgumentsToRegister.include?(step_value.name)
         next if value == ''
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
@@ -780,12 +780,21 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     hpxml_bldg = hpxml.buildings[0]
+
+    # infiltration
+    air_infiltration_measurement = hpxml_bldg.air_infiltration_measurements[0]
+    a_ext = 1.0
+    a_ext = air_infiltration_measurement.a_ext if !air_infiltration_measurement.a_ext.nil?
+    register_value(runner, 'air_leakage_to_outside_ach_50', air_infiltration_measurement.air_leakage * a_ext)
+
+    # weather file
     epw_path = Location.get_epw_path(hpxml_bldg, hpxml_path)
     epw_file = OpenStudio::EpwFile.new(epw_path)
     register_value(runner, 'weather_file_city', epw_file.city)
     register_value(runner, 'weather_file_latitude', epw_file.latitude)
     register_value(runner, 'weather_file_longitude', epw_file.longitude)
 
+    # sample weight
     if bldg_data.keys.include?('sample_weight')
       sample_weight = bldg_data['sample_weight']
       register_value(runner, 'sample_weight', sample_weight.to_s)

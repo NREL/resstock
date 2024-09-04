@@ -83,7 +83,7 @@ end
 # @param expected_num_boreholes [Integer] expected number of boreholes for a config/boreholes combo
 # @param m_n [String] keys from the config files where m is borehole "columns" and n is borehole "rows"
 # @param key2 [String] additional key some configs use to access specific configurations
-# @return [void]
+# @return [nil]
 def add_m_n(json, json2, expected_num_boreholes, m_n, key2 = nil)
   if key2.nil?
     actual_num_boreholes = json[m_n]['bore_locations'].size

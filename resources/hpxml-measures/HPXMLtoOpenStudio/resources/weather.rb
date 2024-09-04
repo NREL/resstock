@@ -27,7 +27,7 @@ class WeatherFile
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param epw_path [String] Path to the EPW weather file
   # @param hpxml [HPXML] HPXML object
-  # @return [void]
+  # @return [nil]
   def process_epw(runner, epw_path, hpxml)
     epw_file = OpenStudio::EpwFile.new(epw_path, true)
 
@@ -108,7 +108,7 @@ class WeatherFile
   # Calculates and stores heating/cooling degree days for different base temperatures.
   #
   # @param dailydbs [Array<Double>] Daily average drybulb temperatures (C)
-  # @return [void]
+  # @return [nil]
   def calc_heat_cool_degree_days(dailydbs)
     data.HDD65F = calc_degree_days(dailydbs, 65, true)
     data.HDD50F = calc_degree_days(dailydbs, 50, true)
@@ -151,15 +151,15 @@ class WeatherFile
   #
   # @param daily_high_dbs [Array<Double>] Daily maximum drybulb temperatures (C)
   # @param daily_low_dbs [Array<Double>] Daily minimum drybulb temperatures (C)
-  # @return [void]
+  # @return [nil]
   def calc_avg_monthly_highs_lows(daily_high_dbs, daily_low_dbs)
     data.MonthlyAvgDailyHighDrybulbs = []
     data.MonthlyAvgDailyLowDrybulbs = []
 
     if daily_high_dbs.size == 365 # standard year
-      month_num_days = Constants.NumDaysInMonths(1999)
+      month_num_days = Calendar.num_days_in_months(1999)
     elsif daily_high_dbs.size == 366 # leap year
-      month_num_days = Constants.NumDaysInMonths(2000)
+      month_num_days = Calendar.num_days_in_months(2000)
     else
       fail "Unexpected number of days: #{daily_high_dbs.size}."
     end
@@ -232,7 +232,7 @@ class WeatherFile
   # Gets and stores various EPW header data.
   #
   # @param epw_file [OpenStudio::EpwFile] OpenStudio EpwFile object
-  # @return [void]
+  # @return [nil]
   def get_header_info_from_epw(epw_file)
     header.City = epw_file.city
     header.StateProvinceRegion = epw_file.stateProvinceRegion
@@ -286,7 +286,7 @@ class WeatherFile
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param rowdata [Array<Hash>] Weather data for each EPW record
-  # @return [void]
+  # @return [nil]
   def calc_design_info(runner, rowdata)
     if not runner.nil?
       runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
@@ -321,7 +321,7 @@ class WeatherFile
   # Calculates and stores shallow monthly/annual ground temperatures.
   # This correlation is the same that is used in DOE-2's src\WTH.f file, subroutine GTEMP.
   #
-  # @return [void]
+  # @return [nil]
   def calc_shallow_ground_temperatures()
     amon = [15.0, 46.0, 74.0, 95.0, 135.0, 166.0, 196.0, 227.0, 258.0, 288.0, 319.0, 349.0]
     po = 0.6
@@ -355,7 +355,7 @@ class WeatherFile
   # source heat pump in the building.
   #
   # @param hpxml [HPXML] HPXML object
-  # @return [void]
+  # @return [nil]
   def calc_deep_ground_temperatures(hpxml)
     # Avoid this lookup/calculation if there's no GSHP since there is a (small) runtime penalty.
     if !hpxml.nil?
@@ -376,7 +376,7 @@ class WeatherFile
 
     # Minimize distance to Station
     v1 = Vector[header.Latitude, header.Longitude]
-    dist = 1 / Constants.small
+    dist = 1 / Constants::Small
     temperatures_amplitudes = nil
     CSV.foreach(deep_ground_temperatures) do |row|
       v2 = Vector[row[3].to_f, row[4].to_f]
@@ -398,7 +398,7 @@ class WeatherFile
   # "Towards Development of an Algorithm for Mains Water Temperature".
   #
   # @param n_days [Integer] Number of days (typically 365 or 366 if a leap year) in the EPW file
-  # @return [void]
+  # @return [nil]
   def calc_mains_temperatures(n_days)
     deg_rad = Math::PI / 180
 

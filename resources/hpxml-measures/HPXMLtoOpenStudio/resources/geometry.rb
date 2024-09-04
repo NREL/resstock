@@ -6,7 +6,7 @@ module Geometry
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
-  # @return [TODO] TODO
+  # @return [nil]
   def self.tear_down_model(model:,
                            runner:)
     handles = OpenStudio::UUIDVector.new
@@ -80,10 +80,10 @@ module Geometry
 
   # Get the default number of occupants.
   #
-  # @param nbeds [Integer] the number of bedrooms
-  # @return [Double] the number of occupants, which is equal to the number of bedrooms
+  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
+  # @return [Double] Number of occupants in the dwelling unit
   def self.get_occupancy_default_num(nbeds:)
-    return Float(nbeds)
+    return Float(nbeds) # Per ANSI 301 for an asset calculation
   end
 
   # Create space and zone based on contents of spaces and value of location.
@@ -184,8 +184,8 @@ module Geometry
   def self.get_roof_pitch(surfaces)
     tilts = []
     surfaces.each do |surface|
-      next if surface.surfaceType.downcase != 'roofceiling'
-      next if (surface.outsideBoundaryCondition.downcase != 'outdoors') && (surface.outsideBoundaryCondition.downcase != 'adiabatic')
+      next if surface.surfaceType != EPlus::SurfaceTypeRoofCeiling
+      next if (surface.outsideBoundaryCondition != EPlus::BoundaryConditionOutdoors) && (surface.outsideBoundaryCondition != EPlus::BoundaryConditionAdiabatic)
 
       tilts << surface.tilt
     end
@@ -346,7 +346,7 @@ module Geometry
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param walls_top [Double] the total height of the dwelling unit
-  # @return [void]
+  # @return [nil]
   def self.explode_surfaces(model:,
                             hpxml_bldg:,
                             walls_top:)
@@ -357,8 +357,8 @@ module Geometry
     surfaces = []
     azimuth_lengths = {}
     model.getSurfaces.sort.each do |surface|
-      next unless ['wall', 'roofceiling'].include? surface.surfaceType.downcase
-      next unless ['outdoors', 'foundation', 'adiabatic', 'othersidecoefficients'].include? surface.outsideBoundaryCondition.downcase
+      next unless [EPlus::SurfaceTypeWall, EPlus::SurfaceTypeRoofCeiling].include? surface.surfaceType
+      next unless [EPlus::BoundaryConditionOutdoors, EPlus::BoundaryConditionFoundation, EPlus::BoundaryConditionAdiabatic, EPlus::BoundaryConditionCoefficients].include? surface.outsideBoundaryCondition
       next if surface.additionalProperties.getFeatureAsDouble('Tilt').get <= 0 # skip flat roofs
 
       surfaces << surface
@@ -402,7 +402,7 @@ module Geometry
 
     # Explode neighbors
     model.getShadingSurfaceGroups.each do |shading_group|
-      next unless shading_group.name.to_s == Constants.ObjectNameNeighbors
+      next unless shading_group.name.to_s == Constants::ObjectTypeNeighbors
 
       shading_group.shadingSurfaces.each do |shading_surface|
         azimuth = shading_surface.additionalProperties.getFeatureAsInteger('Azimuth').get
@@ -438,7 +438,7 @@ module Geometry
       overhang_surfaces = []
       shading_surfaces = []
       surface.subSurfaces.each do |subsurface|
-        next unless subsurface.subSurfaceType.downcase == 'fixedwindow'
+        next unless subsurface.subSurfaceType == EPlus::SubSurfaceTypeWindow
 
         subsurface.shadingSurfaceGroups.each do |overhang_group|
           overhang_group.shadingSurfaces.each do |overhang|
@@ -450,7 +450,7 @@ module Geometry
       # Push out horizontally
       distance = explode_distance
 
-      if surface.surfaceType.downcase == 'roofceiling'
+      if surface.surfaceType == EPlus::SurfaceTypeRoofCeiling
         # Ensure pitched surfaces are positioned outward justified with walls, etc.
         tilt = surface.additionalProperties.getFeatureAsDouble('Tilt').get
         width = surface.additionalProperties.getFeatureAsDouble('Width').get
@@ -491,12 +491,14 @@ module Geometry
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param num_occ [TODO] TODO
+  # @param num_occ [Double] Number of occupants in the dwelling unit
   # @param space [OpenStudio::Model::Space] an OpenStudio::Model::Space object
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @return [void]
+  # @return [nil]
   def self.apply_occupants(model, runner, hpxml_bldg, num_occ, space, schedules_file, unavailable_periods)
+    return if num_occ <= 0
+
     occ_gain, _hrs_per_day, sens_frac, _lat_frac = get_occupancy_default_values()
     activity_per_person = UnitConversions.convert(occ_gain, 'Btu/hr', 'W')
 
@@ -517,7 +519,7 @@ module Geometry
       weekend_sch = hpxml_bldg.building_occupancy.weekend_fractions.split(',').map(&:to_f)
       weekend_sch = weekend_sch.map { |v| v / weekend_sch.max }.join(',')
       monthly_sch = hpxml_bldg.building_occupancy.monthly_multipliers
-      people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction, unavailable_periods: people_unavailable_periods)
+      people_sch = MonthWeekdayWeekendSchedule.new(model, Constants::ObjectTypeOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, EPlus::ScheduleTypeLimitsFraction, unavailable_periods: people_unavailable_periods)
       people_sch = people_sch.schedule
     else
       runner.registerWarning("Both '#{people_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml_bldg.building_occupancy.weekday_fractions.nil?
@@ -528,14 +530,14 @@ module Geometry
     # Create schedule
     activity_sch = OpenStudio::Model::ScheduleConstant.new(model)
     activity_sch.setValue(activity_per_person)
-    activity_sch.setName(Constants.ObjectNameOccupants + ' activity schedule')
+    activity_sch.setName(Constants::ObjectTypeOccupants + ' activity schedule')
 
     # Add people definition for the occ
     occ_def = OpenStudio::Model::PeopleDefinition.new(model)
     occ = OpenStudio::Model::People.new(occ_def)
-    occ.setName(Constants.ObjectNameOccupants)
+    occ.setName(Constants::ObjectTypeOccupants)
     occ.setSpace(space)
-    occ_def.setName(Constants.ObjectNameOccupants)
+    occ_def.setName(Constants::ObjectTypeOccupants)
     occ_def.setNumberofPeople(num_occ)
     occ_def.setFractionRadiant(occ_rad)
     occ_def.setSensibleHeatFraction(occ_sens)
@@ -614,7 +616,7 @@ module Geometry
 
     unless shading_surfaces.empty?
       shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-      shading_surface_group.setName(Constants.ObjectNameNeighbors)
+      shading_surface_group.setName(Constants::ObjectTypeNeighbors)
       shading_surfaces.each do |shading_surface|
         shading_surface.setShadingSurfaceGroup(shading_surface_group)
       end
@@ -655,7 +657,7 @@ module Geometry
 
   # TODO
   #
-  # @param location [TODO] TODO
+  # @param location [String] the general HPXML location
   # @return [TODO] TODO
   def self.get_temperature_scheduled_space_values(location:)
     if location == HPXML::LocationOtherHeatedSpace

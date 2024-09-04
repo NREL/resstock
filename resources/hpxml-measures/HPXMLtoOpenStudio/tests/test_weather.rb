@@ -13,6 +13,11 @@ require_relative '../resources/util.rb'
 require_relative '../resources/location.rb'
 
 class HPXMLtoOpenStudioWeatherTest < Minitest::Test
+  def teardown
+    File.delete(File.join(File.dirname(__FILE__), 'results_annual.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_annual.csv')
+    File.delete(File.join(File.dirname(__FILE__), 'results_design_load_details.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_design_load_details.csv')
+  end
+
   def weather_dir
     return File.join(File.dirname(__FILE__), '..', '..', 'weather')
   end
