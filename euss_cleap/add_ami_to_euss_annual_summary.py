@@ -321,6 +321,41 @@ def add_ami_column_to_file(file_path):
     write_to_file(df, file_path)
 
 
+def add_rep_income_to_file(file_path):
+    print(
+        "=============================================================================="
+    )
+    print(
+        "This script is for use on ResStock summary files, such as results_up00.parquet "
+    )
+    print(
+        "The file expected has columns with prefixes such as: 'build_existing_model.', 'report_simulation_output.'"
+    )
+    print("")
+    print(
+        "This script requires resstock-estimation conda env and access to resstock-estimation GitHub repo"
+    )
+    print("to add 'build_existing_model.area_median_income' column to file:")
+    print(
+        f"""
+        {file_path}
+        """
+    )
+    print(
+        "=============================================================================="
+    )
+    file_path = Path(file_path)
+    df = read_file(file_path, valid_only=False, fix_dtypes=False)
+    if len([col for col in df.columns if "build_existing_model." in col]) > 0:
+        df = read_file(file_path, valid_only=True, fix_dtypes=True)
+        df = assign_representative_income(df)
+    else:
+        df = read_file(file_path, valid_only=True, fix_dtypes=False)
+        print(f"file={file_path} is not a results_up00 file, no AMI added.")
+
+    df = df.sort_values(by=["building_id"])
+    write_to_file(df, file_path)
+
 def main():
     """
     Usage: python add_ami_to_euss_results.py path_to_euss_result_file.csv
@@ -331,7 +366,8 @@ def main():
         help=f"path to EUSS result csv file",
     )
     args = parser.parse_args()
-    add_ami_column_to_file(args.result_csv_file)
+    # add_ami_column_to_file(args.result_csv_file)
+    add_rep_income_to_file(args.result_csv_file)
 
 
 if __name__ == "__main__":

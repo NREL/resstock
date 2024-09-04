@@ -54,6 +54,19 @@ Created on: Oct 4, 2022
 -   [16] whole_home.electrification_high_eff + enclosure.enhanced_upgrade: 
         all (pkg 10)
 
+### A note on failed / invalid sims:
+     failed, success, invalid (upgrade not applicable)
+up00 1084    548916   0
+up01 1079    531826   17095
+up02 1081    536800   12119
+up03 1075    548269   656
+up04 1074    548270   656
+up05 1182    532165   16653
+up06 1083    545333   3584
+up07 1079    400583   148338 (more invalid because electrifying fuel only, not also replacing less eff electric options)
+up08 1077    548923   0
+up09 1074    548926   0
+up10 1074    548926   0
 """
 
 # import packages
@@ -1534,12 +1547,15 @@ def main(euss_dir):
             end_uses=["clothes_dryer"],
         )
 
-    # Intervene to ensure both cooking type has the same number of datapoints
-    # notes: turns on Min-Eff Electrification has 10878 failed sims which cause 
-    # electric cooking and dryer to have 2/3 fewer datapoints than induction and HP dryer
-    bldgs = sorted(set(df7["building_id"]).intersection(df8["building_id"]))
-    df7 = df7.loc[df7["building_id"].isin(bldgs)].sort_values(by=["building_id"])
-    df8 = df8.loc[df8["building_id"].isin(bldgs)].sort_values(by=["building_id"])
+    
+    # # notes: turns on Min-Eff Electrification has 148338 invalid sims which cause 
+    # # electric cooking and dryer to have 2/3 fewer datapoints than induction and HP dryer
+    # # BUT, this is okay because it is only replacing fuel options whereas
+    # # High-Eff Electrification is additionally replacing less-eff electric options.
+    # # SO, DO NOT intervene here to ensure both cooking type has the same number of datapoints
+    # bldgs = sorted(set(df7["building_id"]).intersection(df8["building_id"]))
+    # df7 = df7.loc[df7["building_id"].isin(bldgs)].sort_values(by=["building_id"])
+    # df8 = df8.loc[df8["building_id"].isin(bldgs)].sort_values(by=["building_id"])
 
     DF.append(df7)
     DF.append(df8)
@@ -1560,10 +1576,10 @@ def main(euss_dir):
             end_uses=["range_oven"],
         )
 
-    # Intervene to ensure both cooking type has the same number of datapoints
-    bldgs = sorted(set(df7["building_id"]).intersection(df8["building_id"]))
-    df7 = df7.loc[df7["building_id"].isin(bldgs)].sort_values(by=["building_id"])
-    df8 = df8.loc[df8["building_id"].isin(bldgs)].sort_values(by=["building_id"])
+    # DO NOT Intervene to ensure both cooking type has the same number of datapoints
+    # bldgs = sorted(set(df7["building_id"]).intersection(df8["building_id"]))
+    # df7 = df7.loc[df7["building_id"].isin(bldgs)].sort_values(by=["building_id"])
+    # df8 = df8.loc[df8["building_id"].isin(bldgs)].sort_values(by=["building_id"])
 
     DF.append(df7)
     DF.append(df8)

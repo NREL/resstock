@@ -490,7 +490,7 @@ def renormalize_joint_probability(dfs, wt_s, wt_m):
 
     wt_map = (wt_new / wt_ori).rename("sample_weight")
     
-    weight = dfs.join(wt_map, on=HC)["sample_weight"]
+    weight = dfs.drop(columns=["sample_weight"]).join(wt_map, on=HC)["sample_weight"]
     weight = weight / weight.sum() * len(dfs) # normalize s.t. sum of weight = len(dfs)
     
     return weight
