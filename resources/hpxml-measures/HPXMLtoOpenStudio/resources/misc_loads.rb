@@ -298,7 +298,7 @@ module MiscLoads
         annual_kwh = 654.9 + 206.5 * num_occ + 0.21 * cfa
       elsif unit_type == HPXML::ResidentialTypeApartment
         annual_kwh = 706.6 + 149.3 * num_occ + 0.10 * cfa
-      elsif unit_type == HPXML::HPXML::ResidentialTypeManufactured
+      elsif unit_type == HPXML::ResidentialTypeManufactured
         annual_kwh = 1795.1 # No good relationship found in RECS, so just using a constant value
       end
     end
@@ -332,7 +332,7 @@ module MiscLoads
         annual_kwh = 283.9 + 80.1 * num_occ + 0.07 * cfa
       elsif unit_type == HPXML::ResidentialTypeApartment
         annual_kwh = 190.3 + 81.0 * num_occ + 0.11 * cfa
-      elsif unit_type == HPXML::HPXML::ResidentialTypeManufactured
+      elsif unit_type == HPXML::ResidentialTypeManufactured
         annual_kwh = 99.9 + 129.6 * num_occ + 0.21 * cfa
       end
     end
