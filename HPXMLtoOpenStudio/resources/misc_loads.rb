@@ -279,25 +279,63 @@ module MiscLoads
     mel.setSchedule(pump_sch)
   end
 
-  # TODO
+  # Returns the default residual miscellaneous electric (plug) load energy use
+  # and sensible/latent fractions.
   #
   # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
-  # @return [TODO] TODO
-  def self.get_residual_mels_default_values(cfa)
-    annual_kwh = 0.91 * cfa
+  # @param num_occ [Double] Number of occupants in the dwelling unit
+  # @param unit_type [String] HPXML::ResidentialTypeXXX type of dwelling unit
+  # @return [Array<Double, Double, Double>] Plug loads annual use (kWh), sensible fraction, and latent fraction
+  def self.get_residual_mels_default_values(cfa, num_occ, unit_type)
+    if num_occ.nil? # Asset calculation
+      # ANSI/RESNET/ICC 301
+      annual_kwh = 0.91 * cfa
+    else # Operational calculation
+      # RECS 2020
+      if unit_type == HPXML::ResidentialTypeSFD
+        annual_kwh = 786.9 + 241.8 * num_occ + 0.33 * cfa
+      elsif unit_type == HPXML::ResidentialTypeSFA
+        annual_kwh = 654.9 + 206.5 * num_occ + 0.21 * cfa
+      elsif unit_type == HPXML::ResidentialTypeApartment
+        annual_kwh = 706.6 + 149.3 * num_occ + 0.10 * cfa
+      elsif unit_type == HPXML::HPXML::ResidentialTypeManufactured
+        annual_kwh = 1795.1 # No good relationship found in RECS, so just using a constant value
+      end
+    end
     frac_lost = 0.10
     frac_sens = (1.0 - frac_lost) * 0.95
     frac_lat = 1.0 - frac_sens - frac_lost
     return annual_kwh, frac_sens, frac_lat
   end
 
-  # TODO
+  # Returns the default television energy use and sensible/latent fractions.
   #
   # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
   # @param nbeds [Integer] Number of bedrooms in the dwelling unit
-  # @return [TODO] TODO
-  def self.get_televisions_default_values(cfa, nbeds)
-    annual_kwh = 413.0 + 0.0 * cfa + 69.0 * nbeds
+  # @param num_occ [Double] Number of occupants in the dwelling unit
+  # @param unit_type [String] HPXML::ResidentialTypeXXX type of dwelling unit
+  # @return [Array<Double, Double, Double>] Television annual use (kWh), sensible fraction, and latent fraction
+  def self.get_televisions_default_values(cfa, nbeds, num_occ, unit_type)
+    if num_occ.nil? # Asset calculation
+      # ANSI/RESNET/ICC 301
+      annual_kwh = 413.0 + 69.0 * nbeds
+    else # Operational calculation
+      # RECS 2020
+      # Note: If we know # of televisions, we could use these better relationships instead:
+      # - SFD: 67.7 + 243.4 * num_tv
+      # - SFA: 13.3 + 251.3 * num_tv
+      # - MF:  11.4 + 250.7 * num_tv
+      # - MH:  12.6 + 287.5 * num_tv
+      if unit_type == HPXML::ResidentialTypeSFD
+        annual_kwh = 334.0 + 92.2 * num_occ + 0.06 * cfa
+      elsif unit_type == HPXML::ResidentialTypeSFA
+        annual_kwh = 283.9 + 80.1 * num_occ + 0.07 * cfa
+      elsif unit_type == HPXML::ResidentialTypeApartment
+        annual_kwh = 190.3 + 81.0 * num_occ + 0.11 * cfa
+      elsif unit_type == HPXML::HPXML::ResidentialTypeManufactured
+        annual_kwh = 99.9 + 129.6 * num_occ + 0.21 * cfa
+      end
+    end
     frac_lost = 0.0
     frac_sens = (1.0 - frac_lost) * 1.0
     frac_lat = 1.0 - frac_sens - frac_lost

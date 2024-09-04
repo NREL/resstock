@@ -3501,13 +3501,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   #
   # @return [nil]
   def set_foundation_and_walls_top()
-    @foundation_top = 0
-    @hpxml_bldg.floors.each do |floor|
-      # Keeping the floor at ground level for ASHRAE 140 tests yields the expected results
-      if floor.is_floor && floor.is_exterior && !@apply_ashrae140_assumptions
-        @foundation_top = 2.0
-      end
-    end
+    @foundation_top = [@hpxml_bldg.building_construction.unit_height_above_grade, 0].max
     @hpxml_bldg.foundation_walls.each do |foundation_wall|
       top = -1 * foundation_wall.depth_below_grade + foundation_wall.height
       @foundation_top = top if top > @foundation_top

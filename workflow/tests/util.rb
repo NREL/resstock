@@ -1158,9 +1158,9 @@ def _check_unit_multiplier_results(xml, hpxml_bldg, annual_results_1x, annual_re
         end
 
         abs_val_delta = (val_1x - val_10x).abs
-        avg_val = [val_1x, val_10x].sum / 2.0
-        if avg_val > 0
-          abs_val_frac = abs_val_delta / avg_val
+        abs_avg_val = ([val_1x, val_10x].sum / 2.0).abs
+        if abs_avg_val > 0
+          abs_val_frac = abs_val_delta / abs_avg_val
         end
 
         # FUTURE: Address these
