@@ -10,7 +10,7 @@ Capabilities
 
 OpenStudio-HPXML capabilities include:
 
-- Modeling individual dwelling units or whole multifamily buildings; see :ref:`hpxmlbuilding` for more information
+- Modeling individual dwelling units or whole multifamily buildings; see :ref:`hpxml_building` for more information
 - Modeling a wide range of building technologies
 - HVAC design load calculations and equipment autosizing
 - Occupancy schedules (smooth or stochastic)

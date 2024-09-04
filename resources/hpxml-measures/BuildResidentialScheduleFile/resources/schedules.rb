@@ -92,6 +92,9 @@ class ScheduleGenerator
   # @return [Boolean] true if successful
   def create_stochastic_schedules(args:,
                                   weather:)
+    default_schedules_csv_data = HPXMLDefaults.get_default_schedules_csv_data()
+    schedules_csv_data = get_schedules_csv_data()
+
     # initialize a random number generator
     prng = Random.new(@random_seed)
 
@@ -107,7 +110,7 @@ class ScheduleGenerator
     # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
     # if geometry_num_occupants = 2, period_in_a_year = 35040,  num_of_states = 7, then
     # shape of all_simulated_values is [2, 35040, 7]
-    occupancy_types_probabilities = Schedule.validate_values(Constants.OccupancyTypesProbabilities, 4, 'occupancy types probabilities')
+    occupancy_types_probabilities = Schedule.validate_values(Constants::OccupancyTypesProbabilities, 4, 'occupancy types probabilities')
     for _n in 1..args[:geometry_num_occupants]
       occ_type_id = weighted_random(prng, occupancy_types_probabilities)
       init_prob_file_weekday = args[:resources_path] + "/weekday/mkv_chain_initial_prob_cluster_#{occ_type_id}.csv"
@@ -151,7 +154,7 @@ class ScheduleGenerator
             # repeat the same activity for the duration times
             simulated_values << state_vector
             j += 1
-            if j >= @mkc_ts_per_day then break end # break as soon as we have filled acitivities for the day
+            if j >= @mkc_ts_per_day then break end # break as soon as we have filled activities for the day
           end
           if j >= @mkc_ts_per_day then break end # break as soon as we have filled activities for the day
 
@@ -165,19 +168,19 @@ class ScheduleGenerator
       all_simulated_values << Matrix[*simulated_values]
     end
     # shape of all_simulated_values is [2, 35040, 7] i.e. (geometry_num_occupants, period_in_a_year, number_of_states)
-    plugload_other_weekday_sch = Schedule.validate_values(Schedule.PlugLoadsOtherWeekdayFractions, 24, 'weekday') # Table C.3(1) of ANSI/RESNET/ICC 301-2022 Addendum C
-    plugload_other_weekend_sch = Schedule.validate_values(Schedule.PlugLoadsOtherWeekendFractions, 24, 'weekend') # Table C.3(1) of ANSI/RESNET/ICC 301-2022 Addendum C
-    plugload_other_monthly_multiplier = Schedule.validate_values(Constants.PlugLoadsOtherMonthlyMultipliers, 12, 'monthly') # Figure 24 of the 2010 BAHSP
-    plugload_tv_weekday_sch = Schedule.validate_values(Constants.PlugLoadsTVWeekdayFractions, 24, 'weekday') # American Time Use Survey
-    plugload_tv_weekend_sch = Schedule.validate_values(Constants.PlugLoadsTVWeekendFractions, 24, 'weekend') # American Time Use Survey
-    plugload_tv_monthly_multiplier = Schedule.validate_values(Constants.PlugLoadsTVMonthlyMultipliers, 12, 'monthly') # American Time Use Survey
-    ceiling_fan_weekday_sch = Schedule.validate_values(Schedule.CeilingFanWeekdayFractions, 24, 'weekday') # Table C.3(5) of ANSI/RESNET/ICC 301-2022 Addendum C
-    ceiling_fan_weekend_sch = Schedule.validate_values(Schedule.CeilingFanWeekendFractions, 24, 'weekend') # Table C.3(5) of ANSI/RESNET/ICC 301-2022 Addendum C
-    ceiling_fan_monthly_multiplier = Schedule.validate_values(Schedule.CeilingFanMonthlyMultipliers(weather: weather), 12, 'monthly') # based on monthly average outdoor temperatures per ANSI/RESNET/ICC 301-2019
+    plugload_other_weekday_sch = Schedule.validate_values(default_schedules_csv_data[SchedulesFile::Columns[:PlugLoadsOther].name]['WeekdayScheduleFractions'], 24, 'weekday') # Table C.3(1) of ANSI/RESNET/ICC 301-2022 Addendum C
+    plugload_other_weekend_sch = Schedule.validate_values(default_schedules_csv_data[SchedulesFile::Columns[:PlugLoadsOther].name]['WeekendScheduleFractions'], 24, 'weekend') # Table C.3(1) of ANSI/RESNET/ICC 301-2022 Addendum C
+    plugload_other_monthly_multiplier = Schedule.validate_values(schedules_csv_data[SchedulesFile::Columns[:PlugLoadsOther].name]['PlugLoadsOtherMonthlyMultipliers'], 12, 'monthly') # Figure 24 of the 2010 BAHSP
+    plugload_tv_weekday_sch = Schedule.validate_values(schedules_csv_data[SchedulesFile::Columns[:PlugLoadsTV].name]['PlugLoadsTVWeekdayFractions'], 24, 'weekday') # American Time Use Survey
+    plugload_tv_weekend_sch = Schedule.validate_values(schedules_csv_data[SchedulesFile::Columns[:PlugLoadsTV].name]['PlugLoadsTVWeekendFractions'], 24, 'weekend') # American Time Use Survey
+    plugload_tv_monthly_multiplier = Schedule.validate_values(schedules_csv_data[SchedulesFile::Columns[:PlugLoadsTV].name]['PlugLoadsTVMonthlyMultipliers'], 12, 'monthly') # American Time Use Survey
+    ceiling_fan_weekday_sch = Schedule.validate_values(default_schedules_csv_data[SchedulesFile::Columns[:CeilingFan].name]['WeekdayScheduleFractions'], 24, 'weekday') # Table C.3(5) of ANSI/RESNET/ICC 301-2022 Addendum C
+    ceiling_fan_weekend_sch = Schedule.validate_values(default_schedules_csv_data[SchedulesFile::Columns[:CeilingFan].name]['WeekendScheduleFractions'], 24, 'weekend') # Table C.3(5) of ANSI/RESNET/ICC 301-2022 Addendum C
+    ceiling_fan_monthly_multiplier = Schedule.validate_values(HVAC.get_default_ceiling_fan_months(weather).join(', '), 12, 'monthly') # based on monthly average outdoor temperatures per ANSI/RESNET/ICC 301-2019
 
-    sch = get_building_america_lighting_schedule(args[:time_zone_utc_offset], args[:latitude], args[:longitude])
+    sch = get_building_america_lighting_schedule(args[:time_zone_utc_offset], args[:latitude], args[:longitude], schedules_csv_data)
     interior_lighting_schedule = []
-    num_days_in_months = Constants.NumDaysInMonths(@sim_year)
+    num_days_in_months = Calendar.num_days_in_months(@sim_year)
     for month in 0..11
       interior_lighting_schedule << sch[month] * num_days_in_months[month]
     end
@@ -243,17 +246,17 @@ class ScheduleGenerator
       end
     end
 
-    sink_duration_probs = Schedule.validate_values(Constants.SinkDurationProbability, 9, 'sink_duration_probability')
-    events_per_cluster_probs = Schedule.validate_values(Constants.SinkEventsPerClusterProbs, 15, 'sink_events_per_cluster_probs')
-    hourly_onset_prob = Schedule.validate_values(Constants.SinkHourlyOnsetProb, 24, 'sink_hourly_onset_prob')
+    sink_duration_probs = Schedule.validate_values(Constants::SinkDurationProbability, 9, 'sink_duration_probability')
+    events_per_cluster_probs = Schedule.validate_values(Constants::SinkEventsPerClusterProbs, 15, 'sink_events_per_cluster_probs')
+    hourly_onset_prob = Schedule.validate_values(Constants::SinkHourlyOnsetProb, 24, 'sink_hourly_onset_prob')
     # Lookup avg_sink_clusters_per_hh from constants
-    avg_sink_clusters_per_hh = Constants.SinkAvgSinkClustersPerHH
+    avg_sink_clusters_per_hh = Constants::SinkAvgSinkClustersPerHH
     # Adjust avg_sink_clusters_per_hh for number of occupants in household
     total_clusters = avg_sink_clusters_per_hh * (0.29 * args[:geometry_num_occupants] + 0.26) # Eq based on cluster scaling in Building America DHW Event Schedule Generator (fewer sink draw clusters for larger households)
-    sink_minutes_between_event_gap = Constants.SinkMinutesBetweenEventGap
+    sink_minutes_between_event_gap = Constants::SinkMinutesBetweenEventGap
     cluster_per_day = (total_clusters / @total_days_in_year).to_i
-    sink_flow_rate_mean = Constants.SinkFlowRateMean
-    sink_flow_rate_std = Constants.SinkFlowRateStd
+    sink_flow_rate_mean = Constants::SinkFlowRateMean
+    sink_flow_rate_std = Constants::SinkFlowRateStd
     sink_flow_rate = gaussian_rand(prng, sink_flow_rate_mean, sink_flow_rate_std)
     @total_days_in_year.times do |day|
       for _n in 1..cluster_per_day
@@ -296,14 +299,14 @@ class ScheduleGenerator
     #   b. Fill in the mkc personal hygiene slot with the bath duration and flow rate.
     #      TODO If there is room in the mkc personal hygiene slot, shift uniform randomly
     # 6. Repeat process 2-6 for each occupant
-    shower_minutes_between_event_gap = Constants.ShowerMinutesBetweenEventGap
-    shower_flow_rate_mean = Constants.ShowerFlowRateMean
-    shower_flow_rate_std = Constants.ShowerFlowRateStd
-    bath_ratio = Constants.BathBathToShowerRatio
-    bath_duration_mean = Constants.BathDurationMean
-    bath_duration_std = Constants.BathDurationStd
-    bath_flow_rate_mean = Constants.BathFlowRateMean
-    bath_flow_rate_std = Constants.BathFlowRateStd
+    shower_minutes_between_event_gap = Constants::ShowerMinutesBetweenEventGap
+    shower_flow_rate_mean = Constants::ShowerFlowRateMean
+    shower_flow_rate_std = Constants::ShowerFlowRateStd
+    bath_ratio = Constants::BathToShowerRatio
+    bath_duration_mean = Constants::BathDurationMean
+    bath_duration_std = Constants::BathDurationStd
+    bath_flow_rate_mean = Constants::BathFlowRateMean
+    bath_flow_rate_std = Constants::BathFlowRateStd
     m = 0
     shower_activity_sch = [0] * mins_in_year
     bath_activity_sch = [0] * mins_in_year
@@ -366,9 +369,9 @@ class ScheduleGenerator
     #    (it's typically composed of multiple water draw events)
     # 4. For each event, sample the event duration
     # 5. Fill in the dishwasher/clothes washer time slot using those water draw events
-    dw_flow_rate_mean = Constants.HotWaterDishwasherFlowRateMean
-    dw_flow_rate_std = Constants.HotWaterDishwasherFlowRateStd
-    dw_minutes_between_event_gap = Constants.HotWaterDishwasherMinutesBetweenEventGap
+    dw_flow_rate_mean = Constants::HotWaterDishwasherFlowRateMean
+    dw_flow_rate_std = Constants::HotWaterDishwasherFlowRateStd
+    dw_minutes_between_event_gap = Constants::HotWaterDishwasherMinutesBetweenEventGap
     dw_activity_sch = [0] * mins_in_year
     m = 0
     dw_flow_rate = gaussian_rand(prng, dw_flow_rate_mean, dw_flow_rate_std)
@@ -405,11 +408,11 @@ class ScheduleGenerator
       step += step_jump
     end
 
-    cw_flow_rate_mean = Constants.HotWaterClothesWasherFlowRateMean
-    cw_flow_rate_std = Constants.HotWaterClothesWasherFlowRateStd
-    cw_minutes_between_event_gap = Constants.HotWaterClothesWasherMinutesBetweenEventGap
+    cw_flow_rate_mean = Constants::HotWaterClothesWasherFlowRateMean
+    cw_flow_rate_std = Constants::HotWaterClothesWasherFlowRateStd
+    cw_minutes_between_event_gap = Constants::HotWaterClothesWasherMinutesBetweenEventGap
     cw_activity_sch = [0] * mins_in_year # this is the clothes_washer water draw schedule
-    cw_load_size_probability = Schedule.validate_values(Constants.HotWaterClothesWasherLoadSizeProbability, 4, 'hot_water_clothes_washer_load_size_probability')
+    cw_load_size_probability = Schedule.validate_values(Constants::HotWaterClothesWasherLoadSizeProbability, 4, 'hot_water_clothes_washer_load_size_probability')
     m = 0
     cw_flow_rate = gaussian_rand(prng, cw_flow_rate_mean, cw_flow_rate_std)
     # States are: 'sleeping','shower','laundry','cooking', 'dishwashing', 'absent', 'nothingAtHome'
@@ -458,7 +461,7 @@ class ScheduleGenerator
     step = 0
     last_state = 0
     start_time = Time.new(@sim_year, 1, 1)
-    hot_water_dishwasher_monthly_multiplier = Schedule.validate_values(Constants.HotWaterDishwasherMonthlyMultiplier, 12, 'hot_water_dishwasher_monthly_multiplier')
+    hot_water_dishwasher_monthly_multiplier = Schedule.validate_values(schedules_csv_data[SchedulesFile::Columns[:Dishwasher].name]['HotWaterDishwasherMonthlyMultiplier'], 12, 'hot_water_dishwasher_monthly_multiplier')
     while step < mkc_steps_in_a_year
       dish_state = sum_across_occupants(all_simulated_values, 4, step, max_clip: 1)
       step_jump = 1
@@ -483,8 +486,8 @@ class ScheduleGenerator
     step = 0
     last_state = 0
     start_time = Time.new(@sim_year, 1, 1)
-    clothes_dryer_monthly_multiplier = Schedule.validate_values(Constants.ClothesDryerMonthlyMultiplier, 12, 'clothes_dryer_monthly_multiplier')
-    hot_water_clothes_washer_monthly_multiplier = Schedule.validate_values(Constants.HotWaterClothesWasherMonthlyMultiplier, 12, 'hot_water_clothes_washer_monthly_multiplier')
+    clothes_dryer_monthly_multiplier = Schedule.validate_values(schedules_csv_data[SchedulesFile::Columns[:ClothesDryer].name]['ClothesDryerMonthlyMultiplier'], 12, 'clothes_dryer_monthly_multiplier')
+    hot_water_clothes_washer_monthly_multiplier = Schedule.validate_values(schedules_csv_data[SchedulesFile::Columns[:ClothesWasher].name]['HotWaterClothesWasherMonthlyMultiplier'], 12, 'hot_water_clothes_washer_monthly_multiplier')
     while step < mkc_steps_in_a_year
       clothes_state = sum_across_occupants(all_simulated_values, 2, step, max_clip: 1)
       step_jump = 1
@@ -513,7 +516,7 @@ class ScheduleGenerator
     step = 0
     last_state = 0
     start_time = Time.new(@sim_year, 1, 1)
-    cooking_monthly_multiplier = Schedule.validate_values(Constants.CookingMonthlyMultiplier, 12, 'cooking_monthly_multiplier')
+    cooking_monthly_multiplier = Schedule.validate_values(schedules_csv_data[SchedulesFile::Columns[:CookingRange].name]['CookingMonthlyMultiplier'], 12, 'cooking_monthly_multiplier')
     while step < mkc_steps_in_a_year
       cooking_state = sum_across_occupants(all_simulated_values, 3, step, max_clip: 1)
       step_jump = 1
@@ -604,7 +607,7 @@ class ScheduleGenerator
       @schedules[SchedulesFile::Columns[:Sleeping].name] = sleep_schedule
     end
 
-    @schedules[SchedulesFile::Columns[:HotWaterFixtures].name] = [showers, sinks, baths].transpose.map { |flow| flow.reduce(:+) }
+    @schedules[SchedulesFile::Columns[:HotWaterFixtures].name] = [showers, sinks, baths].transpose.map { |flow| flow.sum }
     fixtures_peak_flow = @schedules[SchedulesFile::Columns[:HotWaterFixtures].name].max
     @schedules[SchedulesFile::Columns[:HotWaterFixtures].name] = @schedules[SchedulesFile::Columns[:HotWaterFixtures].name].map { |flow| flow / fixtures_peak_flow }
 
@@ -691,7 +694,7 @@ class ScheduleGenerator
 
   # TODO
   #
-  # @param prng [TODO] TODO
+  # @param prng [Random] Random number generator object
   # @param power_dist_map [TODO] TODO
   # @param appliance_name [TODO] TODO
   # @return [TODO] TODO
@@ -775,7 +778,7 @@ class ScheduleGenerator
 
   # TODO
   #
-  # @param prng [TODO] TODO
+  # @param prng [Random] Random number generator object
   # @param cluster_size_prob_map [TODO] TODO
   # @param activity_type_name [TODO] TODO
   # @return [TODO] TODO
@@ -786,7 +789,7 @@ class ScheduleGenerator
 
   # TODO
   #
-  # @param prng [TODO] TODO
+  # @param prng [Random] Random number generator object
   # @param duration_probabilites_map [TODO] TODO
   # @param event_type [TODO] TODO
   # @return [TODO] TODO
@@ -798,7 +801,7 @@ class ScheduleGenerator
 
   # TODO
   #
-  # @param prng [TODO] TODO
+  # @param prng [Random] Random number generator object
   # @param activity_duration_prob_map [TODO] TODO
   # @param occ_type_id [TODO] TODO
   # @param activity [TODO] TODO
@@ -861,7 +864,7 @@ class ScheduleGenerator
 
   # TODO
   #
-  # @param prng [TODO] TODO
+  # @param prng [Random] Random number generator object
   # @param mean [TODO] TODO
   # @param std [TODO] TODO
   # @param min [TODO] TODO
@@ -937,7 +940,7 @@ class ScheduleGenerator
 
   # TODO
   #
-  # @param prng [TODO] TODO
+  # @param prng [Random] Random number generator object
   # @param weights [TODO] TODO
   # @return [TODO] TODO
   def weighted_random(prng, weights)
@@ -958,7 +961,7 @@ class ScheduleGenerator
   # @param latitude [TODO] TODO
   # @param longitude [TODO] TODO
   # @return [TODO] TODO
-  def get_building_america_lighting_schedule(time_zone_utc_offset, latitude, longitude)
+  def get_building_america_lighting_schedule(time_zone_utc_offset, latitude, longitude, schedules_csv_data)
     # Sunrise and sunset hours
     sunrise_hour = []
     sunset_hour = []
@@ -988,7 +991,7 @@ class ScheduleGenerator
     end
 
     june_kws = [0.060, 0.040, 0.035, 0.025, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.025, 0.030, 0.030, 0.025, 0.020, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.020, 0.020, 0.020, 0.025, 0.025, 0.030, 0.030, 0.035, 0.045, 0.060, 0.085, 0.125, 0.145, 0.130, 0.105, 0.080]
-    lighting_seasonal_multiplier = Constants.LightingInteriorMonthlyMultipliers.split(',').map { |v| v.to_f }
+    lighting_seasonal_multiplier = schedules_csv_data[SchedulesFile::Columns[:LightingInterior].name]['LightingInteriorMonthlyMultipliers'].split(',').map { |v| v.to_f }
     amplConst1 = 0.929707907917098
     sunsetLag1 = 2.45016230615269
     stdDevCons1 = 1.58679810983444
@@ -997,7 +1000,7 @@ class ScheduleGenerator
     stdDevCons2 = 2.36567663279954
 
     monthly_kwh_per_day = []
-    days_m = Constants.NumDaysInMonths(1999) # Intentionally excluding leap year designation
+    days_m = Calendar.num_days_in_months(1999) # Intentionally excluding leap year designation
     wtd_avg_monthly_kwh_per_day = 0
     for monthNum in 1..12
       month = monthNum - 1
@@ -1066,5 +1069,28 @@ class ScheduleGenerator
     end
 
     return lighting_sch
+  end
+
+  # Get the weekday/weekend schedule fractions for TV plug loads and monthly multipliers for interior lighting, dishwasher, clothes washer/dryer, cooking range, and other/TV plug loads.
+  #
+  # @return [Hash] { schedule_name => { element => values, ... }, ... }
+  def get_schedules_csv_data()
+    schedules_csv = File.join(File.dirname(__FILE__), 'schedules.csv')
+    if not File.exist?(schedules_csv)
+      fail 'Could not find schedules.csv'
+    end
+
+    require 'csv'
+    schedules_csv_data = {}
+    CSV.foreach(schedules_csv, headers: true) do |row|
+      schedule_name = row['Schedule Name']
+      element = row['Element']
+      values = row['Values']
+
+      schedules_csv_data[schedule_name] = {} if !schedules_csv_data.keys.include?(schedule_name)
+      schedules_csv_data[schedule_name][element] = values
+    end
+
+    return schedules_csv_data
   end
 end

@@ -358,6 +358,9 @@
       <sch:assert role='ERROR' test='number(h:ManualJInputs/h:InternalLoadsLatent) &gt;= 0 or not(h:ManualJInputs/h:InternalLoadsLatent)'>Expected ManualJInputs/InternalLoadsLatent to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:ManualJInputs/h:NumberofOccupants) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ManualJInputs/NumberofOccupants</sch:assert>
       <sch:assert role='ERROR' test='number(h:ManualJInputs/h:NumberofOccupants) &gt;= 0 or not(h:ManualJInputs/h:NumberofOccupants)'>Expected ManualJInputs/NumberofOccupants to be greater than or equal to 0</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ManualJInputs/h:InfiltrationShieldingClass) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ManualJInputs/InfiltrationShieldingClass</sch:assert>
+      <sch:assert role='ERROR' test='number(h:ManualJInputs/h:InfiltrationShieldingClass) &gt;= 1 or not(h:ManualJInputs/h:InfiltrationShieldingClass)'>Expected ManualJInputs/InfiltrationShieldingClass to be greater than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='number(h:ManualJInputs/h:InfiltrationShieldingClass) &lt;= 5 or not(h:ManualJInputs/h:InfiltrationShieldingClass)'>Expected ManualJInputs/InfiltrationShieldingClass to be less than or equal to 5</sch:assert>
       <sch:assert role='ERROR' test='count(h:ManualJInputs/h:InfiltrationMethod) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ManualJInputs/InfiltrationMethod</sch:assert> <!-- See [ManualJInfiltrationMethod=DefaultInfiltrationTable] or [ManualJInfiltrationMethod=BlowerDoor] -->
       <sch:assert role='ERROR' test='h:ManualJInputs/h:InfiltrationMethod[text()="default infiltration table" or text()="blower door"] or not(h:ManualJInputs/h:InfiltrationMethod)'>Expected InfiltrationMethod/DailyTemperatureRange to be 'default infiltration table' or 'blower door'</sch:assert>
       <!-- Moved/deprecated UseMaxLoadForHeatPumps input; see https://github.com/NREL/OpenStudio-HPXML/pull/1039 -->
@@ -816,6 +819,9 @@
       <sch:assert role='ERROR' test='count(h:DepthBelowGrade) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DepthBelowGrade</sch:assert>
       <sch:assert role='ERROR' test='count(h:PerimeterInsulation/h:Layer/h:NominalRValue) = 1'>Expected 1 element(s) for xpath: PerimeterInsulation/Layer/NominalRValue</sch:assert>
       <sch:assert role='ERROR' test='count(h:PerimeterInsulation/h:Layer/h:InsulationDepth) = 1'>Expected 1 element(s) for xpath: PerimeterInsulation/Layer/InsulationDepth</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorHorizontalInsulation/h:Layer/h:NominalRValue) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorHorizontalInsulation/Layer/NominalRValue</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorHorizontalInsulation/h:Layer/h:InsulationWidth) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorHorizontalInsulation/Layer/InsulationWidth</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorHorizontalInsulation/h:Layer/h:InsulationDepthBelowGrade) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorHorizontalInsulation/Layer/InsulationDepthBelowGrade</sch:assert>
       <sch:assert role='ERROR' test='count(h:UnderSlabInsulation/h:Layer/h:NominalRValue) = 1'>Expected 1 element(s) for xpath: UnderSlabInsulation/Layer/NominalRValue</sch:assert>
       <sch:assert role='ERROR' test='count(h:UnderSlabInsulation/h:Layer/h:InsulationWidth) + count(h:UnderSlabInsulation/h:Layer/h:InsulationSpansEntireSlab[text()="true"]) = 1'>Expected 1 element(s) for xpath: UnderSlabInsulation/Layer/InsulationWidth | UnderSlabInsulation/Layer/InsulationSpansEntireSlab[text()="true"]</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:GapInsulationRValue) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/GapInsulationRValue</sch:assert>
@@ -828,6 +834,7 @@
       <sch:report role='WARN' test='number(h:ExposedPerimeter) &gt; 2*number(h:Area)'>Slab exposed perimeter is more than twice the slab area, this may indicate an input error.</sch:report>
       <sch:report role='WARN' test='number(h:Thickness) &lt; 1 and number(h:Thickness) &gt; 0'>Thickness is less than 1 inch; this may indicate incorrect units.</sch:report>
       <sch:report role='WARN' test='number(h:Thickness) &gt; 12'>Thickness is greater than 12 inches; this may indicate incorrect units.</sch:report>
+      <sch:report role='WARN' test='number(h:ExteriorHorizontalInsulation/h:Layer/h:NominalRValue) &gt; 0 and number(h:PerimeterInsulation/h:Layer/h:NominalRValue)=0'> There is ExteriorHorizontalInsulation but no PerimeterInsulation, this may indicate an input error.</sch:report>
     </sch:rule>
   </sch:pattern>
 

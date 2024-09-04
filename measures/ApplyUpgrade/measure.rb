@@ -25,15 +25,15 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   end
 
   def num_options
-    return Constants.NumApplyUpgradeOptions # Synced with UpgradeCosts measure
+    return Constants::NumApplyUpgradeOptions # Synced with UpgradeCosts measure
   end
 
   def num_costs_per_option
-    return Constants.NumApplyUpgradesCostsPerOption # Synced with UpgradeCosts measure
+    return Constants::NumApplyUpgradesCostsPerOption # Synced with UpgradeCosts measure
   end
 
   def cost_multiplier_choices
-    return Constants.CostMultiplierChoices # Synced with UpgradeCosts measure
+    return Constants::CostMultiplierChoices # Synced with UpgradeCosts measure
   end
 
   # define the arguments that the user will input
