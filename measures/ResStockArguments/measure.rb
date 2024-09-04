@@ -467,18 +467,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:misc_plug_loads_well_pump_usage_multiplier] = args[:misc_plug_loads_well_pump_usage_multiplier] * args[:misc_plug_loads_well_pump_2_usage_multiplier]
     args[:misc_plug_loads_vehicle_usage_multiplier] = args[:misc_plug_loads_vehicle_usage_multiplier] * args[:misc_plug_loads_vehicle_2_usage_multiplier]
 
-    # Other
-    if args[:misc_plug_loads_other_annual_kwh] == Constants::Auto
-      # TODO: Disaggregate detached and mobile home
-      if [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include?(args[:geometry_unit_type])
-        args[:misc_plug_loads_other_annual_kwh] = 863.26 + 219.26 * args[:geometry_unit_num_occupants] + 0.33 * args[:geometry_unit_cfa] # RECS 2020
-      elsif [HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type])
-        args[:misc_plug_loads_other_annual_kwh] = 654.92 + 206.52 * args[:geometry_unit_num_occupants] + 0.21 * args[:geometry_unit_cfa] # RECS 2020
-      elsif [HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type])
-        args[:misc_plug_loads_other_annual_kwh] = 706.6 + 149.27 * args[:geometry_unit_num_occupants] + 0.1 * args[:geometry_unit_cfa] # RECS 2020
-      end
-    end
-
     # PV
     if args[:pv_system_present]
       args[:pv_system_num_bedrooms_served] = args[:geometry_unit_num_bedrooms]
