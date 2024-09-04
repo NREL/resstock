@@ -360,6 +360,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(8.0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_unit_height_above_grade', false)
+    arg.setDisplayName('Geometry: Unit Height Above Grade')
+    arg.setUnits('ft')
+    arg.setDescription("Describes the above-grade height of apartment units on upper floors or homes above ambient or belly-and-wing foundations. It is defined as the height of the lowest conditioned floor above grade and is used to calculate the wind speed for the infiltration model. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-building-construction'>HPXML Building Construction</a>) is used.")
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_garage_width', true)
     arg.setDisplayName('Geometry: Garage Width')
     arg.setUnits('ft')
@@ -4654,6 +4660,7 @@ module HPXMLFile
     hpxml_bldg.building_construction.number_of_units_in_building = args[:geometry_building_num_units]
     hpxml_bldg.building_construction.year_built = args[:year_built]
     hpxml_bldg.building_construction.number_of_units = args[:unit_multiplier]
+    hpxml_bldg.building_construction.unit_height_above_grade = args[:geometry_unit_height_above_grade]
   end
 
   # Set building header properties, including:

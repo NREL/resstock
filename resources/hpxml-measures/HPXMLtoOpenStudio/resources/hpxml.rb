@@ -2455,6 +2455,7 @@ class HPXML < Object
   class BuildingConstruction < BaseElement
     ATTRS = [:year_built,                               # [Integer] YearBuilt
              :residential_facility_type,                # [String] ResidentialFacilityType (HXPML::ResidentialTypeXXX)
+             :unit_height_above_grade,                  # [Double] UnitHeightAboveGrade
              :number_of_units,                          # [Integer] NumberofUnits
              :number_of_units_in_building,              # [Integer] NumberofUnitsInBuilding
              :number_of_conditioned_floors,             # [Double] NumberofConditionedFloors
@@ -2486,6 +2487,7 @@ class HPXML < Object
       building_construction = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'BuildingSummary', 'BuildingConstruction'])
       XMLHelper.add_element(building_construction, 'YearBuilt', @year_built, :integer) unless @year_built.nil?
       XMLHelper.add_element(building_construction, 'ResidentialFacilityType', @residential_facility_type, :string) unless @residential_facility_type.nil?
+      XMLHelper.add_element(building_construction, 'UnitHeightAboveGrade', @unit_height_above_grade, :float, @unit_height_above_grade_isdefaulted) unless @unit_height_above_grade.nil?
       XMLHelper.add_element(building_construction, 'NumberofUnits', @number_of_units, :integer, @number_of_units_isdefaulted) unless @number_of_units.nil?
       XMLHelper.add_element(building_construction, 'NumberofUnitsInBuilding', @number_of_units_in_building, :integer) unless @number_of_units_in_building.nil?
       XMLHelper.add_element(building_construction, 'NumberofConditionedFloors', @number_of_conditioned_floors, :float) unless @number_of_conditioned_floors.nil?
@@ -2511,6 +2513,7 @@ class HPXML < Object
 
       @year_built = XMLHelper.get_value(building_construction, 'YearBuilt', :integer)
       @residential_facility_type = XMLHelper.get_value(building_construction, 'ResidentialFacilityType', :string)
+      @unit_height_above_grade = XMLHelper.get_value(building_construction, 'UnitHeightAboveGrade', :float)
       @number_of_units = XMLHelper.get_value(building_construction, 'NumberofUnits', :integer)
       @number_of_units_in_building = XMLHelper.get_value(building_construction, 'NumberofUnitsInBuilding', :integer)
       @number_of_conditioned_floors = XMLHelper.get_value(building_construction, 'NumberofConditionedFloors', :float)

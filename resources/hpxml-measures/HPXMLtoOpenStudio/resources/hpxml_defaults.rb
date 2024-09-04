@@ -50,7 +50,7 @@ module HPXMLDefaults
     apply_building_header_sizing(runner, hpxml_bldg, weather, nbeds)
     apply_neighbor_buildings(hpxml_bldg)
     apply_building_occupancy(hpxml_bldg, schedules_file)
-    apply_building_construction(hpxml_bldg, cfa, nbeds)
+    apply_building_construction(hpxml.header, hpxml_bldg, cfa, nbeds)
     apply_zone_spaces(hpxml_bldg)
     apply_climate_and_risk_zones(hpxml_bldg, weather)
     apply_attics(hpxml_bldg)
@@ -81,7 +81,7 @@ module HPXMLDefaults
     apply_lighting(hpxml_bldg, schedules_file)
     apply_ceiling_fans(hpxml_bldg, nbeds, weather, schedules_file)
     apply_pools_and_permanent_spas(hpxml_bldg, cfa, schedules_file)
-    apply_plug_loads(hpxml_bldg, cfa, schedules_file)
+    apply_plug_loads(hpxml_bldg, cfa, nbeds, schedules_file)
     apply_fuel_loads(hpxml_bldg, cfa, schedules_file)
     apply_pv_systems(hpxml_bldg)
     apply_generators(hpxml_bldg)
@@ -859,11 +859,12 @@ module HPXMLDefaults
 
   # Assigns default values for omitted optional inputs in the HPXML::BuildingConstruction object
   #
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
   # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @return [nil]
-  def self.apply_building_construction(hpxml_bldg, cfa, nbeds)
+  def self.apply_building_construction(hpxml_header, hpxml_bldg, cfa, nbeds)
     cond_crawl_volume = hpxml_bldg.inferred_conditioned_crawlspace_volume()
     if hpxml_bldg.building_construction.average_ceiling_height.nil?
       # ASHRAE 62.2 default for average floor to ceiling height
@@ -881,6 +882,26 @@ module HPXMLDefaults
     if hpxml_bldg.building_construction.number_of_units.nil?
       hpxml_bldg.building_construction.number_of_units = 1
       hpxml_bldg.building_construction.number_of_units_isdefaulted = true
+    end
+    if hpxml_bldg.building_construction.unit_height_above_grade.nil?
+      floors = hpxml_bldg.floors.select { |floor| floor.is_floor && floor.is_thermal_boundary }
+      exterior_floors = floors.select { |floor| floor.is_exterior }
+      if floors.size > 0 && floors.size == exterior_floors.size && hpxml_bldg.slabs.size == 0 && !hpxml_header.apply_ashrae140_assumptions
+        # All floors are exterior (adjacent to ambient/bellywing) and there are no slab floors
+        hpxml_bldg.building_construction.unit_height_above_grade = 2.0
+      elsif hpxml_bldg.has_location(HPXML::LocationBasementConditioned)
+        # Homes w/ conditioned basement will have a negative value
+        cond_bsmt_fnd_walls = hpxml_bldg.foundation_walls.select { |fw| fw.is_exterior && fw.interior_adjacent_to == HPXML::LocationBasementConditioned }
+        if cond_bsmt_fnd_walls.any?
+          max_depth_bg = cond_bsmt_fnd_walls.map { |fw| fw.depth_below_grade }.max
+          hpxml_bldg.building_construction.unit_height_above_grade = -1 * max_depth_bg
+        else
+          hpxml_bldg.building_construction.unit_height_above_grade = 0.0
+        end
+      else
+        hpxml_bldg.building_construction.unit_height_above_grade = 0.0
+      end
+      hpxml_bldg.building_construction.unit_height_above_grade_isdefaulted = true
     end
   end
 
@@ -3587,13 +3608,16 @@ module HPXMLDefaults
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
+  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
-  def self.apply_plug_loads(hpxml_bldg, cfa, schedules_file)
+  def self.apply_plug_loads(hpxml_bldg, cfa, nbeds, schedules_file)
     nbeds_eq = hpxml_bldg.building_construction.additional_properties.equivalent_number_of_bedrooms
+    num_occ = hpxml_bldg.building_occupancy.number_of_residents
+    unit_type = hpxml_bldg.building_construction.residential_facility_type
     hpxml_bldg.plug_loads.each do |plug_load|
       if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
-        default_annual_kwh, default_sens_frac, default_lat_frac = MiscLoads.get_residual_mels_default_values(cfa)
+        default_annual_kwh, default_sens_frac, default_lat_frac = MiscLoads.get_residual_mels_default_values(cfa, num_occ, unit_type)
         if plug_load.kwh_per_year.nil?
           plug_load.kwh_per_year = default_annual_kwh
           plug_load.kwh_per_year_isdefaulted = true
@@ -3620,7 +3644,7 @@ module HPXMLDefaults
           plug_load.monthly_multipliers_isdefaulted = true
         end
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
-        default_annual_kwh, default_sens_frac, default_lat_frac = MiscLoads.get_televisions_default_values(cfa, nbeds_eq)
+        default_annual_kwh, default_sens_frac, default_lat_frac = MiscLoads.get_televisions_default_values(cfa, nbeds, num_occ, unit_type)
         if plug_load.kwh_per_year.nil?
           plug_load.kwh_per_year = default_annual_kwh
           plug_load.kwh_per_year_isdefaulted = true
@@ -3882,10 +3906,15 @@ module HPXMLDefaults
   def self.get_equivalent_nbeds_for_operational_calculation(hpxml_bldg)
     n_occs = hpxml_bldg.building_occupancy.number_of_residents
     unit_type = hpxml_bldg.building_construction.residential_facility_type
-    if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? unit_type
-      return -0.68 + 1.09 * n_occs
-    elsif [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include? unit_type
-      return -1.47 + 1.69 * n_occs
+    # Relations below come from 2020 RECS weighted regressions between NBEDS and NHSHLDMEM (sample weights = NWEIGHT)
+    if [HPXML::ResidentialTypeApartment].include? unit_type
+      return -1.36 + 1.49 * n_occs
+    elsif [HPXML::ResidentialTypeSFA].include? unit_type
+      return -1.98 + 1.89 * n_occs
+    elsif [HPXML::ResidentialTypeSFD].include? unit_type
+      return -2.19 + 2.08 * n_occs
+    elsif [HPXML::ResidentialTypeManufactured].include? unit_type
+      return -1.26 + 1.61 * n_occs
     else
       fail "Unexpected residential facility type: #{unit_type}."
     end
