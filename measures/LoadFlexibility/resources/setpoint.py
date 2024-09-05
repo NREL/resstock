@@ -110,6 +110,7 @@ class HVACSetpoints:
         peak_times['peak_start'] = self._time_shift(peak_times['peak_start'], shift)
         peak_times['peak_end'] = self._time_shift(peak_times['peak_end'], shift)
         peak_times['pre_peak_start'] = self._time_shift(peak_times['pre_peak_start'], shift)
+        print('test')
         return peak_times
 
     def _time_shift(self, indx_in_day, shift):
