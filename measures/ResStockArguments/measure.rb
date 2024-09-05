@@ -557,7 +557,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
             end
 
             if months.sum > 0.0 # has defined BA heating/cooling months
-              begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(months, sim_calendar_year)
+              begin_month, begin_day, end_month, end_day = Calendar.get_begin_and_end_dates_from_monthly_array(months, sim_calendar_year)
             else # no defined BA heating/cooling months
               runner.registerWarning("ResStockArguments: Sampled option '#{args[hvac_control_season_period]}' for #{htg_or_clg} unavailable days but there are no BA #{htg_or_clg} months.")
               if htg_or_clg == 'heating' # Dec/Jan/Feb
@@ -568,8 +568,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
               end
             end
 
-            begin_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
-            end_day_num = Schedule.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
+            begin_day_num = Calendar.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
+            end_day_num = Calendar.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
 
             unavailable_days = { 'Unavailable 1 Day' => 1,
                                  'Unavailable 1 Week' => 7,
@@ -834,7 +834,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
   def get_begin_end_day_nums(building_id, n_days, begin_day_num, end_day_num, year)
     if begin_day_num > end_day_num
-      num_days = Constants::NumDaysInYear(year)
+      num_days = Calendar.num_days_in_year(year)
       begin_day_nums = (begin_day_num..num_days).to_a + (1..end_day_num).to_a
     else
       begin_day_nums = (begin_day_num..end_day_num).to_a
@@ -846,16 +846,16 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     unavail_end_date = unavail_begin_date + OpenStudio::Time.new(n_days - 1)
     unavail_end_month = unavail_end_date.monthOfYear.value
     unavail_end_day = unavail_end_date.dayOfMonth
-    unavail_end_day_num = Schedule.get_day_num_from_month_day(year, unavail_end_month, unavail_end_day)
+    unavail_end_day_num = Calendar.get_day_num_from_month_day(year, unavail_end_month, unavail_end_day)
 
     season_begin_date = unavail_end_date + OpenStudio::Time.new(1)
     season_begin_month = season_begin_date.monthOfYear.value
     season_begin_day = season_begin_date.dayOfMonth
-    season_begin_day_num = Schedule.get_day_num_from_month_day(year, season_begin_month, season_begin_day)
+    season_begin_day_num = Calendar.get_day_num_from_month_day(year, season_begin_month, season_begin_day)
     season_end_date = unavail_begin_date - OpenStudio::Time.new(1)
     season_end_month = season_end_date.monthOfYear.value
     season_end_day = season_end_date.dayOfMonth
-    season_end_day_num = Schedule.get_day_num_from_month_day(year, season_end_month, season_end_day)
+    season_end_day_num = Calendar.get_day_num_from_month_day(year, season_end_month, season_end_day)
 
     return season_begin_day_num, season_end_day_num, unavail_begin_day_num, unavail_end_day_num
   end
