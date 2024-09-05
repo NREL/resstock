@@ -399,6 +399,40 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['heat_pump_airflow_defect_ratio'] = defect_ratios['heat_pump_airflow_defect_ratio']
       measures['BuildResidentialHPXML'][0]['heat_pump_charge_defect_ratio'] = defect_ratios['heat_pump_charge_defect_ratio']
 
+      # Avoid averaging inverted setpoints when upgrade adds heating or cooling
+      # Otherwise we are changing the heating or cooling setpoints between baseline and upgrade
+      # Note that this is an alternative approach to https://github.com/NREL/resstock-estimation/issues/415
+      setpoints = get_hvac_control_values(hpxml_bldg)
+
+      has_heating = (!setpoints['hvac_control_heating_weekday_setpoint'].nil? && !setpoints['hvac_control_heating_weekend_setpoint'].nil?)
+      has_cooling = (!setpoints['hvac_control_cooling_weekday_setpoint'].nil? && !setpoints['hvac_control_cooling_weekend_setpoint'].nil?)
+
+      if has_heating && !has_cooling # i.e., no cooling in baseline
+        htg_weekday_setpoints = setpoints['hvac_control_heating_weekday_setpoint'].split(',').map { |i| Float(i) }
+        htg_weekend_setpoints = setpoints['hvac_control_heating_weekend_setpoint'].split(',').map { |i| Float(i) }
+        clg_weekday_setpoints = measures['BuildResidentialHPXML'][0]['hvac_control_cooling_weekday_setpoint'].split(',').map { |i| Float(i) }
+        clg_weekend_setpoints = measures['BuildResidentialHPXML'][0]['hvac_control_cooling_weekend_setpoint'].split(',').map { |i| Float(i) }
+
+        # Set cooling to at least heating => heating won't get averaged down
+        clg_wkdy = htg_weekday_setpoints.zip(clg_weekday_setpoints).map { |h, c| c < h ? h : c }
+        clg_wked = htg_weekend_setpoints.zip(clg_weekend_setpoints).map { |h, c| c < h ? h : c }
+        measures['BuildResidentialHPXML'][0]['hvac_control_cooling_weekday_setpoint'] = clg_wkdy.join(', ')
+        measures['BuildResidentialHPXML'][0]['hvac_control_cooling_weekend_setpoint'] = clg_wked.join(', ')
+      end
+
+      if !has_heating && has_cooling # i.e., no heating in baseline
+        htg_weekday_setpoints = measures['BuildResidentialHPXML'][0]['hvac_control_heating_weekday_setpoint'].split(',').map { |i| Float(i) }
+        htg_weekend_setpoints = measures['BuildResidentialHPXML'][0]['hvac_control_heating_weekend_setpoint'].split(',').map { |i| Float(i) }
+        clg_weekday_setpoints = setpoints['hvac_control_cooling_weekday_setpoint'].split(',').map { |i| Float(i) }
+        clg_weekend_setpoints = setpoints['hvac_control_cooling_weekend_setpoint'].split(',').map { |i| Float(i) }
+
+        # Set heating to at most cooling => cooling won't get averaged up
+        htg_wkdy = htg_weekday_setpoints.zip(clg_weekday_setpoints).map { |h, c| c < h ? c : h }
+        htg_wked = htg_weekend_setpoints.zip(clg_weekend_setpoints).map { |h, c| c < h ? c : h }
+        measures['BuildResidentialHPXML'][0]['hvac_control_heating_weekday_setpoint'] = htg_wkdy.join(', ')
+        measures['BuildResidentialHPXML'][0]['hvac_control_heating_weekend_setpoint'] = htg_wked.join(', ')
+      end
+
       # Retain the Existing Primary Heating System as Heat Pump Backup
       heat_pump_backup_use_existing_system = measures['ResStockArguments'][0]['heat_pump_backup_use_existing_system']
       if heat_pump_backup_use_existing_system == 'true'
@@ -505,20 +539,20 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
           end
 
           if File.exist?(hpxml_path)
-            hpxml = HPXML.new(hpxml_path: hpxml_path)
+            hpxml2 = HPXML.new(hpxml_path: hpxml_path)
           else
             runner.registerWarning("ApplyUpgrade measure could not find '#{hpxml_path}'.")
             return true
           end
 
-          hpxml.buildings.each_with_index do |hpxml_bldg, _unit_number|
-            capacities, _, _ = get_hvac_system_values(hpxml_bldg, [])
-            if capacities['heat_pump_heating_capacity'] != capacities['heat_pump_cooling_capacity']
-              runner.registerError("Heat pump heating capacity not equal to cooling capacity for #{measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology']}.")
-              return false
-            end
-            minimum_capacity = capacities['heat_pump_heating_capacity']
+          hpxml_bldg_acca = hpxml2.buildings.find { |bldg| hpxml_bldg.building_id == bldg.building_id }
+          capacities, _, _ = get_hvac_system_values(hpxml_bldg_acca, [])
+          if capacities['heat_pump_heating_capacity'] != capacities['heat_pump_cooling_capacity']
+            runner.registerError("Heat pump heating capacity not equal to cooling capacity for #{measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology']}.")
+            return false
           end
+          minimum_capacity = capacities['heat_pump_heating_capacity']
+
         end # if !air_distribution_airflows.empty?
 
         measures['BuildResidentialHPXML'][0]['heat_pump_sizing_methodology'] = HPXML::HeatPumpSizingMaxLoad
@@ -846,6 +880,24 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     return capacities, autosizing_factors, defect_ratios
+  end
+
+  def get_hvac_control_values(hpxml_bldg)
+    setpoints = {
+      'hvac_control_heating_weekday_setpoint' => nil,
+      'hvac_control_heating_weekend_setpoint' => nil,
+      'hvac_control_cooling_weekday_setpoint' => nil,
+      'hvac_control_cooling_weekend_setpoint' => nil
+    }
+
+    hpxml_bldg.hvac_controls.each do |hvac_control|
+      setpoints['hvac_control_heating_weekday_setpoint'] = hvac_control.weekday_heating_setpoints
+      setpoints['hvac_control_heating_weekend_setpoint'] = hvac_control.weekend_heating_setpoints
+      setpoints['hvac_control_cooling_weekday_setpoint'] = hvac_control.weekday_cooling_setpoints
+      setpoints['hvac_control_cooling_weekend_setpoint'] = hvac_control.weekend_cooling_setpoints
+    end
+
+    return setpoints
   end
 
   def get_air_distribution_airflows(hpxml_bldg)
