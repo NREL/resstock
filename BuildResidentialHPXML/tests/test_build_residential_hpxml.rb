@@ -10,7 +10,7 @@ require 'fileutils'
 class BuildResidentialHPXMLTest < Minitest::Test
   def setup
     @output_path = File.join(File.dirname(__FILE__), 'extra_files')
-    @model_save = false # true helpful for debugging, i.e., can render osm in 3D
+    @model_save = true # true helpful for debugging, i.e., can render osm in 3D
   end
 
   def teardown
@@ -68,6 +68,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'extra-water-heater-attic.xml' => 'base-sfd.xml',
       'extra-battery-crawlspace.xml' => 'base-sfd.xml',
       'extra-battery-attic.xml' => 'base-sfd.xml',
+      'extra-ev-battery.xml' => 'extra-enclosure-garage-partially-protruded.xml',
+      'extra-two-batteries.xml' => 'base-sfd.xml',
       'extra-detailed-performance-autosize.xml' => 'base-sfd.xml',
       'extra-power-outage-periods.xml' => 'base-sfd.xml',
 
@@ -933,6 +935,14 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['battery_present'] = true
       args['battery_location'] = HPXML::LocationCrawlspace
     elsif ['extra-battery-attic.xml'].include? hpxml_file
+      args['battery_present'] = true
+      args['battery_location'] = HPXML::LocationAttic
+    elsif ['extra-ev-battery.xml'].include? hpxml_file
+      args['ev_present'] = true
+      args['ev_charger_present'] = true
+      args['ev_charger_location'] = HPXML::LocationGarage
+    elsif ['extra-two-batteries.xml'].include? hpxml_file
+      args['ev_present'] = true
       args['battery_present'] = true
       args['battery_location'] = HPXML::LocationAttic
     elsif ['extra-detailed-performance-autosize.xml'].include? hpxml_file

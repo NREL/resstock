@@ -2,8 +2,9 @@
 
 # Collection of methods for adding battery-related OpenStudio objects.
 module Battery
-  # Apply a home battery to the model using OpenStudio ElectricLoadCenterStorageLiIonNMCBattery, ElectricLoadCenterDistribution, ElectricLoadCenterStorageConverter, OtherEquipment, and EMS objects.
+  # Apply a home or EV battery to the model using OpenStudio ElectricLoadCenterStorageLiIonNMCBattery, ElectricLoadCenterDistribution, ElectricLoadCenterStorageConverter, OtherEquipment, and EMS objects.
   # Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.
+  # EV battery is not associated with a PV system and requires a charging/discharging schedule, otherwise it will not be modeled.
   # The system may be shared, in which case nominal/usable capacity (kWh) and usable fraction are apportioned to the dwelling unit by total number of bedrooms served.
   # A battery may share an ElectricLoadCenterDistribution object with PV; electric buss type and storage operation scheme are therefore changed.
   # Round trip efficiency is (temporarily) applied as an EMS program b/c E+ input is not hooked up.
@@ -15,17 +16,30 @@ module Battery
   # @param battery [HPXML::Battery] Object that defines a single home battery
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unit_multiplier [Integer] Number of similar dwelling units
+  # @param is_ev [Boolean] Whether the battery is in an electric vehicle
+  # @param ev_charger [HPXML::ElectricVehicleCharger] Object that defines an EV charger connected to the battery, if applicable
   # @return [nil] for unscheduled battery w/out PV; in this case battery is not modeled
-  def self.apply(runner, model, nbeds, pv_systems, battery, schedules_file, unit_multiplier)
+  def self.apply(runner, model, nbeds, pv_systems, battery, schedules_file, unit_multiplier, is_ev: false, ev_charger: nil)
     charging_schedule = nil
     discharging_schedule = nil
-    if not schedules_file.nil?
-      charging_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:BatteryCharging].name)
-      discharging_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:BatteryDischarging].name)
+    if is_ev
+      charging_col = SchedulesFile::Columns[:EVBatteryCharging].name
+      discharging_col = SchedulesFile::Columns[:EVBatteryDischarging].name
+    else
+      charging_col = SchedulesFile::Columns[:BatteryCharging].name
+      discharging_col = SchedulesFile::Columns[:BatteryDischarging].name
     end
 
-    if pv_systems.empty? && charging_schedule.nil? && discharging_schedule.nil?
+    if not schedules_file.nil?
+      charging_schedule = schedules_file.create_schedule_file(model, col_name: charging_col)
+      discharging_schedule = schedules_file.create_schedule_file(model, col_name: discharging_col)
+    end
+
+    if !is_ev && pv_systems.empty? && charging_schedule.nil? && discharging_schedule.nil?
       runner.registerWarning('Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.')
+      return
+    elsif is_ev && charging_schedule.nil? && discharging_schedule.nil?
+      runner.registerWarning('Electric vehicle battery specified with no charging/discharging schedule provided; battery will not be modeled.')
       return
     end
 
@@ -52,7 +66,7 @@ module Battery
 
     return if rated_power_output <= 0 || nominal_capacity_kwh <= 0 || battery.nominal_voltage <= 0
 
-    if battery.is_shared_system
+    if !is_ev && battery.is_shared_system
       # Apportion to single dwelling unit by # bedrooms
       fail if battery.number_of_bedrooms_served.to_f <= nbeds.to_f # EPvalidator.xml should prevent this
 
@@ -61,9 +75,16 @@ module Battery
       rated_power_output = rated_power_output * nbeds.to_f / battery.number_of_bedrooms_served.to_f
     end
 
+    if not ev_charger.nil?
+      charging_power = ev_charger.charging_power
+    else
+      charging_power = rated_power_output
+    end
+
     nominal_capacity_kwh *= unit_multiplier
     usable_capacity_kwh *= unit_multiplier
     rated_power_output *= unit_multiplier
+    charging_power *= unit_multiplier
 
     is_outside = (battery.location == HPXML::LocationOutside)
     if not is_outside
@@ -117,24 +138,36 @@ module Battery
     elcs.setFullyChargedCellVoltage(default_nominal_cell_voltage)
     elcs.setCellVoltageatEndofExponentialZone(default_nominal_cell_voltage)
 
-    elcds = model.getElectricLoadCenterDistributions
-    elcds = elcds.select { |elcd| elcd.inverter.is_initialized } # i.e., not generators
-    if elcds.empty?
+    if is_ev
+      # EVs always get their own ELCD, not PV
       elcd = OpenStudio::Model::ElectricLoadCenterDistribution.new(model)
-      elcd.setName('Battery elec load center dist')
+      elcd.setName("#{obj_name} elec load center dist")
       elcd.setElectricalBussType('AlternatingCurrentWithStorage')
+      elcs.setInitialFractionalStateofCharge(maximum_storage_state_of_charge_fraction)
     else
-      elcd = elcds[0] # i.e., pv
+      elcds = model.getElectricLoadCenterDistributions
+      elcds = elcds.select { |elcd| elcd.inverter.is_initialized } # i.e., not generators
+      # Use PV ELCD if present
+      elcds.each do |elcd_|
+        next unless elcd_.name.to_s.include? 'PVSystem'
 
-      elcd.setElectricalBussType('DirectCurrentWithInverterACStorage')
-      elcd.setStorageOperationScheme('TrackFacilityElectricDemandStoreExcessOnSite')
+        elcd = elcd_
+        elcd.setElectricalBussType('DirectCurrentWithInverterACStorage')
+        elcd.setStorageOperationScheme('TrackFacilityElectricDemandStoreExcessOnSite')
+        break
+      end
+      if elcds.empty?
+        elcd = OpenStudio::Model::ElectricLoadCenterDistribution.new(model)
+        elcd.setName("#{obj_name} elec load center dist")
+        elcd.setElectricalBussType('AlternatingCurrentWithStorage')
+      end
     end
 
     elcd.setMinimumStorageStateofChargeFraction(minimum_storage_state_of_charge_fraction)
     elcd.setMaximumStorageStateofChargeFraction(maximum_storage_state_of_charge_fraction)
     elcd.setElectricalStorage(elcs)
     elcd.setDesignStorageControlDischargePower(rated_power_output)
-    elcd.setDesignStorageControlChargePower(rated_power_output)
+    elcd.setDesignStorageControlChargePower(charging_power)
 
     if (not charging_schedule.nil?) && (not discharging_schedule.nil?)
       elcd.setStorageOperationScheme('TrackChargeDischargeSchedules')

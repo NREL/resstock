@@ -25,6 +25,7 @@ module Constants
   ObjectTypeDuctLoad = 'duct load'
   ObjectTypeElectricBaseboard = 'electric baseboard'
   ObjectTypeEvaporativeCooler = 'evap cooler'
+  ObjectTypeEVBatteryDischargeOffset = 'ev battery discharge offset'
   ObjectTypeFanPumpDisaggregateCool = 'disaggregate clg'
   ObjectTypeFanPumpDisaggregatePrimaryHeat = 'disaggregate htg primary'
   ObjectTypeFanPumpDisaggregateBackupHeat = 'disaggregate htg backup'

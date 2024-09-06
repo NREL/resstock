@@ -1001,6 +1001,43 @@
     "parent_hpxml": "sample_files/base-battery.xml",
     "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/battery.csv"
   },
+  "sample_files/base-pv-battery-and-ev.xml": {
+    "parent_hpxml": "sample_files/base-pv-battery.xml",
+    "ev_present": true,
+    "ev_battery_capacity": 100,
+    "ev_battery_usable_capacity": 80,
+    "ev_battery_discharge_power": 6000,
+    "ev_miles_per_year": 10000,
+    "ev_hours_per_week": 14,
+    "ev_energy_efficiency": 0.32,
+    "ev_charger_present": true,
+    "ev_charger_power": 7200,
+    "ev_charger_location": "outside",
+    "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/battery-ev.csv"
+  },
+  "sample_files/base-battery-ev-no-charger.xml": {
+    "parent_hpxml": "sample_files/base-enclosure-garage.xml",
+    "ev_present": true,
+    "ev_battery_capacity": 100,
+    "ev_battery_usable_capacity": 80,
+    "ev_battery_discharge_power": 6000,
+    "ev_miles_per_year": 10000,
+    "ev_hours_per_week": 14,
+    "ev_energy_efficiency": 0.32
+  },
+  "sample_files/base-battery-ev.xml": {
+    "parent_hpxml": "sample_files/base-battery-ev-no-charger.xml",
+    "ev_charger_present": true,
+    "ev_charger_power": 7200,
+    "ev_charger_location": "garage"
+  },
+  "sample_files/base-battery-ev-scheduled.xml": {
+    "parent_hpxml": "sample_files/base-battery-ev.xml",
+    "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/battery-ev.csv"
+  },
+  "sample_files/base-battery-ev-lifetime-model.xml": {
+    "parent_hpxml": "sample_files/base-battery-ev-scheduled.xml"
+  },
   "sample_files/base-battery-scheduled-power-outage.xml": {
     "parent_hpxml": "sample_files/base-battery-scheduled.xml",
     "schedules_power_outage_periods": "Jul 1 5 - Jul 31 14"
@@ -3326,6 +3363,8 @@
     "pv_system_array_tilt": 20,
     "pv_system_max_power_output": 4000,
     "battery_present": true,
+    "ev_present": true,
+    "ev_charger_present": true,
     "clothes_washer_location": null,
     "clothes_washer_efficiency": null,
     "clothes_washer_rated_annual_kwh": null,
@@ -3356,7 +3395,7 @@
     "misc_plug_loads_other_frac_latent": null
   },
   "sample_files/base-misc-emissions.xml": {
-    "parent_hpxml": "sample_files/base-pv-battery.xml",
+    "parent_hpxml": "sample_files/base-pv-battery-and-ev.xml",
     "emissions_scenario_names": "Cambium Hourly MidCase LRMER RMPA, Cambium Hourly LowRECosts LRMER RMPA, Cambium Annual MidCase AER National, eGRID RMPA, eGRID RMPA",
     "emissions_types": "CO2e, CO2e, CO2e, SO2, NOx",
     "emissions_electricity_units": "kg/MWh, kg/MWh, kg/MWh, lb/MWh, lb/MWh",
