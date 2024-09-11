@@ -2560,7 +2560,8 @@ module HPXMLDefaults
           end
         elsif dist_type == HPXML::HVACDistributionTypeHydronic
           # Assume same default logic as a water heater
-          hvac_system.location = Waterheater.get_default_location(hpxml_bldg, hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs[0])
+          iecc_zone = hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs.empty? ? nil : hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs[0].zone
+          hvac_system.location = Waterheater.get_default_location(hpxml_bldg, iecc_zone)
         elsif dist_type == HPXML::HVACDistributionTypeDSE
           # DSE=1 implies distribution system in conditioned space
           has_dse_of_one = true
@@ -2754,7 +2755,8 @@ module HPXMLDefaults
         end
       end
       if water_heating_system.location.nil?
-        water_heating_system.location = Waterheater.get_default_location(hpxml_bldg, hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs[0])
+        iecc_zone = hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs.empty? ? nil : hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs[0].zone
+        water_heating_system.location = Waterheater.get_default_location(hpxml_bldg, iecc_zone)
         water_heating_system.location_isdefaulted = true
       end
       next unless water_heating_system.usage_bin.nil? && (not water_heating_system.uniform_energy_factor.nil?) # FHR & UsageBin only applies to UEF
