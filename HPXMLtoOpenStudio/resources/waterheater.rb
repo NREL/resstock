@@ -1698,13 +1698,13 @@ module Waterheater
     end
   end
 
-  # TODO
+  # Returns the default location of the water heater based on the IECC climate zone.
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param climate_zone_iecc [TODO] TODO
-  # @return [TODO] TODO
-  def self.get_default_location(hpxml_bldg, climate_zone_iecc)
-    iecc_zone = (climate_zone_iecc.nil? ? nil : climate_zone_iecc.zone)
+  # @param iecc_zone [string] IECC climate zone
+  # @return [string] Water heater location (HPXML::LocationXXX)
+  def self.get_default_location(hpxml_bldg, iecc_zone = nil)
+    # ANSI/RESNET/ICC 301-2022C
     if ['1A', '1B', '1C', '2A', '2B', '2C', '3A', '3B', '3C'].include? iecc_zone
       location_hierarchy = [HPXML::LocationGarage,
                             HPXML::LocationConditionedSpace]
