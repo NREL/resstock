@@ -3846,6 +3846,100 @@ The round trip efficiency of the lithium ion battery. If not provided, the OS-HP
 
 <br/>
 
+**Electric Vehicle: Present**
+
+Whether there is an electric vehicle battery present.
+
+- **Name:** ``ev_present``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
+
+<br/>
+
+**Electric Vehicle: Usable Battery Capacity**
+
+The usable capacity of the EV battery. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``ev_battery_usable_capacity``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle: Energy Efficiency**
+
+The efficiency of the EV. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``ev_energy_efficiency``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle: Miles Traveled**
+
+The annual miles traveled by the EV.
+
+- **Name:** ``ev_miles_per_year``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle: Fraction Charged at Home**
+
+The fraction charging energy provided by the at-home charger.
+
+- **Name:** ``ev_fraction_charged_home``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle Charger: Present**
+
+Whether there is an electric vehicle charger present.
+
+- **Name:** ``ev_charger_present``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
+
+<br/>
+
+**Electric Vehicle Charger: Rated Charger Power Output**
+
+The rated power output of the EV charger. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``ev_charger_power``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle Charger: Location**
+
+The space type for the EV charger. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``ev_charger_location``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `auto`, `garage`, `outside`
+
+<br/>
+
 **Lighting: Present**
 
 Whether there is lighting energy use.
@@ -4799,39 +4893,6 @@ Multiplier on the well pump energy usage that can reflect, e.g., high/low usage 
 
 <br/>
 
-**Misc Plug Loads: Vehicle Present**
-
-Whether there is an electric vehicle.
-
-- **Name:** ``misc_plug_loads_vehicle_present``
-- **Type:** ``Boolean``
-
-- **Required:** ``true``
-
-<br/>
-
-**Misc Plug Loads: Vehicle Annual kWh**
-
-The annual energy consumption of the electric vehicle plug loads. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-plug-loads'>HPXML Plug Loads</a>) is used.
-
-- **Name:** ``misc_plug_loads_vehicle_annual_kwh``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**Misc Plug Loads: Vehicle Usage Multiplier**
-
-Multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-plug-loads'>HPXML Plug Loads</a>) is used.
-
-- **Name:** ``misc_plug_loads_vehicle_usage_multiplier``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
 **Misc Fuel Loads: Grill Present**
 
 Whether there is a fuel loads grill.
@@ -5370,17 +5431,6 @@ Additional multiplier on the well pump energy usage that can reflect, e.g., high
 
 <br/>
 
-**Plug Loads: Vehicle Usage Multiplier 2**
-
-Additional multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants.
-
-- **Name:** ``misc_plug_loads_vehicle_2_usage_multiplier``
-- **Type:** ``Double``
-
-- **Required:** ``true``
-
-<br/>
-
 **Heating Setpoint: Weekday Temperature**
 
 Specify the weekday heating setpoint temperature.
@@ -5694,6 +5744,19 @@ Whether the heat pump uses the existing system as backup.
 
 - **Name:** ``heat_pump_backup_use_existing_system``
 - **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle: Average Miles Per Hour**
+
+The average miles/hour driven by the vehicle.
+
+- **Name:** ``ev_average_mph``
+- **Type:** ``Double``
+
+- **Units:** ``hours``
 
 - **Required:** ``false``
 

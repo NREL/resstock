@@ -205,12 +205,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_vehicle_2_usage_multiplier', true)
-    arg.setDisplayName('Plug Loads: Vehicle Usage Multiplier 2')
-    arg.setDescription('Additional multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants.')
-    arg.setDefaultValue(0.0)
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_heating_weekday_setpoint_temp', true)
     arg.setDisplayName('Heating Setpoint: Weekday Temperature')
     arg.setDescription('Specify the weekday heating setpoint temperature.')
@@ -374,6 +368,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Whether the heat pump uses the existing system as backup.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ev_average_mph', false)
+    arg.setDisplayName('Electric Vehicle: Average Miles Per Hour')
+    arg.setDescription('The average miles/hour driven by the vehicle.')
+    arg.setUnits('hours')
+    args << arg
+
     return args
   end
 
@@ -465,7 +465,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:misc_plug_loads_television_usage_multiplier] = args[:misc_plug_loads_television_usage_multiplier] * args[:misc_plug_loads_television_2_usage_multiplier]
     args[:misc_plug_loads_other_usage_multiplier] = args[:misc_plug_loads_other_usage_multiplier] * args[:misc_plug_loads_other_2_usage_multiplier]
     args[:misc_plug_loads_well_pump_usage_multiplier] = args[:misc_plug_loads_well_pump_usage_multiplier] * args[:misc_plug_loads_well_pump_2_usage_multiplier]
-    args[:misc_plug_loads_vehicle_usage_multiplier] = args[:misc_plug_loads_vehicle_usage_multiplier] * args[:misc_plug_loads_vehicle_2_usage_multiplier]
 
     # Other
     if args[:misc_plug_loads_other_annual_kwh] == Constants::Auto
@@ -740,6 +739,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
 
       register_value(runner, arg_name.to_s, arg_value)
+    end
+
+    # Vehicle arguments
+    if (not args[:ev_miles_per_year].nil?) && (not args[:ev_average_mph].nil?)
+      args[:ev_hours_per_week] = args[:ev_miles_per_year] / args[:ev_average_mph]
     end
 
     return true
