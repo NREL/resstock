@@ -41,8 +41,8 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
     _test_schema_validation(@schematron_path, schematron_schema_validator)
   end
 
+  # Test for consistent use of errors/warnings
   def test_role_attributes_in_schematron_doc
-    # Test for consistent use of errors/warnings
     puts
     puts 'Checking for correct role attributes...'
 
@@ -71,8 +71,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
     end
   end
 
+  # Test errors are correctly triggered during the XSD schema or Schematron validation
   def test_schema_schematron_error_messages
-    # Test case => Error message
+    # Test case => Error message(s)
     all_expected_errors = { 'boiler-invalid-afue' => ['Expected AnnualHeatingEfficiency[Units="AFUE"]/Value to be less than or equal to 1'],
                             'clothes-dryer-location' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
                             'clothes-washer-location' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
@@ -239,6 +240,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'missing-duct-location' => ['Expected 0 element(s) for xpath: FractionDuctArea | DuctSurfaceArea [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[not(DuctLocation)], id: "Ducts2"]'],
                             'missing-elements' => ['Expected 1 element(s) for xpath: NumberofConditionedFloors [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction, id: "MyBuilding"]',
                                                    'Expected 1 element(s) for xpath: ConditionedFloorArea [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction, id: "MyBuilding"]'],
+                            'missing-epw-filepath-and-zipcode' => ['Expected 1 or more element(s) for xpath: Address/ZipCode | ../BuildingDetails/ClimateandRiskZones/WeatherStation/extension/EPWFilePath'],
                             'missing-skylight-floor' => ['Expected 1 element(s) for xpath: ../../AttachedToFloor'],
                             'multifamily-reference-appliance' => ['There are references to "other housing unit" but ResidentialFacilityType is not "single-family attached" or "apartment unit".'],
                             'multifamily-reference-duct' => ['There are references to "other multifamily buffer space" but ResidentialFacilityType is not "single-family attached" or "apartment unit".'],
@@ -709,6 +711,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.building_construction.number_of_conditioned_floors = nil
         hpxml_bldg.building_construction.conditioned_floor_area = nil
+      elsif ['missing-epw-filepath-and-zipcode'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base.xml')
+        hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = nil
       elsif ['missing-skylight-floor'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-enclosure-skylights.xml')
         hpxml_bldg.skylights[0].attached_to_floor_idref = nil
@@ -786,8 +791,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
     end
   end
 
+  # Test warnings are correctly triggered during the XSD schema or Schematron validation
   def test_schema_schematron_warning_messages
-    # Test case => Warning message
+    # Test case => Warning message(s)
     all_expected_warnings = { 'battery-pv-output-power-low' => ['Max power output should typically be greater than or equal to 500 W.',
                                                                 'Max power output should typically be greater than or equal to 500 W.',
                                                                 'Rated power output should typically be greater than or equal to 1000 W.'],
@@ -1038,8 +1044,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
     end
   end
 
+  # Test errors are correctly triggered in the HPXMLtoOpenStudio ruby code
   def test_ruby_error_messages
-    # Test case => Error message
+    # Test case => Error message(s)
     all_expected_errors = { 'battery-bad-values-max-greater-than-one' => ["Schedule value for column 'battery' must be less than or equal to 1."],
                             'battery-bad-values-min-less-than-neg-one' => ["Schedule value for column 'battery' must be greater than or equal to -1."],
                             'cfis-with-hydronic-distribution' => ["Attached HVAC distribution system 'HVACDistribution1' cannot be hydronic for ventilation fan 'VentilationFan1'."],
@@ -1686,8 +1693,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
     end
   end
 
+  # Test warnings are correctly triggered in the HPXMLtoOpenStudio ruby code
   def test_ruby_warning_messages
-    # Test case => Error message
+    # Test case => Error message(s)
     all_expected_warnings = { 'cfis-undersized-supplemental-fan' => ["CFIS supplemental fan 'VentilationFan2' is undersized (90.0 cfm) compared to the target hourly ventilation rate (110.0 cfm)."],
                               'duct-lto-cfm25-cond-space' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
                               'duct-lto-cfm25-uncond-space' => ['Very high sum of supply + return duct leakage to the outside; double-check inputs.'],

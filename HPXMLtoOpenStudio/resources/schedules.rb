@@ -1003,7 +1003,7 @@ module Schedule
     end
 
     require 'csv'
-    unavailable_periods_csv_data = CSV.open(unavailable_periods_csv, headers: :first_row).map(&:to_h)
+    unavailable_periods_csv_data = CSV.open(unavailable_periods_csv, headers: true).map(&:to_h)
 
     return unavailable_periods_csv_data
   end

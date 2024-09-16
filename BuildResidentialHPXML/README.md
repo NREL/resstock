@@ -323,7 +323,7 @@ State code of the home address. If not provided, the OS-HPXML default (see <a hr
 
 **Site: Zip Code**
 
-Zip code of the home address.
+Zip code of the home address. Either this or the Weather Station: EnergyPlus Weather (EPW) Filepath input below must be provided.
 
 - **Name:** ``site_zip_code``
 - **Type:** ``String``
@@ -386,12 +386,12 @@ Longitude of the home address. Must be between -180 and 180. Use negative values
 
 **Weather Station: EnergyPlus Weather (EPW) Filepath**
 
-Path of the EPW file.
+Path of the EPW file. Either this or the Site: Zip Code input above must be provided.
 
 - **Name:** ``weather_station_epw_filepath``
 - **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 

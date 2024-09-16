@@ -2,6 +2,7 @@
 
 __New Features__
 - Updates to HPXML v4.0 final release.
+- Allows `Site/Address/ZipCode` to be provided instead of `ClimateandRiskZones/WeatherStation/extension/EPWFilePath`, in which case the closest TMY3 weather station will be automatically selected.
 - Adds inputs for modeling skylight curbs and/or shafts.
 - Allows modeling exterior horizontal insulation for a slab-on-grade foundation (or basement/crawlspace floor).
 - Allows alternative infiltration input `AirInfiltrationMeasurement/LeakinessDescription`, in which the infiltration level is estimated using age of home, climate zone, foundation type, etc.

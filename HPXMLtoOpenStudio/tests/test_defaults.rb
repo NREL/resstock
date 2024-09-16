@@ -75,6 +75,24 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_header_values(default_hpxml, 60, 1, 1, 12, 31, 2007, 7.0, nil, nil, nil)
   end
 
+  def test_weather_station
+    # Test inputs not overridden by defaults
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = 'USA_NV_Las.Vegas-McCarran.Intl.AP.723860_TMY3.epw'
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    assert_equal('USA_NV_Las.Vegas-McCarran.Intl.AP.723860_TMY3.epw', default_hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath)
+
+    # Test defaults w/ zipcode
+    hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = nil
+    hpxml_bldg.zip_code = '08202' # Testing a zip-code with a leading zero to make sure it's handled correctly
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    assert_equal('USA_NJ_Cape.May.County.AP.745966_TMY3.epw', default_hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath)
+    assert_equal('Cape May Co', default_hpxml_bldg.climate_and_risk_zones.weather_station_name)
+    assert_equal('745966', default_hpxml_bldg.climate_and_risk_zones.weather_station_wmo)
+  end
+
   def test_emissions_factors
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-misc-loads-large-uncommon.xml')
