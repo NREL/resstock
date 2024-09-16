@@ -440,9 +440,9 @@ Building site information can be entered in ``/HPXML/Building/Site``.
   Element                                  Type      Units  Constraints      Required  Default   Description
   =======================================  ========  =====  ===============  ========  ========  ===============
   ``SiteID``                               id                                Yes                 Unique identifier
-  ``Address/CityMunicipality``             string                            No        See [#]_  Address city/municipality (not used in the energy model)
+  ``Address/CityMunicipality``             string                            No        See [#]_  Address city/municipality
   ``Address/StateCode``                    string                            No        See [#]_  Address state/territory
-  ``Address/ZipCode``                      string           See [#]_         No                  Address ZIP Code (not used in the energy model)
+  ``Address/ZipCode``                      string           See [#]_         See [#]_            Address ZIP Code
   ``GeoLocation/Latitude``                 double    deg    >= -90, <= 90    No        See [#]_  Site latitude (negative for southern hemisphere)
   ``GeoLocation/Longitude``                double    deg    >= -180, <= 180  No        See [#]_  Site longitude (negative for western hemisphere)
   ``Elevation``                            double    ft                      No        See [#]_  Site elevation
@@ -453,6 +453,7 @@ Building site information can be entered in ``/HPXML/Building/Site``.
   .. [#] If CityMunicipality not provided, defaults according to the EPW weather file header.
   .. [#] If StateCode not provided, defaults according to the EPW weather file header.
   .. [#] ZipCode can be defined as the standard 5 number postal code, or it can have the additional 4 number code separated by a hyphen.
+  .. [#] Either ZipCode or WeatherStation/extension/EPWFilePath (see :ref:`weather_station`) must be provided.
   .. [#] If Latitude not provided, defaults according to the EPW weather file header.
   .. [#] If Longitude not provided, defaults according to the EPW weather file header.
   .. [#] If Elevation not provided, defaults according to the EPW weather file header.
@@ -932,19 +933,27 @@ Climate zone information can be optionally entered as an ``/HPXML/Building/Build
   .. [#] Year choices are 2003, 2006, 2009, 2012, 2015, 2018, 2021, or 2024.
   .. [#] ClimateZone choices are "1A", "1B", "1C", "2A", "2B", "2C", "3A", "3B", "3C", "4A", "4B", "4C", "5A", "5B", "5C", "6A", "6B", "6C", "7", or "8".
 
-If Climate zone information not provided, defaults according to the EPW weather file header.
+If Climate zone information not provided, defaults according to the mapping found at ``HPXMLtoOpenStudio/resources/data/zipcode_weather_stations.csv``.
+
+.. _weather_station:
+
+HPXML Weather Station
+*********************
 
 Weather information is entered in ``/HPXML/Building/BuildingDetails/ClimateandRiskZones/WeatherStation``.
 
-  =========================  ======  =======  ===========  ========  =======  ==============================================
-  Element                    Type    Units    Constraints  Required  Default  Notes
-  =========================  ======  =======  ===========  ========  =======  ==============================================
-  ``SystemIdentifier``       id                            Yes                Unique identifier
-  ``Name``                   string                        Yes                Name of weather station
-  ``extension/EPWFilePath``  string                        Yes                Path to the EnergyPlus weather file (EPW) [#]_
-  =========================  ======  =======  ===========  ========  =======  ==============================================
+  =========================  ======  =======  ===========  ========  ========  ==============================================
+  Element                    Type    Units    Constraints  Required  Default   Notes
+  =========================  ======  =======  ===========  ========  ========  ==============================================
+  ``SystemIdentifier``       id                            Yes                 Unique identifier
+  ``Name``                   string                        Yes                 Name of weather station
+  ``extension/EPWFilePath``  string                        See [#]_  See [#]_  Path to the EnergyPlus weather file (EPW) [#]_
+  =========================  ======  =======  ===========  ========  ========  ==============================================
 
-  .. [#] A full set of U.S. TMY3 weather files can be `downloaded here <https://data.nrel.gov/system/files/128/tmy3s-cache-csv.zip>`_.
+  .. [#] Either EPWFilePath or Address/ZipCode (see :ref:`building_site`) must be provided.
+  .. [#] If EPWFilePath not provided, defaults based on the U.S. TMY3 weather station closest to the zip code centroid.
+         The mapping can be found at ``HPXMLtoOpenStudio/resources/data/zipcode_weather_stations.csv``.
+  .. [#] The full set of U.S. TMY3 EPW weather files can be `downloaded here <https://data.nrel.gov/system/files/128/tmy3s-cache-csv.zip>`_.
 
 .. _enclosure:
 

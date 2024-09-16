@@ -214,7 +214,7 @@
     <sch:rule context='/h:HPXML/h:Building/h:Site'>
       <sch:assert role='ERROR' test='count(h:Address/h:CityMunicipality) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Address/CityMunicipality</sch:assert>
       <sch:assert role='ERROR' test='count(h:Address/h:StateCode) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Address/StateCode</sch:assert>
-      <sch:assert role='ERROR' test='count(h:Address/h:ZipCode) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Address/ZipCode</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Address/h:ZipCode) + count(../h:BuildingDetails/h:ClimateandRiskZones/h:WeatherStation/h:extension/h:EPWFilePath) &gt;= 1'>Expected 1 or more element(s) for xpath: Address/ZipCode | ../BuildingDetails/ClimateandRiskZones/WeatherStation/extension/EPWFilePath</sch:assert>
       <sch:assert role='ERROR' test='count(h:GeoLocation/h:Latitude) &lt;= 1'>Expected 0 or 1 element(s) for xpath: GeoLocation/Latitude</sch:assert>
       <sch:assert role='ERROR' test='count(h:GeoLocation/h:Longitude) &lt;= 1'>Expected 0 or 1 element(s) for xpath: GeoLocation/Longitude</sch:assert>
       <sch:assert role='ERROR' test='count(h:Elevation) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Elevation</sch:assert>
@@ -237,7 +237,6 @@
       <sch:assert role='ERROR' test='count(h:BuildingSummary/h:BuildingOccupancy) &lt;= 1'>Expected 0 or 1 element(s) for xpath: BuildingSummary/BuildingOccupancy</sch:assert> <!-- See [BuildingOccupancy]-->
       <sch:assert role='ERROR' test='count(h:BuildingSummary/h:BuildingConstruction) = 1'>Expected 1 element(s) for xpath: BuildingSummary/BuildingConstruction</sch:assert> <!-- See [BuildingConstruction] -->
       <sch:assert role='ERROR' test='count(h:ClimateandRiskZones/h:ClimateZoneIECC) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ClimateandRiskZones/ClimateZoneIECC</sch:assert> <!-- See [ClimateZoneIECC] -->
-      <sch:assert role='ERROR' test='count(h:ClimateandRiskZones/h:WeatherStation) = 1'>Expected 1 element(s) for xpath: ClimateandRiskZones/WeatherStation</sch:assert> <!-- See [WeatherStation] -->
       <sch:assert role='ERROR' test='count(h:Zones) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Zones</sch:assert> <!-- See [Zones] -->
       <sch:assert role='ERROR' test='count(h:Enclosure/h:Attics/h:Attic) &gt;= 0'>Expected 0 or more element(s) for xpath: Enclosure/Attics/Attic</sch:assert> <!-- See [VentedAttic] or [UnventedAttic] -->
       <sch:assert role='ERROR' test='count(h:Enclosure/h:Foundations/h:Foundation) &gt;= 0'>Expected 0 or more element(s) for xpath: Enclosure/Foundations/Foundation</sch:assert> <!-- See [VentedCrawl] or [UnventedCrawl] or [UncondBasement] or [ManufacturedHomeBelly] -->
@@ -490,13 +489,6 @@
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:ClimateandRiskZones/h:ClimateZoneIECC'>
       <sch:assert role='ERROR' test='count(h:Year) = 1'>Expected 1 element(s) for xpath: Year</sch:assert>
       <sch:assert role='ERROR' test='count(h:ClimateZone) = 1'>Expected 1 element(s) for xpath: ClimateZone</sch:assert>
-    </sch:rule>
-  </sch:pattern>
-
-  <sch:pattern>
-    <sch:title>[WeatherStation]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:ClimateandRiskZones/h:WeatherStation'>
-      <sch:assert role='ERROR' test='count(h:extension/h:EPWFilePath) = 1'>Expected 1 element(s) for xpath: extension/EPWFilePath</sch:assert>
     </sch:rule>
   </sch:pattern>
 

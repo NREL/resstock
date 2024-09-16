@@ -4,6 +4,7 @@ require_relative '../resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
+require 'time'
 require_relative '../resources/weather.rb'
 require_relative '../resources/unit_conversions.rb'
 require_relative '../resources/psychrometrics.rb'
@@ -11,6 +12,9 @@ require_relative '../resources/materials.rb'
 require_relative '../resources/constants.rb'
 require_relative '../resources/util.rb'
 require_relative '../resources/location.rb'
+require_relative '../resources/calendar.rb'
+require_relative '../resources/hpxml_defaults.rb'
+require_relative '../resources/math.rb'
 
 class HPXMLtoOpenStudioWeatherTest < Minitest::Test
   def teardown

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+$zip_csv_data = nil
+
 # Collection of methods related to defaulting optional inputs in the HPXML
 # that were not provided.
 #
@@ -34,10 +36,15 @@ module HPXMLDefaults
     ncfl = hpxml_bldg.building_construction.number_of_conditioned_floors
     ncfl_ag = hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade
 
+    if hpxml.buildings.size > 1
+      # This is helpful if we need to make unique HPXML IDs across dwelling units
+      unit_num = hpxml.buildings.index(hpxml_bldg) + 1
+    end
+
     # Check for presence of fuels once
     has_fuel = hpxml_bldg.has_fuels(hpxml.to_doc)
 
-    add_zones_spaces_if_needed(hpxml, hpxml_bldg, cfa)
+    add_zones_spaces_if_needed(hpxml_bldg, cfa, unit_num)
 
     @default_schedules_csv_data = get_default_schedules_csv_data()
 
@@ -52,7 +59,7 @@ module HPXMLDefaults
     apply_building_occupancy(hpxml_bldg, schedules_file)
     apply_building_construction(hpxml.header, hpxml_bldg, cfa, nbeds)
     apply_zone_spaces(hpxml_bldg)
-    apply_climate_and_risk_zones(hpxml_bldg, weather)
+    apply_climate_and_risk_zones(hpxml_bldg, weather, unit_num)
     apply_attics(hpxml_bldg)
     apply_foundations(hpxml_bldg)
     apply_roofs(hpxml_bldg)
@@ -66,7 +73,7 @@ module HPXMLDefaults
     apply_doors(hpxml_bldg)
     apply_partition_wall_mass(hpxml_bldg)
     apply_furniture_mass(hpxml_bldg)
-    apply_hvac(runner, hpxml, hpxml_bldg, weather, convert_shared_systems)
+    apply_hvac(runner, hpxml_bldg, weather, convert_shared_systems, unit_num)
     apply_hvac_control(hpxml_bldg, schedules_file, eri_version)
     apply_hvac_distribution(hpxml_bldg, ncfl, ncfl_ag)
     apply_infiltration(hpxml_bldg)
@@ -143,19 +150,18 @@ module HPXMLDefaults
   # Simplifies the HVAC autosizing code so that it can operate on zones/spaces whether the HPXML
   # file includes them or not.
   #
-  # @param hpxml [HPXML] HPXML object
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
+  # @param unit_num [Integer] Dwelling unit number
   # @return [nil]
-  def self.add_zones_spaces_if_needed(hpxml, hpxml_bldg, cfa)
-    bldg_idx = hpxml.buildings.index(hpxml_bldg)
+  def self.add_zones_spaces_if_needed(hpxml_bldg, cfa, unit_num)
     if hpxml_bldg.conditioned_zones.empty?
-      hpxml_bldg.zones.add(id: "#{Constants::AutomaticallyAdded}Zone#{bldg_idx + 1}",
+      hpxml_bldg.zones.add(id: "#{Constants::AutomaticallyAdded}Zone#{unit_num}",
                            zone_type: HPXML::ZoneTypeConditioned)
       hpxml_bldg.hvac_systems.each do |hvac_system|
         hvac_system.attached_to_zone_idref = hpxml_bldg.zones[-1].id
       end
-      hpxml_bldg.zones[-1].spaces.add(id: "#{Constants::AutomaticallyAdded}Space#{bldg_idx + 1}",
+      hpxml_bldg.zones[-1].spaces.add(id: "#{Constants::AutomaticallyAdded}Space#{unit_num}",
                                       floor_area: cfa)
       hpxml_bldg.surfaces.each do |surface|
         next unless HPXML::conditioned_locations_this_unit.include? surface.interior_adjacent_to
@@ -922,16 +928,27 @@ module HPXMLDefaults
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
+  # @param unit_num [Integer] Dwelling unit number
   # @return [nil]
-  def self.apply_climate_and_risk_zones(hpxml_bldg, weather)
+  def self.apply_climate_and_risk_zones(hpxml_bldg, weather, unit_num)
     if (not weather.nil?) && hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs.empty?
-      zone = Location.get_climate_zone_iecc(weather.header.WMONumber)
-      if not zone.nil?
-        hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs.add(zone: zone,
+      weather_data = lookup_weather_data_from_wmo(weather.header.WMONumber)
+      if not weather_data.nil?
+        hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs.add(zone: weather_data[:zipcode_iecc_zone],
                                                                  year: 2006,
                                                                  zone_isdefaulted: true,
                                                                  year_isdefaulted: true)
       end
+    end
+    if hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath.nil?
+      hpxml_bldg.climate_and_risk_zones.weather_station_id = "WeatherStation#{unit_num}"
+      weather_data = lookup_weather_data_from_zipcode(hpxml_bldg.zip_code)
+      hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = weather_data[:station_filename]
+      hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath_isdefaulted = true
+      hpxml_bldg.climate_and_risk_zones.weather_station_name = weather_data[:station_name]
+      hpxml_bldg.climate_and_risk_zones.weather_station_name_isdefaulted = true
+      hpxml_bldg.climate_and_risk_zones.weather_station_wmo = weather_data[:station_wmo]
+      hpxml_bldg.climate_and_risk_zones.weather_station_wmo_isdefaulted = true
     end
   end
 
@@ -1703,12 +1720,12 @@ module HPXMLDefaults
   # HPXML::CoolingSystem, and HPXML::HeatPump objects
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
-  # @param hpxml [HPXML] HPXML object
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param convert_shared_systems [Boolean] Whether to convert shared systems to equivalent in-unit systems per ANSI 301
+  # @param unit_num [Integer] Dwelling unit number
   # @return [nil]
-  def self.apply_hvac(runner, hpxml, hpxml_bldg, weather, convert_shared_systems)
+  def self.apply_hvac(runner, hpxml_bldg, weather, convert_shared_systems, unit_num)
     if convert_shared_systems
       HVAC.apply_shared_systems(hpxml_bldg)
     end
@@ -2157,9 +2174,8 @@ module HPXMLDefaults
 
       elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
         if heat_pump.geothermal_loop.nil?
-          if hpxml.buildings.size > 1
-            bldg_idx = hpxml.buildings.index(hpxml_bldg)
-            loop_id = "GeothermalLoop#{hpxml_bldg.geothermal_loops.size + 1}_#{bldg_idx + 1}"
+          if not unit_num.nil?
+            loop_id = "GeothermalLoop#{hpxml_bldg.geothermal_loops.size + 1}_#{unit_num}"
           else
             loop_id = "GeothermalLoop#{hpxml_bldg.geothermal_loops.size + 1}"
           end
@@ -4043,5 +4059,103 @@ module HPXMLDefaults
     end
 
     return default_schedules_csv_data
+  end
+
+  # Reads the data (or retrieves the cached data) from zipcode_weather_stations.csv.
+  # Uses a global variable so the data is only read once.
+  #
+  # @return [Array<Array>] Array of arrays of data
+  def self.get_weather_station_csv_data
+    zipcode_csv_filepath = File.join(File.dirname(__FILE__), 'data', 'zipcode_weather_stations.csv')
+
+    if $zip_csv_data.nil?
+      # Don't use the CSV library because it's much slower
+      $zip_csv_data = File.readlines(zipcode_csv_filepath).map(&:strip)
+    end
+
+    return $zip_csv_data
+  end
+
+  # Get the default TMY3 EPW weather station for the specified zipcode. If the exact
+  # zipcode is not found, we find the closest zipcode that shares the first 3 digits.
+  #
+  # @param zipcode [string] Zipcode of interest
+  # @return [Hash] Mapping with keys for every column name in zipcode_weather_stations.csv
+  def self.lookup_weather_data_from_zipcode(zipcode)
+    begin
+      zipcode3 = zipcode[0, 3]
+      zipcode_int = Integer(Float(zipcode[0, 5])) # Convert to 5-digit integer
+    rescue
+      fail "Unexpected zip code: #{zipcode}."
+    end
+
+    zip_csv_data = get_weather_station_csv_data()
+
+    weather_station = {}
+    zip_distance = 99999 # init
+    col_names = nil
+    zip_csv_data.each_with_index do |row, i|
+      if i == 0 # header
+        col_names = row.split(',').map { |x| x.to_sym }
+        next
+      end
+      next if row.nil?
+      next unless row.start_with?(zipcode3) # Only allow match if first 3 digits are the same
+
+      row = row.split(',')
+
+      if row[0].size != 5
+        fail "Zip code '#{row[0]}' in zipcode_weather_stations.csv does not have 5 digits."
+      end
+
+      distance = (Integer(Float(row[0])) - zipcode_int).abs() # Find closest zip code
+      if distance < zip_distance
+        zip_distance = distance
+        weather_station = {}
+        col_names.each_with_index do |col_name, j|
+          weather_station[col_name] = row[j]
+        end
+      end
+      if distance == 0
+        return weather_station # Exact match
+      end
+    end
+
+    if weather_station.empty?
+      fail "Zip code '#{zipcode}' could not be found in zipcode_weather_stations.csv"
+    end
+
+    return weather_station
+  end
+
+  # Get the default TMY3 EPW weather station for the specified WMO.
+  #
+  # @param wmo [string] Weather station World Meteorological Organization (WMO) number
+  # @return [Hash or nil] Mapping with keys for every column name in zipcode_weather_stations.csv if WMO is found, otherwise nil
+  def self.lookup_weather_data_from_wmo(wmo)
+    zip_csv_data = get_weather_station_csv_data()
+
+    col_names = nil
+    wmo_idx = nil
+    zip_csv_data.each_with_index do |row, i|
+      if i == 0 # header
+        col_names = row.split(',').map { |x| x.to_sym }
+        wmo_idx = col_names.index(:station_wmo)
+        next
+      end
+      next if row.nil?
+
+      row = row.split(',')
+
+      next unless row[wmo_idx] == wmo
+
+      weather_station = {}
+      col_names.each_with_index do |col_name, j|
+        weather_station[col_name] = row[j]
+      end
+      return weather_station
+    end
+
+    return
   end
 end

@@ -221,7 +221,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('site_zip_code', false)
     arg.setDisplayName('Site: Zip Code')
-    arg.setDescription('Zip code of the home address.')
+    arg.setDescription('Zip code of the home address. Either this or the Weather Station: EnergyPlus Weather (EPW) Filepath input below must be provided.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_time_zone_utc_offset', false)
@@ -248,10 +248,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('deg')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', true)
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', false)
     arg.setDisplayName('Weather Station: EnergyPlus Weather (EPW) Filepath')
-    arg.setDescription('Path of the EPW file.')
-    arg.setDefaultValue('USA_CO_Denver.Intl.AP.725650_TMY3.epw')
+    arg.setDescription('Path of the EPW file. Either this or the Site: Zip Code input above must be provided.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('year_built', false)
@@ -3521,8 +3520,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Create EpwFile object
+    if args[:weather_station_epw_filepath].nil? && args[:site_zip_code].nil?
+      runner.registerError('Either EPW filepath or site zip code is required.')
+      return false
+    end
+
     epw_path = args[:weather_station_epw_filepath]
+    if epw_path.nil?
+      # Get EPW path from zip code
+      epw_path = HPXMLDefaults.lookup_weather_data_from_zipcode(args[:site_zip_code])[:station_filename]
+    end
+
+    # Create EpwFile object
     if not File.exist? epw_path
       epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
     end
@@ -4707,16 +4716,16 @@ module HPXMLFile
   # @param args [Hash] Map of :argument_name => value
   # @return [nil]
   def self.set_climate_and_risk_zones(hpxml_bldg, args)
-    hpxml_bldg.climate_and_risk_zones.weather_station_id = 'WeatherStation'
-
     if not args[:site_iecc_zone].nil?
       hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs.add(zone: args[:site_iecc_zone],
                                                                year: 2006)
     end
 
-    weather_station_name = File.basename(args[:weather_station_epw_filepath]).gsub('.epw', '')
-    hpxml_bldg.climate_and_risk_zones.weather_station_name = weather_station_name
-    hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = args[:weather_station_epw_filepath]
+    if not args[:weather_station_epw_filepath].nil?
+      hpxml_bldg.climate_and_risk_zones.weather_station_id = 'WeatherStation'
+      hpxml_bldg.climate_and_risk_zones.weather_station_name = File.basename(args[:weather_station_epw_filepath]).gsub('.epw', '')
+      hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = args[:weather_station_epw_filepath]
+    end
   end
 
   # Set air infiltration measurements properties, including:
