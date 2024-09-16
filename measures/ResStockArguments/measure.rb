@@ -734,20 +734,21 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
+    # Vehicle arguments
+    if (not args[:ev_miles_per_year].nil?) && (not args[:ev_fraction_charged_home].nil?)
+      args[:ev_miles_per_year] = args[:ev_miles_per_year] * args[:ev_fraction_charged_home]
+    end
+    if (not args[:ev_miles_per_year].nil?) && (not args[:ev_average_mph].nil?)
+      hours_per_year = args[:ev_miles_per_year] / args[:ev_average_mph]
+      args[:ev_hours_per_week] = (hours_per_year / UnitConversions.convert(1, 'yr', 'day')) * 7
+    end
+
     args.each do |arg_name, arg_value|
       if args_to_delete.include?(arg_name) || (arg_value == Constants::Auto)
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
       end
 
       register_value(runner, arg_name.to_s, arg_value)
-    end
-
-    # Vehicle arguments
-    if (not args[:ev_miles_per_year].nil?) && (not args[:ev_fraction_charged_home].nil?)
-      args[:ev_miles_per_year] = args[:ev_miles_per_year] * args[:ev_fraction_charged_home]
-    end
-    if (not args[:ev_miles_per_year].nil?) && (not args[:ev_average_mph].nil?)
-      args[:ev_hours_per_week] = args[:ev_miles_per_year] / args[:ev_average_mph]
     end
 
     return true
