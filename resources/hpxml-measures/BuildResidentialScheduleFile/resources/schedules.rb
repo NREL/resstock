@@ -1155,6 +1155,7 @@ class ScheduleGenerator
     agg_discharging_schedule = aggregate_array(discharging_schedule, @minutes_per_step).map { |val| val / 60.0 }
     @schedules[SchedulesFile::Columns[:EVBatteryCharging].name] = agg_charging_schedule
     @schedules[SchedulesFile::Columns[:EVBatteryDischarging].name] = agg_discharging_schedule
+  end
 
   # Get the weekday/weekend schedule fractions for TV plug loads and monthly multipliers for interior lighting, dishwasher, clothes washer/dryer, cooking range, and other/TV plug loads.
   #
