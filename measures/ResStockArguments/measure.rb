@@ -743,6 +743,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Vehicle arguments
+    if (not args[:ev_miles_per_year].nil?) && (not args[:ev_fraction_charged_home].nil?)
+      args[:ev_miles_per_year] = args[:ev_miles_per_year] * args[:ev_fraction_charged_home]
+    end
     if (not args[:ev_miles_per_year].nil?) && (not args[:ev_average_mph].nil?)
       args[:ev_hours_per_week] = args[:ev_miles_per_year] / args[:ev_average_mph]
     end
