@@ -6279,7 +6279,7 @@ Arguments
      - 
      - String
      -
-     - Zip code of the home address.
+     - Zip code of the home address. Either this or the Weather Station: EnergyPlus Weather (EPW) Filepath input below must be provided.
    * - ``site_time_zone_utc_offset``
      - false
      - hr
@@ -6287,11 +6287,11 @@ Arguments
      - auto
      - Time zone UTC offset of the home address. Must be between -12 and 14. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``weather_station_epw_filepath``
-     - true
+     - false
      - 
      - String
      -
-     - Path of the EPW file.
+     - Path of the EPW file. Either this or the Site: Zip Code input above must be provided.
 
 Options
 *******
