@@ -4434,9 +4434,9 @@ The round trip efficiency of the lithium ion battery. If not provided, the OS-HP
 
 **Electric Vehicle: Present**
 
-Whether there is an electric vehicle battery present.
+Whether there is an electric vehicle battery present. Cannot be included if an electric vehicle is modeled as a plug load as specified by the `misc_plug_loads_vehicle_present` argument.
 
-- **Name:** ``ev_present``
+- **Name:** ``ev_battery_present``
 - **Type:** ``Boolean``
 
 - **Required:** ``false``
@@ -5589,7 +5589,7 @@ Multiplier on the well pump energy usage that can reflect, e.g., high/low usage 
 
 **Misc Plug Loads: Vehicle Present**
 
-Whether there is an electric vehicle.
+Whether there is an electric vehicle. Cannot be included if an electric vehicle is modeled as a battery as specified by the `ev_battery_present` argument.
 
 - **Name:** ``misc_plug_loads_vehicle_present``
 - **Type:** ``Boolean``
