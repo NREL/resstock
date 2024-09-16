@@ -2624,9 +2624,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('ev_present', false)
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('ev_battery_present', false)
     arg.setDisplayName('Electric Vehicle: Present')
-    arg.setDescription('Whether there is an electric vehicle battery present.')
+    arg.setDescription('Whether there is an electric vehicle battery present. Cannot be included if an electric vehicle is modeled as a plug load as specified by the `misc_plug_loads_vehicle_present` argument.')
     arg.setDefaultValue(false)
     args << arg
 
@@ -3226,7 +3226,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('misc_plug_loads_vehicle_present', true)
     arg.setDisplayName('Misc Plug Loads: Vehicle Present')
-    arg.setDescription('Whether there is an electric vehicle.')
+    arg.setDescription('Whether there is an electric vehicle. Cannot be included if an electric vehicle is modeled as a battery as specified by the `ev_battery_present` argument.')
     arg.setDefaultValue(false)
     args << arg
 
@@ -3866,6 +3866,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     error = (args[:window_aspect_ratio] <= 0)
     errors << 'Window aspect ratio must be greater than zero.' if error
+
+    error = args[:misc_plug_loads_vehicle_present] && args[:ev_battery_present]
+    errors << 'Cannot specify an electric vehicle as a plug load and as a battery.' if error
 
     return errors
   end
@@ -6845,7 +6848,7 @@ module HPXMLFile
   # @param args [Hash] Map of :argument_name => value
   # @return [nil]
   def self.set_electric_vehicle(hpxml_bldg, args)
-    if args[:ev_present] != true
+    if args[:ev_battery_present] != true
       return
     end
 

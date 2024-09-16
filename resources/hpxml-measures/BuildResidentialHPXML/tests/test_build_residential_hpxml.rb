@@ -938,11 +938,11 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['battery_present'] = true
       args['battery_location'] = HPXML::LocationAttic
     elsif ['extra-ev-battery.xml'].include? hpxml_file
-      args['ev_present'] = true
+      args['ev_battery_present'] = true
       args['ev_charger_present'] = true
       args['ev_charger_location'] = HPXML::LocationGarage
     elsif ['extra-two-batteries.xml'].include? hpxml_file
-      args['ev_present'] = true
+      args['ev_battery_present'] = true
       args['battery_present'] = true
       args['battery_location'] = HPXML::LocationAttic
     elsif ['extra-detailed-performance-autosize.xml'].include? hpxml_file

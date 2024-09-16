@@ -542,8 +542,6 @@ All possible measure outputs are listed below. Actual outputs depend on measure 
 
 - ``end_use_electricity_battery_m_btu``
 
-- ``end_use_electricity_ev_battery_charging_m_btu``
-
 - ``end_use_natural_gas_heating_m_btu``
 
 - ``end_use_natural_gas_heating_heat_pump_backup_m_btu``

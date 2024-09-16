@@ -189,6 +189,8 @@ module Battery
 
     # Apply round trip efficiency as EMS program b/c E+ input is not hooked up.
     # Replace this when the first item in https://github.com/NREL/EnergyPlus/issues/9176 is fixed.
+    return if is_ev
+
     charge_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Electric Storage Charge Energy')
     charge_sensor.setName('battery_charge')
     charge_sensor.setKeyName(elcs.name.to_s)

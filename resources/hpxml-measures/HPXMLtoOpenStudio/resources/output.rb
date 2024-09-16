@@ -60,7 +60,6 @@ module EUT
   PV = 'PV'
   Generator = 'Generator'
   Battery = 'Battery'
-  EVBattery = 'EV Battery Charging'
 end
 
 # TODO
