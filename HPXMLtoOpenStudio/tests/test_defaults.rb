@@ -706,7 +706,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_infiltration_values(default_hpxml_bldg, 2000 * 8, false, 8.0 + (9.7 - 8.0) * 0.25)
   end
 
-  def test_infiltration_compartmentaliztion_test_adjustment
+  def test_infiltration_compartmentalization_test_adjustment
     # Test single-family detached
     hpxml, hpxml_bldg = _create_hpxml('base.xml')
     hpxml_bldg.air_infiltration_measurements[0].infiltration_type = HPXML::InfiltrationTypeUnitTotal

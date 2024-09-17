@@ -22,19 +22,26 @@ module HPXMLDefaults
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml [HPXML] HPXML object
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param convert_shared_systems [Boolean] Whether to convert shared systems to equivalent in-unit systems per ANSI 301
   # @param design_load_details_output_file_path [String] Detailed HVAC sizing output file path
   # @param output_format [String] Detailed HVAC sizing output file format ('csv', 'json', or 'msgpack')
   # @return [nil]
-  def self.apply(runner, hpxml, hpxml_bldg, eri_version, weather, schedules_file: nil, convert_shared_systems: true,
+  def self.apply(runner, hpxml, hpxml_bldg, weather, schedules_file: nil, convert_shared_systems: true,
                  design_load_details_output_file_path: nil, output_format: 'csv')
     cfa = hpxml_bldg.building_construction.conditioned_floor_area
     nbeds = hpxml_bldg.building_construction.number_of_bedrooms
     ncfl = hpxml_bldg.building_construction.number_of_conditioned_floors
     ncfl_ag = hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade
+
+    eri_version = hpxml.header.eri_calculation_version
+    if eri_version.nil?
+      eri_version = 'latest'
+    end
+    if eri_version == 'latest'
+      eri_version = Constants::ERIVersions[-1]
+    end
 
     if hpxml.buildings.size > 1
       # This is helpful if we need to make unique HPXML IDs across dwelling units

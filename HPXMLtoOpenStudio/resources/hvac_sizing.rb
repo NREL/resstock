@@ -1745,7 +1745,7 @@ module HVACSizing
     elsif [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
            HPXML::LocationOtherNonFreezingSpace, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab,
            HPXML::LocationManufacturedHomeBelly].include? duct.duct_location
-      space_values = Geometry.get_temperature_scheduled_space_values(location: duct.duct_location)
+      space_values = Geometry.get_temperature_scheduled_space_values(duct.duct_location)
       f_regain = space_values[:f_regain]
 
     elsif [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented].include? duct.duct_location
@@ -3802,7 +3802,7 @@ module HVACSizing
     else # Unvented space
       ach = Airflow.get_default_unvented_space_ach()
     end
-    volume = Geometry.calculate_zone_volume(hpxml_bldg: hpxml_bldg, location: location)
+    volume = Geometry.calculate_zone_volume(hpxml_bldg, location)
     infiltration_cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
     space_UAs[HPXML::LocationOutside] += infiltration_cfm * mj.outside_air_density * Gas.Air.cp * UnitConversions.convert(1.0, 'hr', 'min')
 
@@ -3890,7 +3890,7 @@ module HVACSizing
   # @param ground_temp [Double] The approximate ground temperature during the heating or cooling season (F)
   # @return [Double] The location's design temperature (F)
   def self.calculate_scheduled_space_design_temps(location, setpoint_temp, outdoor_design_temp, ground_temp)
-    space_values = Geometry.get_temperature_scheduled_space_values(location: location)
+    space_values = Geometry.get_temperature_scheduled_space_values(location)
     design_temp = setpoint_temp * space_values[:indoor_weight] + outdoor_design_temp * space_values[:outdoor_weight] + ground_temp * space_values[:ground_weight]
     if not space_values[:temp_min].nil?
       design_temp = [design_temp, space_values[:temp_min]].max

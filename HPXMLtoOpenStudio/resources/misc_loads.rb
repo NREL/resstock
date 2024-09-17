@@ -1,19 +1,49 @@
 # frozen_string_literal: true
 
-# TODO
+# Collection of methods related to miscellaneous plug/fuel loads.
 module MiscLoads
-  # TODO
+  # Adds any HPXML Plug Loads to the OpenStudio model.
   #
-  # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
+  # @return [nil]
+  def self.apply_plug_loads(runner, model, spaces, hpxml_bldg, hpxml_header, schedules_file)
+    hpxml_bldg.plug_loads.each do |plug_load|
+      if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
+        obj_name = Constants::ObjectTypeMiscPlugLoads
+      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
+        obj_name = Constants::ObjectTypeMiscTelevision
+      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging
+        obj_name = Constants::ObjectTypeMiscElectricVehicleCharging
+      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
+        obj_name = Constants::ObjectTypeMiscWellPump
+      end
+      if obj_name.nil?
+        runner.registerWarning("Unexpected plug load type '#{plug_load.plug_load_type}'. The plug load will not be modeled.")
+        next
+      end
+
+      apply_plug_load(runner, model, plug_load, obj_name, spaces, schedules_file,
+                      hpxml_header.unavailable_periods, hpxml_header.apply_ashrae140_assumptions)
+    end
+  end
+
+  # Adds the HPXML Plug Load to the OpenStudio model.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param plug_load [TODO] TODO
   # @param obj_name [String] Name for the OpenStudio object
-  # @param conditioned_space [TODO] TODO
-  # @param apply_ashrae140_assumptions [TODO] TODO
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @return [TODO] TODO
-  def self.apply_plug(model, runner, plug_load, obj_name, conditioned_space, apply_ashrae140_assumptions, schedules_file, unavailable_periods)
+  # @param apply_ashrae140_assumptions [TODO] TODO
+  # @return [nil]
+  def self.apply_plug_load(runner, model, plug_load, obj_name, spaces, schedules_file, unavailable_periods, apply_ashrae140_assumptions)
     kwh = 0
     if not plug_load.nil?
       kwh = plug_load.kwh_per_year * plug_load.usage_multiplier
@@ -62,7 +92,7 @@ module MiscLoads
     mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
     mel.setName(obj_name)
     mel.setEndUseSubcategory(obj_name)
-    mel.setSpace(conditioned_space)
+    mel.setSpace(spaces[HPXML::LocationConditionedSpace])
     mel_def.setName(obj_name)
     mel_def.setDesignLevel(space_design_level)
     mel_def.setFractionRadiant(rad_frac)
@@ -71,17 +101,45 @@ module MiscLoads
     mel.setSchedule(sch)
   end
 
-  # TODO
+  # Adds any HPXML Fuel Loads to the OpenStudio model.
   #
-  # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
+  # @return [nil]
+  def self.apply_fuel_loads(runner, model, spaces, hpxml_bldg, hpxml_header, schedules_file)
+    hpxml_bldg.fuel_loads.each do |fuel_load|
+      if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
+        obj_name = Constants::ObjectTypeMiscGrill
+      elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeLighting
+        obj_name = Constants::ObjectTypeMiscLighting
+      elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeFireplace
+        obj_name = Constants::ObjectTypeMiscFireplace
+      end
+      if obj_name.nil?
+        runner.registerWarning("Unexpected fuel load type '#{fuel_load.fuel_load_type}'. The fuel load will not be modeled.")
+        next
+      end
+
+      apply_fuel_load(runner, model, fuel_load, obj_name, spaces, schedules_file,
+                      hpxml_header.unavailable_periods)
+    end
+  end
+
+  # Adds the HPXML Fuel Load to the OpenStudio model.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param fuel_load [TODO] TODO
   # @param obj_name [String] Name for the OpenStudio object
-  # @param conditioned_space [TODO] TODO
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @return [TODO] TODO
-  def self.apply_fuel(model, runner, fuel_load, obj_name, conditioned_space, schedules_file, unavailable_periods)
+  # @return [nil]
+  def self.apply_fuel_load(runner, model, fuel_load, obj_name, spaces, schedules_file, unavailable_periods)
     therm = 0
     if not fuel_load.nil?
       therm = fuel_load.therm_per_year * fuel_load.usage_multiplier
@@ -122,7 +180,7 @@ module MiscLoads
     mfl.setName(obj_name)
     mfl.setEndUseSubcategory(obj_name)
     mfl.setFuelType(EPlus.fuel_type(fuel_load.fuel_type))
-    mfl.setSpace(conditioned_space)
+    mfl.setSpace(spaces[HPXML::LocationConditionedSpace])
     mfl_def.setName(obj_name)
     mfl_def.setDesignLevel(space_design_level)
     mfl_def.setFractionRadiant(0.6 * sens_frac)
@@ -131,16 +189,38 @@ module MiscLoads
     mfl.setSchedule(sch)
   end
 
-  # TODO
+  # Adds any HPXML Pools and Permanent Spas to the OpenStudio model.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
+  # @return [nil]
+  def self.apply_pools_and_permanent_spas(runner, model, spaces, hpxml_bldg, hpxml_header, schedules_file)
+    (hpxml_bldg.pools + hpxml_bldg.permanent_spas).each do |pool_or_spa|
+      next if pool_or_spa.type == HPXML::TypeNone
+
+      apply_pool_or_permanent_spa_heater(runner, model, pool_or_spa, spaces,
+                                         schedules_file, hpxml_header.unavailable_periods)
+      next if pool_or_spa.pump_type == HPXML::TypeNone
+
+      apply_pool_or_permanent_spa_pump(runner, model, pool_or_spa, spaces,
+                                       schedules_file, hpxml_header.unavailable_periods)
+    end
+  end
+
+  # Adds the HPXML Pool or Permanent Spa Heater to the OpenStudio model.
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param pool_or_spa [TODO] TODO
-  # @param conditioned_space [TODO] TODO
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @return [TODO] TODO
-  def self.apply_pool_or_permanent_spa_heater(runner, model, pool_or_spa, conditioned_space, schedules_file, unavailable_periods)
+  # @return [nil]
+  def self.apply_pool_or_permanent_spa_heater(runner, model, pool_or_spa, spaces, schedules_file, unavailable_periods)
     return if pool_or_spa.heater_type == HPXML::TypeNone
 
     heater_kwh = 0
@@ -187,7 +267,7 @@ module MiscLoads
       mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
       mel.setName(obj_name)
       mel.setEndUseSubcategory(obj_name)
-      mel.setSpace(conditioned_space) # no heat gain, so assign the equipment to an arbitrary space
+      mel.setSpace(spaces[HPXML::LocationConditionedSpace]) # no heat gain, so assign the equipment to an arbitrary space
       mel_def.setName(obj_name)
       mel_def.setDesignLevel(space_design_level)
       mel_def.setFractionRadiant(0)
@@ -210,7 +290,7 @@ module MiscLoads
       mfl.setName(obj_name)
       mfl.setEndUseSubcategory(obj_name)
       mfl.setFuelType(EPlus.fuel_type(HPXML::FuelTypeNaturalGas))
-      mfl.setSpace(conditioned_space) # no heat gain, so assign the equipment to an arbitrary space
+      mfl.setSpace(spaces[HPXML::LocationConditionedSpace]) # no heat gain, so assign the equipment to an arbitrary space
       mfl_def.setName(obj_name)
       mfl_def.setDesignLevel(space_design_level)
       mfl_def.setFractionRadiant(0)
@@ -220,16 +300,16 @@ module MiscLoads
     end
   end
 
-  # TODO
+  # Adds the HPXML Pool or Permanent Spa Pump to the OpenStudio model.
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param pool_or_spa [TODO] TODO
-  # @param conditioned_space [TODO] TODO
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @return [TODO] TODO
-  def self.apply_pool_or_permanent_spa_pump(runner, model, pool_or_spa, conditioned_space, schedules_file, unavailable_periods)
+  # @return [nil]
+  def self.apply_pool_or_permanent_spa_pump(runner, model, pool_or_spa, spaces, schedules_file, unavailable_periods)
     pump_kwh = 0
     if not pool_or_spa.pump_kwh_per_year.nil?
       pump_kwh = pool_or_spa.pump_kwh_per_year * pool_or_spa.pump_usage_multiplier
@@ -270,7 +350,7 @@ module MiscLoads
     mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
     mel.setName(obj_name)
     mel.setEndUseSubcategory(obj_name)
-    mel.setSpace(conditioned_space) # no heat gain, so assign the equipment to an arbitrary space
+    mel.setSpace(spaces[HPXML::LocationConditionedSpace]) # no heat gain, so assign the equipment to an arbitrary space
     mel_def.setName(obj_name)
     mel_def.setDesignLevel(space_design_level)
     mel_def.setFractionRadiant(0)

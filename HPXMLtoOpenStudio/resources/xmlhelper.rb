@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# TODO
+# Collection of helper methods related to XML reading/writing.
 module XMLHelper
   # Adds the child element with 'element_name' and sets its value. Returns the
   # child element.

@@ -7,14 +7,25 @@ module Location
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param epw_path [String] Path to the EPW weather file
   # @return [nil]
-  def self.apply(model, weather, hpxml_header, hpxml_bldg)
+  def self.apply(model, weather, hpxml_bldg, hpxml_header, epw_path)
+    apply_weather_file(model, epw_path)
     apply_year(model, hpxml_header, weather)
     apply_site(model, hpxml_bldg)
     apply_dst(model, hpxml_bldg)
     apply_ground_temps(model, weather, hpxml_bldg)
+  end
+
+  # Sets the OpenStudio WeatherFile object.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param epw_path [String] Path to the EPW weather file
+  # @return [nil]
+  def self.apply_weather_file(model, epw_path)
+    OpenStudio::Model::WeatherFile.setWeatherFile(model, OpenStudio::EpwFile.new(epw_path))
   end
 
   # Set latitude, longitude, time zone, and elevation on the OpenStudio Site object.

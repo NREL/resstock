@@ -1,22 +1,23 @@
 # frozen_string_literal: true
 
-# TODO
+# Collection of methods related to lighting.
 module Lighting
-  # TODO
+  # Adds any HPXML Lighting Groups and Lighting to the OpenStudio model.
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param spaces [Hash] keys are locations and values are OpenStudio::Model::Space objects
-  # @param lighting_groups [TODO] TODO
-  # @param lighting [TODO] TODO
-  # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
-  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @return [TODO] TODO
-  def self.apply(runner, model, spaces, lighting_groups, lighting, eri_version, schedules_file, cfa,
-                 unavailable_periods, unit_multiplier)
+  # @return [nil]
+  def self.apply(runner, model, spaces, hpxml_bldg, hpxml_header, schedules_file)
+    lighting_groups = hpxml_bldg.lighting_groups
+    lighting = hpxml_bldg.lighting
+    unit_multiplier = hpxml_bldg.building_construction.number_of_units
+    cfa = hpxml_bldg.building_construction.conditioned_floor_area
+    eri_version = hpxml_header.eri_calculation_version
+
     ltg_locns = [HPXML::LocationInterior, HPXML::LocationExterior, HPXML::LocationGarage]
     ltg_types = [HPXML::LightingTypeCFL, HPXML::LightingTypeLFL, HPXML::LightingTypeLED]
 
@@ -83,7 +84,7 @@ module Lighting
         interior_sch = schedules_file.create_schedule_file(model, col_name: interior_col_name)
       end
       if interior_sch.nil?
-        interior_unavailable_periods = Schedule.get_unavailable_periods(runner, interior_col_name, unavailable_periods)
+        interior_unavailable_periods = Schedule.get_unavailable_periods(runner, interior_col_name, hpxml_header.unavailable_periods)
         interior_weekday_sch = lighting.interior_weekday_fractions
         interior_weekend_sch = lighting.interior_weekend_fractions
         interior_monthly_sch = lighting.interior_monthly_multipliers
@@ -122,7 +123,7 @@ module Lighting
         garage_sch = schedules_file.create_schedule_file(model, col_name: garage_col_name)
       end
       if garage_sch.nil?
-        garage_unavailable_periods = Schedule.get_unavailable_periods(runner, garage_col_name, unavailable_periods)
+        garage_unavailable_periods = Schedule.get_unavailable_periods(runner, garage_col_name, hpxml_header.unavailable_periods)
         garage_sch = MonthWeekdayWeekendSchedule.new(model, garage_obj_name + ' schedule', lighting.garage_weekday_fractions, lighting.garage_weekend_fractions, lighting.garage_monthly_multipliers, EPlus::ScheduleTypeLimitsFraction, unavailable_periods: garage_unavailable_periods)
         design_level = garage_sch.calc_design_level_from_daily_kwh(grg_kwh / 365.0)
         garage_sch = garage_sch.schedule
@@ -158,7 +159,7 @@ module Lighting
         exterior_sch = schedules_file.create_schedule_file(model, col_name: exterior_col_name)
       end
       if exterior_sch.nil?
-        exterior_unavailable_periods = Schedule.get_unavailable_periods(runner, exterior_col_name, unavailable_periods)
+        exterior_unavailable_periods = Schedule.get_unavailable_periods(runner, exterior_col_name, hpxml_header.unavailable_periods)
         exterior_sch = MonthWeekdayWeekendSchedule.new(model, exterior_obj_name + ' schedule', lighting.exterior_weekday_fractions, lighting.exterior_weekend_fractions, lighting.exterior_monthly_multipliers, EPlus::ScheduleTypeLimitsFraction, unavailable_periods: exterior_unavailable_periods)
         design_level = exterior_sch.calc_design_level_from_daily_kwh(ext_kwh / 365.0)
         exterior_sch = exterior_sch.schedule
@@ -191,7 +192,7 @@ module Lighting
         exterior_holiday_sch = schedules_file.create_schedule_file(model, col_name: exterior_holiday_col_name)
       end
       if exterior_holiday_sch.nil?
-        exterior_holiday_unavailable_periods = Schedule.get_unavailable_periods(runner, exterior_holiday_col_name, unavailable_periods)
+        exterior_holiday_unavailable_periods = Schedule.get_unavailable_periods(runner, exterior_holiday_col_name, hpxml_header.unavailable_periods)
         exterior_holiday_sch = MonthWeekdayWeekendSchedule.new(model, exterior_holiday_obj_name + ' schedule', lighting.holiday_weekday_fractions, lighting.holiday_weekend_fractions, lighting.exterior_monthly_multipliers, EPlus::ScheduleTypeLimitsFraction, true, lighting.holiday_period_begin_month, lighting.holiday_period_begin_day, lighting.holiday_period_end_month, lighting.holiday_period_end_day, unavailable_periods: exterior_holiday_unavailable_periods)
         design_level = exterior_holiday_sch.calc_design_level_from_daily_kwh(exterior_holiday_kwh_per_day)
         exterior_holiday_sch = exterior_holiday_sch.schedule

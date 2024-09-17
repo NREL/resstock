@@ -4643,8 +4643,9 @@ If not entered, the simulation will not include a dehumidifier.
 
 .. note::
 
-  Dehumidifiers are currently modeled as located within conditioned space; the model is not suited for a dehumidifier in, e.g., a wet unconditioned basement or crawlspace.
+  Dehumidifiers are currently modeled as located within conditioned space; the model is not suited for a dehumidifier in, e.g., a wet basement or crawlspace where there is significant moisture from the ground.
   Therefore the dehumidifier Location is currently restricted to "conditioned space".
+  Like an HVAC system, the dehumidifier operates as needed to maintain the RH setpoint for the conditioned space.
 
 HPXML Cooking Range/Oven
 ************************
@@ -4835,6 +4836,7 @@ If not entered, the simulation will not include a pool.
 
   .. [#] Type choices are "in ground", "on ground", "above ground", "other", "unknown", or "none".
          If "none" is entered, the simulation will not include a pool.
+         Any other value entered will indicate the presence of a pool; the specific value chosen does not affect the energy model.
 
 Pool Pump
 ~~~~~~~~~
@@ -4856,6 +4858,7 @@ If not entered, the simulation will not include a pool pump.
 
   .. [#] Type choices are "single speed", "multi speed", "variable speed", "variable flow", "other", "unknown", or "none".
          If "none" is entered, the simulation will not include a pool pump.
+         Any other value entered will indicate the presence of a pool pump; the specific value chosen does not affect the energy model.
   .. [#] If Value not provided, defaults based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_: 158.5 / 0.070 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920).
          If NumberofResidents provided, this value will be adjusted using the equations from RECS in :ref:`building_occupancy`.
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`schedules_detailed` not used), then :ref:`schedules_default` are used.
@@ -4881,6 +4884,7 @@ If not entered, the simulation will not include a pool heater.
 
   .. [#] Type choices are "none, "gas fired", "electric resistance", or "heat pump".
          If "none" is entered, the simulation will not include a pool heater.
+         Any other value entered will indicate the presence of a pool heater; the specific value chosen affects only the default kWh/year and therm/year values as described below.
   .. [#] If Value not provided, defaults as follows:
          
          \- **gas fired [therm/year]**: 3.0 / 0.014 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920) (based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_)
@@ -4909,6 +4913,7 @@ If not entered, the simulation will not include a permanent spa.
 
   .. [#] Type choices are "in ground", "on ground", "above ground", "other", "unknown", or "none".
          If "none" is entered, the simulation will not include a permanent spa.
+         Any other value entered will indicate the presence of a permanent spa; the specific value chosen does not affect the energy model.
 
 Permanent Spa Pump
 ~~~~~~~~~~~~~~~~~~
@@ -4930,6 +4935,7 @@ If not entered, the simulation will not include a permanent spa pump.
 
   .. [#] Type choices are "single speed", "multi speed", "variable speed", "variable flow", "other", "unknown", or "none".
          If "none" is entered, the simulation will not include a permanent spa pump.
+         Any other value entered will indicate the presence of a permanent spa pump; the specific value chosen does not affect the energy model.
   .. [#] If Value not provided, defaults based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_: 59.5 / 0.059 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920).
          If NumberofResidents provided, this value will be adjusted using the equations from RECS in :ref:`building_occupancy`.
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`schedules_detailed` not used), then :ref:`schedules_default` are used.
@@ -4955,6 +4961,7 @@ If not entered, the simulation will not include a permanent spa heater.
 
   .. [#] Type choices are "none, "gas fired", "electric resistance", or "heat pump".
          If "none" is entered, the simulation will not include a permanent spa heater.
+         Any other value entered will indicate the presence of a permanent spa heater; the specific value chosen affects only the default kWh/year and therm/year values as described below.
   .. [#] If Value not provided, defaults as follows:
          
          \- **gas fired [therm/year]**: 0.87 / 0.011 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920) (based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_)
