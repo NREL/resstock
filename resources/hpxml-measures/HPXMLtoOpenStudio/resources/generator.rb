@@ -1,17 +1,31 @@
 # frozen_string_literal: true
 
-# Collection of methods for adding generator-related OpenStudio objects.
+# Collection of methods related to generators.
 module Generator
+  # Adds any HPXML Generators to the OpenStudio model.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [nil]
+  def self.apply(model, hpxml_bldg)
+    hpxml_bldg.generators.each do |generator|
+      apply_generator(model, hpxml_bldg, generator)
+    end
+  end
+
+  # Adds the HPXML Generator to the OpenStudio model.
+  #
   # Apply a on-site power generator to the model using OpenStudio GeneratorMicroTurbine and ElectricLoadCenterDistribution objects.
   # The system may be shared, in which case annual consumption (kBtu) and output (kWh) are apportioned to the dwelling unit by total number of bedrooms served.
   # A new ElectricLoadCenterDistribution object is created for each generator.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param generator [HPXML::Generator] Object that defines a single generator that provides on-site power
-  # @param unit_multiplier [Integer] Number of similar dwelling units
   # @return [nil]
-  def self.apply(model, nbeds, generator, unit_multiplier)
+  def self.apply_generator(model, hpxml_bldg, generator)
+    nbeds = hpxml_bldg.building_construction.number_of_bedrooms
+    unit_multiplier = hpxml_bldg.building_construction.number_of_units
     obj_name = generator.id
 
     # Apply unit multiplier

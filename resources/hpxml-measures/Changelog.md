@@ -27,6 +27,7 @@ __New Features__
 - BuildResidentialHPXML measure:
   - **Breaking change**: Replaced `slab_under_width` argument with `slab_under_insulation_width`.
   - **Breaking change**: Replaced `slab_perimeter_depth` argument with `slab_perimeter_insulation_depth`.
+  - **Breaking change**: Replaced `schedules_vacancy_periods`, `schedules_power_outage_periods`, and `schedules_power_outage_periods_window_natvent_availability` arguments with `schedules_unavailable_period_types`, `schedules_unavailable_period_dates`, and `schedules_unavailable_period_window_natvent_availabilities`; this improves flexibility for handling more unavailable period types.
 - **Breaking change**: Disaggregates "Walls" into "Above Grade Walls" and "Below Grade Walls" in results_design_load_details.csv output file.
 - Adds a warning if the sum of supply/return duct leakage to outside values is very high.
 

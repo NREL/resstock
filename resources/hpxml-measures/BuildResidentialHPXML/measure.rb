@@ -72,19 +72,19 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative paths of csv files containing user-specified detailed schedules. If multiple files, use a comma-separated list.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_vacancy_periods', false)
-    arg.setDisplayName('Schedules: Vacancy Periods')
-    arg.setDescription('Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_unavailable_period_types', false)
+    arg.setDisplayName('Schedules: Unavailable Period Types')
+    arg.setDescription("Specifies the unavailable period types. Possible types are column names defined in unavailable_periods.csv: #{Schedule.unavailable_period_types.join(', ')}. If multiple periods, use a comma-separated list.")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_power_outage_periods', false)
-    arg.setDisplayName('Schedules: Power Outage Periods')
-    arg.setDescription('Specifies the power outage periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_unavailable_period_dates', false)
+    arg.setDisplayName('Schedules: Unavailable Period Dates')
+    arg.setDescription('Specifies the unavailable period date ranges. Enter a date range like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_power_outage_periods_window_natvent_availability', false)
-    arg.setDisplayName('Schedules: Power Outage Periods Window Natural Ventilation Availability')
-    arg.setDescription("The availability of the natural ventilation schedule during the power outage periods. Valid choices are '#{[HPXML::ScheduleRegular, HPXML::ScheduleAvailable, HPXML::ScheduleUnavailable].join("', '")}'. If multiple periods, use a comma-separated list.")
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_unavailable_period_window_natvent_availabilities', false)
+    arg.setDisplayName('Schedules: Unavailable Period Window Natural Ventilation Availabilities')
+    arg.setDescription("The availability of the natural ventilation schedule during unavailable periods. Valid choices are: #{[HPXML::ScheduleRegular, HPXML::ScheduleAvailable, HPXML::ScheduleUnavailable].join(', ')}. If multiple periods, use a comma-separated list. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-unavailable-periods'>HPXML Unavailable Periods</a>) is used.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', false)
@@ -95,7 +95,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('simulation_control_run_period', false)
     arg.setDisplayName('Simulation Control: Run Period')
-    arg.setDescription("Enter a date like 'Jan 1 - Dec 31'. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-simulation-control'>HPXML Simulation Control</a>) is used.")
+    arg.setDescription("Enter a date range like 'Jan 1 - Dec 31'. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-simulation-control'>HPXML Simulation Control</a>) is used.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_calendar_year', false)
@@ -111,7 +111,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('simulation_control_daylight_saving_period', false)
     arg.setDisplayName('Simulation Control: Daylight Saving Period')
-    arg.setDescription("Enter a date like 'Mar 15 - Dec 15'. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-building-site'>HPXML Building Site</a>) is used.")
+    arg.setDescription("Enter a date range like 'Mar 15 - Dec 15'. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-building-site'>HPXML Building Site</a>) is used.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('simulation_control_temperature_capacitance_multiplier', false)
@@ -915,7 +915,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('window_shading_summer_season', false)
     arg.setDisplayName('Windows: Shading Summer Season')
-    arg.setDescription("Enter a date like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-windows'>HPXML Windows</a>) is used.")
+    arg.setDescription("Enter a date range like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-windows'>HPXML Windows</a>) is used.")
     args << arg
 
     storm_window_type_choices = OpenStudio::StringVector.new
@@ -1759,12 +1759,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_heating_season_period', false)
     arg.setDisplayName('HVAC Control: Heating Season Period')
-    arg.setDescription("Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-hvac-control'>HPXML HVAC Control</a>) is used. Can also provide '#{Constants::BuildingAmerica}' to use automatic seasons from the Building America House Simulation Protocols.")
+    arg.setDescription("Enter a date range like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-hvac-control'>HPXML HVAC Control</a>) is used. Can also provide '#{Constants::BuildingAmerica}' to use automatic seasons from the Building America House Simulation Protocols.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_cooling_season_period', false)
     arg.setDisplayName('HVAC Control: Cooling Season Period')
-    arg.setDescription("Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-hvac-control'>HPXML HVAC Control</a>) is used. Can also provide '#{Constants::BuildingAmerica}' to use automatic seasons from the Building America House Simulation Protocols.")
+    arg.setDescription("Enter a date range like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-hvac-control'>HPXML HVAC Control</a>) is used. Can also provide '#{Constants::BuildingAmerica}' to use automatic seasons from the Building America House Simulation Protocols.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_blower_fan_watts_per_cfm', false)
@@ -2724,7 +2724,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_period', false)
     arg.setDisplayName('Holiday Lighting: Period')
-    arg.setDescription("Enter a date like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-lighting'>HPXML Lighting</a>) is used.")
+    arg.setDescription("Enter a date range like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#hpxml-lighting'>HPXML Lighting</a>) is used.")
     args << arg
 
     dehumidifier_type_choices = OpenStudio::StringVector.new
@@ -3500,7 +3500,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    Geometry.tear_down_model(model: model, runner: runner)
+    Model.tear_down(model: model, runner: runner)
 
     Version.check_openstudio_version()
 
@@ -3675,19 +3675,30 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = !args[:rim_joist_assembly_r].nil? && args[:geometry_rim_joist_height].nil?
     errors << 'Specified a rim joist assembly R-value but no rim joist height.' if error
 
-    if !args[:schedules_power_outage_periods].nil? && !args[:schedules_power_outage_periods_window_natvent_availability].nil?
-      schedules_power_outage_periods_lengths = [args[:schedules_power_outage_periods].count(','),
-                                                args[:schedules_power_outage_periods_window_natvent_availability].count(',')]
+    schedules_unavailable_period_args_initialized = [!args[:schedules_unavailable_period_types].nil?,
+                                                     !args[:schedules_unavailable_period_dates].nil?]
+    error = (schedules_unavailable_period_args_initialized.uniq.size != 1)
+    errors << 'Did not specify all required unavailable period arguments.' if error
 
-      error = (schedules_power_outage_periods_lengths.uniq.size != 1)
-      errors << 'One power outage periods schedule argument does not have enough comma-separated elements specified.' if error
+    if schedules_unavailable_period_args_initialized.uniq.size == 1 && schedules_unavailable_period_args_initialized.uniq[0]
+      schedules_unavailable_period_lengths = [args[:schedules_unavailable_period_types].count(','),
+                                              args[:schedules_unavailable_period_dates].count(',')]
+
+      if !args[:schedules_unavailable_period_window_natvent_availabilities].nil?
+        schedules_unavailable_period_lengths += [args[:schedules_unavailable_period_window_natvent_availabilities].count(',')]
+      end
+
+      error = (schedules_unavailable_period_lengths.uniq.size != 1)
+      errors << 'One or more unavailable period arguments does not have enough comma-separated elements specified.' if error
     end
 
-    if !args[:schedules_power_outage_periods_window_natvent_availability].nil?
-      natvent_availabilities = args[:schedules_power_outage_periods_window_natvent_availability].split(',').map(&:strip)
+    if !args[:schedules_unavailable_period_window_natvent_availabilities].nil?
+      natvent_availabilities = args[:schedules_unavailable_period_window_natvent_availabilities].split(',').map(&:strip)
       natvent_availabilities.each do |natvent_availability|
+        next if natvent_availability.empty?
+
         error = ![HPXML::ScheduleRegular, HPXML::ScheduleAvailable, HPXML::ScheduleUnavailable].include?(natvent_availability)
-        errors << "Window natural ventilation availability '#{natvent_availability}' during a power outage is invalid." if error
+        errors << "Window natural ventilation availability '#{natvent_availability}' during an unavailable period is invalid." if error
       end
     end
 
@@ -3915,8 +3926,7 @@ module HPXMLFile
         return false
       end
 
-      eri_version = Constants::ERIVersions[-1]
-      HPXMLDefaults.apply(runner, hpxml, hpxml_bldg, eri_version, weather)
+      HPXMLDefaults.apply(runner, hpxml, hpxml_bldg, weather)
       hpxml_doc = hpxml.to_doc()
       hpxml.set_unique_hpxml_ids(hpxml_doc, true) if hpxml.buildings.size > 1
       XMLHelper.write_file(hpxml_doc, hpxml_path)
@@ -4098,32 +4108,26 @@ module HPXMLFile
     hpxml.header.transaction = 'create'
     hpxml.header.whole_sfa_or_mf_building_sim = args[:whole_sfa_or_mf_building_sim]
 
-    if not args[:schedules_vacancy_periods].nil?
-      schedules_vacancy_periods = args[:schedules_vacancy_periods].split(',').map(&:strip)
-      schedules_vacancy_periods.each do |schedules_vacancy_period|
-        begin_month, begin_day, begin_hour, end_month, end_day, end_hour = Calendar.parse_date_time_range(schedules_vacancy_period)
-
-        if not unavailable_period_exists(hpxml, 'Vacancy', begin_month, begin_day, begin_hour, end_month, end_day, end_hour)
-          hpxml.header.unavailable_periods.add(column_name: 'Vacancy', begin_month: begin_month, begin_day: begin_day, begin_hour: begin_hour, end_month: end_month, end_day: end_day, end_hour: end_hour, natvent_availability: HPXML::ScheduleUnavailable)
-        end
-      end
-    end
-
-    if not args[:schedules_power_outage_periods].nil?
-      schedules_power_outage_periods = args[:schedules_power_outage_periods].split(',').map(&:strip)
-
-      natvent_availabilities = []
-      if not args[:schedules_power_outage_periods_window_natvent_availability].nil?
-        natvent_availabilities = args[:schedules_power_outage_periods_window_natvent_availability].split(',').map(&:strip)
+    if not args[:schedules_unavailable_period_types].nil?
+      unavailable_period_types = args[:schedules_unavailable_period_types].split(',').map(&:strip)
+      unavailable_period_dates = args[:schedules_unavailable_period_dates].split(',').map(&:strip)
+      if !args[:schedules_unavailable_period_window_natvent_availabilities].nil?
+        natvent_availabilities = args[:schedules_unavailable_period_window_natvent_availabilities].split(',').map(&:strip)
+      else
+        natvent_availabilities = [''] * unavailable_period_types.size
       end
 
-      schedules_power_outage_periods = schedules_power_outage_periods.zip(natvent_availabilities)
-      schedules_power_outage_periods.each do |schedules_power_outage_period|
-        outage_period, natvent_availability = schedules_power_outage_period
-        begin_month, begin_day, begin_hour, end_month, end_day, end_hour = Calendar.parse_date_time_range(outage_period)
+      unavailable_periods = unavailable_period_types.zip(unavailable_period_dates,
+                                                         natvent_availabilities)
 
-        if not unavailable_period_exists(hpxml, 'Power Outage', begin_month, begin_day, begin_hour, end_month, end_day, end_hour, natvent_availability)
-          hpxml.header.unavailable_periods.add(column_name: 'Power Outage', begin_month: begin_month, begin_day: begin_day, begin_hour: begin_hour, end_month: end_month, end_day: end_day, end_hour: end_hour, natvent_availability: natvent_availability)
+      unavailable_periods.each do |unavailable_period|
+        column_name, date_time_range, natvent_availability = unavailable_period
+        natvent_availability = nil if natvent_availability.empty?
+
+        begin_month, begin_day, begin_hour, end_month, end_day, end_hour = Calendar.parse_date_time_range(date_time_range)
+
+        if not unavailable_period_exists(hpxml, column_name, begin_month, begin_day, begin_hour, end_month, end_day, end_hour)
+          hpxml.header.unavailable_periods.add(column_name: column_name, begin_month: begin_month, begin_day: begin_day, begin_hour: begin_hour, end_month: end_month, end_day: end_day, end_hour: end_hour, natvent_availability: natvent_availability)
         end
       end
     end
@@ -6070,7 +6074,7 @@ module HPXMLFile
 
   # Get the specific HPXML foundation or attic location based on general HPXML location and specific HPXML foundation or attic type.
   #
-  # @param location [String] the general HPXML location (crawlspace or attic)
+  # @param location [String] the location of interest (HPXML::LocationCrawlspace or HPXML::LocationAttic)
   # @param foundation_type [String] the specific HPXML foundation type (unvented crawlspace, vented crawlspace, conditioned crawlspace)
   # @param attic_type [String] the specific HPXML attic type (unvented attic, vented attic, conditioned attic)
   # @return [nil]
