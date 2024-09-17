@@ -3,41 +3,14 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>14c35efa-6472-4822-ab59-5bda6393a1ad</version_id>
-  <version_modified>2024-09-16T15:41:19Z</version_modified>
+  <version_id>56e09fe4-c5bb-4080-a6cf-2755eda61603</version_id>
+  <version_modified>2024-09-17T23:34:09Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
   <description>Measure that pre-processes the arguments passed to the BuildResidentialHPXML and BuildResidentialScheduleFile measures.</description>
   <modeler_description>Passes in all arguments from the options lookup, processes them, and then registers values to the runner to be used by other measures.</modeler_description>
   <arguments>
-    <argument>
-      <name>schedules_vacancy_periods</name>
-      <display_name>Schedules: Vacancy Periods</display_name>
-      <description>Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.</description>
-      <type>String</type>
-      <units></units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>schedules_power_outage_periods</name>
-      <display_name>Schedules: Power Outage Periods</display_name>
-      <description>Specifies the power outage periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.</description>
-      <type>String</type>
-      <units></units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>schedules_power_outage_periods_window_natvent_availability</name>
-      <display_name>Schedules: Power Outage Periods Window Natural Ventilation Availability</display_name>
-      <description>The availability of the natural ventilation schedule during the power outage periods. Valid choices are 'regular schedule', 'always available', 'always unavailable'. If multiple periods, use a comma-separated list.</description>
-      <type>String</type>
-      <units></units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
     <argument>
       <name>simulation_control_daylight_saving_enabled</name>
       <display_name>Simulation Control: Daylight Saving Enabled</display_name>
@@ -1788,7 +1761,7 @@
     <argument>
       <name>window_shading_summer_season</name>
       <display_name>Windows: Shading Summer Season</display_name>
-      <description>Enter a date like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'&gt;HPXML Windows&lt;/a&gt;) is used.</description>
+      <description>Enter a date range like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'&gt;HPXML Windows&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
@@ -3392,7 +3365,7 @@
     <argument>
       <name>hvac_control_heating_season_period</name>
       <display_name>HVAC Control: Heating Season Period</display_name>
-      <description>Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control'&gt;HPXML HVAC Control&lt;/a&gt;) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.</description>
+      <description>Enter a date range like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control'&gt;HPXML HVAC Control&lt;/a&gt;) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
@@ -3401,7 +3374,7 @@
     <argument>
       <name>hvac_control_cooling_season_period</name>
       <display_name>HVAC Control: Cooling Season Period</display_name>
-      <description>Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control'&gt;HPXML HVAC Control&lt;/a&gt;) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.</description>
+      <description>Enter a date range like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control'&gt;HPXML HVAC Control&lt;/a&gt;) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
@@ -5487,7 +5460,7 @@
     <argument>
       <name>holiday_lighting_period</name>
       <display_name>Holiday Lighting: Period</display_name>
-      <description>Enter a date like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-lighting'&gt;HPXML Lighting&lt;/a&gt;) is used.</description>
+      <description>Enter a date range like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-lighting'&gt;HPXML Lighting&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
@@ -7042,6 +7015,30 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>schedules_vacancy_periods</name>
+      <display_name>Schedules: Vacancy Periods</display_name>
+      <description>Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_power_outage_periods</name>
+      <display_name>Schedules: Power Outage Periods</display_name>
+      <description>Specifies the power outage periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_power_outage_periods_window_natvent_availability</name>
+      <display_name>Schedules: Power Outage Periods Window Natural Ventilation Availability</display_name>
+      <description>The availability of the natural ventilation schedule during the power outage periods. Valid choices are 'regular schedule', 'always available', 'always unavailable'. If multiple periods, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>geometry_unit_cfa_bin</name>
       <display_name>Geometry: Unit Conditioned Floor Area Bin</display_name>
       <description>E.g., '2000-2499'.</description>
@@ -7554,7 +7551,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>AE1F6ED4</checksum>
+      <checksum>1253D6EE</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -7571,13 +7568,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>CC94D3E8</checksum>
+      <checksum>44DD6246</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>54E89042</checksum>
+      <checksum>667D13C1</checksum>
     </file>
     <file>
       <filename>resstock_arguments_test.rb</filename>
