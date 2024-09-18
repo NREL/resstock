@@ -6149,6 +6149,86 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
      - 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
+.. _cooling_unavailable_days:
+
+Cooling Unavailable Days
+------------------------
+
+Description
+***********
+
+Number of days in a year cooling system is unavailable
+
+Created by
+**********
+
+``sources/recs/recs2020/tsv_maker.py``
+
+Source
+******
+
+- \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``schedules_space_cooling_unavailable_days``
+     - false
+     - 
+     - Integer
+     -
+     - Number of days space cooling equipment is unavailable.
+
+Options
+*******
+
+From ``project_national`` the list of options, option stock sturation, and option arguments for the **Cooling Unavailable Days** characteristic.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: auto
+
+   * - Option name
+     - Stock saturation
+     - ``schedules_space_cooling_unavailable_days``
+
+   * - 1 day
+     - 0.64%
+     - 1
+   * - 1 month
+     - 0.94%
+     - 30
+   * - 1 week
+     - 0.85%
+     - 7
+   * - 2 weeks
+     - 0.73%
+     - 14
+   * - 3 days
+     - 1.1%
+     - 3
+   * - 3 months
+     - 0.61%
+     - 90
+   * - Never
+     - 95%
+     - 0
+   * - Year round
+     - 0.24%
+     - 365
+
 .. _corridor:
 
 Corridor
@@ -42077,6 +42157,86 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 56%
      - 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
      - 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+
+.. _heating_unavailable_days:
+
+Heating Unavailable Days
+------------------------
+
+Description
+***********
+
+Number of days in a year heating system is unavailable
+
+Created by
+**********
+
+``sources/recs/recs2020/tsv_maker.py``
+
+Source
+******
+
+- \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``schedules_space_heating_unavailable_days``
+     - false
+     - 
+     - Integer
+     -
+     - Number of days space heating equipment is unavailable.
+
+Options
+*******
+
+From ``project_national`` the list of options, option stock sturation, and option arguments for the **Heating Unavailable Days** characteristic.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: auto
+
+   * - Option name
+     - Stock saturation
+     - ``schedules_space_heating_unavailable_days``
+
+   * - 1 day
+     - 0.81%
+     - 0
+   * - 1 month
+     - 0.36%
+     - 30
+   * - 1 week
+     - 0.61%
+     - 7
+   * - 2 weeks
+     - 0.44%
+     - 14
+   * - 3 days
+     - 1.1%
+     - 3
+   * - 3 months
+     - 0.37%
+     - 90
+   * - Never
+     - 96%
+     - 0
+   * - Year round
+     - 0.25%
+     - 365
 
 .. _holiday_lighting:
 
