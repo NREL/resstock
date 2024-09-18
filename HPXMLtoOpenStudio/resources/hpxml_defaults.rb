@@ -25,11 +25,8 @@ module HPXMLDefaults
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param convert_shared_systems [Boolean] Whether to convert shared systems to equivalent in-unit systems per ANSI 301
-  # @param design_load_details_output_file_path [String] Detailed HVAC sizing output file path
-  # @param output_format [String] Detailed HVAC sizing output file format ('csv', 'json', or 'msgpack')
-  # @return [nil]
-  def self.apply(runner, hpxml, hpxml_bldg, weather, schedules_file: nil, convert_shared_systems: true,
-                 design_load_details_output_file_path: nil, output_format: 'csv')
+  # @return [Array<Hash, Hash>] Maps of HPXML::Zones => DesignLoadValues object, HPXML::Spaces => DesignLoadValues object
+  def self.apply(runner, hpxml, hpxml_bldg, weather, schedules_file: nil, convert_shared_systems: true)
     cfa = hpxml_bldg.building_construction.conditioned_floor_area
     nbeds = hpxml_bldg.building_construction.number_of_bedrooms
     ncfl = hpxml_bldg.building_construction.number_of_conditioned_floors
@@ -102,12 +99,14 @@ module HPXMLDefaults
     apply_batteries(hpxml_bldg)
 
     # Do HVAC sizing after all other defaults have been applied
-    apply_hvac_sizing(runner, hpxml_bldg, weather, output_format, design_load_details_output_file_path)
+    all_zone_loads, all_space_loads = apply_hvac_sizing(runner, hpxml_bldg, weather)
 
     # Default detailed performance has to be after sizing to have autosized capacity information
     apply_detailed_performance_data_for_var_speed_systems(hpxml_bldg)
 
     cleanup_zones_spaces(hpxml_bldg)
+
+    return all_zone_loads, all_space_loads
   end
 
   # Returns a list of four azimuths (facing each direction). Determined based
@@ -3857,12 +3856,11 @@ module HPXMLDefaults
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @param output_format [String] Detailed output file format ('csv', 'json', or 'msgpack')
-  # @param design_load_details_output_file_path [String] Detailed HVAC sizing output file path
-  # @return [nil]
-  def self.apply_hvac_sizing(runner, hpxml_bldg, weather, output_format, design_load_details_output_file_path)
+  # @return [Array<Hash, Hash>] Maps of HPXML::Zones => DesignLoadValues object, HPXML::Spaces => DesignLoadValues object
+  def self.apply_hvac_sizing(runner, hpxml_bldg, weather)
     hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml_bldg)
-    HVACSizing.calculate(runner, weather, hpxml_bldg, hvac_systems, output_format: output_format, output_file_path: design_load_details_output_file_path)
+    _, all_zone_loads, all_space_loads = HVACSizing.calculate(runner, weather, hpxml_bldg, hvac_systems)
+    return all_zone_loads, all_space_loads
   end
 
   # Converts an HPXML orientation to an HPXML azimuth.
