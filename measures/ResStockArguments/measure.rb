@@ -95,6 +95,16 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDescription("The availability of the natural ventilation schedule during the power outage periods. Valid choices are '#{[HPXML::ScheduleRegular, HPXML::ScheduleAvailable, HPXML::ScheduleUnavailable].join("', '")}'. If multiple periods, use a comma-separated list.")
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_space_heating_unavailable_days', false)
+    arg.setDisplayName('Schedules: Space Heating Unavailability')
+    arg.setDescription('Number of days space heating equipment is unavailable.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_space_cooling_unavailable_days', false)
+    arg.setDisplayName('Schedules: Space Cooling Unavailability')
+    arg.setDescription('Number of days space cooling equipment is unavailable.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_unit_cfa_bin', true)
     arg.setDisplayName('Geometry: Unit Conditioned Floor Area Bin')
     arg.setDescription("E.g., '2000-2499'.")
@@ -423,41 +433,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
 
-    # Unavailable periods
-    schedules_unavailable_period_types = []
-    schedules_unavailable_period_dates = []
-    schedules_unavailable_period_window_natvent_availabilities = []
-
-    if !args[:schedules_vacancy_periods].nil?
-      schedules_vacancy_periods = args[:schedules_vacancy_periods].split(',').map(&:strip)
-      schedules_vacancy_periods.each do |schedules_vacancy_period|
-        schedules_unavailable_period_types << 'Vacancy'
-        schedules_unavailable_period_dates << schedules_vacancy_period
-        schedules_unavailable_period_window_natvent_availabilities << ''
-      end
-    end
-    if !args[:schedules_power_outage_periods].nil?
-      schedules_power_outage_periods = args[:schedules_power_outage_periods].split(',').map(&:strip)
-
-      natvent_availabilities = []
-      if not args[:schedules_power_outage_periods_window_natvent_availability].nil?
-        natvent_availabilities = args[:schedules_power_outage_periods_window_natvent_availability].split(',').map(&:strip)
-      end
-
-      schedules_power_outage_periods = schedules_power_outage_periods.zip(natvent_availabilities)
-      schedules_power_outage_periods.each do |schedules_power_outage_period|
-        outage_period, natvent_availability = schedules_power_outage_period
-
-        schedules_unavailable_period_types << 'Power Outage'
-        schedules_unavailable_period_dates << outage_period
-        schedules_unavailable_period_window_natvent_availabilities << natvent_availability
-      end
-    end
-
-    args[:schedules_unavailable_period_types] = schedules_unavailable_period_types.join(', ')
-    args[:schedules_unavailable_period_dates] = schedules_unavailable_period_dates.join(', ')
-    args[:schedules_unavailable_period_window_natvent_availabilities] = schedules_unavailable_period_window_natvent_availabilities.join(', ')
-
     # Conditioned floor area
     if args[:geometry_unit_cfa] == Constants::Auto
       # TODO: Disaggregate detached and mobile home
@@ -537,9 +512,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args[:battery_num_bedrooms_served] = 0
     end
 
-    # HVAC Control Setpoints
-    ['heating', 'cooling'].each do |htg_or_clg|
-      ['weekday', 'weekend'].each do |wkdy_or_wked|
+    # HVAC Setpoints
+    [Constants::Heating, Constants::Cooling].each do |htg_or_clg|
+      [Constants::Weekday, Constants::Weekend].each do |wkdy_or_wked|
         setpoints = [args["hvac_control_#{htg_or_clg}_#{wkdy_or_wked}_setpoint_temp".to_sym]] * 24
 
         hvac_control_setpoint_offset_magnitude = args["hvac_control_#{htg_or_clg}_#{wkdy_or_wked}_setpoint_offset_magnitude".to_sym]
@@ -550,8 +525,51 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # HVAC Control Seasons
-    if (!args[:use_auto_heating_season] && args[:hvac_control_heating_season_period].include?('Unavailable')) || (!args[:use_auto_cooling_season] && args[:hvac_control_cooling_season_period].include?('Unavailable'))
+    # HVAC Seasons
+    [Constants::Heating, Constants::Cooling].each do |htg_or_clg|
+      use_auto_season = "use_auto_#{htg_or_clg}_season".to_sym
+      hvac_control_season_period = "hvac_control_#{htg_or_clg}_season_period".to_sym
+      if use_auto_season && hvac_control_season_period
+        args[hvac_control_season_period] = Constants::BuildingAmerica
+      end
+    end
+
+    # Unavailable Periods
+    schedules_unavailable_period_types = []
+    schedules_unavailable_period_dates = []
+    schedules_unavailable_period_window_natvent_availabilities = []
+
+    # Vacancy
+    if !args[:schedules_vacancy_periods].nil?
+      schedules_vacancy_periods = args[:schedules_vacancy_periods].split(',').map(&:strip)
+      schedules_vacancy_periods.each do |schedules_vacancy_period|
+        schedules_unavailable_period_types << 'Vacancy'
+        schedules_unavailable_period_dates << schedules_vacancy_period
+        schedules_unavailable_period_window_natvent_availabilities << ''
+      end
+    end
+
+    # Power Outage
+    if !args[:schedules_power_outage_periods].nil?
+      schedules_power_outage_periods = args[:schedules_power_outage_periods].split(',').map(&:strip)
+
+      natvent_availabilities = []
+      if not args[:schedules_power_outage_periods_window_natvent_availability].nil?
+        natvent_availabilities = args[:schedules_power_outage_periods_window_natvent_availability].split(',').map(&:strip)
+      end
+
+      schedules_power_outage_periods = schedules_power_outage_periods.zip(natvent_availabilities)
+      schedules_power_outage_periods.each do |schedules_power_outage_period|
+        outage_period, natvent_availability = schedules_power_outage_period
+
+        schedules_unavailable_period_types << 'Power Outage'
+        schedules_unavailable_period_dates << outage_period
+        schedules_unavailable_period_window_natvent_availabilities << natvent_availability
+      end
+    end
+
+    # HVAC Unavailability
+    if (args[:schedules_space_heating_unavailable_days] > 0) || (args[:schedules_space_cooling_unavailable_days] > 0)
       epw_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../weather', File.basename(args[:weather_station_epw_filepath])))
       if not File.exist? epw_path
         runner.registerError("ResStockArguments: Could not find EPW file at '#{epw_path}'.")
@@ -562,80 +580,53 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       heating_months, cooling_months, sim_calendar_year = get_heating_and_cooling_seasons(args, weather)
     end
 
-    ['heating', 'cooling'].each do |htg_or_clg|
-      hvac_control_season_period = "hvac_control_#{htg_or_clg}_season_period".to_sym
-      hvac_control_unavailable_period = "hvac_control_#{htg_or_clg}_unavailable_period".to_sym
+    [Constants::Heating, Constants::Cooling].each do |htg_or_clg|
+      unavailable_days = args["schedules_space_#{htg_or_clg}_unavailable_days".to_sym]
+      unavailable_period = "#{htg_or_clg}_unavailable_period"
+      args[unavailable_period] = 'Never'
 
-      args[hvac_control_unavailable_period] = 'Never'
+      next unless unavailable_days > 0
 
-      if args["use_auto_#{htg_or_clg}_season".to_sym]
-        args[hvac_control_season_period] = Constants::BuildingAmerica
-      else
-        if args[hvac_control_season_period].include?('Unavailable')
-          if args[hvac_control_season_period].include?('All Days') # year-round unavailability; limit heating or cooling season to 1-day
-            if htg_or_clg == 'heating'
-              # limit heating season to 1 day in Jul
-              season_begin_day_num = 182 # Jul 1
-              season_end_day_num = 182 # Jul 1
-              unavail_begin_day_num = 1
-              unavail_end_day_num = 365
-            elsif htg_or_clg == 'cooling'
-              # limit cooling season to 1 day in Jan
-              season_begin_day_num = 1 # Jan 1
-              season_end_day_num = 1 # Jan 1
-              unavail_begin_day_num = 1
-              unavail_end_day_num = 365
-            end
-            unavail_end_day_num += 1 if Date.leap?(sim_calendar_year)
-          else # partial-year unavailability; select n-day period start date during BA heating/cooling months
-            if htg_or_clg == 'heating'
-              months = heating_months
-            elsif htg_or_clg == 'cooling'
-              months = cooling_months
-            end
-
-            if months.sum > 0.0 # has defined BA heating/cooling months
-              begin_month, begin_day, end_month, end_day = Calendar.get_begin_and_end_dates_from_monthly_array(months, sim_calendar_year)
-            else # no defined BA heating/cooling months
-              runner.registerWarning("ResStockArguments: Sampled option '#{args[hvac_control_season_period]}' for #{htg_or_clg} unavailable days but there are no BA #{htg_or_clg} months.")
-              if htg_or_clg == 'heating' # Dec/Jan/Feb
-                begin_month, begin_day, end_month, end_day = 12, 1, 2, 28
-                end_day += 1 if Date.leap?(sim_calendar_year)
-              elsif htg_or_clg == 'cooling' # Jun/Jul/Aug
-                begin_month, begin_day, end_month, end_day = 6, 1, 8, 31
-              end
-            end
-
-            begin_day_num = Calendar.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
-            end_day_num = Calendar.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
-
-            unavailable_days = { 'Unavailable 1 Day' => 1,
-                                 'Unavailable 1 Week' => 7,
-                                 'Unavailable 1 Month' => 30,
-                                 'Unavailable 2 Weeks' => 14,
-                                 'Unavailable 3 Days' => 3,
-                                 'Unavailable 3 Months' => 90 }
-            n_days = unavailable_days[args[hvac_control_season_period]]
-            if n_days.nil?
-              runner.registerError("ResStockArguments: Undefined number of #{htg_or_clg} unavailable days for sampled option '#{args[hvac_control_season_period]}'.")
-              return false
-            end
-
-            season_begin_day_num, season_end_day_num, unavail_begin_day_num, unavail_end_day_num = get_begin_end_day_nums(args[:building_id], n_days, begin_day_num, end_day_num, sim_calendar_year)
-          end
-
-          season_begin_date = get_month_day_from_day_num(season_begin_day_num, sim_calendar_year)
-          season_end_date = get_month_day_from_day_num(season_end_day_num, sim_calendar_year)
-          args[hvac_control_season_period] = "#{season_begin_date} - #{season_end_date}"
-
-          unavail_begin_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year)
-          unavail_end_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year)
-          unavailable_period = "#{unavail_begin_date} - #{unavail_end_date}"
-          unavailable_period = 'Year round' if unavailable_period == 'Jan 1 - Dec 31'
-          args[hvac_control_unavailable_period] = unavailable_period
+      if unavailable_days < 365 # partial-year unavailability
+        if htg_or_clg == Constants::Heating
+          months = heating_months
+        elsif htg_or_clg == Constants::Cooling
+          months = cooling_months
         end
+
+        if months.sum > 0 # has defined BA heating/cooling months
+          begin_month, begin_day, end_month, end_day = Calendar.get_begin_and_end_dates_from_monthly_array(months, sim_calendar_year)
+        else # no defined BA heating/cooling months
+          if htg_or_clg == Constants::Heating # Dec/Jan/Feb
+            begin_month, begin_day, end_month, end_day = 12, 1, 2, 28
+            end_day += 1 if Date.leap?(sim_calendar_year)
+          elsif htg_or_clg == Constants::Cooling # Jun/Jul/Aug
+            begin_month, begin_day, end_month, end_day = 6, 1, 8, 31
+          end
+        end
+
+        begin_day_num = Calendar.get_day_num_from_month_day(sim_calendar_year, begin_month, begin_day)
+        end_day_num = Calendar.get_day_num_from_month_day(sim_calendar_year, end_month, end_day)
+
+        unavail_begin_day_num, unavail_end_day_num = get_begin_end_day_nums(args[:building_id], unavailable_days, begin_day_num, end_day_num, sim_calendar_year)
+      else # year-round unavailability
+        unavail_begin_day_num, unavail_end_day_num = 1, 365
+        unavail_end_day_num += 1 if Date.leap?(sim_calendar_year)
       end
+
+      unavail_begin_date = get_month_day_from_day_num(unavail_begin_day_num, sim_calendar_year)
+      unavail_end_date = get_month_day_from_day_num(unavail_end_day_num, sim_calendar_year)
+      unavailable_period_dates = "#{unavail_begin_date} - #{unavail_end_date}"
+      args[unavailable_period] = unavailable_period_dates
+
+      schedules_unavailable_period_types << "No Space #{htg_or_clg.capitalize}"
+      schedules_unavailable_period_dates << unavailable_period_dates
+      schedules_unavailable_period_window_natvent_availabilities << ''
     end
+
+    args[:schedules_unavailable_period_types] = schedules_unavailable_period_types.join(', ')
+    args[:schedules_unavailable_period_dates] = schedules_unavailable_period_dates.join(', ')
+    args[:schedules_unavailable_period_window_natvent_availabilities] = schedules_unavailable_period_window_natvent_availabilities.join(', ')
 
     # Flue or Chimney
     if (args[:heating_system_has_flue_or_chimney] == 'false') &&
@@ -886,16 +877,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     unavail_end_day = unavail_end_date.dayOfMonth
     unavail_end_day_num = Calendar.get_day_num_from_month_day(year, unavail_end_month, unavail_end_day)
 
-    season_begin_date = unavail_end_date + OpenStudio::Time.new(1)
-    season_begin_month = season_begin_date.monthOfYear.value
-    season_begin_day = season_begin_date.dayOfMonth
-    season_begin_day_num = Calendar.get_day_num_from_month_day(year, season_begin_month, season_begin_day)
-    season_end_date = unavail_begin_date - OpenStudio::Time.new(1)
-    season_end_month = season_end_date.monthOfYear.value
-    season_end_day = season_end_date.dayOfMonth
-    season_end_day_num = Calendar.get_day_num_from_month_day(year, season_end_month, season_end_day)
-
-    return season_begin_day_num, season_end_day_num, unavail_begin_day_num, unavail_end_day_num
+    return unavail_begin_day_num, unavail_end_day_num
   end
 
   def get_month_day_from_day_num(day_num, year)
