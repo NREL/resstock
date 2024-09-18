@@ -5611,6 +5611,12 @@ Arguments
      - Type
      - Choices
      - Description
+   * - ``hvac_control_cooling_season_period``
+     - false
+     - 
+     - String
+     - auto
+     - Enter a date range like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
    * - ``hvac_control_cooling_weekday_setpoint_temp``
      - true
      - deg-F
@@ -5642,67 +5648,80 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - Option name
      - Stock saturation
+     - ``hvac_control_cooling_season_period``
      - ``hvac_control_cooling_weekday_setpoint_temp``
      - ``hvac_control_cooling_weekend_setpoint_temp``
      - ``use_auto_cooling_season``
 
    * - 60F
      - 3.2%
+     - auto
      - 60
      - 60
      - false
    * - 62F
      - 0.98%
+     - auto
      - 62
      - 62
      - false
    * - 65F
      - 4.1%
+     - auto
      - 65
      - 65
      - false
    * - 67F
      - 2%
+     - auto
      - 67
      - 67
      - false
    * - 68F
      - 12%
+     - auto
      - 68
      - 68
      - false
    * - 70F
      - 19%
+     - auto
      - 70
      - 70
      - false
    * - 72F
      - 20%
+     - auto
      - 72
      - 72
      - false
    * - 75F
      - 19%
+     - auto
      - 75
      - 75
      - false
    * - 76F
      - 8%
+     - auto
      - 76
      - 76
      - false
    * - 78F
      - 7.9%
+     - auto
      - 78
      - 78
      - false
    * - 80F
      - 4.7%
+     - auto
      - 80
      - 80
      - false
    * - Void
      - 0%
+     - 
      - 
      - 
      - 
@@ -6130,86 +6149,6 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
      - 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
-.. _cooling_unavailable_days:
-
-Cooling Unavailable Days
-------------------------
-
-Description
-***********
-
-Number of days in a year cooling system is unavailable
-
-Created by
-**********
-
-``sources/recs/recs2020/tsv_maker.py``
-
-Source
-******
-
-- \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
-
-
-Arguments
-*********
-
-.. list-table::
-   :header-rows: 1
-   :stub-columns: 1
-
-   * - Name
-     - Required
-     - Units
-     - Type
-     - Choices
-     - Description
-   * - ``hvac_control_cooling_season_period``
-     - false
-     - 
-     - String
-     - auto
-     - Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
-
-Options
-*******
-
-From ``project_national`` the list of options, option stock sturation, and option arguments for the **Cooling Unavailable Days** characteristic.
-
-.. list-table::
-   :header-rows: 1
-   :stub-columns: 1
-   :widths: auto
-
-   * - Option name
-     - Stock saturation
-     - ``hvac_control_cooling_season_period``
-
-   * - 1 day
-     - 0.64%
-     - Unavailable 1 Day
-   * - 1 month
-     - 0.94%
-     - Unavailable 1 Month
-   * - 1 week
-     - 0.85%
-     - Unavailable 1 Week
-   * - 2 weeks
-     - 0.73%
-     - Unavailable 2 Weeks
-   * - 3 days
-     - 1.1%
-     - Unavailable 3 Days
-   * - 3 months
-     - 0.61%
-     - Unavailable 3 Months
-   * - Never
-     - 95%
-     - Jan 1 - Dec 31
-   * - Year round
-     - 0.24%
-     - Unavailable All Days
-
 .. _corridor:
 
 Corridor
@@ -6340,7 +6279,7 @@ Arguments
      - 
      - String
      -
-     - Zip code of the home address.
+     - Zip code of the home address. Either this or the Weather Station: EnergyPlus Weather (EPW) Filepath input below must be provided.
    * - ``site_time_zone_utc_offset``
      - false
      - hr
@@ -6348,11 +6287,11 @@ Arguments
      - auto
      - Time zone UTC offset of the home address. Must be between -12 and 14. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``weather_station_epw_filepath``
-     - true
+     - false
      - 
      - String
      -
-     - Path of the EPW file.
+     - Path of the EPW file. Either this or the Site: Zip Code input above must be provided.
 
 Options
 *******
@@ -36417,6 +36356,12 @@ Arguments
      - Double
      -
      - Average distance from the floor to the ceiling.
+   * - ``geometry_unit_height_above_grade``
+     - false
+     - ft
+     - Double
+     - auto
+     - Describes the above-grade height of apartment units on upper floors or homes above ambient or belly-and-wing foundations. It is defined as the height of the lowest conditioned floor above grade and is used to calculate the wind speed for the infiltration model. If not provided, the OS-HPXML default (see `HPXML Building Construction <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-building-construction>`_) is used.
 
 Options
 *******
@@ -36433,32 +36378,38 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``geometry_unit_type``
      - ``geometry_unit_aspect_ratio``
      - ``geometry_average_ceiling_height``
+     - ``geometry_unit_height_above_grade``
 
    * - Mobile Home
      - 6.2%
      - manufactured home
      - 1.8
      - 8
+     - auto
    * - Multi-Family with 2 - 4 Units
      - 8%
      - apartment unit
      - 0.5556
      - 8
+     - auto
    * - Multi-Family with 5+ Units
      - 18%
      - apartment unit
      - 0.5556
      - 8
+     - auto
    * - Single-Family Attached
      - 5.9%
      - single-family attached
      - 0.5556
      - 8
+     - auto
    * - Single-Family Detached
      - 61%
      - single-family detached
      - 1.8
      - 8
+     - auto
 
 .. _geometry_floor_area:
 
@@ -41677,6 +41628,12 @@ Arguments
      - Type
      - Choices
      - Description
+   * - ``hvac_control_heating_season_period``
+     - false
+     - 
+     - String
+     - auto
+     - Enter a date range like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
    * - ``hvac_control_heating_weekday_setpoint_temp``
      - true
      - deg-F
@@ -41708,67 +41665,80 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - Option name
      - Stock saturation
+     - ``hvac_control_heating_season_period``
      - ``hvac_control_heating_weekday_setpoint_temp``
      - ``hvac_control_heating_weekend_setpoint_temp``
      - ``use_auto_heating_season``
 
    * - 55F
      - 12%
+     - auto
      - 55
      - 55
      - false
    * - 60F
      - 2.3%
+     - auto
      - 60
      - 60
      - false
    * - 62F
      - 1.1%
+     - auto
      - 62
      - 62
      - false
    * - 65F
      - 5.8%
+     - auto
      - 65
      - 65
      - false
    * - 67F
      - 4.9%
+     - auto
      - 67
      - 67
      - false
    * - 68F
      - 20%
+     - auto
      - 68
      - 68
      - false
    * - 70F
      - 23%
+     - auto
      - 70
      - 70
      - false
    * - 72F
      - 15%
+     - auto
      - 72
      - 72
      - false
    * - 75F
      - 9.4%
+     - auto
      - 75
      - 75
      - false
    * - 76F
      - 2.3%
+     - auto
      - 76
      - 76
      - false
    * - 78F
      - 1.8%
+     - auto
      - 78
      - 78
      - false
    * - 80F
      - 1%
+     - auto
      - 80
      - 80
      - false
@@ -42108,86 +42078,6 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
      - 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
-.. _heating_unavailable_days:
-
-Heating Unavailable Days
-------------------------
-
-Description
-***********
-
-Number of days in a year heating system is unavailable
-
-Created by
-**********
-
-``sources/recs/recs2020/tsv_maker.py``
-
-Source
-******
-
-- \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
-
-
-Arguments
-*********
-
-.. list-table::
-   :header-rows: 1
-   :stub-columns: 1
-
-   * - Name
-     - Required
-     - Units
-     - Type
-     - Choices
-     - Description
-   * - ``hvac_control_heating_season_period``
-     - false
-     - 
-     - String
-     - auto
-     - Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
-
-Options
-*******
-
-From ``project_national`` the list of options, option stock sturation, and option arguments for the **Heating Unavailable Days** characteristic.
-
-.. list-table::
-   :header-rows: 1
-   :stub-columns: 1
-   :widths: auto
-
-   * - Option name
-     - Stock saturation
-     - ``hvac_control_heating_season_period``
-
-   * - 1 day
-     - 0.81%
-     - Unavailable 1 Day
-   * - 1 month
-     - 0.36%
-     - Unavailable 1 Month
-   * - 1 week
-     - 0.61%
-     - Unavailable 1 Week
-   * - 2 weeks
-     - 0.44%
-     - Unavailable 2 Weeks
-   * - 3 days
-     - 1.1%
-     - Unavailable 3 Days
-   * - 3 months
-     - 0.37%
-     - Unavailable 3 Months
-   * - Never
-     - 96%
-     - Jan 1 - Dec 31
-   * - Year round
-     - 0.25%
-     - Unavailable All Days
-
 .. _holiday_lighting:
 
 Holiday Lighting
@@ -42239,7 +42129,7 @@ Arguments
      - 
      - String
      - auto
-     - Enter a date like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see `HPXML Lighting <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-lighting>`_) is used.
+     - Enter a date range like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see `HPXML Lighting <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-lighting>`_) is used.
 
 Options
 *******
@@ -63683,7 +63573,7 @@ Arguments
      - 
      - String
      - auto
-     - Enter a date like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+     - Enter a date range like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
    * - ``skylight_ufactor``
      - true
      - Btu/hr-ft^2-R

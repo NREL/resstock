@@ -52,6 +52,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_in_epsilon(0.0436, program_values['c'].sum, 0.01)
     assert_in_epsilon(0.0573, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+    assert_in_epsilon(UnitConversions.convert(9.75, 'ft', 'm'), program_values['z_s'].sum, 0.01)
   end
 
   def test_infiltration_ach_house_pressure
@@ -64,6 +65,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_in_epsilon(0.0436, program_values['c'].sum, 0.01)
     assert_in_epsilon(0.0573, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+    assert_in_epsilon(UnitConversions.convert(9.75, 'ft', 'm'), program_values['z_s'].sum, 0.01)
   end
 
   def test_infiltration_ach50_flue
@@ -76,6 +78,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_in_epsilon(0.0436, program_values['c'].sum, 0.01)
     assert_in_epsilon(0.0661, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1323, program_values['Cw'].sum, 0.01)
+    assert_in_epsilon(UnitConversions.convert(9.75, 'ft', 'm'), program_values['z_s'].sum, 0.01)
   end
 
   def test_infiltration_cfm50
@@ -88,6 +91,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_in_epsilon(0.0436, program_values['c'].sum, 0.01)
     assert_in_epsilon(0.0573, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+    assert_in_epsilon(UnitConversions.convert(9.75, 'ft', 'm'), program_values['z_s'].sum, 0.01)
   end
 
   def test_infiltration_cfm_house_pressure
@@ -100,6 +104,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_in_epsilon(0.0436, program_values['c'].sum, 0.01)
     assert_in_epsilon(0.0573, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+    assert_in_epsilon(UnitConversions.convert(9.75, 'ft', 'm'), program_values['z_s'].sum, 0.01)
   end
 
   def test_infiltration_natural_ach
@@ -112,6 +117,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_in_epsilon(0.0881, program_values['c'].sum, 0.01)
     assert_in_epsilon(0.0573, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+    assert_in_epsilon(UnitConversions.convert(9.75, 'ft', 'm'), program_values['z_s'].sum, 0.01)
   end
 
   def test_infiltration_natural_cfm
@@ -124,6 +130,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_in_epsilon(0.0881, program_values['c'].sum, 0.01)
     assert_in_epsilon(0.0573, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+    assert_in_epsilon(UnitConversions.convert(9.75, 'ft', 'm'), program_values['z_s'].sum, 0.01)
   end
 
   def test_infiltration_natural_ela
@@ -136,6 +143,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_in_epsilon(0.0904, program_values['c'].sum, 0.01)
     assert_in_epsilon(0.0573, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+    assert_in_epsilon(UnitConversions.convert(9.75, 'ft', 'm'), program_values['z_s'].sum, 0.01)
   end
 
   def test_infiltration_leakiness_description
@@ -160,6 +168,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_in_epsilon(0.0145, program_values['c'].sum, 0.01)
     assert_in_epsilon(0.0504, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+    assert_in_epsilon(UnitConversions.convert(18.0, 'ft', 'm'), program_values['z_s'].sum, 0.01)
   end
 
   def test_infiltration_multifamily_compartmentalization
@@ -172,6 +181,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_in_epsilon(0.0118, program_values['c'].sum, 0.01)
     assert_in_epsilon(0.0504, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+    assert_in_epsilon(UnitConversions.convert(18.0, 'ft', 'm'), program_values['z_s'].sum, 0.01)
   end
 
   def test_infiltration_multifamily_leakiness_description

@@ -1003,7 +1003,8 @@
   },
   "sample_files/base-battery-scheduled-power-outage.xml": {
     "parent_hpxml": "sample_files/base-battery-scheduled.xml",
-    "schedules_power_outage_periods": "Jul 1 5 - Jul 31 14"
+    "schedules_unavailable_period_types": "Power Outage",
+    "schedules_unavailable_period_dates": "Jul 1 5 - Jul 31 14"
   },
   "sample_files/base-bldgtype-sfa-unit.xml": {
     "parent_hpxml": "sample_files/base.xml",
@@ -1056,6 +1057,7 @@
     "geometry_building_num_units": 6,
     "geometry_foundation_type": "AboveApartment",
     "geometry_attic_type": "BelowApartment",
+    "geometry_unit_height_above_grade": 10,
     "window_front_wwr": 0.18,
     "window_back_wwr": 0.18,
     "window_left_wwr": 0.18,
@@ -1107,6 +1109,11 @@
     "air_leakage_value": null,
     "air_leakage_units": null,
     "air_leakage_type": null
+  },
+  "sample_files/base-bldgtype-mf-unit-neighbor-shading.xml": {
+    "parent_hpxml": "sample_files/base-bldgtype-mf-unit.xml",
+    "neighbor_right_distance": 15,
+    "combine_like_surfaces": false
   },
   "sample_files/base-bldgtype-mf-unit-residents-1.xml": {
     "parent_hpxml": "sample_files/base-bldgtype-mf-unit.xml",
@@ -1999,19 +2006,8 @@
     "hvac_control_heating_weekday_setpoint": "64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64",
     "hvac_control_heating_weekend_setpoint": "64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64"
   },
-  "sample_files/base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures-research-features.xml": {
-    "parent_hpxml": "sample_files/base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures.xml",
-    "site_iecc_zone": 7,
-    "site_state_code": "MN",
-    "weather_station_epw_filepath": "USA_MN_Duluth.Intl.AP.727450_TMY3.epw",
-    "simulation_control_timestep": 1,
-    "heat_pump_backup_heating_capacity": 34121.4,
-    "simulation_control_onoff_thermostat_deadband": 2,
-    "simulation_control_heat_pump_backup_heating_capacity_increment": 17060.71,
-    "simulation_control_defrost_model_type": "advanced"
-  },
   "sample_files/base-hvac-air-to-air-heat-pump-1-speed-research-features.xml": {
-    "parent_hpxml": "sample_files/base-hvac-air-to-air-heat-pump-1-speed.xml",
+    "parent_hpxml": "sample_files/base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures.xml",
     "site_iecc_zone": 7,
     "site_state_code": "MN",
     "weather_station_epw_filepath": "USA_MN_Duluth.Intl.AP.727450_TMY3.epw",
@@ -2103,13 +2099,8 @@
   },
   "sample_files/base-hvac-air-to-air-heat-pump-var-speed-research-features.xml": {
     "parent_hpxml": "sample_files/base-hvac-air-to-air-heat-pump-var-speed.xml",
-    "site_iecc_zone": 7,
-    "site_state_code": "MN",
-    "weather_station_epw_filepath": "USA_MN_Duluth.Intl.AP.727450_TMY3.epw",
     "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/hvac-variable-system-maximum-power-ratios-varied.csv",
-    "simulation_control_timestep": 1,
-    "heat_pump_backup_heating_capacity": 34121.4,
-    "simulation_control_heat_pump_backup_heating_capacity_increment": 17060.71,
+    "simulation_control_timestep": 60,
     "simulation_control_defrost_model_type": "advanced"
   },
   "sample_files/base-hvac-air-to-air-heat-pump-var-speed-max-power-ratio-schedule-two-systems.xml": {
@@ -2254,11 +2245,6 @@
     "parent_hpxml": "sample_files/base-hvac-central-ac-only-1-speed.xml",
     "cooling_system_cooling_efficiency": 18,
     "cooling_system_cooling_compressor_type": "two stage"
-  },
-  "sample_files/base-hvac-central-ac-only-2-speed-research-features.xml": {
-    "parent_hpxml": "sample_files/base-hvac-central-ac-only-2-speed.xml",
-    "simulation_control_timestep": 1,
-    "simulation_control_onoff_thermostat_deadband": 2
   },
   "sample_files/base-hvac-central-ac-only-var-speed.xml": {
     "parent_hpxml": "sample_files/base-hvac-central-ac-only-1-speed.xml",
@@ -2923,11 +2909,6 @@
     "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-cooling-only.csv"
   },
   "sample_files/base-hvac-room-ac-only-research-features.xml": {
-    "parent_hpxml": "sample_files/base-hvac-room-ac-only.xml",
-    "simulation_control_timestep": 1,
-    "simulation_control_onoff_thermostat_deadband": 2
-  },
-  "sample_files/base-hvac-room-ac-only-research-features-detailed-setpoints.xml": {
     "parent_hpxml": "sample_files/base-hvac-room-ac-only-detailed-setpoints.xml",
     "simulation_control_timestep": 1,
     "simulation_control_onoff_thermostat_deadband": 2
@@ -3050,13 +3031,14 @@
   },
   "sample_files/base-location-detailed.xml": {
     "parent_hpxml": "sample_files/base.xml",
-    "site_time_zone_utc_offset": -7,
-    "site_elevation": 6191,
-    "site_latitude": 40.51,
-    "site_longitude": -107.55,
+    "site_time_zone_utc_offset": -6,
+    "site_elevation": 5548,
+    "site_latitude": 39.77,
+    "site_longitude": -104.73,
     "site_state_code": "CO",
-    "site_city": "Craig",
-    "site_zip_code": 81625
+    "site_city": "Aurora",
+    "site_zip_code": 80019,
+    "weather_station_epw_filepath": null
   },
   "sample_files/base-location-duluth-mn.xml": {
     "parent_hpxml": "sample_files/base-foundation-unconditioned-basement.xml",
@@ -3435,11 +3417,6 @@
     "neighbor_back_distance": 10,
     "neighbor_front_height": 12
   },
-  "sample_files/base-misc-neighbor-shading-bldgtype-multifamily.xml": {
-    "parent_hpxml": "sample_files/base-bldgtype-mf-unit.xml",
-    "neighbor_right_distance": 15,
-    "combine_like_surfaces": false
-  },
   "sample_files/base-misc-shielding-of-home.xml": {
     "parent_hpxml": "sample_files/base.xml",
     "site_shielding_of_home": "well-shielded"
@@ -3669,7 +3646,9 @@
   },
   "sample_files/base-schedules-simple-vacancy.xml": {
     "parent_hpxml": "sample_files/base.xml",
-    "schedules_vacancy_periods": "Dec 1 - Jan 31",
+    "schedules_unavailable_period_types": "Vacancy",
+    "schedules_unavailable_period_dates": "Dec 1 - Jan 31",
+    "schedules_unavailable_period_window_natvent_availabilities": "always unavailable",
     "hot_water_distribution_system_type": "Recirculation",
     "hot_water_distribution_recirc_control_type": "no control",
     "hot_water_distribution_recirc_piping_length": 50,
@@ -3678,12 +3657,23 @@
   },
   "sample_files/base-schedules-simple-power-outage.xml": {
     "parent_hpxml": "sample_files/base.xml",
-    "schedules_power_outage_periods": "Jul 1 5 - Jul 31 14",
+    "schedules_unavailable_period_types": "Power Outage",
+    "schedules_unavailable_period_dates": "Jul 1 5 - Jul 31 14",
     "hot_water_distribution_system_type": "Recirculation",
     "hot_water_distribution_recirc_control_type": "no control",
     "hot_water_distribution_recirc_piping_length": 50,
     "hot_water_distribution_recirc_branch_piping_length": 50,
     "hot_water_distribution_recirc_pump_power": 50
+  },
+  "sample_files/base-schedules-simple-no-space-heating.xml": {
+    "parent_hpxml": "sample_files/base.xml",
+    "schedules_unavailable_period_types": "No Space Heating",
+    "schedules_unavailable_period_dates": "Dec 5 0 - Dec 31 23"
+  },
+  "sample_files/base-schedules-simple-no-space-cooling.xml": {
+    "parent_hpxml": "sample_files/base.xml",
+    "schedules_unavailable_period_types": "No Space Cooling",
+    "schedules_unavailable_period_dates": "Jul 1 22 - Aug 3 14"
   },
   "sample_files/base-schedules-detailed-all-10-mins.xml": {
     "parent_hpxml": "sample_files/base-simcontrol-timestep-10-mins.xml",
@@ -3705,7 +3695,8 @@
   },
   "sample_files/base-schedules-detailed-mixed-timesteps-power-outage.xml": {
     "parent_hpxml": "sample_files/base-schedules-detailed-mixed-timesteps.xml",
-    "schedules_power_outage_periods": "Dec 1 5 - Jan 31 14"
+    "schedules_unavailable_period_types": "Power Outage",
+    "schedules_unavailable_period_dates": "Dec 1 5 - Jan 31 14"
   },
   "sample_files/base-schedules-detailed-occupancy-stochastic.xml": {
     "parent_hpxml": "sample_files/base.xml",
@@ -3713,11 +3704,24 @@
   },
   "sample_files/base-schedules-detailed-occupancy-stochastic-vacancy.xml": {
     "parent_hpxml": "sample_files/base-schedules-detailed-occupancy-stochastic.xml",
-    "schedules_vacancy_periods": "Dec 1 - Jan 31"
+    "schedules_unavailable_period_types": "Vacancy",
+    "schedules_unavailable_period_dates": "Dec 1 - Jan 31",
+    "schedules_unavailable_period_window_natvent_availabilities": "always unavailable"
   },
   "sample_files/base-schedules-detailed-occupancy-stochastic-power-outage.xml": {
     "parent_hpxml": "sample_files/base-schedules-detailed-occupancy-stochastic.xml",
-    "schedules_power_outage_periods": "Dec 1 5 - Jan 31 14"
+    "schedules_unavailable_period_types": "Power Outage",
+    "schedules_unavailable_period_dates": "Dec 1 5 - Jan 31 14"
+  },
+  "sample_files/base-schedules-detailed-occupancy-stochastic-no-space-heating.xml": {
+    "parent_hpxml": "sample_files/base-schedules-detailed-occupancy-stochastic.xml",
+    "schedules_unavailable_period_types": "No Space Heating",
+    "schedules_unavailable_period_dates": "Dec 11 5 - Jan 2 14"
+  },
+  "sample_files/base-schedules-detailed-occupancy-stochastic-no-space-cooling.xml": {
+    "parent_hpxml": "sample_files/base-schedules-detailed-occupancy-stochastic.xml",
+    "schedules_unavailable_period_types": "No Space Cooling",
+    "schedules_unavailable_period_dates": "Jun 15 5 - Jul 30 14"
   },
   "sample_files/base-schedules-detailed-occupancy-stochastic-10-mins.xml": {
     "parent_hpxml": "sample_files/base.xml",

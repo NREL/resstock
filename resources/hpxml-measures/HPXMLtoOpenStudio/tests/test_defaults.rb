@@ -75,6 +75,24 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_header_values(default_hpxml, 60, 1, 1, 12, 31, 2007, 7.0, nil, nil, nil)
   end
 
+  def test_weather_station
+    # Test inputs not overridden by defaults
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = 'USA_NV_Las.Vegas-McCarran.Intl.AP.723860_TMY3.epw'
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    assert_equal('USA_NV_Las.Vegas-McCarran.Intl.AP.723860_TMY3.epw', default_hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath)
+
+    # Test defaults w/ zipcode
+    hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = nil
+    hpxml_bldg.zip_code = '08202' # Testing a zip-code with a leading zero to make sure it's handled correctly
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    assert_equal('USA_NJ_Cape.May.County.AP.745966_TMY3.epw', default_hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath)
+    assert_equal('Cape May Co', default_hpxml_bldg.climate_and_risk_zones.weather_station_name)
+    assert_equal('745966', default_hpxml_bldg.climate_and_risk_zones.weather_station_wmo)
+  end
+
   def test_emissions_factors
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-misc-loads-large-uncommon.xml')
@@ -459,25 +477,44 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.building_construction.conditioned_building_volume = 20000
     hpxml_bldg.building_construction.average_ceiling_height = 7
     hpxml_bldg.building_construction.number_of_units = 3
+    hpxml_bldg.building_construction.unit_height_above_grade = 1.6
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_building_construction_values(default_hpxml_bldg, 20000, 7.0, 4, 3)
+    _test_default_building_construction_values(default_hpxml_bldg, 20000, 7.0, 4, 3, 1.6)
 
     # Test defaults
     hpxml_bldg.building_construction.conditioned_building_volume = nil
     hpxml_bldg.building_construction.average_ceiling_height = nil
     hpxml_bldg.building_construction.number_of_bathrooms = nil
     hpxml_bldg.building_construction.number_of_units = nil
+    hpxml_bldg.building_construction.unit_height_above_grade = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_building_construction_values(default_hpxml_bldg, 22140, 8.2, 2, 1)
+    _test_default_building_construction_values(default_hpxml_bldg, 22140, 8.2, 2, 1, -7)
 
     # Test defaults w/ conditioned crawlspace
     hpxml, hpxml_bldg = _create_hpxml('base-foundation-conditioned-crawlspace.xml')
     hpxml_bldg.building_construction.conditioned_building_volume = nil
+    hpxml_bldg.building_construction.unit_height_above_grade = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_building_construction_values(default_hpxml_bldg, 16200, 8.0, 2, 1)
+    _test_default_building_construction_values(default_hpxml_bldg, 16200, 8.0, 2, 1, 0)
+
+    # Test defaults w/ belly-and-wing foundation
+    hpxml, hpxml_bldg = _create_hpxml('base-foundation-belly-wing-skirt.xml')
+    hpxml_bldg.building_construction.conditioned_building_volume = nil
+    hpxml_bldg.building_construction.unit_height_above_grade = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_building_construction_values(default_hpxml_bldg, 10800, 8.0, 2, 1, 2)
+
+    # Test defaults w/ pier & beam foundation
+    hpxml, hpxml_bldg = _create_hpxml('base-foundation-ambient.xml')
+    hpxml_bldg.building_construction.conditioned_building_volume = nil
+    hpxml_bldg.building_construction.unit_height_above_grade = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_building_construction_values(default_hpxml_bldg, 10800, 8.0, 2, 1, 2)
   end
 
   def test_climate_and_risk_zones
@@ -669,7 +706,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_infiltration_values(default_hpxml_bldg, 2000 * 8, false, 8.0 + (9.7 - 8.0) * 0.25)
   end
 
-  def test_infiltration_compartmentaliztion_test_adjustment
+  def test_infiltration_compartmentalization_test_adjustment
     # Test single-family detached
     hpxml, hpxml_bldg = _create_hpxml('base.xml')
     hpxml_bldg.air_infiltration_measurements[0].infiltration_type = HPXML::InfiltrationTypeUnitTotal
@@ -4487,11 +4524,13 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     end
   end
 
-  def _test_default_building_construction_values(hpxml_bldg, building_volume, average_ceiling_height, n_bathrooms, n_units)
+  def _test_default_building_construction_values(hpxml_bldg, building_volume, average_ceiling_height, number_of_bathrooms,
+                                                 number_of_units, unit_height_above_grade)
     assert_equal(building_volume, hpxml_bldg.building_construction.conditioned_building_volume)
     assert_in_epsilon(average_ceiling_height, hpxml_bldg.building_construction.average_ceiling_height, 0.01)
-    assert_equal(n_bathrooms, hpxml_bldg.building_construction.number_of_bathrooms)
-    assert_equal(n_units, hpxml_bldg.building_construction.number_of_units)
+    assert_equal(number_of_bathrooms, hpxml_bldg.building_construction.number_of_bathrooms)
+    assert_equal(number_of_units, hpxml_bldg.building_construction.number_of_units)
+    assert_equal(unit_height_above_grade, hpxml_bldg.building_construction.unit_height_above_grade)
   end
 
   def _test_default_infiltration_values(hpxml_bldg, volume, has_flue_or_chimney_in_conditioned_space, ach50 = nil)

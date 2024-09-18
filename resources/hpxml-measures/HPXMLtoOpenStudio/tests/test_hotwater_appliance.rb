@@ -994,7 +994,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
     assert_in_epsilon(rf_sens_frac, get_ee_fractions(model, Constants::ObjectTypeRefrigerator)[0], 0.001)
     assert_in_epsilon(rf_lat_frac, get_ee_fractions(model, Constants::ObjectTypeRefrigerator)[1], 0.001)
 
-    cook_ee_kwh_yr = 339.4481
+    cook_ee_kwh_yr = 326.9375
     cook_sens_frac = 0.72
     cook_lat_frac = 0.080
     assert_in_epsilon(cook_ee_kwh_yr, get_ee_kwh_per_year(model, Constants::ObjectTypeCookingRange), 0.001)
@@ -1002,8 +1002,8 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
     assert_in_epsilon(cook_lat_frac, get_ee_fractions(model, Constants::ObjectTypeCookingRange)[1], 0.001)
 
     # other equipment
-    water_sens = -140.879
-    water_lat = 142.945
+    water_sens = -126.4
+    water_lat = 128.3
     assert_in_epsilon(water_sens, get_oe_kwh(model, Constants::ObjectTypeGeneralWaterUseSensible), 0.001)
     assert_in_epsilon(1.0, get_oe_fractions(model, Constants::ObjectTypeGeneralWaterUseSensible)[0], 0.001)
     assert_in_epsilon(0.0, get_oe_fractions(model, Constants::ObjectTypeGeneralWaterUseSensible)[1], 0.001)
@@ -1055,7 +1055,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
     assert_in_epsilon(rf_sens_frac, get_ee_fractions(model, Constants::ObjectTypeRefrigerator)[0], 0.001)
     assert_in_epsilon(rf_lat_frac, get_ee_fractions(model, Constants::ObjectTypeRefrigerator)[1], 0.001)
 
-    cook_ee_kwh_yr = 603.22
+    cook_ee_kwh_yr = 651.2
     cook_sens_frac = 0.72
     cook_lat_frac = 0.080
     assert_in_epsilon(cook_ee_kwh_yr, get_ee_kwh_per_year(model, Constants::ObjectTypeCookingRange), 0.001)
@@ -1063,8 +1063,8 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
     assert_in_epsilon(cook_lat_frac, get_ee_fractions(model, Constants::ObjectTypeCookingRange)[1], 0.001)
 
     # other equipment
-    water_sens = -436.636
-    water_lat = 443.042
+    water_sens = -490.4
+    water_lat = 497.6
     assert_in_epsilon(water_sens, get_oe_kwh(model, Constants::ObjectTypeGeneralWaterUseSensible), 0.001)
     assert_in_epsilon(1.0, get_oe_fractions(model, Constants::ObjectTypeGeneralWaterUseSensible)[0], 0.001)
     assert_in_epsilon(0.0, get_oe_fractions(model, Constants::ObjectTypeGeneralWaterUseSensible)[1], 0.001)

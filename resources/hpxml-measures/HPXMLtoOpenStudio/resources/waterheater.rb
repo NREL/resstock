@@ -1,29 +1,64 @@
 # frozen_string_literal: true
 
-# TODO
+# Collection of methods related to water heating systems.
 module Waterheater
+  # TODO
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
+  # @return [nil]
+  def self.apply_dhw_appliances(runner, model, weather, spaces, hpxml_bldg, hpxml_header, schedules_file)
+    unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::Columns[:WaterHeater].name, hpxml_header.unavailable_periods)
+
+    plantloop_map = {}
+    hpxml_bldg.water_heating_systems.each do |dhw_system|
+      if dhw_system.water_heater_type == HPXML::WaterHeaterTypeStorage
+        apply_tank(model, runner, spaces, hpxml_bldg, hpxml_header, dhw_system, schedules_file, unavailable_periods, plantloop_map)
+      elsif dhw_system.water_heater_type == HPXML::WaterHeaterTypeTankless
+        apply_tankless(model, runner, spaces, hpxml_bldg, hpxml_header, dhw_system, schedules_file, unavailable_periods, plantloop_map)
+      elsif dhw_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
+        apply_heatpump(model, runner, spaces, hpxml_bldg, hpxml_header, dhw_system, schedules_file, unavailable_periods, plantloop_map)
+      elsif [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? dhw_system.water_heater_type
+        apply_combi(model, runner, spaces, hpxml_bldg, hpxml_header, dhw_system, schedules_file, unavailable_periods, plantloop_map)
+      else
+        fail "Unhandled water heater (#{dhw_system.water_heater_type})."
+      end
+    end
+
+    HotWaterAndAppliances.apply(runner, model, weather, spaces, hpxml_bldg, hpxml_header, schedules_file, plantloop_map)
+
+    apply_solar_thermal(model, spaces, hpxml_bldg, plantloop_map)
+
+    # Add combi-system EMS program with water use equipment information
+    apply_combi_system_EMS(model, hpxml_bldg.water_heating_systems, plantloop_map)
+  end
+
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
-  # @param loc_space [TODO] TODO
-  # @param loc_schedule [TODO] TODO
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param water_heating_system [TODO] TODO
-  # @param ec_adj [TODO] TODO
-  # @param solar_thermal_system [TODO] TODO
-  # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
-  # @return [TODO] TODO
-  def self.apply_tank(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, eri_version, schedules_file, unavailable_periods, unit_multiplier, nbeds)
-    solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
+  # @param plantloop_map [Hash] Map of HPXML System ID => OpenStudio PlantLoop objects
+  # @return [nil]
+  def self.apply_tank(model, runner, spaces, hpxml_bldg, hpxml_header, water_heating_system, schedules_file, unavailable_periods, plantloop_map)
+    loc_space, loc_schedule = Geometry.get_space_or_schedule_from_location(water_heating_system.location, model, spaces)
+    unit_multiplier = hpxml_bldg.building_construction.number_of_units
+    solar_fraction = get_water_heater_solar_fraction(water_heating_system, hpxml_bldg)
     t_set_c = get_t_set_c(water_heating_system.temperature, water_heating_system.water_heater_type)
-    loop = create_new_loop(model, t_set_c, eri_version, unit_multiplier)
+    loop = create_new_loop(model, t_set_c, hpxml_header.eri_calculation_version, unit_multiplier)
 
     act_vol = calc_storage_tank_actual_vol(water_heating_system.tank_volume, water_heating_system.fuel_type)
-    u, ua, eta_c = calc_tank_UA(act_vol, water_heating_system, solar_fraction, nbeds)
+    u, ua, eta_c = calc_tank_UA(act_vol, water_heating_system, solar_fraction, hpxml_bldg.building_construction.number_of_bedrooms)
     new_heater = create_new_heater(name: Constants::ObjectTypeWaterHeater,
                                    water_heating_system: water_heating_system,
                                    act_vol: act_vol,
@@ -40,35 +75,34 @@ module Waterheater
                                    unit_multiplier: unit_multiplier)
     loop.addSupplyBranchForComponent(new_heater)
 
-    add_ec_adj(model, new_heater, ec_adj, loc_space, water_heating_system, unit_multiplier)
+    add_ec_adj(model, hpxml_bldg, new_heater, loc_space, water_heating_system, unit_multiplier)
     add_desuperheater(model, runner, water_heating_system, new_heater, loc_space, loc_schedule, loop, unit_multiplier)
 
-    return loop
+    plantloop_map[water_heating_system.id] = loop
   end
 
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
-  # @param loc_space [TODO] TODO
-  # @param loc_schedule [TODO] TODO
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param water_heating_system [TODO] TODO
-  # @param ec_adj [TODO] TODO
-  # @param solar_thermal_system [TODO] TODO
-  # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
-  # @return [TODO] TODO
-  def self.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, eri_version, schedules_file, unavailable_periods, unit_multiplier, nbeds)
+  # @param plantloop_map [Hash] Map of HPXML System ID => OpenStudio PlantLoop objects
+  # @return [nil]
+  def self.apply_tankless(model, runner, spaces, hpxml_bldg, hpxml_header, water_heating_system, schedules_file, unavailable_periods, plantloop_map)
+    loc_space, loc_schedule = Geometry.get_space_or_schedule_from_location(water_heating_system.location, model, spaces)
+    unit_multiplier = hpxml_bldg.building_construction.number_of_units
     water_heating_system.heating_capacity = 100000000000.0 * unit_multiplier
-    solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
+    solar_fraction = get_water_heater_solar_fraction(water_heating_system, hpxml_bldg)
     t_set_c = get_t_set_c(water_heating_system.temperature, water_heating_system.water_heater_type)
-    loop = create_new_loop(model, t_set_c, eri_version, unit_multiplier)
+    loop = create_new_loop(model, t_set_c, hpxml_header.eri_calculation_version, unit_multiplier)
 
     act_vol = 1.0 * unit_multiplier
-    _u, ua, eta_c = calc_tank_UA(act_vol, water_heating_system, solar_fraction, nbeds)
+    _u, ua, eta_c = calc_tank_UA(act_vol, water_heating_system, solar_fraction, hpxml_bldg.building_construction.number_of_bedrooms)
     new_heater = create_new_heater(name: Constants::ObjectTypeWaterHeater,
                                    water_heating_system: water_heating_system,
                                    act_vol: act_vol,
@@ -85,34 +119,32 @@ module Waterheater
 
     loop.addSupplyBranchForComponent(new_heater)
 
-    add_ec_adj(model, new_heater, ec_adj, loc_space, water_heating_system, unit_multiplier)
+    add_ec_adj(model, hpxml_bldg, new_heater, loc_space, water_heating_system, unit_multiplier)
     add_desuperheater(model, runner, water_heating_system, new_heater, loc_space, loc_schedule, loop, unit_multiplier)
 
-    return loop
+    plantloop_map[water_heating_system.id] = loop
   end
 
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
-  # @param loc_space [TODO] TODO
-  # @param loc_schedule [TODO] TODO
-  # @param elevation [Double] Elevation of the building site (ft)
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param water_heating_system [TODO] TODO
-  # @param ec_adj [TODO] TODO
-  # @param solar_thermal_system [TODO] TODO
-  # @param conditioned_zone [TODO] TODO
-  # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
-  # @return [TODO] TODO
-  def self.apply_heatpump(model, runner, loc_space, loc_schedule, elevation, water_heating_system, ec_adj, solar_thermal_system, conditioned_zone, eri_version, schedules_file, unavailable_periods, unit_multiplier, nbeds)
+  # @param plantloop_map [Hash] Map of HPXML System ID => OpenStudio PlantLoop objects
+  # @return [nil]
+  def self.apply_heatpump(model, runner, spaces, hpxml_bldg, hpxml_header, water_heating_system, schedules_file, unavailable_periods, plantloop_map)
+    loc_space, loc_schedule = Geometry.get_space_or_schedule_from_location(water_heating_system.location, model, spaces)
+    unit_multiplier = hpxml_bldg.building_construction.number_of_units
     obj_name_hpwh = Constants::ObjectTypeWaterHeater
-    solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
+    conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
+    solar_fraction = get_water_heater_solar_fraction(water_heating_system, hpxml_bldg)
     t_set_c = get_t_set_c(water_heating_system.temperature, water_heating_system.water_heater_type)
-    loop = create_new_loop(model, t_set_c, eri_version, unit_multiplier)
+    loop = create_new_loop(model, t_set_c, hpxml_header.eri_calculation_version, unit_multiplier)
 
     h_tank = 0.0188 * water_heating_system.tank_volume + 0.0935 # Linear relationship that gets GE height at 50 gal and AO Smith height at 80 gal
 
@@ -158,10 +190,10 @@ module Waterheater
     max_temp = 120.0 # F
 
     # Coil:WaterHeating:AirToWaterHeatPump:Wrapped
-    coil = setup_hpwh_dxcoil(model, runner, water_heating_system, elevation, obj_name_hpwh, airflow_rate, unit_multiplier)
+    coil = setup_hpwh_dxcoil(model, runner, water_heating_system, hpxml_bldg.elevation, obj_name_hpwh, airflow_rate, unit_multiplier)
 
     # WaterHeater:Stratified
-    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, bottom_element_setpoint_schedule, top_element_setpoint_schedule, unit_multiplier, nbeds)
+    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, bottom_element_setpoint_schedule, top_element_setpoint_schedule, unit_multiplier, hpxml_bldg.building_construction.number_of_bedrooms)
     loop.addSupplyBranchForComponent(tank)
 
     add_desuperheater(model, runner, water_heating_system, tank, loc_space, loc_schedule, loop, unit_multiplier)
@@ -187,28 +219,27 @@ module Waterheater
     program_calling_manager.addProgram(hpwh_ctrl_program)
     program_calling_manager.addProgram(hpwh_inlet_air_program)
 
-    add_ec_adj(model, hpwh, ec_adj, loc_space, water_heating_system, unit_multiplier)
+    add_ec_adj(model, hpxml_bldg, hpwh, loc_space, water_heating_system, unit_multiplier)
 
-    return loop
+    plantloop_map[water_heating_system.id] = loop
   end
 
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
-  # @param loc_space [TODO] TODO
-  # @param loc_schedule [TODO] TODO
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param water_heating_system [TODO] TODO
-  # @param ec_adj [TODO] TODO
-  # @param solar_thermal_system [TODO] TODO
-  # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
-  # @return [TODO] TODO
-  def self.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, eri_version, schedules_file, unavailable_periods, unit_multiplier, nbeds)
-    solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
+  # @param plantloop_map [Hash] Map of HPXML System ID => OpenStudio PlantLoop objects
+  # @return [nil]
+  def self.apply_combi(model, runner, spaces, hpxml_bldg, hpxml_header, water_heating_system, schedules_file, unavailable_periods, plantloop_map)
+    loc_space, loc_schedule = Geometry.get_space_or_schedule_from_location(water_heating_system.location, model, spaces)
+    unit_multiplier = hpxml_bldg.building_construction.number_of_units
+    solar_fraction = get_water_heater_solar_fraction(water_heating_system, hpxml_bldg)
 
     boiler, boiler_plant_loop = get_combi_boiler_and_plant_loop(model, water_heating_system.related_hvac_idref)
     boiler.setName('combi boiler')
@@ -224,14 +255,14 @@ module Waterheater
 
       act_vol = calc_storage_tank_actual_vol(water_heating_system.tank_volume, nil)
       a_side = calc_tank_areas(act_vol)[1]
-      ua = calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction, nbeds)
+      ua = calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction, hpxml_bldg.building_construction.number_of_bedrooms)
     else
       ua = 0.0
       act_vol = 1.0
     end
 
     t_set_c = get_t_set_c(water_heating_system.temperature, water_heating_system.water_heater_type)
-    loop = create_new_loop(model, t_set_c, eri_version, unit_multiplier)
+    loop = create_new_loop(model, t_set_c, hpxml_header.eri_calculation_version, unit_multiplier)
 
     # Create water heater
     new_heater = create_new_heater(name: obj_name_combi,
@@ -279,9 +310,91 @@ module Waterheater
 
     loop.addSupplyBranchForComponent(new_heater)
 
-    add_ec_adj(model, new_heater, ec_adj, loc_space, water_heating_system, unit_multiplier, boiler)
+    add_ec_adj(model, hpxml_bldg, new_heater, loc_space, water_heating_system, unit_multiplier, boiler)
 
-    return loop
+    plantloop_map[water_heating_system.id] = loop
+  end
+
+  # TODO
+  #
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param water_heating_system [TODO] TODO
+  # @return [TODO] TODO
+  def self.get_dist_energy_consumption_adjustment(hpxml_bldg, water_heating_system)
+    if water_heating_system.fraction_dhw_load_served <= 0
+      # No fixtures; not accounting for distribution system
+      return 1.0
+    end
+
+    hot_water_distribution = hpxml_bldg.hot_water_distributions[0]
+
+    has_uncond_bsmnt = hpxml_bldg.has_location(HPXML::LocationBasementUnconditioned)
+    has_cond_bsmnt = hpxml_bldg.has_location(HPXML::LocationBasementConditioned)
+    cfa = hpxml_bldg.building_construction.conditioned_floor_area
+    ncfl = hpxml_bldg.building_construction.number_of_conditioned_floors
+
+    # ANSI/RESNET 301-2014 Addendum A-2015
+    # Amendment on Domestic Hot Water (DHW) Systems
+    # Eq. 4.2-16
+    ew_fact = get_dist_energy_waste_factor(hot_water_distribution)
+    o_frac = 0.25 # fraction of hot water waste from standard operating conditions
+    oew_fact = ew_fact * o_frac # standard operating condition portion of hot water energy waste
+    ocd_eff = 0.0
+    sew_fact = ew_fact - oew_fact
+    ref_pipe_l = HotWaterAndAppliances.get_default_std_pipe_length(has_uncond_bsmnt, has_cond_bsmnt, cfa, ncfl)
+    if hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
+      pe_ratio = hot_water_distribution.standard_piping_length / ref_pipe_l
+    elsif hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
+      ref_loop_l = HotWaterAndAppliances.get_default_recirc_loop_length(ref_pipe_l)
+      pe_ratio = hot_water_distribution.recirculation_piping_loop_length / ref_loop_l
+    end
+    e_waste = oew_fact * (1.0 - ocd_eff) + sew_fact * pe_ratio
+    return (e_waste + 128.0) / 160.0
+  end
+
+  # TODO
+  #
+  # @param hot_water_distribution [TODO] TODO
+  # @return [TODO] TODO
+  def self.get_dist_energy_waste_factor(hot_water_distribution)
+    # ANSI/RESNET 301-2014 Addendum A-2015
+    # Amendment on Domestic Hot Water (DHW) Systems
+    # Table 4.2.2.5.2.11(6) Hot water distribution system relative annual energy waste factors
+    if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
+      if (hot_water_distribution.recirculation_control_type == HPXML::DHWRecircControlTypeNone) ||
+         (hot_water_distribution.recirculation_control_type == HPXML::DHWRecircControlTypeTimer)
+        if hot_water_distribution.pipe_r_value < 3.0
+          return 500.0
+        else
+          return 250.0
+        end
+      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecircControlTypeTemperature
+        if hot_water_distribution.pipe_r_value < 3.0
+          return 375.0
+        else
+          return 187.5
+        end
+      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecircControlTypeSensor
+        if hot_water_distribution.pipe_r_value < 3.0
+          return 64.8
+        else
+          return 43.2
+        end
+      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecircControlTypeManual
+        if hot_water_distribution.pipe_r_value < 3.0
+          return 43.2
+        else
+          return 28.8
+        end
+      end
+    elsif hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
+      if hot_water_distribution.pipe_r_value < 3.0
+        return 32.0
+      else
+        return 28.8
+      end
+    end
+    fail 'Unexpected hot water distribution system.'
   end
 
   # TODO
@@ -425,13 +538,16 @@ module Waterheater
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param loc_space [TODO] TODO
-  # @param loc_schedule [TODO] TODO
-  # @param solar_thermal_system [TODO] TODO
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param plantloop_map [TODO] TODO
-  # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @return [TODO] TODO
-  def self.apply_solar_thermal(model, loc_space, loc_schedule, solar_thermal_system, plantloop_map, unit_multiplier)
+  # @return [nil]
+  def self.apply_solar_thermal(model, spaces, hpxml_bldg, plantloop_map)
+    return if hpxml_bldg.solar_thermal_systems.size == 0
+
+    solar_thermal_system = hpxml_bldg.solar_thermal_systems[0]
+    return if solar_thermal_system.collector_area.nil? # Return if simple (not detailed) solar water heater type
+
     if [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? solar_thermal_system.water_heating_system.water_heater_type
       fail "Water heating system '#{solar_thermal_system.water_heating_system.id}' connected to solar thermal system '#{solar_thermal_system.id}' cannot be a space-heating boiler."
     end
@@ -439,7 +555,9 @@ module Waterheater
       fail "Water heating system '#{solar_thermal_system.water_heating_system.id}' connected to solar thermal system '#{solar_thermal_system.id}' cannot be attached to a desuperheater."
     end
 
+    loc_space, loc_schedule = Geometry.get_space_or_schedule_from_location(solar_thermal_system.water_heating_system.location, model, spaces)
     dhw_loop = plantloop_map[solar_thermal_system.water_heating_system.id]
+    unit_multiplier = hpxml_bldg.building_construction.number_of_units
 
     obj_name = Constants::ObjectTypeSolarHotWater
 
@@ -1584,13 +1702,15 @@ module Waterheater
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param heater [TODO] TODO
   # @param loc_space [TODO] TODO
   # @param water_heating_system [TODO] TODO
   # @param unit_multiplier [Integer] Number of similar dwelling units
   # @param combi_boiler [TODO] TODO
   # @return [TODO] TODO
-  def self.add_ec_adj(model, heater, ec_adj, loc_space, water_heating_system, unit_multiplier, combi_boiler = nil)
+  def self.add_ec_adj(model, hpxml_bldg, heater, loc_space, water_heating_system, unit_multiplier, combi_boiler = nil)
+    ec_adj = get_dist_energy_consumption_adjustment(hpxml_bldg, water_heating_system)
     adjustment = ec_adj - 1.0
 
     if loc_space.nil? # WH is not in a zone, set the other equipment to be in a random space
@@ -1698,13 +1818,13 @@ module Waterheater
     end
   end
 
-  # TODO
+  # Returns the default location of the water heater based on the IECC climate zone.
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param climate_zone_iecc [TODO] TODO
-  # @return [TODO] TODO
-  def self.get_default_location(hpxml_bldg, climate_zone_iecc)
-    iecc_zone = (climate_zone_iecc.nil? ? nil : climate_zone_iecc.zone)
+  # @param iecc_zone [string] IECC climate zone
+  # @return [string] Water heater location (HPXML::LocationXXX)
+  def self.get_default_location(hpxml_bldg, iecc_zone = nil)
+    # ANSI/RESNET/ICC 301-2022C
     if ['1A', '1B', '1C', '2A', '2B', '2C', '3A', '3B', '3C'].include? iecc_zone
       location_hierarchy = [HPXML::LocationGarage,
                             HPXML::LocationConditionedSpace]
@@ -2182,10 +2302,14 @@ module Waterheater
   # TODO
   #
   # @param water_heating_system [TODO] TODO
-  # @param solar_thermal_system [TODO] TODO
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @return [TODO] TODO
-  def self.get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
-    if (not solar_thermal_system.nil?) && (solar_thermal_system.water_heating_system.nil? || (solar_thermal_system.water_heating_system.id == water_heating_system.id))
+  def self.get_water_heater_solar_fraction(water_heating_system, hpxml_bldg)
+    return 0.0 if hpxml_bldg.solar_thermal_systems.size == 0
+
+    solar_thermal_system = hpxml_bldg.solar_thermal_systems[0]
+
+    if (solar_thermal_system.water_heating_system.nil? || (solar_thermal_system.water_heating_system.id == water_heating_system.id))
       solar_fraction = solar_thermal_system.solar_fraction
     end
     return solar_fraction.to_f

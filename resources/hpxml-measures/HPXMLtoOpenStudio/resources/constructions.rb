@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-# TODO
+# Collection of methods related to surface constructions.
 module Constructions
-  # Container class for walls, floors/ceilings, roofs, etc.
-
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
@@ -25,24 +23,10 @@ module Constructions
   # @param solar_absorptance [TODO] TODO
   # @param emittance [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_wood_stud_wall(model,
-                                surfaces,
-                                constr_name,
-                                cavity_r,
-                                install_grade,
-                                cavity_depth_in,
-                                cavity_filled,
-                                framing_factor,
-                                mat_int_finish,
-                                osb_thick_in,
-                                rigid_r,
-                                mat_ext_finish,
-                                has_radiant_barrier,
-                                inside_film,
-                                outside_film,
-                                radiant_barrier_grade,
-                                solar_absorptance = nil,
-                                emittance = nil)
+  def self.apply_wood_stud_wall(model, surfaces, constr_name, cavity_r, install_grade, cavity_depth_in,
+                                cavity_filled, framing_factor, mat_int_finish, osb_thick_in, rigid_r,
+                                mat_ext_finish, has_radiant_barrier, inside_film, outside_film,
+                                radiant_barrier_grade, solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
 
@@ -132,26 +116,11 @@ module Constructions
   # @param solar_absorptance [TODO] TODO
   # @param emittance [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_double_stud_wall(model,
-                                  surfaces,
-                                  constr_name,
-                                  cavity_r,
-                                  install_grade,
-                                  stud_depth_in,
-                                  gap_depth_in,
-                                  framing_factor,
-                                  framing_spacing,
-                                  is_staggered,
-                                  mat_int_finish,
-                                  osb_thick_in,
-                                  rigid_r,
-                                  mat_ext_finish,
-                                  has_radiant_barrier,
-                                  inside_film,
-                                  outside_film,
-                                  radiant_barrier_grade,
-                                  solar_absorptance = nil,
-                                  emittance = nil)
+  def self.apply_double_stud_wall(model, surfaces, constr_name, cavity_r, install_grade, stud_depth_in,
+                                  gap_depth_in, framing_factor, framing_spacing, is_staggered,
+                                  mat_int_finish, osb_thick_in, rigid_r, mat_ext_finish,
+                                  has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade,
+                                  solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
 
@@ -252,26 +221,10 @@ module Constructions
   # @param solar_absorptance [TODO] TODO
   # @param emittance [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_cmu_wall(model,
-                          surfaces,
-                          constr_name,
-                          thick_in,
-                          conductivity,
-                          density,
-                          framing_factor,
-                          furring_r,
-                          furring_cavity_depth,
-                          furring_spacing,
-                          mat_int_finish,
-                          osb_thick_in,
-                          rigid_r,
-                          mat_ext_finish,
-                          has_radiant_barrier,
-                          inside_film,
-                          outside_film,
-                          radiant_barrier_grade,
-                          solar_absorptance = nil,
-                          emittance = nil)
+  def self.apply_cmu_wall(model, surfaces, constr_name, thick_in, conductivity, density, framing_factor,
+                          furring_r, furring_cavity_depth, furring_spacing, mat_int_finish, osb_thick_in,
+                          rigid_r, mat_ext_finish, has_radiant_barrier, inside_film, outside_film,
+                          radiant_barrier_grade, solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
 
@@ -365,23 +318,10 @@ module Constructions
   # @param solar_absorptance [TODO] TODO
   # @param emittance [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_icf_wall(model,
-                          surfaces,
-                          constr_name,
-                          icf_r,
-                          ins_thick_in,
-                          concrete_thick_in,
-                          framing_factor,
-                          mat_int_finish,
-                          osb_thick_in,
-                          rigid_r,
-                          mat_ext_finish,
-                          has_radiant_barrier,
-                          inside_film,
-                          outside_film,
-                          radiant_barrier_grade,
-                          solar_absorptance = nil,
-                          emittance = nil)
+  def self.apply_icf_wall(model, surfaces, constr_name, icf_r, ins_thick_in, concrete_thick_in,
+                          framing_factor, mat_int_finish, osb_thick_in, rigid_r, mat_ext_finish,
+                          has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade,
+                          solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
 
@@ -459,23 +399,10 @@ module Constructions
   # @param solar_absorptance [TODO] TODO
   # @param emittance [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_sip_wall(model,
-                          surfaces,
-                          constr_name,
-                          sip_r,
-                          sip_thick_in,
-                          framing_factor,
-                          sheathing_thick_in,
-                          mat_int_finish,
-                          osb_thick_in,
-                          rigid_r,
-                          mat_ext_finish,
-                          has_radiant_barrier,
-                          inside_film,
-                          outside_film,
-                          radiant_barrier_grade,
-                          solar_absorptance = nil,
-                          emittance = nil)
+  def self.apply_sip_wall(model, surfaces, constr_name, sip_r, sip_thick_in, framing_factor,
+                          sheathing_thick_in, mat_int_finish, osb_thick_in, rigid_r, mat_ext_finish,
+                          has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade,
+                          solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
 
@@ -563,25 +490,10 @@ module Constructions
   # @param solar_absorptance [TODO] TODO
   # @param emittance [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_steel_stud_wall(model,
-                                 surfaces,
-                                 constr_name,
-                                 cavity_r,
-                                 install_grade,
-                                 cavity_depth,
-                                 cavity_filled,
-                                 framing_factor,
-                                 correction_factor,
-                                 mat_int_finish,
-                                 osb_thick_in,
-                                 rigid_r,
-                                 mat_ext_finish,
-                                 has_radiant_barrier,
-                                 inside_film,
-                                 outside_film,
-                                 radiant_barrier_grade,
-                                 solar_absorptance = nil,
-                                 emittance = nil)
+  def self.apply_steel_stud_wall(model, surfaces, constr_name, cavity_r, install_grade, cavity_depth,
+                                 cavity_filled, framing_factor, correction_factor, mat_int_finish,
+                                 osb_thick_in, rigid_r, mat_ext_finish, has_radiant_barrier, inside_film,
+                                 outside_film, radiant_barrier_grade, solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
 
@@ -669,23 +581,10 @@ module Constructions
   # @param solar_absorptance [TODO] TODO
   # @param emittance [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_generic_layered_wall(model,
-                                      surfaces,
-                                      constr_name,
-                                      thick_ins,
-                                      conds,
-                                      denss,
-                                      specheats,
-                                      mat_int_finish,
-                                      osb_thick_in,
-                                      rigid_r,
-                                      mat_ext_finish,
-                                      has_radiant_barrier,
-                                      inside_film,
-                                      outside_film,
-                                      radiant_barrier_grade,
-                                      solar_absorptance = nil,
-                                      emittance = nil)
+  def self.apply_generic_layered_wall(model, surfaces, constr_name, thick_ins, conds, denss, specheats,
+                                      mat_int_finish, osb_thick_in, rigid_r, mat_ext_finish,
+                                      has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade,
+                                      solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
 
@@ -776,10 +675,8 @@ module Constructions
   # @param solar_absorptance [TODO] TODO
   # @param emittance [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_rim_joist(model, surfaces, constr_name,
-                           cavity_r, install_grade, framing_factor,
-                           mat_int_finish, osb_thick_in,
-                           rigid_r, mat_ext_finish, inside_film,
+  def self.apply_rim_joist(model, surfaces, constr_name, cavity_r, install_grade, framing_factor,
+                           mat_int_finish, osb_thick_in, rigid_r, mat_ext_finish, inside_film,
                            outside_film, solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
@@ -856,13 +753,10 @@ module Constructions
   # @param solar_absorptance [TODO] TODO
   # @param emittance [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_open_cavity_roof(model, surfaces, constr_name,
-                                  cavity_r, install_grade, cavity_ins_thick_in,
-                                  framing_factor, framing_thick_in,
-                                  osb_thick_in, rigid_r,
-                                  mat_roofing, has_radiant_barrier,
-                                  inside_film, outside_film, radiant_barrier_grade,
-                                  solar_absorptance = nil, emittance = nil)
+  def self.apply_open_cavity_roof(model, surfaces, constr_name, cavity_r, install_grade,
+                                  cavity_ins_thick_in, framing_factor, framing_thick_in, osb_thick_in,
+                                  rigid_r, mat_roofing, has_radiant_barrier, inside_film, outside_film,
+                                  radiant_barrier_grade, solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
 
@@ -950,8 +844,7 @@ module Constructions
   # @param solar_absorptance [TODO] TODO
   # @param emittance [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_closed_cavity_roof(model, surfaces, constr_name,
-                                    cavity_r, install_grade, cavity_depth,
+  def self.apply_closed_cavity_roof(model, surfaces, constr_name, cavity_r, install_grade, cavity_depth,
                                     filled_cavity, framing_factor, mat_int_finish,
                                     osb_thick_in, rigid_r, mat_roofing, has_radiant_barrier,
                                     inside_film, outside_film, radiant_barrier_grade,
@@ -1038,11 +931,10 @@ module Constructions
   # @param outside_film [TODO] TODO
   # @param radiant_barrier_grade [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_wood_frame_floor_ceiling(model, surfaces, constr_name, is_ceiling,
-                                          cavity_r, install_grade,
-                                          framing_factor, joist_height_in,
-                                          plywood_thick_in, rigid_r, mat_int_finish_or_covering,
-                                          has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade)
+  def self.apply_wood_frame_floor_ceiling(model, surfaces, constr_name, is_ceiling, cavity_r, install_grade,
+                                          framing_factor, joist_height_in, plywood_thick_in,
+                                          rigid_r, mat_int_finish_or_covering, has_radiant_barrier,
+                                          inside_film, outside_film, radiant_barrier_grade)
 
     # Interior finish below, open cavity above (e.g., attic floor)
     # Open cavity below, floor covering above (e.g., crawlspace ceiling)
@@ -1153,8 +1045,7 @@ module Constructions
   # @param outside_film [TODO] TODO
   # @param radiant_barrier_grade [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_steel_frame_floor_ceiling(model, surfaces, constr_name, is_ceiling,
-                                           cavity_r, install_grade,
+  def self.apply_steel_frame_floor_ceiling(model, surfaces, constr_name, is_ceiling, cavity_r, install_grade,
                                            framing_factor, correction_factor, joist_height_in,
                                            plywood_thick_in, rigid_r, mat_int_finish_or_covering,
                                            has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade)
@@ -1265,11 +1156,10 @@ module Constructions
   # @param solar_absorptance [TODO] TODO
   # @param emittance [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_sip_floor_ceiling(model, surfaces, constr_name, is_ceiling,
-                                   sip_r, sip_thick_in, framing_factor,
-                                   mat_int_finish, osb_thick_in, rigid_r,
-                                   mat_ext_finish, has_radiant_barrier, inside_film, outside_film,
-                                   radiant_barrier_grade, solar_absorptance = nil, emittance = nil)
+  def self.apply_sip_floor_ceiling(model, surfaces, constr_name, is_ceiling, sip_r, sip_thick_in,
+                                   framing_factor, mat_int_finish, osb_thick_in, rigid_r, mat_ext_finish,
+                                   has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade,
+                                   solar_absorptance = nil, emittance = nil)
 
     return if surfaces.empty?
 
@@ -1357,9 +1247,8 @@ module Constructions
   # @param solar_absorptance [TODO] TODO
   # @param emittance [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_generic_layered_floor_ceiling(model, surfaces, constr_name, is_ceiling,
-                                               thick_ins, conds, denss, specheats,
-                                               mat_int_finish, osb_thick_in, rigid_r,
+  def self.apply_generic_layered_floor_ceiling(model, surfaces, constr_name, is_ceiling, thick_ins, conds,
+                                               denss, specheats, mat_int_finish, osb_thick_in, rigid_r,
                                                mat_ext_finish, has_radiant_barrier, inside_film, outside_film,
                                                radiant_barrier_grade, solar_absorptance = nil, emittance = nil)
 
@@ -1455,10 +1344,9 @@ module Constructions
   # @param height_above_grade [TODO] TODO
   # @param soil_k_in [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_foundation_wall(model, surfaces, constr_name,
-                                 ext_rigid_ins_offset, int_rigid_ins_offset, ext_rigid_ins_height,
-                                 int_rigid_ins_height, ext_rigid_r, int_rigid_r, mat_int_finish,
-                                 mat_wall, height_above_grade, soil_k_in)
+  def self.apply_foundation_wall(model, surfaces, constr_name, ext_rigid_ins_offset, int_rigid_ins_offset,
+                                 ext_rigid_ins_height, int_rigid_ins_height, ext_rigid_r, int_rigid_r,
+                                 mat_int_finish, mat_wall, height_above_grade, soil_k_in)
 
     # Create Kiva foundation
     foundation = apply_kiva_walled_foundation(model, ext_rigid_r, int_rigid_r, ext_rigid_ins_offset,
@@ -1499,11 +1387,10 @@ module Constructions
   # @param soil_k_in [TODO] TODO
   # @param foundation [TODO] TODO
   # @return [TODO] TODO
-  def self.apply_foundation_slab(model, surface, constr_name,
-                                 under_r, under_width, gap_r,
-                                 perimeter_r, perimeter_depth,
-                                 whole_r, concrete_thick_in, exposed_perimeter,
-                                 mat_carpet, soil_k_in, foundation, ext_horiz_r, ext_horiz_width, ext_horiz_depth)
+  def self.apply_foundation_slab(model, surface, constr_name, under_r, under_width, gap_r, perimeter_r,
+                                 perimeter_depth, whole_r, concrete_thick_in, exposed_perimeter,
+                                 mat_carpet, soil_k_in, foundation, ext_horiz_r, ext_horiz_width,
+                                 ext_horiz_depth)
 
     return if surface.nil?
 
@@ -1618,7 +1505,7 @@ module Constructions
   # @param constr_name [TODO] TODO
   # @param mat_int_finish [TODO] TODO
   # @param partition_wall_area [TODO] TODO
-  # @param spaces [Hash] keys are locations and values are OpenStudio::Model::Space objects
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @return [TODO] TODO
   def self.apply_partition_walls(model, constr_name, mat_int_finish, partition_wall_area, spaces)
     return if partition_wall_area <= 0
@@ -1628,31 +1515,15 @@ module Constructions
     obj_name = 'partition wall mass'
     imdef = create_os_int_mass_and_def(model, obj_name, spaces[HPXML::LocationConditionedSpace], partition_wall_area)
 
-    apply_wood_stud_wall(model,
-                         [imdef],
-                         constr_name,
-                         0,
-                         1,
-                         3.5,
-                         false,
-                         0.16,
-                         mat_int_finish,
-                         0,
-                         0,
-                         mat_int_finish,
-                         false,
-                         Material.AirFilmVertical,
-                         Material.AirFilmVertical,
-                         1,
-                         nil,
-                         nil)
+    apply_wood_stud_wall(model, [imdef], constr_name, 0, 1, 3.5, false, 0.16, mat_int_finish, 0, 0, mat_int_finish,
+                         false, Material.AirFilmVertical, Material.AirFilmVertical, 1, nil, nil)
   end
 
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param furniture_mass [TODO] TODO
-  # @param spaces [Hash] keys are locations and values are OpenStudio::Model::Space objects
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @return [TODO] TODO
   def self.apply_furniture(model, furniture_mass, spaces)
     if furniture_mass.type == HPXML::FurnitureMassTypeLightWeight
@@ -2126,27 +1997,47 @@ module Constructions
     settings.setSimulationTimestep('Timestep')
   end
 
-  # TODO
+  # Sets Kiva foundation initial temperature.
   #
   # @param foundation [TODO] TODO
-  # @param slab [TODO] TODO
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @param conditioned_zone [TODO] TODO
-  # @param sim_begin_month [TODO] TODO
-  # @param sim_begin_day [TODO] TODO
-  # @param sim_year [TODO] TODO
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param foundation_walls_insulated [TODO] TODO
-  # @param foundation_ceiling_insulated [TODO] TODO
-  # @return [TODO] TODO
-  def self.apply_kiva_initial_temp(foundation, slab, weather, conditioned_zone,
-                                   sim_begin_month, sim_begin_day, sim_year, schedules_file,
-                                   foundation_walls_insulated, foundation_ceiling_insulated)
-    # Set Kiva foundation initial temperature
+  # @param interior_adjacent_to [String] Interior adjacent to location (HPXML::LocationXXX)
+  # @return [nil]
+  def self.apply_kiva_initial_temperature(foundation, weather, hpxml_bldg, hpxml_header, spaces, schedules_file, interior_adjacent_to)
+    sim_begin_month = hpxml_header.sim_begin_month
+    sim_begin_day = hpxml_header.sim_begin_day
+    sim_year = hpxml_header.sim_calendar_year
 
     outdoor_temp = weather.data.MonthlyAvgDrybulbs[sim_begin_month - 1]
 
+    foundation_walls_insulated = false
+    hpxml_bldg.foundation_walls.each do |fnd_wall|
+      next unless fnd_wall.interior_adjacent_to == interior_adjacent_to
+      next unless fnd_wall.exterior_adjacent_to == HPXML::LocationGround
+
+      if fnd_wall.insulation_assembly_r_value.to_f > 5
+        foundation_walls_insulated = true
+      elsif fnd_wall.insulation_exterior_r_value.to_f + fnd_wall.insulation_interior_r_value.to_f > 0
+        foundation_walls_insulated = true
+      end
+    end
+
+    foundation_ceiling_insulated = false
+    hpxml_bldg.floors.each do |floor|
+      next unless floor.interior_adjacent_to == HPXML::LocationConditionedSpace
+      next unless floor.exterior_adjacent_to == interior_adjacent_to
+
+      if floor.insulation_assembly_r_value > 5
+        foundation_ceiling_insulated = true
+      end
+    end
+
     # Approximate indoor temperature
+    conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
     if conditioned_zone.thermostatSetpointDualSetpoint.is_initialized
       # Building has HVAC system
       setpoint_sch = conditioned_zone.thermostatSetpointDualSetpoint.get
@@ -2191,12 +2082,12 @@ module Constructions
     # For unconditioned spaces, this overrides EnergyPlus's built-in assumption of 22C (71.6F);
     #   see https://github.com/NREL/EnergyPlus/blob/b18a2733c3131db808feac44bc278a14b05d8e1f/src/EnergyPlus/HeatBalanceKivaManager.cc#L257-L259
     # For conditioned spaces, this avoids an E+ 22.2 bug; see https://github.com/NREL/EnergyPlus/issues/9692
-    if HPXML::conditioned_locations.include? slab.interior_adjacent_to
+    if HPXML::conditioned_locations.include? interior_adjacent_to
       initial_temp = indoor_temp
     else
       # Space temperature assumptions from ASHRAE 152 - Duct Efficiency Calculations.xls, Zone temperatures
       ground_temp = weather.data.ShallowGroundMonthlyTemps[sim_begin_month - 1]
-      if slab.interior_adjacent_to == HPXML::LocationBasementUnconditioned
+      if interior_adjacent_to == HPXML::LocationBasementUnconditioned
         if foundation_ceiling_insulated
           # Insulated ceiling: 75% ground, 25% outdoor, 0% indoor
           ground_weight, outdoor_weight, indoor_weight = 0.75, 0.25, 0.0
@@ -2208,7 +2099,7 @@ module Constructions
           ground_weight, outdoor_weight, indoor_weight = 0.5, 0.2, 0.3
         end
         initial_temp = outdoor_temp * outdoor_weight + ground_temp * ground_weight + indoor_weight * indoor_temp
-      elsif slab.interior_adjacent_to == HPXML::LocationCrawlspaceVented
+      elsif interior_adjacent_to == HPXML::LocationCrawlspaceVented
         if foundation_ceiling_insulated
           # Insulated ceiling: 90% outdoor, 10% indoor
           outdoor_weight, indoor_weight = 0.9, 0.1
@@ -2220,7 +2111,7 @@ module Constructions
           outdoor_weight, indoor_weight = 0.5, 0.5
         end
         initial_temp = outdoor_temp * outdoor_weight + indoor_weight * indoor_temp
-      elsif slab.interior_adjacent_to == HPXML::LocationCrawlspaceUnvented
+      elsif interior_adjacent_to == HPXML::LocationCrawlspaceUnvented
         if foundation_ceiling_insulated
           # Insulated ceiling: 85% outdoor, 15% indoor
           outdoor_weight, indoor_weight = 0.85, 0.15
@@ -2232,10 +2123,10 @@ module Constructions
           outdoor_weight, indoor_weight = 0.4, 0.6
         end
         initial_temp = outdoor_temp * outdoor_weight + indoor_weight * indoor_temp
-      elsif slab.interior_adjacent_to == HPXML::LocationGarage
+      elsif interior_adjacent_to == HPXML::LocationGarage
         initial_temp = outdoor_temp + 11.0
       else
-        fail "Unhandled space: #{slab.interior_adjacent_to}"
+        fail "Unhandled space: #{interior_adjacent_to}"
       end
     end
 
@@ -2710,6 +2601,36 @@ module Constructions
     end
 
     check_surface_assembly_rvalue(runner, surface, inside_film, outside_film, assembly_r, match)
+  end
+
+  # Arbitrary construction for heat capacitance.
+  # Only applies to surfaces where outside boundary conditioned is
+  # adiabatic or surface net area is near zero.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param surfaces [Array<OpenStudio::Model::Surface>] array of OpenStudio::Model::Surface objects
+  # @param type [String] floor, wall, or roof
+  # @return [nil]
+  def self.apply_adiabatic_construction(model, surfaces, type)
+    return if surfaces.empty?
+
+    if type == 'wall'
+      mat_int_finish = Material.InteriorFinishMaterial(HPXML::InteriorFinishGypsumBoard, 0.5)
+      mat_ext_finish = Material.ExteriorFinishMaterial(HPXML::SidingTypeWood)
+      apply_wood_stud_wall(model, surfaces, 'AdiabaticWallConstruction',
+                           0, 1, 3.5, true, 0.1, mat_int_finish, 0, 99, mat_ext_finish, false,
+                           Material.AirFilmVertical, Material.AirFilmVertical, nil)
+    elsif type == 'floor'
+      apply_wood_frame_floor_ceiling(model, surfaces, 'AdiabaticFloorConstruction', false,
+                                     0, 1, 0.07, 5.5, 0.75, 99, Material.CoveringBare, false,
+                                     Material.AirFilmFloorReduced, Material.AirFilmFloorReduced, nil)
+    elsif type == 'roof'
+      apply_open_cavity_roof(model, surfaces, 'AdiabaticRoofConstruction',
+                             0, 1, 7.25, 0.07, 7.25, 0.75, 99,
+                             Material.RoofMaterial(HPXML::RoofTypeAsphaltShingles),
+                             false, Material.AirFilmOutside,
+                             Material.AirFilmRoof(Geometry.get_roof_pitch(surfaces)), nil)
+    end
   end
 
   # TODO
