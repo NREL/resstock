@@ -917,7 +917,7 @@ module Outputs
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param debug [Boolean] If true,  writes in.osm, generates additional log output, and creates all E+ output files
   # @return [nil]
-  def self.apply_output_files(model, debug)
+  def self.apply_output_file_controls(model, debug)
     oj = model.getOutputJSON
     oj.setOptionType('TimeSeriesAndTabular')
     oj.setOutputJSON(debug)
@@ -1220,6 +1220,7 @@ module Outputs
         require 'json'
         File.open(output_file_path, mode) { |json| json.write(JSON.pretty_generate(h)) }
       elsif output_format == 'msgpack'
+        require 'msgpack'
         File.open(output_file_path, "#{mode}b") { |json| h.to_msgpack(json) }
       end
     end
