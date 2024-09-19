@@ -1,6 +1,6 @@
 """
-Get summary of upgrades:
-file_name, upgrade_name, Success, Fail, Invalid
+Remove vacant units from result files (any upgrade files with a building_id column)
+based on results_up00
 """
 import numpy as np
 from pathlib import Path
