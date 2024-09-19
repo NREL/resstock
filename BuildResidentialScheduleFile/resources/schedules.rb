@@ -20,7 +20,6 @@ class ScheduleGenerator
   # @param append_output [Boolean] If true and the output CSV file already exists, appends columns to the file rather than overwriting it. The existing output CSV file must have the same number of rows (i.e., timeseries frequency) as the new columns being appended.
   def initialize(runner:,
                  hpxml_bldg:,
-                 epw_file:,
                  state:,
                  column_names: nil,
                  random_seed: nil,
@@ -36,7 +35,6 @@ class ScheduleGenerator
                  **)
     @runner = runner
     @hpxml_bldg = hpxml_bldg
-    @epw_file = epw_file
     @state = state
     @column_names = column_names
     @random_seed = random_seed
