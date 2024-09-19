@@ -7,6 +7,11 @@ require 'fileutils'
 require_relative '../measure.rb'
 
 class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
+  def teardown
+    File.delete(File.join(File.dirname(__FILE__), 'results_annual.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_annual.csv')
+    File.delete(File.join(File.dirname(__FILE__), 'results_design_load_details.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_design_load_details.csv')
+  end
+
   def sample_files_dir
     return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
   end
@@ -531,7 +536,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'Water')
+      assert_equal(plant_loop.fluidType, EPlus::FluidWater)
       loop = plant_loop
     end
     pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
@@ -604,7 +609,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'Water')
+      assert_equal(plant_loop.fluidType, EPlus::FluidWater)
       loop = plant_loop
     end
     pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
@@ -677,7 +682,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'PropyleneGlycol')
+      assert_equal(plant_loop.fluidType, EPlus::FluidPropyleneGlycol)
       loop = plant_loop
     end
     pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
@@ -750,7 +755,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'Water')
+      assert_equal(plant_loop.fluidType, EPlus::FluidWater)
       loop = plant_loop
     end
     pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
@@ -818,7 +823,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'Water')
+      assert_equal(plant_loop.fluidType, EPlus::FluidWater)
       loop = plant_loop
     end
     pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }

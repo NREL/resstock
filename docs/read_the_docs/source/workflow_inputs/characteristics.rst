@@ -39995,7 +39995,7 @@ Arguments
      - 
      - Choice
      - none, Furnace, WallFurnace, FloorFurnace, Boiler, ElectricResistance, Stove, SpaceHeater, Fireplace
-     - The type of the second heating system.
+     - The type of the second heating system. If a heat pump is specified and the backup type is 'separate', this heating system represents 'separate' backup heating. For ducted heat pumps where the backup heating system is a 'Furnace', the backup would typically be characterized as 'integrated' in that the furnace and heat pump share the same distribution system and blower fan; a 'Furnace' as 'separate' backup to a ducted heat pump is not supported.
    * - ``heating_system_2_heating_efficiency``
      - true
      - Frac
@@ -42733,7 +42733,7 @@ Infiltration
 Description
 ***********
 
-Air leakage rates for the living and garage spaces
+Total infiltration to the dwelling unit.
 
 Created by
 **********
@@ -42760,6 +42760,8 @@ Assumption
 - \Homes are assumed to not be Weatherization Assistance Program (WAP) qualified and not ENERGY STAR certified.
 
 - \Climate zones 7AK and 8AK are averages of 6A and 6B.
+
+- \ResStock models multi-family and SFA units with the unit total air leakage type. The unit total air leakage assume that some of the sampled ACH50 value goes to neighboring units. The model infiltration value to the exterior is a smaller infiltration value that what is sampled and is adjusted by the ratio of exterior envelope surface area to total envelope surface area. The modeled infiltration to the exterior is reported in the results.
 
 - \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
@@ -42842,7 +42844,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 1
-     - unit exterior only
+     - unit total
    * - 2 ACH50
      - 0.66%
      - normal
@@ -42850,7 +42852,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 2
-     - unit exterior only
+     - unit total
    * - 3 ACH50
      - 1.4%
      - normal
@@ -42858,7 +42860,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 3
-     - unit exterior only
+     - unit total
    * - 4 ACH50
      - 2.3%
      - normal
@@ -42866,7 +42868,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 4
-     - unit exterior only
+     - unit total
    * - 5 ACH50
      - 3.4%
      - normal
@@ -42874,7 +42876,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 5
-     - unit exterior only
+     - unit total
    * - 6 ACH50
      - 4.3%
      - normal
@@ -42882,7 +42884,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 6
-     - unit exterior only
+     - unit total
    * - 7 ACH50
      - 4.9%
      - normal
@@ -42890,7 +42892,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 7
-     - unit exterior only
+     - unit total
    * - 8 ACH50
      - 5.3%
      - normal
@@ -42898,7 +42900,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 8
-     - unit exterior only
+     - unit total
    * - 10 ACH50
      - 11%
      - normal
@@ -42906,7 +42908,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 10
-     - unit exterior only
+     - unit total
    * - 15 ACH50
      - 24%
      - normal
@@ -42914,7 +42916,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 15
-     - unit exterior only
+     - unit total
    * - 20 ACH50
      - 17%
      - normal
@@ -42922,7 +42924,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 20
-     - unit exterior only
+     - unit total
    * - 25 ACH50
      - 10%
      - normal
@@ -42930,7 +42932,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 25
-     - unit exterior only
+     - unit total
    * - 30 ACH50
      - 6.1%
      - normal
@@ -42938,7 +42940,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 30
-     - unit exterior only
+     - unit total
    * - 40 ACH50
      - 5.7%
      - normal
@@ -42946,7 +42948,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 40
-     - unit exterior only
+     - unit total
    * - 50 ACH50
      - 3.2%
      - normal
@@ -42954,7 +42956,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 50
-     - unit exterior only
+     - unit total
 
 .. _insulation_ceiling:
 
@@ -43546,6 +43548,24 @@ Arguments
      - Double
      -
      - Depth from grade to bottom of vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_exterior_horizontal_insulation_r``
+     - false
+     - h-ft^2-R/Btu
+     - Double
+     -
+     - Nominal R-value of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_exterior_horizontal_insulation_width``
+     - false
+     - ft
+     - Double
+     -
+     - Width of the slab exterior horizontal insulation measured from the exterior surface of the vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_exterior_horizontal_insulation_depth_below_grade``
+     - false
+     - ft
+     - Double
+     -
+     - Depth of the slab exterior horizontal insulation measured from the top surface of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
    * - ``slab_under_insulation_r``
      - true
      - h-ft^2-R/Btu
@@ -43591,6 +43611,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - Stock saturation
      - ``slab_perimeter_insulation_r``
      - ``slab_perimeter_insulation_depth``
+     - ``slab_exterior_horizontal_insulation_r``
+     - ``slab_exterior_horizontal_insulation_width``
+     - ``slab_exterior_horizontal_insulation_depth_below_grade``
      - ``slab_under_insulation_r``
      - ``slab_under_insulation_width``
      - ``slab_thickness``
@@ -43599,6 +43622,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - None
      - 61%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 0
@@ -43612,11 +43638,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - auto
      - auto
      - auto
    * - 2ft R5 Under, Horizontal
      - 2.6%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 5
@@ -43628,6 +43660,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2.3%
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - 10
      - 2
      - auto
@@ -43635,6 +43670,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
    * - 4ft R5 Under, Horizontal
      - 0%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 5
@@ -43648,6 +43686,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - auto
      - auto
      - auto
@@ -43657,11 +43698,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - auto
      - auto
      - auto
    * - R10 Whole Slab, Horizontal
      - 0%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 10
@@ -47613,25 +47660,25 @@ Arguments
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the front. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the front. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
    * - ``neighbor_back_height``
      - false
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the back. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the back. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
    * - ``neighbor_left_height``
      - false
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the left. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the left. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
    * - ``neighbor_right_height``
      - false
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the right. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the right. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
 
 Options
 *******
@@ -63205,49 +63252,49 @@ Arguments
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.
+     - The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead. If the front wall is adiabatic, the value will be ignored.
    * - ``window_back_wwr``
      - true
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.
+     - The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead. If the back wall is adiabatic, the value will be ignored.
    * - ``window_left_wwr``
      - true
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.
+     - The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead. If the left wall is adiabatic, the value will be ignored.
    * - ``window_right_wwr``
      - true
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.
+     - The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead. If the right wall is adiabatic, the value will be ignored.
    * - ``window_area_front``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead. If the front wall is adiabatic, the value will be ignored.
    * - ``window_area_back``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead. If the back wall is adiabatic, the value will be ignored.
    * - ``window_area_left``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead. If the left wall is adiabatic, the value will be ignored.
    * - ``window_area_right``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead. If the right wall is adiabatic, the value will be ignored.
    * - ``window_aspect_ratio``
      - true
      - Frac

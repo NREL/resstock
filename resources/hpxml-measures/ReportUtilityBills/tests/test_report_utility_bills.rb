@@ -285,7 +285,7 @@ class ReportUtilityBillsTest < Minitest::Test
     fuel_types = [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas, HPXML::FuelTypeOil, HPXML::FuelTypeCoal, HPXML::FuelTypePropane, HPXML::FuelTypeWoodCord, HPXML::FuelTypeWoodPellets]
 
     # Check that we can successfully look up "auto" rates for every state and every fuel type.
-    Constants.StateCodesMap.keys.each do |state_code|
+    Constants::StateCodesMap.keys.each do |state_code|
       fuel_types.each do |fuel_type|
         flatratebuy, average_rate = UtilityBills.get_rates_from_eia_data(nil, state_code, fuel_type, 1) # fixed_charge > 0 ensures marginal_rate != average_rate
         refute_nil(flatratebuy)
@@ -319,7 +319,7 @@ class ReportUtilityBillsTest < Minitest::Test
     marginal_rate = 0.1
 
     # Check that we can successfully provide rates for every state and every fuel type.
-    Constants.StateCodesMap.keys.each do |state_code|
+    Constants::StateCodesMap.keys.each do |state_code|
       fuel_types.each do |fuel_type|
         flatratebuy, average_rate = UtilityBills.get_rates_from_eia_data(nil, state_code, fuel_type, 1, marginal_rate) # fixed_charge > 0 ensures marginal_rate != average_rate
         assert_equal(flatratebuy, marginal_rate)
@@ -1183,7 +1183,7 @@ class ReportUtilityBillsTest < Minitest::Test
     end
 
     # Convert hourly data to monthly data as appropriate
-    num_days_in_month = Constants.NumDaysInMonths(2002) # Arbitrary non-leap year
+    num_days_in_month = Calendar.num_days_in_months(2002) # Arbitrary non-leap year
     fuels.each do |(fuel_type, _is_production), fuel|
       next unless fuel_type != FT::Elec || (fuel_type == FT::Elec && !use_hourly_electricity)
 
