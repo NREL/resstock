@@ -42348,42 +42348,42 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``water_fixtures_usage_multiplier``
 
    * - 50% Usage
-     - 0.26%
+     - 0.47%
      - false
      - false
      - 0.5
    * - 60% Usage
-     - 2.3%
+     - 3.6%
      - false
      - false
      - 0.6
    * - 70% Usage
-     - 9%
+     - 9.9%
      - false
      - false
      - 0.7
    * - 80% Usage
-     - 13%
+     - 14%
      - false
      - false
      - 0.8
    * - 90% Usage
-     - 16%
+     - 17%
      - false
      - false
      - 0.9
    * - 100% Usage
-     - 17%
+     - 18%
      - false
      - false
      - 1.0
    * - 110% Usage
-     - 15%
+     - 13%
      - false
      - false
      - 1.1
    * - 120% Usage
-     - 10%
+     - 8.9%
      - false
      - false
      - 1.2
@@ -42393,7 +42393,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - false
      - 1.3
    * - 140% Usage
-     - 5.1%
+     - 3.8%
      - false
      - false
      - 1.4
@@ -42403,22 +42403,22 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - false
      - 1.5
    * - 160% Usage
-     - 1.4%
+     - 0.99%
      - false
      - false
      - 1.6
    * - 170% Usage
-     - 0.72%
+     - 0.73%
      - false
      - false
      - 1.7
    * - 180% Usage
-     - 0.41%
+     - 0.31%
      - false
      - false
      - 1.8
    * - 190% Usage
-     - 0.1%
+     - 0%
      - false
      - false
      - 1.9
