@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>ad7a9142-bcf5-4759-a5a5-948feedf8275</version_id>
-  <version_modified>2024-09-04T15:18:46Z</version_modified>
+  <version_id>923f80a2-56f3-48c4-9caa-af36d26f80d7</version_id>
+  <version_modified>2024-09-04T21:29:09Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -7511,8 +7511,8 @@
     </argument>
     <argument>
       <name>heat_pump_backup_use_existing_system</name>
-      <display_name>Heat Pump: Backup Use Existing System</display_name>
-      <description>Whether the heat pump uses the existing system as backup.</description>
+      <display_name>Heat Pump Backup: Use Existing System</display_name>
+      <description>Whether the heat pump uses the existing heating system as backup.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -7526,6 +7526,32 @@
           <display_name>false</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve</name>
+      <display_name>HVAC Distribution: Use Autosizing Limits and Maintain Duct System Curve</display_name>
+      <description>Whether to (a) set upper limits for autosized capacities and (b) adjust the blower fan efficiency.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>hvac_distribution_min_max_range</name>
+      <display_name>HVAC Distribution: Min Max Range</display_name>
+      <description>Fraction of range between upper limits for autosized capacities and MaxLoad.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
   </arguments>
   <outputs />
@@ -7545,7 +7571,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>3F5066AC</checksum>
+      <checksum>846CAAAA</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -7562,7 +7588,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>4009EF25</checksum>
+      <checksum>3A0F76B6</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>

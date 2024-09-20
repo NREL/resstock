@@ -38871,13 +38871,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - auto
+     - 0.461
+     - 5.0
      - auto
      - auto
      - 1
      - 1
-     - auto
+     - -10.0
      - integrated
      - auto
      - electricity
@@ -38916,13 +38916,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - auto
+     - 0.461
+     - 5.0
      - auto
      - auto
      - 1
      - 1
-     - auto
+     - -10.0
      - integrated
      - auto
      - electricity
@@ -38961,13 +38961,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - auto
+     - 0.461
+     - 5.0
      - auto
      - auto
      - 1
      - 1
-     - auto
+     - -10.0
      - integrated
      - auto
      - electricity
@@ -39591,13 +39591,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - 0.25
-     - -5
+     - auto
+     - auto
      - auto
      - auto
      - 1
      - 1
-     - auto
+     - -15.0
      - integrated
      - auto
      - electricity
@@ -39636,13 +39636,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - 0.5
-     - -15
+     - auto
+     - auto
      - auto
      - auto
      - 1
      - 1
-     - auto
+     - -15.0
      - integrated
      - auto
      - electricity
