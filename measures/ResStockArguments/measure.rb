@@ -680,6 +680,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           args[:overhangs_front_distance_to_top_of_window] = 1
         end
 
+        # Height Above Grade
+        args[:geometry_unit_height_above_grade] = (n_floors - 1) * args[:geometry_average_ceiling_height]
+
       elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
         n_units_per_floor = n_units
         has_rear_units = false
