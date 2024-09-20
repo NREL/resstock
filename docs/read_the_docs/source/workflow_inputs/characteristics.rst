@@ -36356,12 +36356,6 @@ Arguments
      - Double
      -
      - Average distance from the floor to the ceiling.
-   * - ``geometry_unit_height_above_grade``
-     - false
-     - ft
-     - Double
-     - auto
-     - Describes the above-grade height of apartment units on upper floors or homes above ambient or belly-and-wing foundations. It is defined as the height of the lowest conditioned floor above grade and is used to calculate the wind speed for the infiltration model. If not provided, the OS-HPXML default (see `HPXML Building Construction <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-building-construction>`_) is used.
 
 Options
 *******
@@ -36378,38 +36372,32 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``geometry_unit_type``
      - ``geometry_unit_aspect_ratio``
      - ``geometry_average_ceiling_height``
-     - ``geometry_unit_height_above_grade``
 
    * - Mobile Home
      - 6.2%
      - manufactured home
      - 1.8
      - 8
-     - auto
    * - Multi-Family with 2 - 4 Units
      - 8%
      - apartment unit
      - 0.5556
      - 8
-     - auto
    * - Multi-Family with 5+ Units
      - 18%
      - apartment unit
      - 0.5556
      - 8
-     - auto
    * - Single-Family Attached
      - 5.9%
      - single-family attached
      - 0.5556
      - 8
-     - auto
    * - Single-Family Detached
      - 61%
      - single-family detached
      - 1.8
      - 8
-     - auto
 
 .. _geometry_floor_area:
 
