@@ -2299,6 +2299,14 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
     end
 
     # ---------------- #
+    # HPXML EV Battery #
+    # ---------------- #
+
+    if ['base-battery-ev-lifetime-model.xml'].include? hpxml_file
+      hpxml_bldg.vehicles[0].lifetime_model = HPXML::BatteryLifetimeModelKandlerSmith
+    end
+
+    # ---------------- #
     # HPXML Appliances #
     # ---------------- #
 

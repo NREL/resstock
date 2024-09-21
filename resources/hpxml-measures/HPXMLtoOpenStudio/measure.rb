@@ -550,6 +550,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     add_photovoltaics(model)
     add_generators(model)
     add_batteries(runner, model, spaces)
+    add_electric_vehicles(runner, model, spaces)
     add_building_unit(model, unit_num)
   end
 
@@ -2419,6 +2420,37 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       # Assign space
       battery.additional_properties.space = get_space_from_location(battery.location, spaces)
       Battery.apply(runner, model, @nbeds, @hpxml_bldg.pv_systems, battery, @schedules_file, @hpxml_bldg.building_construction.number_of_units)
+    end
+  end
+
+  # TODO
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param surface [TODO] TODO
+  # @param hpxml_surface [TODO] TODO
+  # @return [nil]
+  def add_electric_vehicles(runner, model, spaces)
+    @hpxml_bldg.vehicles.each do |vehicle|
+      next unless vehicle.id.include?('ElectricVehicle')
+
+      ev_charger = nil
+      if not vehicle.ev_charger_idref.nil?
+        @hpxml_bldg.ev_chargers.each do |charger|
+          next unless vehicle.ev_charger_idref == charger.id
+
+          ev_charger = charger
+        end
+      end
+
+      # Assign charging and vehicle space
+      if ev_charger
+        ev_charger.additional_properties.space = get_space_from_location(ev_charger.location, spaces)
+        vehicle.location = ev_charger.location
+        vehicle.additional_properties.space = get_space_from_location(vehicle.location, spaces)
+      end
+
+      ElectricVehicle.apply(runner, model, vehicle, ev_charger, @schedules_file, @hpxml_bldg.building_construction.number_of_units)
     end
   end
 
