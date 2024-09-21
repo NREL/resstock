@@ -100,6 +100,9 @@ class ScheduleGenerator
     # initialize a random number generator
     prng = Random.new(@random_seed)
     @num_occupants = args[:geometry_num_occupants].to_i
+    # randomly pick 1 occupant as the EV owner
+    # TODO: determine the occupant based on best match for miles driven and occupant behavior
+    @ev_occupant_number = prng.rand(@num_occupants)
     # pre-load the probability distribution csv files for speed
     cluster_size_prob_map = read_activity_cluster_size_probs(resources_path: args[:resources_path])
     event_duration_prob_map = read_event_duration_probs(resources_path: args[:resources_path])
@@ -193,7 +196,7 @@ class ScheduleGenerator
     sleep_schedule = []
     away_schedule = []
     idle_schedule = []
-    away_occupants = []  # Binary representation of the presence of accupant. Each bit represents presence of one occupant
+    ev_occupant_away_schedule = []
 
 
     # fill in the yearly time_step resolution schedule for plug/lighting and ceiling fan based on weekday/weekend sch
@@ -208,8 +211,8 @@ class ScheduleGenerator
         index_15 = (minute / 15).to_i
         sleep_schedule << sum_across_occupants(all_simulated_values, 0, index_15).to_f / args[:geometry_num_occupants]
         away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / args[:geometry_num_occupants]
+        ev_occupant_away_schedule << all_simulated_values[@ev_occupant_number][index_15, 5]
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / args[:geometry_num_occupants]
-        away_occupants <<  sum_across_occupants(all_simulated_values, 5, index_15, binary_sum: true)
         active_occupancy_percentage = 1 - (away_schedule[-1] + sleep_schedule[-1])
         @schedules[SchedulesFile::Columns[:PlugLoadsOther].name][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_other_weekday_sch, plugload_other_weekend_sch, plugload_other_monthly_multiplier, month, is_weekday, minute, active_occupancy_percentage)
         @schedules[SchedulesFile::Columns[:PlugLoadsTV].name][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_tv_weekday_sch, plugload_tv_weekend_sch, plugload_tv_monthly_multiplier, month, is_weekday, minute, active_occupancy_percentage)
@@ -607,8 +610,7 @@ class ScheduleGenerator
     @schedules[SchedulesFile::Columns[:Dishwasher].name] = dw_power_sch.map { |power| power / dw_peak_power }
 
     @schedules[SchedulesFile::Columns[:Occupants].name] = away_schedule.map { |i| 1.0 - i }
-    max_num = (2**@num_occupants - 1).to_i
-    @schedules[SchedulesFile::Columns[:PresentOccupants].name] = away_occupants.map { |i| (i ^ (max_num)) }
+    @schedules[SchedulesFile::Columns[:EVOccupant].name] = ev_occupant_away_schedule.map { |i| 1.0 - i }
 
     if @debug
       @schedules[SchedulesFile::Columns[:Sleeping].name] = sleep_schedule
@@ -895,14 +897,10 @@ class ScheduleGenerator
   # @param time_index [TODO] TODO
   # @param max_clip [TODO] TODO
   # @return [TODO] TODO
-  def sum_across_occupants(all_simulated_values, activity_index, time_index, max_clip: nil, binary_sum: false)
+  def sum_across_occupants(all_simulated_values, activity_index, time_index, max_clip: nil)
     sum = 0
-    multiplier = 1
     all_simulated_values.size.times do |i|
-      sum += all_simulated_values[i][time_index, activity_index] * multiplier
-      if binary_sum
-        multiplier *= 2
-      end
+      sum += all_simulated_values[i][time_index, activity_index]
     end
     if (not max_clip.nil?) && (sum > max_clip)
       sum = max_clip
@@ -1138,11 +1136,8 @@ class ScheduleGenerator
     hours_per_week = vehicle.hours_per_week
     hours_per_year = hours_per_week * 52
 
-    # randomly pick 1 occupant
-    # TODO: determine the occupant based on best match for miles driven and occupant behavior
-    occupant_number = prng.rand(@num_occupants)
     away_index = 5  # Index of away activity in the markov-chain simulator
-    away_schedule = markov_chain_simulation_result[occupant_number].column(away_index)
+    away_schedule = markov_chain_simulation_result[@ev_occupant_number].column(away_index)
     charging_schedule, discharging_schedule = _get_ev_battery_schedule(away_schedule, hours_per_year)
     agg_charging_schedule = aggregate_array(charging_schedule, @minutes_per_step).map { |val| val / 60.0 }
     agg_discharging_schedule = aggregate_array(discharging_schedule, @minutes_per_step).map { |val| val / 60.0 }
