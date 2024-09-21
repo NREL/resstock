@@ -1120,7 +1120,7 @@ class SchedulesFile
   # periods CSV (e.g., hvac), and/or C) EnergyPlus-specific schedules (e.g., battery_charging).
   Columns = {
     Occupants: Column.new('occupants', true, true, :frac),
-    PresentOccupants: Column.new('present_occupants', true, true, :int),
+    EVOccupant: Column.new('ev_occupant', true, true, :int),
     LightingInterior: Column.new('lighting_interior', true, true, :frac),
     LightingExterior: Column.new('lighting_exterior', true, false, :frac),
     LightingGarage: Column.new('lighting_garage', true, true, :frac),
