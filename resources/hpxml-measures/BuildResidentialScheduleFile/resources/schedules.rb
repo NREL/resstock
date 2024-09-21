@@ -1083,7 +1083,7 @@ class ScheduleGenerator
   end
 
   def _get_ev_battery_schedule(away_schedule, hours_driven_per_year)
-    total_driving_minutes_per_year = hours_driven_per_year * 60
+    total_driving_minutes_per_year = (hours_driven_per_year * 60).ceil
 
     expanded_away_schedule = away_schedule.flat_map { |status| [status] * 15 }
 
@@ -1135,13 +1135,8 @@ class ScheduleGenerator
     end
     vehicle = @hpxml_bldg.vehicles[0]
 
-    if vehicle.instance_variable_defined?(:@miles_per_year)
-      miles_per_year = vehicle.miles_per_year or 10000
-    else
-      miles_per_year = 5000
-    end
-    average_mph = 40
-    hours_per_year = miles_per_year / average_mph
+    hours_per_week = vehicle.hours_per_week
+    hours_per_year = hours_per_week * 52
 
     # randomly pick 1 occupant
     # TODO: determine the occupant based on best match for miles driven and occupant behavior
