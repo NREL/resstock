@@ -1993,10 +1993,13 @@ module Geometry
   # Store the HPXML Building object unit number for use in reporting measure.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param unit_number [Integer] index number corresponding to an HPXML Building object
+  # @param hpxml [HPXML] HPXML object
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @return [nil]
-  def self.apply_building_unit(model, unit_num)
-    return if unit_num.nil?
+  def self.apply_building_unit(model, hpxml, hpxml_bldg)
+    return if hpxml.buildings.size == 1
+
+    unit_num = hpxml.buildings.index(hpxml_bldg) + 1
 
     unit = OpenStudio::Model::BuildingUnit.new(model)
     unit.additionalProperties.setFeature('unit_num', unit_num)
