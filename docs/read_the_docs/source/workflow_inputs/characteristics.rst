@@ -42290,17 +42290,13 @@ Created by
 Source
 ******
 
-- \Field data from a demand management program with 1700 residential electric resistance water heaters in the Northeast U.S.
+- \Field data from a demand management program with 1700 residential electric resistance water heaters in the Northeast U.S., mean-shifted from 0.8 to 1 average usage.
 
 
 Assumption
 **********
 
-- \A lognormal distribution was shown to match the distribution of annual energy consumption.
-
-- \For the lognormal distribution the average multiplier is 0.8 and the standard deviation is 0.2.
-
-- \Low, Medium, and High usage is assigned based on the lower 25th percent, middle 50th percent, and upper 25th percent. The bins do not align perfectly with these bins so the lower users are a total of 25 percent, the medium users are 47 percent, and the high users are 28 percent of the stock.
+- \Low, Medium, and High usage is assigned based on the lower 25th percent, middle 50th percent, and upper 25th percent.
 
 
 Arguments
@@ -42351,88 +42347,83 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``water_fixtures_sink_low_flow``
      - ``water_fixtures_usage_multiplier``
 
-   * - 40% Usage
-     - 0.026%
-     - false
-     - false
-     - 0.4
    * - 50% Usage
-     - 0.9%
+     - 0.47%
      - false
      - false
      - 0.5
    * - 60% Usage
-     - 6.5%
+     - 3.6%
      - false
      - false
      - 0.6
    * - 70% Usage
-     - 18%
+     - 9.9%
      - false
      - false
      - 0.7
    * - 80% Usage
-     - 26%
+     - 14%
      - false
      - false
      - 0.8
    * - 90% Usage
-     - 24%
+     - 17%
      - false
      - false
      - 0.9
    * - 100% Usage
-     - 13%
+     - 18%
      - false
      - false
      - 1.0
    * - 110% Usage
-     - 6.9%
+     - 13%
      - false
      - false
      - 1.1
    * - 120% Usage
-     - 3.1%
+     - 8.9%
      - false
      - false
      - 1.2
    * - 130% Usage
-     - 1.2%
+     - 6.8%
      - false
      - false
      - 1.3
    * - 140% Usage
-     - 0.45%
+     - 3.8%
      - false
      - false
      - 1.4
    * - 150% Usage
-     - 0.16%
+     - 2.1%
      - false
      - false
      - 1.5
    * - 160% Usage
-     - 0.051%
+     - 0.99%
      - false
      - false
      - 1.6
    * - 170% Usage
-     - 0.016%
+     - 0.73%
      - false
      - false
      - 1.7
    * - 180% Usage
-     - 0.0051%
+     - 0.31%
      - false
      - false
      - 1.8
    * - 190% Usage
-     - 0.0016%
+     - 0%
      - false
      - false
      - 1.9
    * - 200% Usage
-     - 0.00048%
+     - 0.1%
      - false
      - false
      - 2.0
