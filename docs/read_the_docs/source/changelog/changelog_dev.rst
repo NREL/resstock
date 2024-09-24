@@ -22,6 +22,19 @@ Development Changelog
 
         Assignees: Joe Robertson
 
+    .. change::
+        :tags: characteristics, floor area, bugfix
+        :pullreq: 1301
+
+        **Date**: 2024-09-18
+
+        Title:
+        Fix RECS floor area bins
+
+        Description:
+        RECS have been using incorrect floor area bins when assigning some characteristics due to a bug on how floor area bin is calculated. This PR fixes the issue.
+
+        Assignees: Rajendra Adhikari, Anthony Fontanini
 
     .. change::
         :tags: workflow, hot water, feature
@@ -44,7 +57,7 @@ Development Changelog
         :tags: workflow, plug loads, feature
         :pullreq: 1298
 
-        **Date**: 2024-09-19
+        **Date**: 2024-09-24
 
         Title:
         Latest OS-HPXML
