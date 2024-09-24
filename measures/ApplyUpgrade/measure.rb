@@ -487,6 +487,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
             runner.registerError("Unknown heat pump backup type '#{heat_pump_backup_type}'.")
             return false
           end
+        elsif (heat_pump_type != 'none') && heating_system.nil?
+          runner.registerWarning('Either a primary heating system was not found, or it was found but is a shared system; not setting it as heat pump backup.')
         end
       end
 
