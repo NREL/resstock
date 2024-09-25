@@ -121,29 +121,22 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       # Do these once upfront for the entire HPXML object
       epw_path, weather = process_weather(runner, hpxml, args)
       process_whole_sfa_mf_inputs(hpxml)
-      hpxml_sch_map = process_defaults_schedules_emissions_files(runner, weather, hpxml, args)
+      hpxml_sch_map, hpxml_all_zone_loads, hpxml_all_space_loads = process_defaults_schedules_emissions_files(runner, weather, hpxml, args)
 
       # Write updated HPXML object (w/ defaults) to file for inspection
       XMLHelper.write_file(hpxml.to_doc, args[:hpxml_defaults_path])
 
-      # Write annual results output file
-      # This is helpful if the user wants to get these results right away (e.g.,
-      # they might be using the run_simulation.rb --skip-simulation argument.
-      results_out = []
-      Outputs.append_sizing_results(hpxml.buildings, results_out)
-      Outputs.write_results_out_to_file(results_out, args[:output_format], args[:annual_output_file_path])
-
       # Create OpenStudio unit model(s)
       hpxml_osm_map = {}
-      hpxml.buildings.each_with_index do |hpxml_bldg, i|
+      hpxml.buildings.each do |hpxml_bldg|
         # Create the model for this single unit
         # If we're running a whole SFA/MF building, all the unit models will be merged later
         if hpxml.buildings.size > 1
           unit_model = OpenStudio::Model::Model.new
-          create_unit_model(hpxml, hpxml_bldg, runner, unit_model, epw_path, weather, hpxml_sch_map[hpxml_bldg], i + 1)
+          create_unit_model(hpxml, hpxml_bldg, runner, unit_model, epw_path, weather, hpxml_sch_map[hpxml_bldg])
           hpxml_osm_map[hpxml_bldg] = unit_model
         else
-          create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, weather, hpxml_sch_map[hpxml_bldg], i + 1)
+          create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, weather, hpxml_sch_map[hpxml_bldg])
           hpxml_osm_map[hpxml_bldg] = model
         end
       end
@@ -153,12 +146,27 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         Model.merge_unit_models(model, hpxml_osm_map)
       end
 
-      # Create/write output
+      # Create EnergyPlus outputs
       Outputs.apply_ems_programs(model, hpxml_osm_map, hpxml.header, args[:add_component_loads])
-      Outputs.apply_output_files(model, args[:debug])
+      Outputs.apply_output_file_controls(model, args[:debug])
       Outputs.apply_additional_properties(model, hpxml, hpxml_osm_map, args[:hpxml_path], args[:building_id], args[:hpxml_defaults_path])
-      Outputs.write_debug_files(runner, model, args[:debug], args[:output_dir], epw_path)
       # Outputs.apply_ems_debug_output(model) # Uncomment to debug EMS
+
+      # Write output files
+      Outputs.write_debug_files(runner, model, args[:debug], args[:output_dir], epw_path)
+
+      # Write annual results output file
+      # This is helpful if the user wants to get these results right away (e.g.,
+      # they might be using the run_simulation.rb --skip-simulation argument.
+      results_out = []
+      Outputs.append_sizing_results(hpxml.buildings, results_out)
+      Outputs.write_results_out_to_file(results_out, args[:output_format], args[:annual_output_file_path])
+
+      # Write design load details output file
+      hpxml.buildings.each do |hpxml_bldg|
+        HVACSizing.write_detailed_output(args[:output_format], args[:design_load_details_output_file_path],
+                                         hpxml_bldg, hpxml_all_zone_loads[hpxml_bldg], hpxml_all_space_loads[hpxml_bldg])
+      end
     rescue Exception => e
       runner.registerError("#{e.message}\n#{e.backtrace.join("\n")}")
       return false
@@ -265,9 +273,11 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param hpxml [HPXML] HPXML object
   # @param args [Hash] Map of :argument_name => value
-  # @return [Hash] Map of HPXML Building => SchedulesFile object
+  # @return [Array<Hash, Hash, Hash>] Maps of HPXML Building => SchedulesFile object, HPXML Building => (Map of HPXML::Zones => DesignLoadValues object), HPXML Building => (Map of HPXML::Spaces => DesignLoadValues object)
   def process_defaults_schedules_emissions_files(runner, weather, hpxml, args)
     hpxml_sch_map = {}
+    hpxml_all_zone_loads = {}
+    hpxml_all_space_loads = {}
     hpxml.buildings.each_with_index do |hpxml_bldg, i|
       # Schedules file
       Schedule.check_schedule_references(hpxml_bldg.header, args[:hpxml_path])
@@ -281,16 +291,16 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       hpxml_sch_map[hpxml_bldg] = schedules_file
 
       # HPXML defaults
-      HPXMLDefaults.apply(runner, hpxml, hpxml_bldg, weather, schedules_file: schedules_file,
-                                                              design_load_details_output_file_path: args[:design_load_details_output_file_path],
-                                                              output_format: args[:output_format])
+      all_zone_loads, all_space_loads = HPXMLDefaults.apply(runner, hpxml, hpxml_bldg, weather, schedules_file: schedules_file)
+      hpxml_all_zone_loads[hpxml_bldg] = all_zone_loads
+      hpxml_all_space_loads[hpxml_bldg] = all_space_loads
     end
 
     # Emissions files
     Schedule.check_emissions_references(hpxml.header, args[:hpxml_path])
     Schedule.validate_emissions_files(hpxml.header)
 
-    return hpxml_sch_map
+    return hpxml_sch_map, hpxml_all_zone_loads, hpxml_all_space_loads
   end
 
   # Creates a full OpenStudio model that represents the given HPXML individual dwelling by
@@ -303,19 +313,9 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   # @param epw_path [String] Path to the EPW weather file
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param unit_num [Integer] index number corresponding to an HPXML Building object
   # @return [nil]
-  def create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, weather, schedules_file, unit_num)
-    # Here we turn off OS error-checking so that any invalid values provided
-    # to OS SDK methods are passed along to EnergyPlus and produce errors. If
-    # we didn't go this, we'd end up with successful EnergyPlus simulations that
-    # use the wrong (default) value unless we check the return value of *every*
-    # OS SDK setter method to notice there was an invalid value provided.
-    # See https://github.com/NREL/OpenStudio/pull/4505 for more background.
-    model.setStrictnessLevel('None'.to_StrictnessLevel)
-
-    # Init
-    init(hpxml_bldg, hpxml.header)
+  def create_unit_model(hpxml, hpxml_bldg, runner, model, epw_path, weather, schedules_file)
+    init(model, hpxml_bldg, hpxml.header)
     SimControls.apply(model, hpxml.header)
     Location.apply(model, weather, hpxml_bldg, hpxml.header, epw_path)
 
@@ -337,7 +337,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     Geometry.apply_thermal_mass(model, spaces, hpxml_bldg, hpxml.header)
     Geometry.set_zone_volumes(spaces, hpxml_bldg, hpxml.header)
     Geometry.explode_surfaces(model, hpxml_bldg)
-    Geometry.apply_building_unit(model, unit_num)
+    Geometry.apply_building_unit(model, hpxml, hpxml_bldg)
 
     # HVAC
     airloop_map = HVAC.apply_hvac_systems(runner, model, weather, spaces, hpxml_bldg, hpxml.header, schedules_file, hvac_days)
@@ -370,10 +370,19 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
   # Miscellaneous logic that needs to occur upfront.
   #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @return [nil]
-  def init(hpxml_bldg, hpxml_header)
+  def init(model, hpxml_bldg, hpxml_header)
+    # Here we turn off OS error-checking so that any invalid values provided
+    # to OS SDK methods are passed along to EnergyPlus and produce errors. If
+    # we didn't go this, we'd end up with successful EnergyPlus simulations that
+    # use the wrong (default) value unless we check the return value of *every*
+    # OS SDK setter method to notice there was an invalid value provided.
+    # See https://github.com/NREL/OpenStudio/pull/4505 for more background.
+    model.setStrictnessLevel('None'.to_StrictnessLevel)
+
     # Store the fraction of windows operable before we collapse surfaces
     hpxml_bldg.additional_properties.initial_frac_windows_operable = hpxml_bldg.fraction_of_windows_operable()
 

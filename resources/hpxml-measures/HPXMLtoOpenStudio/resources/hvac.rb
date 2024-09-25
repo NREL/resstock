@@ -5,6 +5,8 @@ module HVAC
   AirSourceHeatRatedODB = 47.0 # degF, Rated outdoor drybulb for air-source systems, heating
   AirSourceHeatRatedIDB = 70.0 # degF, Rated indoor drybulb for air-source systems, heating
   AirSourceCoolRatedODB = 95.0 # degF, Rated outdoor drybulb for air-source systems, cooling
+  AirSourceCoolRatedOWB = 75.0 # degF, Rated outdoor wetbulb for air-source systems, cooling
+  AirSourceCoolRatedIDB = 80.0 # degF, Rated indoor drybulb for air-source systems, cooling
   AirSourceCoolRatedIWB = 67.0 # degF, Rated indoor wetbulb for air-source systems, cooling
   CrankcaseHeaterTemp = 50.0 # degF
 
@@ -3634,7 +3636,7 @@ module HVAC
       clg_ap.cool_rated_shrs_gross = [cooling_system.cooling_shr] # We don't model the fan separately, so set gross == net
     else
       # rated shr gross and fan speed ratios
-      dB_rated = 80.0 # F
+      dB_rated = HVAC::AirSourceCoolRatedIDB
       win = 0.01118470 # Humidity ratio corresponding to 80F dry bulb/67F wet bulb (from EnergyPlus)
 
       if cooling_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
@@ -5085,14 +5087,15 @@ module HVAC
     program_calling_manager.addProgram(fault_program)
   end
 
-  # TODO
+  # Calculate delivered cooling load and compressor power during defrost when using
+  # the advanced defrost model.
   #
-  # @param heat_pump [TODO] TODO
+  # @param heat_pump [HPXML::HeatPump] HPXML Heat Pump object
   # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @param design_airflow [TODO] TODO
-  # @param max_heating_airflow [TODO] TODO
-  # @param fan_watts_per_cfm [TODO] TODO
-  # @return [TODO] TODO
+  # @param design_airflow [Float] Heat pump design air flow rate [cfm]
+  # @param max_heating_airflow [Float] Maximum heat pump heating air flow rate [cfm]
+  # @param fan_watts_per_cfm [Float] Heat pump watts per cfm [W/cfm]
+  # @return [Array<Float, Float>] Calculated delivered cooling q_dot and compressor power p_dot [W]
   def self.calculate_heat_pump_defrost_load_power_watts(heat_pump, unit_multiplier, design_airflow, max_heating_airflow, fan_watts_per_cfm)
     # Calculate q_dot and p_dot
     # q_dot is used for EMS program to account for introduced cooling load and supp coil power consumption by actuating other equipment objects
@@ -5109,32 +5112,36 @@ module HVAC
       capacity_defrost_multiplier = 0.1
       cop_defrost_multiplier = 0.08
     end
-    nominal_cooling_capacity_1x = heat_pump.cooling_capacity / unit_multiplier
-    max_heating_airflow_1x = max_heating_airflow / unit_multiplier
-    design_airflow_1x = design_airflow / unit_multiplier
-    defrost_flow_fraction = max_heating_airflow_1x / design_airflow_1x
-    defrost_power_fraction = defrost_flow_fraction**3
-    power_design = fan_watts_per_cfm * design_airflow_1x
+    # cooling capacity and airflow are already with unit multiplier, calculate the capacity w/o multiplier
+    nominal_cooling_capacity = heat_pump.cooling_capacity / unit_multiplier
+    defrost_power_fraction = (max_heating_airflow / design_airflow)**3
+    power_design = fan_watts_per_cfm * design_airflow / unit_multiplier
     p_dot_blower = power_design * defrost_power_fraction
     # Based on manufacturer data for ~70 systems ranging from 1.5 to 5 tons with varying efficiency levels
-    p_dot_odu_fan = 44.348 * UnitConversions.convert(nominal_cooling_capacity_1x, 'Btu/hr', 'ton') + 62.452
-    rated_clg_cop = heat_pump.additional_properties.cool_rated_cops[-1]
-    q_dot_defrost = UnitConversions.convert(nominal_cooling_capacity_1x, 'Btu/hr', 'W') * capacity_defrost_multiplier
-    cop_defrost = rated_clg_cop * cop_defrost_multiplier
+    if nominal_cooling_capacity > 18000.0 # > 1.5 tons
+      p_dot_odu_fan = 44.348 * UnitConversions.convert(nominal_cooling_capacity, 'Btu/hr', 'ton') + 62.452
+    else # < 1.5 tons, scale fan power to avoid negative p_dot_defrost
+      # Use p_dot_odu_fan at 1.5 ton to scale down
+      p_dot_odu_fan = 128.974 * (nominal_cooling_capacity / 18000.0)
+    end
+    q_dot_defrost = UnitConversions.convert(nominal_cooling_capacity, 'Btu/hr', 'W') * capacity_defrost_multiplier
+    cop_defrost = heat_pump.additional_properties.cool_rated_cops[-1] * cop_defrost_multiplier
     p_dot_defrost = (q_dot_defrost / cop_defrost - p_dot_odu_fan + p_dot_blower) * unit_multiplier # p_dot_defrost is used in coil object, which needs to be scaled up for unit multiplier
+
     return q_dot_defrost, p_dot_defrost
   end
 
-  # TODO
+  # Create EMS program and Other equipment objects to account for delivered cooling load and supplemental heating energy during defrost
+  # when using the advanced defrost model.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param htg_coil [TODO] TODO
+  # @param htg_coil [OpenStudio::Model::CoilHeatingDXSingleSpeed or OpenStudio::Model::CoilHeatingDXMultiSpeed]  OpenStudio Heating Coil object
   # @param air_loop_unitary [OpenStudio::Model::AirLoopHVACUnitarySystem] Air loop for the HVAC system
-  # @param conditioned_space [TODO] TODO
-  # @param htg_supp_coil [TODO] TODO
-  # @param heat_pump [TODO] TODO
-  # @param q_dot_defrost [TODO] TODO
-  # @return [TODO] TODO
+  # @param conditioned_space [OpenStudio::Model::Space]  OpenStudio Space object for conditioned zone
+  # @param htg_supp_coil [OpenStudio::Model::CoilHeatingElectric or CoilHeatingElectricMultiStage] OpenStudio Supplemental Heating Coil object
+  # @param heat_pump [HPXML::HeatPump] HPXML Heat Pump object
+  # @param q_dot_defrost [Float] Calculated delivered cooling q_dot [W]
+  # @return [nil]
   def self.apply_advanced_defrost(model, htg_coil, air_loop_unitary, conditioned_space, htg_supp_coil, heat_pump, q_dot_defrost)
     if htg_supp_coil.nil?
       backup_system = heat_pump.backup_system

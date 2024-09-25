@@ -7,6 +7,21 @@ Development Changelog
     :released: pending
 
     .. change::
+
+        :tags: bugfix, characteristics
+        :pullreq: 1265
+        :tickets: 1236
+
+        **Date**: 2024-08-06
+
+        Title:
+        Fix Hot Water Fixtures multipliers
+
+        Description:
+        Mean-shift hot water usage multipliers distribution by increasing weighted average from 0.8 to 1.0 in Hot Water Fixtures.tsv.
+
+        Assignees: Lixi Liu
+
         :tags: workflow, infiltration, bugfix
         :pullreq: 1257
 
@@ -22,6 +37,19 @@ Development Changelog
 
         Assignees: Joe Robertson
 
+    .. change::
+        :tags: characteristics, floor area, bugfix
+        :pullreq: 1301
+
+        **Date**: 2024-09-18
+
+        Title:
+        Fix RECS floor area bins
+
+        Description:
+        RECS have been using incorrect floor area bins when assigning some characteristics due to a bug on how floor area bin is calculated. This PR fixes the issue.
+
+        Assignees: Rajendra Adhikari, Anthony Fontanini
 
     .. change::
         :tags: workflow, hot water, feature
@@ -35,6 +63,8 @@ Development Changelog
         Description:
         For hot water end uses OS-HPXML now directly uses equations from https://www.fsec.ucf.edu/en/publications/pdf/fsec-pf-464-15.pdf, that are a function of number of occupants, for operational calculations.
 
+        OpenStudio-HPXML: `pull request 1761 <https://github.com/NREL/OpenStudio-HPXML/pull/1761>`_
+
         Assignees: Joe Robertson
 
 
@@ -42,7 +72,7 @@ Development Changelog
         :tags: workflow, plug loads, feature
         :pullreq: 1298
 
-        **Date**: 2024-09-05
+        **Date**: 2024-09-24
 
         Title:
         Latest OS-HPXML
@@ -50,6 +80,8 @@ Development Changelog
         Description:
         For TV plug loads, we are now using OS-HPXML defaults that directly use equations from RECS 2020 that are a function of number of occupants and conditioned floor area.
         For operational calculations in general, we are also updating the relationships between number of bedrooms/occupants based on RECS 2020 and disaggregated by building types.
+
+        OpenStudio-HPXML: `pull request 1690 <https://github.com/NREL/OpenStudio-HPXML/pull/1690>`_, `pull request 1775 <https://github.com/NREL/OpenStudio-HPXML/pull/1775>`_
 
         Assignees: Joe Robertson
 

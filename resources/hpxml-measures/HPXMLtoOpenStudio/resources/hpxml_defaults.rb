@@ -25,16 +25,8 @@ module HPXMLDefaults
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param convert_shared_systems [Boolean] Whether to convert shared systems to equivalent in-unit systems per ANSI 301
-  # @param design_load_details_output_file_path [String] Detailed HVAC sizing output file path
-  # @param output_format [String] Detailed HVAC sizing output file format ('csv', 'json', or 'msgpack')
-  # @return [nil]
-  def self.apply(runner, hpxml, hpxml_bldg, weather, schedules_file: nil, convert_shared_systems: true,
-                 design_load_details_output_file_path: nil, output_format: 'csv')
-    cfa = hpxml_bldg.building_construction.conditioned_floor_area
-    nbeds = hpxml_bldg.building_construction.number_of_bedrooms
-    ncfl = hpxml_bldg.building_construction.number_of_conditioned_floors
-    ncfl_ag = hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade
-
+  # @return [Array<Hash, Hash>] Maps of HPXML::Zones => DesignLoadValues object, HPXML::Spaces => DesignLoadValues object
+  def self.apply(runner, hpxml, hpxml_bldg, weather, schedules_file: nil, convert_shared_systems: true)
     eri_version = hpxml.header.eri_calculation_version
     if eri_version.nil?
       eri_version = 'latest'
@@ -51,7 +43,7 @@ module HPXMLDefaults
     # Check for presence of fuels once
     has_fuel = hpxml_bldg.has_fuels(hpxml.to_doc)
 
-    add_zones_spaces_if_needed(hpxml_bldg, cfa, unit_num)
+    add_zones_spaces_if_needed(hpxml_bldg, unit_num)
 
     @default_schedules_csv_data = get_default_schedules_csv_data()
 
@@ -61,10 +53,10 @@ module HPXMLDefaults
     apply_utility_bill_scenarios(runner, hpxml.header, hpxml_bldg, has_fuel)
     apply_building_header(hpxml.header, hpxml_bldg, weather)
     apply_site(hpxml_bldg)
-    apply_building_header_sizing(runner, hpxml_bldg, weather, nbeds)
+    apply_building_header_sizing(runner, hpxml_bldg, weather)
     apply_neighbor_buildings(hpxml_bldg)
     apply_building_occupancy(hpxml_bldg, schedules_file)
-    apply_building_construction(hpxml.header, hpxml_bldg, cfa, nbeds)
+    apply_building_construction(hpxml.header, hpxml_bldg)
     apply_zone_spaces(hpxml_bldg)
     apply_climate_and_risk_zones(hpxml_bldg, weather, unit_num)
     apply_attics(hpxml_bldg)
@@ -82,32 +74,34 @@ module HPXMLDefaults
     apply_furniture_mass(hpxml_bldg)
     apply_hvac(runner, hpxml_bldg, weather, convert_shared_systems, unit_num)
     apply_hvac_control(hpxml_bldg, schedules_file, eri_version)
-    apply_hvac_distribution(hpxml_bldg, ncfl, ncfl_ag)
+    apply_hvac_distribution(hpxml_bldg)
     apply_infiltration(hpxml_bldg)
     apply_hvac_location(hpxml_bldg)
-    apply_ventilation_fans(hpxml_bldg, weather, cfa, nbeds, eri_version)
-    apply_water_heaters(hpxml_bldg, nbeds, eri_version, schedules_file)
+    apply_ventilation_fans(hpxml_bldg, weather, eri_version)
+    apply_water_heaters(hpxml_bldg, eri_version, schedules_file)
     apply_flue_or_chimney(hpxml_bldg)
-    apply_hot_water_distribution(hpxml_bldg, cfa, ncfl, schedules_file)
+    apply_hot_water_distribution(hpxml_bldg, schedules_file)
     apply_water_fixtures(hpxml_bldg, schedules_file)
     apply_solar_thermal_systems(hpxml_bldg)
-    apply_appliances(hpxml_bldg, nbeds, eri_version, schedules_file)
+    apply_appliances(hpxml_bldg, eri_version, schedules_file)
     apply_lighting(hpxml_bldg, schedules_file)
-    apply_ceiling_fans(hpxml_bldg, nbeds, weather, schedules_file)
-    apply_pools_and_permanent_spas(hpxml_bldg, cfa, schedules_file)
-    apply_plug_loads(hpxml_bldg, cfa, nbeds, schedules_file)
-    apply_fuel_loads(hpxml_bldg, cfa, schedules_file)
+    apply_ceiling_fans(hpxml_bldg, weather, schedules_file)
+    apply_pools_and_permanent_spas(hpxml_bldg, schedules_file)
+    apply_plug_loads(hpxml_bldg, schedules_file)
+    apply_fuel_loads(hpxml_bldg, schedules_file)
     apply_pv_systems(hpxml_bldg)
     apply_generators(hpxml_bldg)
     apply_batteries(hpxml_bldg)
 
     # Do HVAC sizing after all other defaults have been applied
-    apply_hvac_sizing(runner, hpxml_bldg, weather, output_format, design_load_details_output_file_path)
+    all_zone_loads, all_space_loads = apply_hvac_sizing(runner, hpxml_bldg, weather)
 
     # Default detailed performance has to be after sizing to have autosized capacity information
     apply_detailed_performance_data_for_var_speed_systems(hpxml_bldg)
 
     cleanup_zones_spaces(hpxml_bldg)
+
+    return all_zone_loads, all_space_loads
   end
 
   # Returns a list of four azimuths (facing each direction). Determined based
@@ -158,10 +152,9 @@ module HPXMLDefaults
   # file includes them or not.
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
   # @param unit_num [Integer] Dwelling unit number
   # @return [nil]
-  def self.add_zones_spaces_if_needed(hpxml_bldg, cfa, unit_num)
+  def self.add_zones_spaces_if_needed(hpxml_bldg, unit_num)
     if hpxml_bldg.conditioned_zones.empty?
       hpxml_bldg.zones.add(id: "#{Constants::AutomaticallyAdded}Zone#{unit_num}",
                            zone_type: HPXML::ZoneTypeConditioned)
@@ -169,7 +162,7 @@ module HPXMLDefaults
         hvac_system.attached_to_zone_idref = hpxml_bldg.zones[-1].id
       end
       hpxml_bldg.zones[-1].spaces.add(id: "#{Constants::AutomaticallyAdded}Space#{unit_num}",
-                                      floor_area: cfa)
+                                      floor_area: hpxml_bldg.building_construction.conditioned_floor_area)
       hpxml_bldg.surfaces.each do |surface|
         next unless HPXML::conditioned_locations_this_unit.include? surface.interior_adjacent_to
         next if surface.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
@@ -253,9 +246,8 @@ module HPXMLDefaults
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @return [nil]
-  def self.apply_building_header_sizing(runner, hpxml_bldg, weather, nbeds)
+  def self.apply_building_header_sizing(runner, hpxml_bldg, weather)
     if hpxml_bldg.header.manualj_heating_design_temp.nil?
       hpxml_bldg.header.manualj_heating_design_temp = weather.design.HeatingDrybulb.round(2)
       hpxml_bldg.header.manualj_heating_design_temp_isdefaulted = true
@@ -342,7 +334,10 @@ module HPXMLDefaults
       if sum_space_manualj_num_occupants > 0
         hpxml_bldg.header.manualj_num_occupants = sum_space_manualj_num_occupants
       else
-        hpxml_bldg.header.manualj_num_occupants = nbeds + 1 # Per Manual J
+        # Manual J default: full time occupants = 1 + number of bedrooms
+        # If the actual number of full time occupants exceeds the default value, the actual occupant count is used
+        # See https://github.com/NREL/OpenStudio-HPXML/issues/1841
+        hpxml_bldg.header.manualj_num_occupants = [hpxml_bldg.building_construction.number_of_bedrooms + 1, hpxml_bldg.building_occupancy.number_of_residents.to_f].max
       end
       hpxml_bldg.header.manualj_num_occupants_isdefaulted = true
     end
@@ -874,18 +869,19 @@ module HPXMLDefaults
   #
   # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @return [nil]
-  def self.apply_building_construction(hpxml_header, hpxml_bldg, cfa, nbeds)
+  def self.apply_building_construction(hpxml_header, hpxml_bldg)
     cond_crawl_volume = hpxml_bldg.inferred_conditioned_crawlspace_volume()
+    nbeds = hpxml_bldg.building_construction.number_of_bedrooms
     if hpxml_bldg.building_construction.average_ceiling_height.nil?
       # ASHRAE 62.2 default for average floor to ceiling height
       hpxml_bldg.building_construction.average_ceiling_height = 8.2
       hpxml_bldg.building_construction.average_ceiling_height_isdefaulted = true
     end
     if hpxml_bldg.building_construction.conditioned_building_volume.nil?
-      hpxml_bldg.building_construction.conditioned_building_volume = (cfa * hpxml_bldg.building_construction.average_ceiling_height + cond_crawl_volume).round
+      cfa = hpxml_bldg.building_construction.conditioned_floor_area
+      ceiling_height = hpxml_bldg.building_construction.average_ceiling_height
+      hpxml_bldg.building_construction.conditioned_building_volume = (cfa * ceiling_height + cond_crawl_volume).round
       hpxml_bldg.building_construction.conditioned_building_volume_isdefaulted = true
     end
     if hpxml_bldg.building_construction.number_of_bathrooms.nil?
@@ -1512,6 +1508,10 @@ module HPXMLDefaults
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @return [nil]
   def self.apply_windows(hpxml_bldg, eri_version)
+    blinds_types = [HPXML::InteriorShadingTypeDarkBlinds,
+                    HPXML::InteriorShadingTypeMediumBlinds,
+                    HPXML::InteriorShadingTypeLightBlinds]
+
     hpxml_bldg.windows.each do |window|
       if window.ufactor.nil? || window.shgc.nil?
         # Frame/Glass provided instead, fill in more defaults as needed
@@ -1555,7 +1555,6 @@ module HPXMLDefaults
           window.shgc_isdefaulted = true
         end
       end
-      default_shade_summer, default_shade_winter = Constructions.get_default_interior_shading_factors(eri_version, window.shgc)
       if window.azimuth.nil?
         window.azimuth = get_azimuth_from_orientation(window.orientation)
         window.azimuth_isdefaulted = true
@@ -1564,25 +1563,114 @@ module HPXMLDefaults
         window.orientation = get_orientation_from_azimuth(window.azimuth)
         window.orientation_isdefaulted = true
       end
-      if window.interior_shading_factor_summer.nil?
-        window.interior_shading_factor_summer = default_shade_summer
-        window.interior_shading_factor_summer_isdefaulted = true
+      if window.interior_shading_factor_winter.nil? || window.interior_shading_factor_summer.nil?
+        if window.interior_shading_type.nil?
+          window.interior_shading_type = HPXML::InteriorShadingTypeLightCurtains # ANSI/RESNET/ICC 301-2022
+          window.interior_shading_type_isdefaulted = true
+        end
+        if window.interior_shading_coverage_summer.nil? && window.interior_shading_type != HPXML::InteriorShadingTypeNone
+          if blinds_types.include? window.interior_shading_type
+            window.interior_shading_coverage_summer = 1.0
+          else
+            window.interior_shading_coverage_summer = 0.5 # ANSI/RESNET/ICC 301-2022
+          end
+          window.interior_shading_coverage_summer_isdefaulted = true
+        end
+        if window.interior_shading_coverage_winter.nil? && window.interior_shading_type != HPXML::InteriorShadingTypeNone
+          if blinds_types.include? window.interior_shading_type
+            window.interior_shading_coverage_winter = 1.0
+          else
+            window.interior_shading_coverage_winter = 0.5 # ANSI/RESNET/ICC 301-2022
+          end
+          window.interior_shading_coverage_winter_isdefaulted = true
+        end
+        if blinds_types.include? window.interior_shading_type
+          if window.interior_shading_blinds_summer_closed_or_open.nil?
+            window.interior_shading_blinds_summer_closed_or_open = HPXML::BlindsHalfOpen
+            window.interior_shading_blinds_summer_closed_or_open_isdefaulted = true
+          end
+          if window.interior_shading_blinds_winter_closed_or_open.nil?
+            window.interior_shading_blinds_winter_closed_or_open = HPXML::BlindsHalfOpen
+            window.interior_shading_blinds_winter_closed_or_open_isdefaulted = true
+          end
+        end
+        default_int_sf_summer, default_int_sf_winter = get_default_window_interior_shading_factors(window, eri_version)
+        if window.interior_shading_factor_summer.nil? && (not default_int_sf_summer.nil?)
+          window.interior_shading_factor_summer = default_int_sf_summer
+          window.interior_shading_factor_summer_isdefaulted = true
+        end
+        if window.interior_shading_factor_winter.nil? && (not default_int_sf_winter.nil?)
+          window.interior_shading_factor_winter = default_int_sf_winter
+          window.interior_shading_factor_winter_isdefaulted = true
+        end
       end
-      if window.interior_shading_factor_winter.nil?
-        window.interior_shading_factor_winter = default_shade_winter
-        window.interior_shading_factor_winter_isdefaulted = true
-      end
-      if window.exterior_shading_factor_summer.nil?
-        window.exterior_shading_factor_summer = 1.0
-        window.exterior_shading_factor_summer_isdefaulted = true
-      end
-      if window.exterior_shading_factor_winter.nil?
-        window.exterior_shading_factor_winter = 1.0
-        window.exterior_shading_factor_winter_isdefaulted = true
+      if window.exterior_shading_factor_winter.nil? || window.exterior_shading_factor_summer.nil?
+        if window.exterior_shading_type.nil?
+          window.exterior_shading_type = HPXML::ExteriorShadingTypeNone
+          window.exterior_shading_type_isdefaulted = true
+        end
+        if window.exterior_shading_coverage_summer.nil? && window.exterior_shading_type != HPXML::ExteriorShadingTypeNone
+          window.exterior_shading_coverage_summer = {
+            HPXML::ExteriorShadingTypeExternalOverhangs => 1.0, # Assume window area fully shaded
+            HPXML::ExteriorShadingTypeAwnings => 1.0, # Assume fully shaded
+            HPXML::ExteriorShadingTypeBuilding => 0.5, # Assume half shaded
+            HPXML::ExteriorShadingTypeDeciduousTree => 0.5, # Assume half shaded
+            HPXML::ExteriorShadingTypeEvergreenTree => 0.5, # Assume half shaded
+            HPXML::ExteriorShadingTypeOther => 0.5, # Assume half shaded
+            HPXML::ExteriorShadingTypeSolarFilm => 1.0, # Assume fully shaded
+            HPXML::ExteriorShadingTypeSolarScreens => 1.0 # Assume fully shaded
+          }[window.exterior_shading_type]
+          window.exterior_shading_coverage_summer_isdefaulted = true
+        end
+        if window.exterior_shading_coverage_winter.nil? && window.exterior_shading_type != HPXML::ExteriorShadingTypeNone
+          window.exterior_shading_coverage_winter = {
+            HPXML::ExteriorShadingTypeExternalOverhangs => 1.0, # Assume window area fully shaded
+            HPXML::ExteriorShadingTypeAwnings => 1.0, # Assume window area fully shaded
+            HPXML::ExteriorShadingTypeBuilding => 0.5, # Assume window area half shaded
+            HPXML::ExteriorShadingTypeDeciduousTree => 0.25, # Assume window area quarter shaded
+            HPXML::ExteriorShadingTypeEvergreenTree => 0.5, # Assume window area half shaded
+            HPXML::ExteriorShadingTypeOther => 0.5, # Assume window area half shaded
+            HPXML::ExteriorShadingTypeSolarFilm => 1.0, # Assume window area fully shaded
+            HPXML::ExteriorShadingTypeSolarScreens => 1.0 # Assume window area fully shaded
+          }[window.exterior_shading_type]
+          window.exterior_shading_coverage_winter_isdefaulted = true
+        end
+        default_ext_sf_summer, default_ext_sf_winter = get_default_window_exterior_shading_factors(window, hpxml_bldg)
+        if window.exterior_shading_factor_summer.nil? && (not default_ext_sf_summer.nil?)
+          window.exterior_shading_factor_summer = default_ext_sf_summer
+          window.exterior_shading_factor_summer_isdefaulted = true
+        end
+        if window.exterior_shading_factor_winter.nil? && (not default_ext_sf_winter.nil?)
+          window.exterior_shading_factor_winter = default_ext_sf_winter
+          window.exterior_shading_factor_winter_isdefaulted = true
+        end
       end
       if window.fraction_operable.nil?
         window.fraction_operable = Airflow.get_default_fraction_of_windows_operable()
         window.fraction_operable_isdefaulted = true
+      end
+      next unless window.insect_screen_present
+
+      if window.insect_screen_location.nil?
+        window.insect_screen_location = HPXML::LocationExterior
+        window.insect_screen_location_isdefaulted = true
+      end
+      if window.insect_screen_coverage_summer.nil?
+        window.insect_screen_coverage_summer = window.fraction_operable
+        window.insect_screen_coverage_summer_isdefaulted = true
+      end
+      if window.insect_screen_coverage_winter.nil?
+        window.insect_screen_coverage_winter = window.fraction_operable
+        window.insect_screen_coverage_winter_isdefaulted = true
+      end
+      default_is_sf_summer, default_is_sf_winter = get_default_window_insect_screen_factors(window)
+      if window.insect_screen_factor_summer.nil?
+        window.insect_screen_factor_summer = default_is_sf_summer
+        window.insect_screen_factor_summer_isdefaulted = true
+      end
+      if window.insect_screen_factor_winter.nil?
+        window.insect_screen_factor_winter = default_is_sf_winter
+        window.insect_screen_factor_winter_isdefaulted = true
       end
     end
   end
@@ -2391,10 +2479,11 @@ module HPXMLDefaults
   # Assigns default values for omitted optional inputs in the HPXML::HVACDistribution objects
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param ncfl [Double] Total number of conditioned floors in the dwelling unit
-  # @param ncfl_ag [Double] Number of conditioned floors above grade in the dwelling unit
   # @return [nil]
-  def self.apply_hvac_distribution(hpxml_bldg, ncfl, ncfl_ag)
+  def self.apply_hvac_distribution(hpxml_bldg)
+    ncfl_ag = hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade
+    ncfl = hpxml_bldg.building_construction.number_of_conditioned_floors
+
     hpxml_bldg.hvac_distributions.each do |hvac_distribution|
       next unless hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
       next if hvac_distribution.ducts.empty?
@@ -2608,11 +2697,9 @@ module HPXMLDefaults
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @return [nil]
-  def self.apply_ventilation_fans(hpxml_bldg, weather, cfa, nbeds, eri_version)
+  def self.apply_ventilation_fans(hpxml_bldg, weather, eri_version)
     # Default mech vent systems
     hpxml_bldg.ventilation_fans.each do |vent_fan|
       next unless vent_fan.used_for_whole_building_ventilation
@@ -2632,7 +2719,7 @@ module HPXMLDefaults
           fail 'Defaulting flow rates for multiple mechanical ventilation systems is currently not supported.'
         end
 
-        vent_fan.rated_flow_rate = Airflow.get_default_mech_vent_flow_rate(hpxml_bldg, vent_fan, weather, cfa, nbeds, eri_version).round(1)
+        vent_fan.rated_flow_rate = Airflow.get_default_mech_vent_flow_rate(hpxml_bldg, vent_fan, weather, eri_version).round(1)
         vent_fan.rated_flow_rate_isdefaulted = true
       end
 
@@ -2709,7 +2796,7 @@ module HPXMLDefaults
       next unless vent_fan.used_for_seasonal_cooling_load_reduction
 
       if vent_fan.rated_flow_rate.nil? && vent_fan.tested_flow_rate.nil? && vent_fan.calculated_flow_rate.nil? && vent_fan.delivered_ventilation.nil?
-        vent_fan.rated_flow_rate = cfa * 2.0
+        vent_fan.rated_flow_rate = hpxml_bldg.building_construction.conditioned_floor_area * 2.0
         vent_fan.rated_flow_rate_isdefaulted = true
       end
       if vent_fan.fan_power.nil?
@@ -2722,11 +2809,11 @@ module HPXMLDefaults
   # Assigns default values for omitted optional inputs in the HPXML::WaterHeatingSystem objects
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
-  def self.apply_water_heaters(hpxml_bldg, nbeds, eri_version, schedules_file)
+  def self.apply_water_heaters(hpxml_bldg, eri_version, schedules_file)
+    nbeds = hpxml_bldg.building_construction.number_of_bedrooms
     hpxml_bldg.water_heating_systems.each do |water_heating_system|
       if water_heating_system.is_shared_system.nil?
         water_heating_system.is_shared_system = false
@@ -2810,16 +2897,16 @@ module HPXMLDefaults
   # Assigns default values for omitted optional inputs in the HPXML::HotWaterDistribution objects
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
-  # @param ncfl [Double] Total number of conditioned floors in the dwelling unit
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
-  def self.apply_hot_water_distribution(hpxml_bldg, cfa, ncfl, schedules_file)
+  def self.apply_hot_water_distribution(hpxml_bldg, schedules_file)
     return if hpxml_bldg.hot_water_distributions.size == 0
 
     hot_water_distribution = hpxml_bldg.hot_water_distributions[0]
     has_uncond_bsmnt = hpxml_bldg.has_location(HPXML::LocationBasementUnconditioned)
     has_cond_bsmnt = hpxml_bldg.has_location(HPXML::LocationBasementConditioned)
+    cfa = hpxml_bldg.building_construction.conditioned_floor_area
+    ncfl = hpxml_bldg.building_construction.number_of_conditioned_floors
 
     if hot_water_distribution.pipe_r_value.nil?
       hot_water_distribution.pipe_r_value = 0.0
@@ -3073,11 +3160,12 @@ module HPXMLDefaults
   # HPXML::Dishwasher, HPXML::Refrigerator, HPXML::Freezer, HPXML::CookingRange, and HPXML::Oven objects.
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
-  def self.apply_appliances(hpxml_bldg, nbeds, eri_version, schedules_file)
+  def self.apply_appliances(hpxml_bldg, eri_version, schedules_file)
+    nbeds = hpxml_bldg.building_construction.number_of_bedrooms
+
     # Default clothes washer
     if hpxml_bldg.clothes_washers.size > 0
       clothes_washer = hpxml_bldg.clothes_washers[0]
@@ -3477,12 +3565,13 @@ module HPXMLDefaults
   # Assigns default values for omitted optional inputs in the HPXML::CeilingFan objects
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
-  def self.apply_ceiling_fans(hpxml_bldg, nbeds, weather, schedules_file)
+  def self.apply_ceiling_fans(hpxml_bldg, weather, schedules_file)
     return if hpxml_bldg.ceiling_fans.size == 0
+
+    nbeds = hpxml_bldg.building_construction.number_of_bedrooms
 
     ceiling_fan = hpxml_bldg.ceiling_fans[0]
     if ceiling_fan.efficiency.nil? && ceiling_fan.label_energy_use.nil?
@@ -3511,11 +3600,11 @@ module HPXMLDefaults
   # Assigns default values for omitted optional inputs in the HPXML::Pool and HPXML::PermanentSpa objects
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
-  def self.apply_pools_and_permanent_spas(hpxml_bldg, cfa, schedules_file)
+  def self.apply_pools_and_permanent_spas(hpxml_bldg, schedules_file)
     nbeds_eq = hpxml_bldg.building_construction.additional_properties.equivalent_number_of_bedrooms
+    cfa = hpxml_bldg.building_construction.conditioned_floor_area
     hpxml_bldg.pools.each do |pool|
       next if pool.type == HPXML::TypeNone
 
@@ -3632,11 +3721,11 @@ module HPXMLDefaults
   # Assigns default values for omitted optional inputs in the HPXML::PlugLoad objects
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
-  def self.apply_plug_loads(hpxml_bldg, cfa, nbeds, schedules_file)
+  def self.apply_plug_loads(hpxml_bldg, schedules_file)
+    cfa = hpxml_bldg.building_construction.conditioned_floor_area
+    nbeds = hpxml_bldg.building_construction.number_of_bedrooms
     nbeds_eq = hpxml_bldg.building_construction.additional_properties.equivalent_number_of_bedrooms
     num_occ = hpxml_bldg.building_occupancy.number_of_residents
     unit_type = hpxml_bldg.building_construction.residential_facility_type
@@ -3760,10 +3849,10 @@ module HPXMLDefaults
   # Assigns default values for omitted optional inputs in the HPXML::FuelLoad objects
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
-  def self.apply_fuel_loads(hpxml_bldg, cfa, schedules_file)
+  def self.apply_fuel_loads(hpxml_bldg, schedules_file)
+    cfa = hpxml_bldg.building_construction.conditioned_floor_area
     nbeds_eq = hpxml_bldg.building_construction.additional_properties.equivalent_number_of_bedrooms
     hpxml_bldg.fuel_loads.each do |fuel_load|
       if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
@@ -3857,12 +3946,11 @@ module HPXMLDefaults
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @param output_format [String] Detailed output file format ('csv', 'json', or 'msgpack')
-  # @param design_load_details_output_file_path [String] Detailed HVAC sizing output file path
-  # @return [nil]
-  def self.apply_hvac_sizing(runner, hpxml_bldg, weather, output_format, design_load_details_output_file_path)
+  # @return [Array<Hash, Hash>] Maps of HPXML::Zones => DesignLoadValues object, HPXML::Spaces => DesignLoadValues object
+  def self.apply_hvac_sizing(runner, hpxml_bldg, weather)
     hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml_bldg)
-    HVACSizing.calculate(runner, weather, hpxml_bldg, hvac_systems, output_format: output_format, output_file_path: design_load_details_output_file_path)
+    _, all_zone_loads, all_space_loads = HVACSizing.calculate(runner, weather, hpxml_bldg, hvac_systems)
+    return all_zone_loads, all_space_loads
   end
 
   # Converts an HPXML orientation to an HPXML azimuth.
@@ -3988,6 +4076,134 @@ module HPXMLDefaults
       return true
     end
     return false
+  end
+
+  # Gets the default summer/winter interior shading factors for the window.
+  #
+  # @param window [HPXML::Window] The window of interest
+  # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
+  # @return [Array<Double, Double>] The interior summer and winter shading factors
+  def self.get_default_window_interior_shading_factors(window, eri_version)
+    return 1.0, 1.0 if window.interior_shading_type == HPXML::InteriorShadingTypeNone
+
+    if Constants::ERIVersions.index(eri_version) >= Constants::ERIVersions.index('2022C')
+      # C1/C2 coefficients derived from ASHRAE 2021 Handbook of Fundamentals Chapter 15 Table 14
+      # See spreadsheet in https://github.com/NREL/OpenStudio-HPXML/pull/1826 for derivation
+      if [HPXML::InteriorShadingTypeDarkBlinds,
+          HPXML::InteriorShadingTypeMediumBlinds,
+          HPXML::InteriorShadingTypeLightBlinds].include? window.interior_shading_type
+        # Shading type, blinds position => c1/c2
+        c_map = {
+          [HPXML::InteriorShadingTypeDarkBlinds, HPXML::BlindsClosed] => [0.98, 0.25],
+          [HPXML::InteriorShadingTypeMediumBlinds, HPXML::BlindsClosed] => [0.90, 0.41],
+          [HPXML::InteriorShadingTypeLightBlinds, HPXML::BlindsClosed] => [0.78, 0.47],
+          [HPXML::InteriorShadingTypeDarkBlinds, HPXML::BlindsHalfOpen] => [1.0, 0.19],
+          [HPXML::InteriorShadingTypeMediumBlinds, HPXML::BlindsHalfOpen] => [0.95, 0.26],
+          [HPXML::InteriorShadingTypeLightBlinds, HPXML::BlindsHalfOpen] => [0.93, 0.38],
+          [HPXML::InteriorShadingTypeDarkBlinds, HPXML::BlindsOpen] => [0.99, 0.0],
+          [HPXML::InteriorShadingTypeMediumBlinds, HPXML::BlindsOpen] => [0.98, 0.0],
+          [HPXML::InteriorShadingTypeLightBlinds, HPXML::BlindsOpen] => [0.98, 0.0],
+        }
+        c1_summer, c2_summer = c_map[[window.interior_shading_type, window.interior_shading_blinds_summer_closed_or_open]]
+        c1_winter, c2_winter = c_map[[window.interior_shading_type, window.interior_shading_blinds_winter_closed_or_open]]
+      else
+        # Shading type => c1/c2
+        c_map = {
+          HPXML::InteriorShadingTypeDarkCurtains => [0.98, 0.25],
+          HPXML::InteriorShadingTypeMediumCurtains => [0.94, 0.37],
+          HPXML::InteriorShadingTypeLightCurtains => [0.84, 0.42],
+          HPXML::InteriorShadingTypeDarkShades => [0.98, 0.33],
+          HPXML::InteriorShadingTypeMediumShades => [0.9, 0.38],
+          HPXML::InteriorShadingTypeLightShades => [0.82, 0.42],
+          HPXML::InteriorShadingTypeOther => [0.5, 0.0],
+        }
+        c1_summer, c2_summer = c_map[window.interior_shading_type]
+        c1_winter, c2_winter = c_map[window.interior_shading_type]
+      end
+
+      int_sf_summer = c1_summer - (c2_summer * window.shgc)
+      int_sf_winter = c1_winter - (c2_winter * window.shgc)
+
+      # Apply fraction of window area covered
+      int_sf_summer = apply_shading_coverage(int_sf_summer, window.interior_shading_coverage_summer)
+      int_sf_winter = apply_shading_coverage(int_sf_winter, window.interior_shading_coverage_winter)
+    else
+      int_sf_summer = 0.70
+      int_sf_winter = 0.85
+    end
+
+    return int_sf_summer.round(4), int_sf_winter.round(4)
+  end
+
+  # Gets the default summer/winter exterior shading factors for the window.
+  #
+  # @param window [HPXML::Window] The window of interest
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [Array<Double, Double>] The exterior summer and winter shading factors
+  def self.get_default_window_exterior_shading_factors(window, hpxml_bldg)
+    return 1.0, 1.0 if window.exterior_shading_type == HPXML::ExteriorShadingTypeNone
+
+    if [HPXML::ExteriorShadingTypeExternalOverhangs,
+        HPXML::ExteriorShadingTypeAwnings].include?(window.exterior_shading_type) && window.overhangs_depth.to_f > 0
+      # Explicitly modeling the overhangs, so don't double count the shading effect
+      return nil, nil
+    elsif [HPXML::ExteriorShadingTypeBuilding].include?(window.exterior_shading_type) && hpxml_bldg.neighbor_buildings.size > 0
+      # Explicitly modeling neighboring building, so don't double count the shading effect
+      return nil, nil
+    end
+
+    c_map = {
+      HPXML::ExteriorShadingTypeExternalOverhangs => 0.0, # Assume fully opaque
+      HPXML::ExteriorShadingTypeAwnings => 0.0, # Assume fully opaque
+      HPXML::ExteriorShadingTypeBuilding => 0.0, # Assume fully opaque
+      HPXML::ExteriorShadingTypeDeciduousTree => 0.0, # Assume fully opaque
+      HPXML::ExteriorShadingTypeEvergreenTree => 0.0, # Assume fully opaque
+      HPXML::ExteriorShadingTypeOther => 0.5, # Assume half opaque
+      HPXML::ExteriorShadingTypeSolarFilm => 0.3, # Based on MulTEA engineering manual
+      HPXML::ExteriorShadingTypeSolarScreens => 0.7, # Based on MulTEA engineering manual
+    }
+
+    ext_sf_summer = c_map[window.exterior_shading_type]
+    ext_sf_winter = c_map[window.exterior_shading_type]
+
+    # Apply fraction of window area covered
+    ext_sf_summer = apply_shading_coverage(ext_sf_summer, window.exterior_shading_coverage_summer)
+    ext_sf_winter = apply_shading_coverage(ext_sf_winter, window.exterior_shading_coverage_winter)
+
+    return ext_sf_summer, ext_sf_winter
+  end
+
+  # Gets the default insect screen shading factors for the window.
+  #
+  # @param window [HPXML::Window] The window of interest
+  # @return [Array<Double, Double>] The summer and winter shading factors
+  def self.get_default_window_insect_screen_factors(window)
+    # C1/C2 coefficients derived from ASHRAE 2021 Handbook of Fundamentals Chapter 15 Table 14
+    # See spreadsheet in https://github.com/NREL/OpenStudio-HPXML/pull/1826 for derivation
+    c_map = {
+      HPXML::LocationExterior => [0.64, 0.0],
+      HPXML::LocationInterior => [0.99, 0.1],
+    }
+    c1, c2 = c_map[window.insect_screen_location]
+
+    is_sf_summer = c1 - (c2 * window.shgc)
+    is_sf_winter = c1 - (c2 * window.shgc)
+
+    # Apply fraction of window area covered
+    is_sf_summer = apply_shading_coverage(is_sf_summer, window.insect_screen_coverage_summer)
+    is_sf_winter = apply_shading_coverage(is_sf_winter, window.insect_screen_coverage_winter)
+
+    return is_sf_summer.round(4), is_sf_winter.round(4)
+  end
+
+  # Incorporates a shading coverage adjustment on the shading factor.
+  #
+  # @param shading_factor [Double] The shading factor not taking window area coverage into account
+  # @param shading_coverage [Double] The fraction of window area covered by the shade
+  # @return [Double] The coverage-adjustment shading factor
+  def self.apply_shading_coverage(shading_factor, shading_coverage)
+    non_shading_factor = 1.0 # 1.0 (i.e., fully transparent) is the shading factor for the unshaded portion of the window
+    return shading_coverage * shading_factor + (1 - shading_coverage) * non_shading_factor
   end
 
   # Gets the default latitude from the HPXML file or, as backup, weather file.

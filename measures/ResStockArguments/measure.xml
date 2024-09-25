@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>2c4dbe14-2854-4f34-843d-20b192b16689</version_id>
-  <version_modified>2024-09-18T04:40:37Z</version_modified>
+  <version_id>534c899e-ac51-4052-92ce-876e8ee58146</version_id>
+  <version_modified>2024-09-25T03:27:57Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -1723,9 +1723,64 @@
       <default_value>0.3</default_value>
     </argument>
     <argument>
+      <name>window_interior_shading_type</name>
+      <display_name>Windows: Interior Shading Type</display_name>
+      <description>Type of window interior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'&gt;HPXML Interior Shading&lt;/a&gt;) is used.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>light curtains</value>
+          <display_name>light curtains</display_name>
+        </choice>
+        <choice>
+          <value>light shades</value>
+          <display_name>light shades</display_name>
+        </choice>
+        <choice>
+          <value>light blinds</value>
+          <display_name>light blinds</display_name>
+        </choice>
+        <choice>
+          <value>medium curtains</value>
+          <display_name>medium curtains</display_name>
+        </choice>
+        <choice>
+          <value>medium shades</value>
+          <display_name>medium shades</display_name>
+        </choice>
+        <choice>
+          <value>medium blinds</value>
+          <display_name>medium blinds</display_name>
+        </choice>
+        <choice>
+          <value>dark curtains</value>
+          <display_name>dark curtains</display_name>
+        </choice>
+        <choice>
+          <value>dark shades</value>
+          <display_name>dark shades</display_name>
+        </choice>
+        <choice>
+          <value>dark blinds</value>
+          <display_name>dark blinds</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>window_interior_shading_winter</name>
-      <display_name>Windows: Winter Interior Shading</display_name>
-      <description>Interior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'&gt;HPXML Windows&lt;/a&gt;) is used.</description>
+      <display_name>Windows: Winter Interior Shading Coefficient</display_name>
+      <description>Interior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'&gt;HPXML Interior Shading&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Frac</units>
       <required>false</required>
@@ -1733,17 +1788,44 @@
     </argument>
     <argument>
       <name>window_interior_shading_summer</name>
-      <display_name>Windows: Summer Interior Shading</display_name>
-      <description>Interior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'&gt;HPXML Windows&lt;/a&gt;) is used.</description>
+      <display_name>Windows: Summer Interior Shading Coefficient</display_name>
+      <description>Interior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'&gt;HPXML Interior Shading&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>window_exterior_shading_type</name>
+      <display_name>Windows: Exterior Shading Type</display_name>
+      <description>Type of window exterior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'&gt;HPXML Exterior Shading&lt;/a&gt;) is used.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>solar film</value>
+          <display_name>solar film</display_name>
+        </choice>
+        <choice>
+          <value>solar screens</value>
+          <display_name>solar screens</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>window_exterior_shading_winter</name>
-      <display_name>Windows: Winter Exterior Shading</display_name>
-      <description>Exterior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'&gt;HPXML Windows&lt;/a&gt;) is used.</description>
+      <display_name>Windows: Winter Exterior Shading Coefficient</display_name>
+      <description>Exterior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'&gt;HPXML Exterior Shading&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Frac</units>
       <required>false</required>
@@ -1751,8 +1833,8 @@
     </argument>
     <argument>
       <name>window_exterior_shading_summer</name>
-      <display_name>Windows: Summer Exterior Shading</display_name>
-      <description>Exterior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'&gt;HPXML Windows&lt;/a&gt;) is used.</description>
+      <display_name>Windows: Summer Exterior Shading Coefficient</display_name>
+      <description>Exterior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'&gt;HPXML Exterior Shading&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Frac</units>
       <required>false</required>
@@ -1766,6 +1848,33 @@
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>window_insect_screens</name>
+      <display_name>Windows: Insect Screens</display_name>
+      <description>The type of insect screens, if present. If not provided, assumes there are no insect screens.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+        <choice>
+          <value>exterior</value>
+          <display_name>exterior</display_name>
+        </choice>
+        <choice>
+          <value>interior</value>
+          <display_name>interior</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>window_storm_type</name>
@@ -7575,7 +7684,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>C68A35D9</checksum>
+      <checksum>7C3E7B89</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
