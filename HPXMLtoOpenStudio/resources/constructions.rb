@@ -1605,22 +1605,6 @@ module Constructions
 
   # TODO
   #
-  # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
-  # @param shgc [TODO] TODO
-  # @return [TODO] TODO
-  def self.get_default_interior_shading_factors(eri_version, shgc)
-    if Constants::ERIVersions.index(eri_version) >= Constants::ERIVersions.index('2022C')
-      summer = 0.92 - (0.21 * shgc)
-      winter = summer
-    else
-      summer = 0.70
-      winter = 0.85
-    end
-    return summer, winter
-  end
-
-  # TODO
-  #
   # @param roof_type [TODO] TODO
   # @param solar_absorptance [TODO] TODO
   # @return [TODO] TODO
@@ -2193,10 +2177,44 @@ module Constructions
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @return [TODO] TODO
   def self.apply_window_skylight_shading(model, window_or_skylight, sub_surface, shading_schedules, hpxml_header, hpxml_bldg)
-    sf_summer = window_or_skylight.interior_shading_factor_summer * window_or_skylight.exterior_shading_factor_summer
-    sf_winter = window_or_skylight.interior_shading_factor_winter * window_or_skylight.exterior_shading_factor_winter
-    if (sf_summer < 1.0) || (sf_winter < 1.0)
-      # Apply shading
+    # Interior shading factors
+    isf_summer = window_or_skylight.interior_shading_factor_summer
+    isf_winter = window_or_skylight.interior_shading_factor_winter
+
+    # Exterior shading factors
+    esf_summer = window_or_skylight.exterior_shading_factor_summer.nil? ? 1.0 : window_or_skylight.exterior_shading_factor_summer
+    esf_winter = window_or_skylight.exterior_shading_factor_winter.nil? ? 1.0 : window_or_skylight.exterior_shading_factor_winter
+    if window_or_skylight.is_a? HPXML::Window
+      # These inputs currently only pertain to windows (not skylights)
+      if [HPXML::ExteriorShadingTypeExternalOverhangs,
+          HPXML::ExteriorShadingTypeAwnings].include? window_or_skylight.exterior_shading_type
+        if window_or_skylight.overhangs_depth.to_f > 0
+          # Explicitly modeling the overhangs, so don't double count the shading effect
+          esf_summer = 1.0
+          esf_winter = 1.0
+        end
+      elsif [HPXML::ExteriorShadingTypeBuilding].include? window_or_skylight.exterior_shading_type
+        if hpxml_bldg.neighbor_buildings.size > 0
+          # Explicitly modeling neighboring building, so don't double count the shading effect
+          esf_summer = 1.0
+          esf_winter = 1.0
+        end
+      end
+    end
+
+    # Insect screen factors
+    is_summer = 1.0
+    is_winter = 1.0
+    if window_or_skylight.respond_to?(:insect_screen_present) && window_or_skylight.insect_screen_present
+      is_summer = window_or_skylight.insect_screen_factor_summer
+      is_winter = window_or_skylight.insect_screen_factor_winter
+    end
+
+    # Total combined factors
+    sf_summer = isf_summer * esf_summer * is_summer
+    sf_winter = isf_winter * esf_winter * is_winter
+
+    if (sf_summer < 1.0) || (sf_winter < 1.0) # Apply shading
 
       # Determine transmittance values throughout the year
       sf_values = []

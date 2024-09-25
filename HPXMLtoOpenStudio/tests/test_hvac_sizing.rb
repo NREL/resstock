@@ -403,8 +403,8 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     assert_in_delta(1651, hpxml_bldg.hvac_plant.cdl_lat_infil, block_tol_btuh)
     assert_in_delta(1755, hpxml_bldg.hvac_plant.cdl_lat_vent, block_tol_btuh)
     assert_in_delta(800, hpxml_bldg.hvac_plant.cdl_lat_intgains, block_tol_btuh)
-    # eyeball observation from figure 13-5
-    block_aed = [6800, 8800, 11000, 13000, 14000, 15800, 16900, 17200, 16900, 15900, 13000, 6800]
+    # eyeball observation from figure 12-6
+    block_aed = [6800, 8800, 11000, 13000, 14000, 15800, 16900, 17200, 16900, 15900, 13000, 6600]
     hpxml_bldg.hvac_plant.cdl_sens_aed_curve.split(', ').map { |s| s.to_f }.each_with_index do |aed_curve_value, i|
       assert_in_delta(block_aed[i], aed_curve_value, block_aed[i] * space_tol_frac)
     end
@@ -689,7 +689,7 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     end
   end
 
-  def test_manual_j_bob_ross
+  def test_manual_j_bob_ross_residence
     args_hash = { 'output_format' => 'json' }
 
     # Base run
@@ -928,6 +928,20 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     puts "  Total heat loss for entire house = #{}"
     puts "  Total sensible gain for entire house = #{}"
     puts "  Total latent gain for entire house = #{}"
+
+    puts 'Testing Bob Ross Residence - 4...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_4.xml'))
+    _model, _hpxml, base_hpxml_bldg = _test_measure(args_hash)
+    puts "  Total heating = #{base_hpxml_bldg.hvac_plant.hdl_total}"
+    puts "  Total sensible cooling = #{base_hpxml_bldg.hvac_plant.cdl_sens_total}"
+    puts "  Total latent cooling = #{base_hpxml_bldg.hvac_plant.cdl_lat_total}"
+
+    puts 'Testing Bob Ross Residence - 5...'
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence_5.xml'))
+    _model, _hpxml, base_hpxml_bldg = _test_measure(args_hash)
+    puts "  Total heating = #{base_hpxml_bldg.hvac_plant.hdl_total}"
+    puts "  Total sensible cooling = #{base_hpxml_bldg.hvac_plant.cdl_sens_total}"
+    puts "  Total latent cooling = #{base_hpxml_bldg.hvac_plant.cdl_lat_total}"
   end
 
   def test_heat_pump_separate_backup_systems

@@ -599,7 +599,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
      'ZAF_Cape.Town.688160_IWEC.epw'].each do |epw_path| # Test both northern & southern hemisphere
       args_hash = {}
       args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
-      hpxml, hpxml_bldg = _create_hpxml('base-enclosure-windows-shading.xml')
+      hpxml, hpxml_bldg = _create_hpxml('base-enclosure-windows-shading-factors.xml')
       hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = epw_path
       XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
       model, hpxml, hpxml_bldg = _test_measure(args_hash)
