@@ -710,8 +710,32 @@ module HVACSizing
       space = wall.space
       zone = space.zone
 
-      window_isc = window.interior_shading_factor_summer
-      window_esc = window.exterior_shading_factor_summer
+      if window.interior_shading_type.nil? || window.interior_shading_type == HPXML::InteriorShadingTypeOther
+        # Not covered by MJ
+        window_isc = window.interior_shading_factor_summer
+      else
+        # Covered by MJ
+        window_isc = get_window_interior_shading_coefficient(window)
+      end
+
+      window_esc = 1.0
+      if window.insect_screen_present
+        # Covered by MJ
+        if window.insect_screen_location == HPXML::LocationInterior
+          window_esc = 1.0 - 0.1 * window.insect_screen_coverage_summer
+        elsif window.insect_screen_location == HPXML::LocationExterior
+          window_esc = 1.0 - 0.2 * window.insect_screen_coverage_summer
+        end
+      end
+      if [HPXML::ExteriorShadingTypeSolarScreens,
+          HPXML::ExteriorShadingTypeSolarFilm].include? window.exterior_shading_type
+        # Covered by MJ
+        screen_sc = 0.25
+      elsif not window.exterior_shading_factor_summer.nil?
+        # Not covered by MJ
+        window_esc *= window.exterior_shading_factor_summer
+      end
+
       cnt45 = (get_mj_azimuth(window.azimuth) / 45.0).round.to_i
 
       window_ufactor, window_shgc = Constructions.get_ufactor_shgc_adjusted_by_storms(window.storm_type, window.ufactor, window.shgc)
@@ -758,9 +782,8 @@ module HVACSizing
         htm_n = psf_lat[4] * clf_n * window_shgc * window_isc / 0.87 + window_ufactor * ctd_adj
         htm_n *= window_esc
 
-        if window.exterior_shading_type == HPXML::ExteriorShadingTypeSolarScreens
-          sunscreen_sc = 0.25
-          clg_htm = (htm_d - htm_n) * sunscreen_sc + htm_n
+        if not screen_sc.nil?
+          clg_htm = (htm_d - htm_n) * screen_sc + htm_n
         elsif window.overhangs_depth.to_f > 0
           if hr.nil?
             slm = slm_avg_lat[cnt45]
@@ -822,7 +845,6 @@ module HVACSizing
       zone = space.zone
 
       skylight_isc = skylight.interior_shading_factor_summer
-      skylight_esc = skylight.exterior_shading_factor_summer
       cnt45 = (get_mj_azimuth(skylight.azimuth) / 45.0).round.to_i
       inclination_angle = UnitConversions.convert(Math.atan(roof.pitch / 12.0), 'rad', 'deg')
 
@@ -881,7 +903,6 @@ module HVACSizing
 
         # Hourly Heat Transfer Multiplier for the given skylight Direction
         clg_htm = (sol_h + sol_v) * (skylight_shgc * skylight_isc / 0.87) + u_eff_skylight * (ctd_adj + 15.0)
-        clg_htm *= skylight_esc
 
         # Block/space loads
         clg_loads = clg_htm * skylight.area
@@ -4401,10 +4422,130 @@ module HVACSizing
     return u_value
   end
 
+  # Get the window interior shading coefficient from Table 3D-4.
+  #
+  # @param window [HPXML::Window] The window of interest
+  # @return [Double] Interior shading coefficient
+  def self.get_window_interior_shading_coefficient(window)
+    return 1.0 if window.interior_shading_type == HPXML::InteriorShadingTypeNone
+
+    # Look up window type
+    if window.glass_layers.nil? || window.glass_type.nil?
+      # Estimate based U-factor/SHGC
+      if window.ufactor >= 0.85 # single pane
+        if window.shgc >= (0.74 + 0.5) / 2
+          window_type = '1P Clear'
+        elsif window.shgc >= (0.5 + 0.44) / 2
+          window_type = '1P Heat Absorbing'
+        else
+          window_type = '1P Reflective'
+        end
+      elsif window.ufactor >= 0.30 # double pane
+        if window.shgc >= (0.64 + 0.55) / 2
+          window_type = '2P Clear'
+        elsif window.shgc >= (0.55 + 0.48) / 2
+          window_type = '2P Low-e Option 1'
+        elsif window.shgc >= (0.48 + 0.43) / 2
+          window_type = '2P Low-e Option 2'
+        elsif window.shgc >= (0.43 + 0.33) / 2
+          window_type = '2P Heat Absorbing'
+        else
+          window_type = '2P Low-e Option 3'
+        end
+      else # triple pane
+        if window.shgc >= (0.59 + 0.30) / 2
+          window_type = '3P Clear'
+        else
+          window_type = '3P Heat Absorbing'
+        end
+      end
+    else
+      # Use physical window properties
+      if window.glass_layers == HPXML::WindowLayersSinglePane
+        if [HPXML::WindowGlassTypeTintedReflective,
+            HPXML::WindowGlassTypeReflective].include? window.glass_type
+          window_type = '1P Reflective'
+        elsif [HPXML::WindowGlassTypeTinted].include? window.glass_type
+          window_type = '1P Heat Absorbing'
+        else
+          window_type = '1P Clear'
+        end
+      elsif window.glass_layers == HPXML::WindowLayersDoublePane
+        if [HPXML::WindowGlassTypeTintedReflective,
+            HPXML::WindowGlassTypeReflective].include? window.glass_type
+          window_type = '2P Reflective'
+        elsif [HPXML::WindowGlassTypeTinted].include? window.glass_type
+          window_type = '2P Heat Absorbing'
+        elsif [HPXML::WindowGlassTypeLowELowSolarGain].include? window.glass_type
+          window_type = '2P Low-e Option 3'
+        elsif [HPXML::WindowGlassTypeLowE].include? window.glass_type
+          window_type = '2P Low-e Option 2'
+        elsif [HPXML::WindowGlassTypeLowEHighSolarGain].include? window.glass_type
+          window_type = '2P Low-e Option 1'
+        else
+          window_type = '2P Clear'
+        end
+      elsif window.glass_layers == HPXML::WindowLayersTriplePane
+        if [HPXML::WindowGlassTypeTintedReflective,
+            HPXML::WindowGlassTypeReflective].include? window.glass_type
+          window_type = '3P Reflective'
+        elsif [HPXML::WindowGlassTypeTinted].include? window.glass_type
+          window_type = '3P Heat Absorbing'
+        else
+          window_type = '3P Clear'
+        end
+      end
+    end
+
+    table_col_index = {
+      HPXML::InteriorShadingTypeDarkBlinds => 0,
+      HPXML::InteriorShadingTypeMediumBlinds => 1,
+      HPXML::InteriorShadingTypeLightBlinds => 2,
+      HPXML::InteriorShadingTypeDarkShades => 3,
+      HPXML::InteriorShadingTypeMediumShades => 4,
+      HPXML::InteriorShadingTypeLightShades => 5,
+      HPXML::InteriorShadingTypeDarkCurtains => 6,
+      HPXML::InteriorShadingTypeMediumCurtains => 7,
+      HPXML::InteriorShadingTypeLightCurtains => 8,
+    }[window.interior_shading_type]
+
+    window_isc = {
+      '1P Clear' => [0.68, 0.60, 0.51, 0.80, 0.55, 0.40, 0.80, 0.60, 0.35],
+      '1P Heat Absorbing' => [0.81, 0.75, 0.69, 0.66, 0.52, 0.44, 0.81, 0.66, 0.52],
+      '1P Reflective' => [0.78, 0.71, 0.64, 0.89, 0.73, 0.61, 1.00, 0.75, 0.58],
+      '2P Clear' => [0.64, 0.59, 0.54, 0.80, 0.57, 0.46, 0.86, 0.63, 0.34],
+      '2P Low-e Option 1' => [0.68, 0.62, 0.57, 0.87, 0.60, 0.47, 0.93, 0.67, 0.33],
+      '2P Low-e Option 2' => [0.72, 0.65, 0.59, 0.77, 0.62, 0.54, 0.77, 0.62, 0.54],
+      '2P Low-e Option 3' => [0.85, 0.76, 0.66, 0.87, 0.77, 0.66, 0.89, 0.78, 0.67],
+      '2P Heat Absorbing' => [0.66, 0.59, 0.51, 0.69, 0.52, 0.43, 0.86, 0.69, 0.60],
+      '2P Reflective' => [0.85, 0.76, 0.66, 0.87, 0.77, 0.66, 0.89, 0.78, 0.67],
+      '3P Clear' => [0.64, 0.58, 0.53, 0.81, 0.56, 0.44, 0.87, 0.62, 0.31],
+      '3P Heat Absorbing' => [0.85, 0.74, 0.64, 0.87, 0.62, 0.50, 1.00, 0.87, 0.75],
+      '3P Reflective' => [0.85, 0.74, 0.64, 0.86, 0.75, 0.63, 0.87, 0.75, 0.62],
+    }[window_type][table_col_index]
+
+    # Apply fraction covered
+    summer_frac_covered = window.interior_shading_coverage_summer
+    window_isc = summer_frac_covered * window_isc + (1 - summer_frac_covered) * 1.0
+
+    # Apply blind opening
+    if [HPXML::InteriorShadingTypeDarkBlinds,
+        HPXML::InteriorShadingTypeMediumBlinds,
+        HPXML::InteriorShadingTypeLightBlinds].include? window.interior_shading_type
+      if window.interior_shading_blinds_summer_closed_or_open == HPXML::BlindsOpen
+        window_isc = 1.0 # Assume no shading
+      elsif window.interior_shading_blinds_summer_closed_or_open == HPXML::BlindsHalfOpen
+        window_isc *= 1.175 # Manual J Table 3D-4 note 3
+      end
+    end
+
+    return window_isc.round(3)
+  end
+
   # Gets the system type of the specified HPXML heating system.
   #
   # @param hvac_heating [HPXML::HeatingSystem or HPXML::HeatPump] The heating portion of the current HPXML HVAC system
-  # @return [string] Heating system type (e.g., HPXML::HVACTypeFurnace or HPXML::HVACTypeHeatPumpAirToAir) or nil
+  # @return [String] Heating system type (e.g., HPXML::HVACTypeFurnace or HPXML::HVACTypeHeatPumpAirToAir) or nil
   def self.get_hvac_heating_type(hvac_heating)
     if hvac_heating.nil?
       return
@@ -4418,7 +4559,7 @@ module HVACSizing
   # Gets the system type of the specified HPXML cooling system.
   #
   # @param hvac_cooling [HPXML::CoolingSystem or HPXML::HeatPump] The cooling portion of the current HPXML HVAC system
-  # @return [string] Cooling system type (e.g., HPXML::HVACTypeCentralAirConditioner or HPXML::HVACTypeHeatPumpAirToAir) or nil
+  # @return [String] Cooling system type (e.g., HPXML::HVACTypeCentralAirConditioner or HPXML::HVACTypeHeatPumpAirToAir) or nil
   def self.get_hvac_cooling_type(hvac_cooling)
     if hvac_cooling.nil?
       return

@@ -839,14 +839,31 @@
       <sch:assert role='ERROR' test='count(h:UFactor) + count(h:GlassLayers) &gt;= 1'>Expected 1 or more element(s) for xpath: UFactor | GlassLayers</sch:assert> <!-- See [Window=PhysicalProperties] -->
       <sch:assert role='ERROR' test='count(h:SHGC) + count(h:GlassLayers) &gt;= 1'>Expected 1 or more element(s) for xpath: SHGC | GlassLayers</sch:assert> <!-- See [Window=PhysicalProperties] -->
       <sch:assert role='ERROR' test='h:GlassLayers[text()="single-pane" or text()="double-pane" or text()="triple-pane" or text()="glass block"] or not(h:GlassLayers) or h:UFactor'>Expected GlassLayers to be 'single-pane' or 'double-pane' or 'triple-pane' or 'glass block'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorShading/h:Type) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/Type</sch:assert>
+      <sch:assert role='ERROR' test='h:ExteriorShading/h:Type[text()="external overhangs" or text()="awnings" or text()="solar screens" or text()="solar film" or text()="deciduous tree" or text()="evergreen tree" or text()="building" or text()="other" or text()="none"] or not(h:ExteriorShading/h:Type)'>Expected ExteriorShading/Type to be 'external overhangs' or 'awnings' or 'solar screens' or 'solar film' or 'deciduous tree' or 'evergreen tree' or 'building' or 'other' or 'none'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorShading/h:SummerFractionCovered) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/SummerFractionCovered</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorShading/h:WinterFractionCovered) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/WinterFractionCovered</sch:assert>
       <sch:assert role='ERROR' test='count(h:ExteriorShading/h:SummerShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/SummerShadingCoefficient</sch:assert>
       <sch:assert role='ERROR' test='count(h:ExteriorShading/h:WinterShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/WinterShadingCoefficient</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InteriorShading/h:Type) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/Type</sch:assert>
+      <sch:assert role='ERROR' test='h:InteriorShading/h:Type[text()="light blinds" or text()="medium blinds" or text()="dark blinds" or text()="light shades" or text()="medium shades" or text()="dark shades" or text()="light curtains" or text()="medium curtains" or text()="dark curtains" or text()="other" or text()="none"] or not(h:InteriorShading/h:Type)'>Expected InteriorShading/Type to be 'light blinds' or 'medium blinds' or 'dark blinds' or 'light shades' or 'medium shades' or 'dark shades' or 'light curtains' or 'medium curtains' or 'dark curtains' or 'other' or 'none'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InteriorShading/h:BlindsSummerClosedOrOpen) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/BlindsSummerClosedOrOpen</sch:assert>
+      <sch:assert role='ERROR' test='h:InteriorShading/h:BlindsSummerClosedOrOpen[text()="closed" or text()="open" or text()="half open"] or not(h:InteriorShading/h:BlindsSummerClosedOrOpen)'>Expected InteriorShading/BlindsSummerClosedOrOpen to be 'closed' or 'open' or 'half open'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InteriorShading/h:BlindsWinterClosedOrOpen) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/BlindsWinterClosedOrOpen</sch:assert>
+      <sch:assert role='ERROR' test='h:InteriorShading/h:BlindsWinterClosedOrOpen[text()="closed" or text()="open" or text()="half open"] or not(h:InteriorShading/h:BlindsWinterClosedOrOpen)'>Expected InteriorShading/BlindsWinterClosedOrOpen to be 'closed' or 'open' or 'half open'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InteriorShading/h:SummerFractionCovered) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/SummerFractionCovered</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InteriorShading/h:WinterFractionCovered) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/WinterFractionCovered</sch:assert>
       <sch:assert role='ERROR' test='count(h:InteriorShading/h:SummerShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/SummerShadingCoefficient</sch:assert>
       <sch:assert role='ERROR' test='count(h:InteriorShading/h:WinterShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/WinterShadingCoefficient</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InsectScreen) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InsectScreen</sch:assert> <!-- See [WindowInsectScreen] -->
       <sch:assert role='ERROR' test='count(h:StormWindow) &lt;= 1'>Expected 0 or 1 element(s) for xpath: StormWindow</sch:assert> <!-- See [WindowStorm] -->
       <sch:assert role='ERROR' test='count(h:Overhangs) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Overhangs</sch:assert> <!-- See [WindowOverhangs] -->
       <sch:assert role='ERROR' test='count(h:FractionOperable) &lt;= 1'>Expected 0 or 1 element(s) for xpath: FractionOperable</sch:assert>
       <sch:assert role='ERROR' test='count(h:AttachedToWall) = 1'>Expected 1 element(s) for xpath: AttachedToWall</sch:assert>
+      <!-- Warnings -->
+      <sch:report role='WARN' test='h:ExteriorShading/h:Type[text()="external overhangs"] and count(h:Overhangs) &gt; 0'>Exterior shading type is 'external overhangs', but overhangs are explicitly defined; exterior shading type will be ignored.</sch:report>
+      <sch:report role='WARN' test='h:ExteriorShading/h:Type[text()="awnings"] and count(h:Overhangs) &gt; 0'>Exterior shading type is 'external overhangs', but overhangs are explicitly defined; exterior shading type will be ignored.</sch:report>
+      <sch:report role='WARN' test='h:ExteriorShading/h:Type[text()="building"] and count(../../../h:BuildingSummary/h:Site/h:extension/h:Neighbors/h:NeighborBuilding) &gt; 0'>Exterior shading type is 'building', but neighbor buildings are explicitly defined; exterior shading type will be ignored.</sch:report>
     </sch:rule>
   </sch:pattern>
   
@@ -865,6 +882,16 @@
     <sch:title>[Window=MetalFrame]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window/h:FrameType/h:Metal | /h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window/h:FrameType/h:Aluminum'>
       <sch:assert role='ERROR' test='count(h:ThermalBreak) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ThermalBreak</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[WindowInsectScreen]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window/h:InsectScreen'>
+      <sch:assert role='ERROR' test='count(h:Location) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Location</sch:assert>
+      <sch:assert role='ERROR' test='h:Location[text()="interior" or text()="exterior"] or not(h:Location)'>Expected Location to be 'interior' or 'exterior'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SummerFractionCovered) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SummerFractionCovered</sch:assert>
+      <sch:assert role='ERROR' test='count(h:WinterFractionCovered) &lt;= 1'>Expected 0 or 1 element(s) for xpath: WinterFractionCovered</sch:assert>
     </sch:rule>
   </sch:pattern>
 

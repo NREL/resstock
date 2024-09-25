@@ -841,7 +841,7 @@ Additional inputs for ACCA Manual J design loads, used for sizing HVAC equipment
          This default represents loads that normally occur during the early evening in mid-summer.
          Additional adjustments or custom internal loads can instead be specified here.
   .. [#] If NumberofOccupants not provided, defaults to the sum of conditioned spaces' NumberofOccupants values if provided (see :ref:`zones_spaces`).
-         Otherwise defaults to the number of bedrooms plus one per Manual J.
+         Otherwise defaults to the the larger of NumberofBedrooms+1 and NumberofResidents (if provided).
          Each occupant produces an additional 230 Btu/hr sensible load and 200 Btu/hr latent load.
   .. [#] If InfiltrationShieldingClass not provided defaults to class 4 with these adjustments:
          +1 if ShieldingofHome="well-shielded", -1 if ShieldingofHome="exposed", +1 if SiteType="urban", -1 if SiteType="rural".
@@ -1527,60 +1527,41 @@ HPXML Windows
 
 Each window or glass door area is entered as a ``/HPXML/Building/BuildingDetails/Enclosure/Windows/Window``.
 
-  ============================================  =================  ================  ========================  ========  =========  =============================================================
-  Element                                       Type               Units             Constraints               Required  Default    Notes
-  ============================================  =================  ================  ========================  ========  =========  =============================================================
-  ``SystemIdentifier``                          id                                                             Yes                  Unique identifier
-  ``Area``                                      double             ft2               > 0                       Yes                  Total area [#]_
-  ``Azimuth`` or ``Orientation``                integer or string  deg or direction  >= 0, <= 359 or See [#]_  Yes                  Direction (clockwise from North)
-  ``UFactor`` and/or ``GlassLayers``            double or string   Btu/F-ft2-hr      > 0 or See [#]_           Yes                  Full-assembly NFRC U-factor or glass layers description
-  ``SHGC`` and/or ``GlassLayers``               double or string                     > 0, < 1                  Yes                  Full-assembly NFRC solar heat gain coefficient or glass layers description
-  ``ExteriorShading/SummerShadingCoefficient``  double             frac              >= 0, <= 1                No        1.00       Exterior summer shading coefficient (1=transparent, 0=opaque) [#]_
-  ``ExteriorShading/WinterShadingCoefficient``  double             frac              >= 0, <= 1                No        1.00       Exterior winter shading coefficient (1=transparent, 0=opaque)
-  ``InteriorShading/SummerShadingCoefficient``  double             frac              >= 0, <= 1                No        [#]_       Interior summer shading coefficient (1=transparent, 0=opaque)
-  ``InteriorShading/WinterShadingCoefficient``  double             frac              >= 0, <= 1                No        [#]_       Interior winter shading coefficient (1=transparent, 0=opaque)
-  ``StormWindow/GlassType``                     string                               See [#]_                  No                   Type of storm window glass
-  ``Overhangs``                                 element                                                        No        <none>     Presence of overhangs (including roof eaves)
-  ``FractionOperable``                          double             frac              >= 0, <= 1                No        0.67       Operable fraction [#]_
-  ``AttachedToWall``                            idref                                See [#]_                  Yes                  ID of attached wall
-  ============================================  =================  ================  ========================  ========  =========  =============================================================
+  ==================================  =================  ================  ========================  ========  =========  =============================================================
+  Element                             Type               Units             Constraints               Required  Default    Notes
+  ==================================  =================  ================  ========================  ========  =========  =============================================================
+  ``SystemIdentifier``                id                                                             Yes                  Unique identifier
+  ``Area``                            double             ft2               > 0                       Yes                  Total area [#]_
+  ``Azimuth`` or ``Orientation``      integer or string  deg or direction  >= 0, <= 359 or See [#]_  Yes                  Direction (clockwise from North)
+  ``UFactor`` and/or ``GlassLayers``  double or string   Btu/F-ft2-hr      > 0 or See [#]_           Yes                  Full-assembly NFRC U-factor or glass layers description [#]_
+  ``SHGC`` and/or ``GlassLayers``     double or string                     > 0, < 1                  Yes                  Full-assembly NFRC solar heat gain coefficient or glass layers description
+  ``ExteriorShading``                 element                                                        No        <none>     Presence of exterior shading [#]_
+  ``InteriorShading``                 element                                                        No        <present>  Presence of interior shading [#]_
+  ``InsectScreen``                    element                                                        No        <none>     Presence of insect screen [#]_
+  ``StormWindow``                     element                                                        No        <none>     Presence of storm window [#]_
+  ``Overhangs``                       element                                                        No        <none>     Presence of overhangs (including roof eaves) [#]_
+  ``FractionOperable``                double             frac              >= 0, <= 1                No        0.67       Operable fraction [#]_
+  ``AttachedToWall``                  idref                                See [#]_                  Yes                  ID of attached wall
+  ==================================  =================  ================  ========================  ========  =========  =============================================================
 
   .. [#] For bay or garden windows, this should represent the *total* area, not just the primary flat exposure.
          The ratio of total area to primary flat exposure is typically around 1.15 for bay windows and 2.0 for garden windows.
   .. [#] Orientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north".
   .. [#] GlassLayers choices are "single-pane", "double-pane", "triple-pane", or "glass block".
-  .. [#] Summer vs winter shading seasons are determined per :ref:`shadingcontrol`.
-  .. [#] InteriorShading/SummerShadingCoefficient default value is calculated based on ANSI/RESNET/ICC 301-2022 Addendum C: 
-  
-         Interior shading coefficient = 0.92 - (0.21 * SHGC)
-         
-  .. [#] InteriorShading/WinterShadingCoefficient default value is the same as InteriorShading/SummerShadingCoefficient default value.
-  .. [#] GlassType choices are "clear" or "low-e". The ``UFactor`` and ``SHGC`` of the window will be adjusted depending on the ``GlassType``, based on correlations derived using `data reported by PNNL <https://labhomes.pnnl.gov/documents/PNNL_24444_Thermal_and_Optical_Properties_Low-E_Storm_Windows_Panels.pdf>`_. 
-         
-         \- **clear storm windows**: U-factor = U-factor of base window - (0.6435 * U-factor of base window - 0.1533); SHGC = 0.9 * SHGC of base window
-         
-         \- **low-e storm windows**: U-factor = U-factor of base window - (0.766 * U-factor of base window - 0.1532); SHGC = 0.8 * SHGC of base window
-         
-         Note that a storm window is not allowed for a window with U-factor lower than 0.45.
-         
+  .. [#] If GlassLayers is provided, additional inputs are described in :ref:`window_lookup`.
+  .. [#] If ExteriorShading is provided, additional inputs are described in :ref:`window_exterior_shading`.
+  .. [#] If InteriorShading is provided, additional inputs are described in :ref:`window_interior_shading`.
+  .. [#] If InsectScreen is provided, additional inputs are described in :ref:`window_insect_screen`.
+  .. [#] If StormWindow is provided, additional inputs are described in :ref:`window_storm`.
+  .. [#] If Overhangs is provided, additional inputs are described in :ref:`window_overhangs`.
   .. [#] FractionOperable reflects whether the windows are operable (can be opened), not how they are used by the occupants.
          If a ``Window`` represents a single window, the value should be 0 or 1.
          If a ``Window`` represents multiple windows, the value is calculated as the total window area for any operable windows divided by the total window area.
          The total open window area for natural ventilation is calculated using A) the operable fraction, B) the assumption that 50% of the area of operable windows can be open, and C) the assumption that 20% of that openable area is actually opened by occupants whenever outdoor conditions are favorable for cooling.
+         See additional inputs in :ref:`natural_ventilation`.
   .. [#] AttachedToWall must reference a ``Wall`` or ``FoundationWall``.
 
-Natural Ventilation
-~~~~~~~~~~~~~~~~~~~
-
-If operable windows are defined, the availability of natural ventilation is entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/extension``.
-
-  =============================================  ========  =========  ===========  ========  ========  ========================================================
-  Element                                        Type      Units      Constraints  Required  Default   Notes
-  =============================================  ========  =========  ===========  ========  ========  ========================================================
-  ``NaturalVentilationAvailabilityDaysperWeek``  integer   days/week  >= 0, <= 7   No        3 [#]_    How often windows can be opened by occupants for natural ventilation
-  =============================================  ========  =========  ===========  ========  ========  ========================================================
-
-  .. [#] Default of 3 days per week (Monday/Wednesday/Friday) is based on `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+.. _window_lookup:
 
 UFactor/SHGC Lookup
 ~~~~~~~~~~~~~~~~~~~
@@ -1632,7 +1613,180 @@ If UFactor and SHGC are not provided, they are defaulted as follows:
 
   OpenStudio-HPXML will return an error if the combination of window properties is not in the above table.
 
-.. _overhangs:
+.. _window_exterior_shading:
+
+HPXML Exterior Shading
+~~~~~~~~~~~~~~~~~~~~~~
+
+If exterior shading is specified, additional information is entered in ``ExteriorShading``.
+
+  ============================  ======  =====  ===========  ========  =========  =============================================================
+  Element                       Type    Units  Constraints  Required  Default    Notes
+  ============================  ======  =====  ===========  ========  =========  =============================================================
+  ``Type``                      string         See [#]_     No        See [#]_   Shading type
+  ``SummerFractionCovered``     double  frac   >= 0, <= 1   No        See [#]_   Fraction of window area covered by shading in summer
+  ``WinterFractionCovered``     double  frac   >= 0, <= 1   No        See [#]_   Fraction of window area covered by shading in winter
+  ``SummerShadingCoefficient``  double  frac   >= 0, <= 1   No        See [#]_   Total summer shading coefficient for modeling (1=transparent, 0=opaque)
+  ``WinterShadingCoefficient``  double  frac   >= 0, <= 1   No        See [#]_   Total winter shading coefficient for modeling (1=transparent, 0=opaque)
+  ============================  ======  =====  ===========  ========  =========  =============================================================
+
+  .. [#] Type choices are "external overhangs", "awnings", "solar screens", "solar film", "deciduous tree", "evergreen tree", "building", "other", or "none".
+  .. [#] If Type not provided, and either SummerShadingCoefficient or WinterShadingCoefficient not provided, defaults to "none".
+  .. [#] If SummerFractionCovered not provided, defaults to 1.0 for solar screens/solar film/overhangs/awnings and 0.5 for trees/other/building.
+  .. [#] If WinterFractionCovered not provided, defaults to 1.0 for solar screens/solar film/overhangs/awnings, 0.5 for evergreen tree/other/building, and 0.25 for deciduous tree.
+  .. [#] If SummerShadingCoefficient not provided, defaults to 1.0 if Type="none", otherwise calculated as follows:
+  
+         SummerShadingCoefficient = SummerFractionCovered * C1 + (1 - SummerFractionCovered) * 1.0
+  
+         \- **external overhangs** or **awnings**: C1=0.0 (unless :ref:`window_overhangs` are specified, in which case geometric shading is explicitly modeled)
+         
+         \- **solar screens**: C1=0.7
+         
+         \- **solar film**: C1=0.3
+         
+         \- **deciduous tree** or **evergreen tree**: C1=0.0
+         
+         \- **building**: C1=0.0 (unless :ref:`neighbor_buildings` are specified, in which case geometric shading is explicitly modeled)
+         
+         \- **other**: C1=0.5
+  
+  .. [#] If WinterShadingCoefficient not provided, defaults to 1.0 if Type="none", otherwise calculated using same approach as SummerShadingCoefficient.
+
+.. note::
+
+  OpenStudio-HPXML directly uses only the ``SummerShadingCoefficient`` and ``WinterShadingCoefficient`` values (user provided or defaulted) in the energy model.
+  Summer vs winter shading seasons are determined per :ref:`shadingcontrol`.
+
+.. _window_interior_shading:
+
+HPXML Interior Shading
+~~~~~~~~~~~~~~~~~~~~~~
+
+If interior shading is specified, additional information is entered in ``InteriorShading``.
+
+  ============================  ======  =====  ===========  ========  =========  =============================================================
+  Element                       Type    Units  Constraints  Required  Default    Notes
+  ============================  ======  =====  ===========  ========  =========  =============================================================
+  ``Type``                      string         See [#]_     No        See [#]_   Shading type
+  ``BlindsSummerClosedOrOpen``  string         See [#]_     No        half open  Blinds position in summer (only used if shading type is blinds)
+  ``BlindsWinterClosedOrOpen``  string         See [#]_     No        half open  Blinds position in winter (only used if shading type is blinds)
+  ``SummerFractionCovered``     double  frac   >= 0, <= 1   No        See [#]_   Fraction of window area covered by shading in summer
+  ``WinterFractionCovered``     double  frac   >= 0, <= 1   No        See [#]_   Fraction of window area covered by shading in winter
+  ``SummerShadingCoefficient``  double  frac   >= 0, <= 1   No        See [#]_   Total summer shading coefficient for modeling (1=transparent, 0=opaque)
+  ``WinterShadingCoefficient``  double  frac   >= 0, <= 1   No        See [#]_   Total winter shading coefficient for modeling (1=transparent, 0=opaque)
+  ============================  ======  =====  ===========  ========  =========  =============================================================
+
+  .. [#] Type choices are "light blinds", "medium blinds", "dark blinds", "light shades", "medium shades", "dark shades", "light curtains", "medium curtains", "dark curtains", "other", or "none".
+  .. [#] If Type not provided, and either SummerShadingCoefficient or WinterShadingCoefficient not provided, defaults to "light curtains".
+  .. [#] BlindsSummerClosedOrOpen choices are "closed", "open", or "half open".
+  .. [#] BlindsWinterClosedOrOpen choices are "closed", "open", or "half open".
+  .. [#] If SummerFractionCovered not provided, defaults to 1.0 for blinds and 0.5 for shades/curtains/other.
+  .. [#] If WinterFractionCovered not provided, defaults to 1.0 for blinds and 0.5 for shades/curtains/other.
+  .. [#] If SummerShadingCoefficient not provided, defaults to 1.0 if Type="none", otherwise calculated based on Chapter 15 Table 14 of `ASHRAE 2021 Handbook of Fundamentals <https://www.ashrae.org/technical-resources/ashrae-handbook/description-2021-ashrae-handbook-fundamentals>`_:
+  
+         SummerShadingCoefficient = SummerFractionCovered * (C1 - (C2 * WindowSHGC)) + (1 - SummerFractionCovered) * 1.0
+         
+         where:
+         
+         \- **dark curtains**: C1=0.98, C2=0.25
+         
+         \- **medium curtains**: C1=0.94, C2=0.37
+         
+         \- **light curtains**: C1=0.84, C2=0.42
+         
+         \- **dark shades**: C1=0.98, C2=0.33
+         
+         \- **medium shades**: C1=0.9, C2=0.38
+         
+         \- **light shades**: C1=0.82, C2=0.42
+         
+         \- **dark blinds, closed**: C1=0.98, C2=0.25
+         
+         \- **medium blinds, closed**: C1=0.90, C2=0.41
+         
+         \- **light blinds, closed**: C1=0.78, C2=0.47
+         
+         \- **dark blinds, half open**: C1=1.0, C2=0.19
+         
+         \- **medium blinds, half open**: C1=0.95, C2=0.26
+         
+         \- **light blinds, half open**: C1=0.93, C2=0.38
+         
+         \- **dark blinds, open**: C1=0.99, C2=0.0
+         
+         \- **medium blinds, open**: C1=0.98, C2=0.0
+         
+         \- **light blinds, open**: C1=0.98, C2=0.0
+         
+         \- **other**: C1=0.5, C2=0.0
+         
+  .. [#] If WinterShadingCoefficient not provided, defaults to 1.0 if Type="none", otherwise calculated using same approach as SummerShadingCoefficient.
+
+.. note::
+
+  OpenStudio-HPXML directly uses only the ``SummerShadingCoefficient`` and ``WinterShadingCoefficient`` values (user provided or defaulted) in the energy model.
+  Summer vs winter shading seasons are determined per :ref:`shadingcontrol`.
+
+.. _window_insect_screen:
+
+HPXML Insect Screen
+~~~~~~~~~~~~~~~~~~~
+
+If an insect screen is specified, additional information is entered in ``InsectScreen``.
+
+  ============================  ========  ======  ===========  ========  ========  ========================================================
+  Element                       Type      Units   Constraints  Required  Default   Notes
+  ============================  ========  ======  ===========  ========  ========  ========================================================
+  ``Location``                  string            See [#]_     No        exterior  Whether the screen is on the interior or exterior of the glass
+  ``SummerFractionCovered``     double    frac    >= 0, <= 1   No        See [#]_  Fraction of window area covered in the summer
+  ``WinterFractionCovered``     double    frac    >= 0, <= 1   No        See [#]_  Fraction of window area covered in the winter
+  ``SummerShadingCoefficient``  double    frac    >= 0, <= 1   No        See [#]_  Interior summer shading coefficient for modeling (1=transparent, 0=opaque)
+  ``WinterShadingCoefficient``  double    frac    >= 0, <= 1   No        See [#]_  Interior winter shading coefficient for modeling (1=transparent, 0=opaque)
+  ============================  ========  ======  ===========  ========  ========  ========================================================
+
+  .. [#] Location choices are "interior" or "exterior".
+  .. [#] If SummerFractionCovered not provided, defaults to the same value as FractionOperable.
+  .. [#] If WinterFractionCovered not provided, defaults to the same value as FractionOperable.
+  .. [#] If SummerShadingCoefficient not provided, calculated based on Chapter 15 Table 14 of `ASHRAE 2021 Handbook of Fundamentals <https://www.ashrae.org/technical-resources/ashrae-handbook/description-2021-ashrae-handbook-fundamentals>`_:
+
+         SummerShadingCoefficient = SummerFractionCovered * (C1 - (C2 * WindowSHGC)) + (1 - SummerFractionCovered) * 1.0
+         
+         where:
+         
+         \- **exterior**: C1=0.64, C2=0.0
+  
+         \- **interior**: C1=0.99, C2=0.1
+  
+  .. [#] If WinterShadingCoefficient not provided, calculated using same approach as SummerShadingCoefficient.
+
+.. note::
+
+  OpenStudio-HPXML directly uses only the ``SummerShadingCoefficient`` and ``WinterShadingCoefficient`` values (user provided or defaulted) in the energy model.
+  Summer vs winter shading seasons are determined per :ref:`shadingcontrol`.
+
+.. _window_storm:
+
+HPXML Storm Window
+~~~~~~~~~~~~~~~~~~
+
+If a storm window is specified, additional information is entered in ``StormWindow``.
+
+  ============================  ========  ======  ===========  ========  =======  ========================================================
+  Element                       Type      Units   Constraints  Required  Default  Notes
+  ============================  ========  ======  ===========  ========  =======  ========================================================
+  ``GlassType``                 string            See [#]_     No        <none>   Type of storm window glass
+  ============================  ========  ======  ===========  ========  =======  ========================================================
+
+  .. [#] GlassType choices are "clear" or "low-e".
+         The ``UFactor`` and ``SHGC`` of the window will be adjusted depending on the ``GlassType``, based on correlations derived using `data reported by PNNL <https://labhomes.pnnl.gov/documents/PNNL_24444_Thermal_and_Optical_Properties_Low-E_Storm_Windows_Panels.pdf>`_. 
+         
+         \- **clear storm windows**: U-factor = U-factor of base window - (0.6435 * U-factor of base window - 0.1533); SHGC = 0.9 * SHGC of base window
+         
+         \- **low-e storm windows**: U-factor = U-factor of base window - (0.766 * U-factor of base window - 0.1532); SHGC = 0.8 * SHGC of base window
+         
+         Note that a storm window is not allowed for a window with U-factor lower than 0.45.
+
+.. _window_overhangs:
 
 HPXML Overhangs
 ~~~~~~~~~~~~~~~
@@ -1650,50 +1804,59 @@ If overhangs are specified, additional information is entered in ``Overhangs``.
   .. [#] The difference between DistanceToBottomOfWindow and DistanceToTopOfWindow defines the height of the window.
   .. [#] When Depth is non-zero, DistanceToBottomOfWindow must be greater than DistanceToTopOfWindow.
 
+.. _natural_ventilation:
+
+Natural Ventilation
+~~~~~~~~~~~~~~~~~~~
+
+If operable windows are defined, the availability of natural ventilation is entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/extension``.
+
+  =============================================  ========  =========  ===========  ========  ========  ========================================================
+  Element                                        Type      Units      Constraints  Required  Default   Notes
+  =============================================  ========  =========  ===========  ========  ========  ========================================================
+  ``NaturalVentilationAvailabilityDaysperWeek``  integer   days/week  >= 0, <= 7   No        3 [#]_    How often windows can be opened by occupants for natural ventilation
+  =============================================  ========  =========  ===========  ========  ========  ========================================================
+
+  .. [#] Default of 3 days per week (Monday/Wednesday/Friday) is based on `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+
 HPXML Skylights
 ***************
 
 Each skylight is entered as a ``/HPXML/Building/BuildingDetails/Enclosure/Skylights/Skylight``.
 
-  ============================================  =================  ================  ========================  ========  =========  =============================================================
-  Element                                       Type               Units             Constraints               Required  Default    Notes
-  ============================================  =================  ================  ========================  ========  =========  =============================================================
-  ``SystemIdentifier``                          id                                                             Yes                  Unique identifier
-  ``Area``                                      double             ft2               > 0                       Yes                  Total area [#]_
-  ``Azimuth`` or ``Orientation``                integer or string  deg or direction  >= 0, <= 359 or See [#]_  Yes                  Direction (clockwise from North)
-  ``UFactor`` and/or ``GlassLayers``            double or string   Btu/F-ft2-hr      > 0 or See [#]_           Yes                  Full-assembly NFRC U-factor or glass layers description
-  ``SHGC`` and/or ``GlassLayers``               double or string                     > 0, < 1                  Yes                  Full-assembly NFRC solar heat gain coefficient or glass layers description
-  ``ExteriorShading/SummerShadingCoefficient``  double             frac              >= 0, <= 1                No        1.00       Exterior summer shading coefficient (1=transparent, 0=opaque) [#]_
-  ``ExteriorShading/WinterShadingCoefficient``  double             frac              >= 0, <= 1                No        1.00       Exterior winter shading coefficient (1=transparent, 0=opaque)
-  ``InteriorShading/SummerShadingCoefficient``  double             frac              >= 0, <= 1                No        1.00       Interior summer shading coefficient (1=transparent, 0=opaque)
-  ``InteriorShading/WinterShadingCoefficient``  double             frac              >= 0, <= 1                No        1.00       Interior winter shading coefficient (1=transparent, 0=opaque)
-  ``StormWindow/GlassType``                     string                               See [#]_                  No                   Type of storm window glass
-  ``AttachedToRoof``                            idref                                See [#]_                  Yes                  ID of attached roof
-  ``AttachedToFloor``                           idref                                See [#]_                  See [#]_             ID of attached attic floor
-  ``extension/Curb``                            element                                                        No        <none>     Presence of curb (skylight wall above the roof deck) [#]_
-  ``extension/Shaft``                           element                                                        No        <none>     Presence of shaft (skylight wall below the roof deck) [#]_
-  ============================================  =================  ================  ========================  ========  =========  =============================================================
+  ==================================  =================  ================  ========================  ========  =========  =============================================================
+  Element                             Type               Units             Constraints               Required  Default    Notes
+  ==================================  =================  ================  ========================  ========  =========  =============================================================
+  ``SystemIdentifier``                id                                                             Yes                  Unique identifier
+  ``Area``                            double             ft2               > 0                       Yes                  Total area [#]_
+  ``Azimuth`` or ``Orientation``      integer or string  deg or direction  >= 0, <= 359 or See [#]_  Yes                  Direction (clockwise from North)
+  ``UFactor`` and/or ``GlassLayers``  double or string   Btu/F-ft2-hr      > 0 or See [#]_           Yes                  Full-assembly NFRC U-factor or glass layers description [#]_
+  ``SHGC`` and/or ``GlassLayers``     double or string                     > 0, < 1                  Yes                  Full-assembly NFRC solar heat gain coefficient or glass layers description
+  ``ExteriorShading``                 element                                                        No        <none>     Presence of exterior shading [#]_
+  ``InteriorShading``                 element                                                        No        <none>     Presence of interior shading [#]_
+  ``StormWindow``                     element                                                        No        <none>     Presence of storm window [#]_
+  ``AttachedToRoof``                  idref                                See [#]_                  Yes                  ID of attached roof
+  ``AttachedToFloor``                 idref                                See [#]_                  See [#]_             ID of attached attic floor
+  ``extension/Curb``                  element                                                        No        <none>     Presence of curb (skylight wall above the roof deck) [#]_
+  ``extension/Shaft``                 element                                                        No        <none>     Presence of shaft (skylight wall below the roof deck) [#]_
+  ==================================  =================  ================  ========================  ========  =========  =============================================================
 
   .. [#] For dome skylights, this should represent the *total* area, not just the primary flat exposure.
          The ratio of total area to primary flat exposure is typically around 1.25 for dome skylights.
   .. [#] Orientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north"
   .. [#] GlassLayers choices are "single-pane", "double-pane", or "triple-pane".
-  .. [#] Summer vs winter shading seasons are determined per :ref:`shadingcontrol`.
-  .. [#] GlassType choices are "clear" or "low-e".
-         The ``UFactor`` and ``SHGC`` of the skylight will be adjusted depending on the ``GlassType``, based on correlations derived using `data reported by PNNL <https://labhomes.pnnl.gov/documents/PNNL_24444_Thermal_and_Optical_Properties_Low-E_Storm_Windows_Panels.pdf>`_. 
-         
-         \- **clear storm windows**: U-factor = U-factor of base window - (0.6435 * U-factor of base window - 0.1533); SHGC = 0.9 * SHGC of base window
-         
-         \- **low-e storm windows**: U-factor = U-factor of base window - (0.766 * U-factor of base window - 0.1532); SHGC = 0.8 * SHGC of base window
-         
-         Note that a storm window is not allowed for a skylight with U-factor lower than 0.45.
-         
+  .. [#] If GlassLayers is provided, additional inputs are described in :ref:`skylight_lookup`.
+  .. [#] If ExteriorShading is provided, additional inputs are described in :ref:`skylight_exterior_shading`.
+  .. [#] If InteriorShading is provided, additional inputs are described in :ref:`skylight_interior_shading`.
+  .. [#] If StormWindow is provided, additional inputs are described in :ref:`skylight_storm`.
   .. [#] AttachedToRoof must reference a ``Roof``.
   .. [#] AttachedToFloor must reference a ``Floor``.
   .. [#] AttachedToFloor required if the attached roof is not adjacent to conditioned space (i.e., there is a skylight shaft).
   .. [#] If extension/Curb is provided, additional inputs are described in :ref:`skylight_curb`.
   .. [#] If extension/Shaft is provided, additional inputs are described in :ref:`skylight_shaft`.
          The skylight shaft will be modeled similar to an attic knee wall.
+
+.. _skylight_lookup:
 
 UFactor/SHGC Lookup
 ~~~~~~~~~~~~~~~~~~~
@@ -1744,6 +1907,64 @@ If UFactor and SHGC are not provided, they are defaulted as follows:
 .. warning::
 
   OpenStudio-HPXML will return an error if the combination of skylight properties is not in the above table.
+
+.. _skylight_exterior_shading:
+
+HPXML Exterior Shading
+~~~~~~~~~~~~~~~~~~~~~~
+
+If exterior shading is present, additional information is entered in ``ExteriorShading``.
+
+  ============================  ======  =====  ===========  ========  =========  =============================================================
+  Element                       Type    Units  Constraints  Required  Default    Notes
+  ============================  ======  =====  ===========  ========  =========  =============================================================
+  ``SummerShadingCoefficient``  double  frac   >= 0, <= 1   No        1.0        Exterior summer shading coefficient (1=transparent, 0=opaque)
+  ``WinterShadingCoefficient``  double  frac   >= 0, <= 1   No        1.0        Exterior winter shading coefficient (1=transparent, 0=opaque)
+  ============================  ======  =====  ===========  ========  =========  =============================================================
+
+.. note::
+
+  Summer vs winter shading seasons are determined per :ref:`shadingcontrol`.
+
+.. _skylight_interior_shading:
+
+HPXML Interior Shading
+~~~~~~~~~~~~~~~~~~~~~~
+
+If interior shading is present, additional information is entered in ``InteriorShading``.
+
+  ============================  ======  =====  ===========  ========  =========  =============================================================
+  Element                       Type    Units  Constraints  Required  Default    Notes
+  ============================  ======  =====  ===========  ========  =========  =============================================================
+  ``SummerShadingCoefficient``  double  frac   >= 0, <= 1   No        1.0        Interior summer shading coefficient (1=transparent, 0=opaque)
+  ``WinterShadingCoefficient``  double  frac   >= 0, <= 1   No        1.0        Interior winter shading coefficient (1=transparent, 0=opaque)
+  ============================  ======  =====  ===========  ========  =========  =============================================================
+
+.. note::
+
+  Summer vs winter shading seasons are determined per :ref:`shadingcontrol`.
+
+.. _skylight_storm:
+
+HPXML Storm Window
+~~~~~~~~~~~~~~~~~~
+
+If a storm window is specified, additional information is entered in ``StormWindow``.
+
+  ============================  ========  ======  ===========  ========  =======  ========================================================
+  Element                       Type      Units   Constraints  Required  Default  Notes
+  ============================  ========  ======  ===========  ========  =======  ========================================================
+  ``GlassType``                 string            See [#]_     No        <none>   Type of storm window glass
+  ============================  ========  ======  ===========  ========  =======  ========================================================
+
+  .. [#] GlassType choices are "clear" or "low-e".
+         The ``UFactor`` and ``SHGC`` of the skylight will be adjusted depending on the ``GlassType``, based on correlations derived using `data reported by PNNL <https://labhomes.pnnl.gov/documents/PNNL_24444_Thermal_and_Optical_Properties_Low-E_Storm_Windows_Panels.pdf>`_. 
+         
+         \- **clear storm windows**: U-factor = U-factor of base window - (0.6435 * U-factor of base window - 0.1533); SHGC = 0.9 * SHGC of base window
+         
+         \- **low-e storm windows**: U-factor = U-factor of base window - (0.766 * U-factor of base window - 0.1532); SHGC = 0.8 * SHGC of base window
+         
+         Note that a storm window is not allowed for a skylight with U-factor lower than 0.45.
 
 .. _skylight_curb:
 
