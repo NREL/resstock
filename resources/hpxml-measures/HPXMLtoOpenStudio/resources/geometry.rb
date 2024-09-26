@@ -1,22 +1,1046 @@
 # frozen_string_literal: true
 
-# Collection of methods to get, add, assign, create, etc. geometry-related OpenStudio objects.
+# Collection of methods related to geometry.
 module Geometry
-  # Tear down the existing model if it exists.
+  # Adds any HPXML Roofs to the OpenStudio model.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @return [nil]
+  def self.apply_roofs(runner, model, spaces, hpxml_bldg, hpxml_header)
+    default_azimuths = HPXMLDefaults.get_default_azimuths(hpxml_bldg)
+    walls_top, _foundation_top = get_foundation_and_walls_top(hpxml_bldg)
+
+    hpxml_bldg.roofs.each do |roof|
+      next if roof.net_area < 1.0 # skip modeling net surface area for surfaces comprised entirely of subsurface area
+
+      if roof.azimuth.nil?
+        if roof.pitch > 0
+          azimuths = default_azimuths # Model as four directions for average exterior incident solar
+        else
+          azimuths = [default_azimuths[0]] # Arbitrary azimuth for flat roof
+        end
+      else
+        azimuths = [roof.azimuth]
+      end
+
+      surfaces = []
+
+      azimuths.each do |azimuth|
+        width = Math::sqrt(roof.net_area)
+        length = (roof.net_area / width) / azimuths.size
+        tilt = roof.pitch / 12.0
+        z_origin = walls_top + 0.5 * Math.sin(Math.atan(tilt)) * width
+
+        vertices = create_roof_vertices(length, width, z_origin, azimuth, tilt)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
+        surfaces << surface
+        surface.additionalProperties.setFeature('Length', length)
+        surface.additionalProperties.setFeature('Width', width)
+        surface.additionalProperties.setFeature('Azimuth', azimuth)
+        surface.additionalProperties.setFeature('Tilt', tilt)
+        surface.additionalProperties.setFeature('SurfaceType', 'Roof')
+        if azimuths.size > 1
+          surface.setName("#{roof.id}:#{azimuth}")
+        else
+          surface.setName(roof.id)
+        end
+        surface.setSurfaceType(EPlus::SurfaceTypeRoofCeiling)
+        surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
+        set_surface_interior(model, spaces, surface, roof, hpxml_bldg)
+      end
+
+      next if surfaces.empty?
+
+      # Apply construction
+      has_radiant_barrier = roof.radiant_barrier
+      if has_radiant_barrier
+        radiant_barrier_grade = roof.radiant_barrier_grade
+      end
+      # FUTURE: Create Constructions.get_air_film(surface) method; use in measure.rb and hpxml_translator_test.rb
+      inside_film = Material.AirFilmRoof(get_roof_pitch([surfaces[0]]))
+      outside_film = Material.AirFilmOutside
+      mat_roofing = Material.RoofMaterial(roof.roof_type)
+      if hpxml_header.apply_ashrae140_assumptions
+        inside_film = Material.AirFilmRoofASHRAE140
+        outside_film = Material.AirFilmOutsideASHRAE140
+      end
+      mat_int_finish = Material.InteriorFinishMaterial(roof.interior_finish_type, roof.interior_finish_thickness)
+      if mat_int_finish.nil?
+        fallback_mat_int_finish = nil
+      else
+        fallback_mat_int_finish = Material.InteriorFinishMaterial(mat_int_finish.name, 0.1) # Try thin material
+      end
+
+      install_grade = 1
+      assembly_r = roof.insulation_assembly_r_value
+
+      if not mat_int_finish.nil?
+        # Closed cavity
+        constr_sets = [
+          WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 20.0, 0.75, mat_int_finish, mat_roofing),    # 2x8, 24" o.c. + R20
+          WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 10.0, 0.75, mat_int_finish, mat_roofing),    # 2x8, 24" o.c. + R10
+          WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 0.0, 0.75, mat_int_finish, mat_roofing),     # 2x8, 24" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x6, 0.07, 0.0, 0.75, mat_int_finish, mat_roofing),         # 2x6, 24" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.07, 0.0, 0.5, mat_int_finish, mat_roofing),          # 2x4, 16" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, fallback_mat_int_finish, mat_roofing), # Fallback
+        ]
+        match, constr_set, cavity_r = Constructions.pick_wood_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film)
+
+        Constructions.apply_closed_cavity_roof(model, surfaces, "#{roof.id} construction",
+                                               cavity_r, install_grade,
+                                               constr_set.stud.thick_in,
+                                               true, constr_set.framing_factor,
+                                               constr_set.mat_int_finish,
+                                               constr_set.osb_thick_in, constr_set.rigid_r,
+                                               constr_set.mat_ext_finish, has_radiant_barrier,
+                                               inside_film, outside_film, radiant_barrier_grade,
+                                               roof.solar_absorptance, roof.emittance)
+      else
+        # Open cavity
+        constr_sets = [
+          GenericConstructionSet.new(10.0, 0.5, nil, mat_roofing), # w/R-10 rigid
+          GenericConstructionSet.new(0.0, 0.5, nil, mat_roofing),  # Standard
+          GenericConstructionSet.new(0.0, 0.0, nil, mat_roofing),  # Fallback
+        ]
+        match, constr_set, layer_r = Constructions.pick_generic_construction_set(assembly_r, constr_sets, inside_film, outside_film)
+
+        cavity_r = 0
+        cavity_ins_thick_in = 0
+        framing_factor = 0
+        framing_thick_in = 0
+
+        Constructions.apply_open_cavity_roof(model, surfaces, "#{roof.id} construction",
+                                             cavity_r, install_grade, cavity_ins_thick_in,
+                                             framing_factor, framing_thick_in,
+                                             constr_set.osb_thick_in, layer_r + constr_set.rigid_r,
+                                             constr_set.mat_ext_finish, has_radiant_barrier,
+                                             inside_film, outside_film, radiant_barrier_grade,
+                                             roof.solar_absorptance, roof.emittance)
+      end
+      Constructions.check_surface_assembly_rvalue(runner, surfaces, inside_film, outside_film, assembly_r, match)
+    end
+  end
+
+  # Adds any HPXML Walls to the OpenStudio model.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @return [nil]
+  def self.apply_walls(runner, model, spaces, hpxml_bldg, hpxml_header)
+    default_azimuths = HPXMLDefaults.get_default_azimuths(hpxml_bldg)
+    _walls_top, foundation_top = get_foundation_and_walls_top(hpxml_bldg)
+
+    hpxml_bldg.walls.each do |wall|
+      next if wall.net_area < 1.0 # skip modeling net surface area for surfaces comprised entirely of subsurface area
+
+      if wall.azimuth.nil?
+        if wall.is_exterior
+          azimuths = default_azimuths # Model as four directions for average exterior incident solar
+        else
+          azimuths = [default_azimuths[0]] # Arbitrary direction, doesn't receive exterior incident solar
+        end
+      else
+        azimuths = [wall.azimuth]
+      end
+
+      surfaces = []
+
+      azimuths.each do |azimuth|
+        height = 8.0 * hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade
+        length = (wall.net_area / height) / azimuths.size
+        z_origin = foundation_top
+
+        vertices = create_wall_vertices(length, height, z_origin, azimuth)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
+        surfaces << surface
+        surface.additionalProperties.setFeature('Length', length)
+        surface.additionalProperties.setFeature('Azimuth', azimuth)
+        surface.additionalProperties.setFeature('Tilt', 90.0)
+        surface.additionalProperties.setFeature('SurfaceType', 'Wall')
+        if azimuths.size > 1
+          surface.setName("#{wall.id}:#{azimuth}")
+        else
+          surface.setName(wall.id)
+        end
+        surface.setSurfaceType(EPlus::SurfaceTypeWall)
+        set_surface_interior(model, spaces, surface, wall, hpxml_bldg)
+        set_surface_exterior(model, spaces, surface, wall, hpxml_bldg)
+        if wall.is_interior
+          surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+          surface.setWindExposure(EPlus::SurfaceWindExposureNo)
+        end
+      end
+
+      next if surfaces.empty?
+
+      # Apply construction
+      # The code below constructs a reasonable wall construction based on the
+      # wall type while ensuring the correct assembly R-value.
+      has_radiant_barrier = wall.radiant_barrier
+      if has_radiant_barrier
+        radiant_barrier_grade = wall.radiant_barrier_grade
+      end
+      inside_film = Material.AirFilmVertical
+      if wall.is_exterior
+        outside_film = Material.AirFilmOutside
+        mat_ext_finish = Material.ExteriorFinishMaterial(wall.siding)
+      else
+        outside_film = Material.AirFilmVertical
+        mat_ext_finish = nil
+      end
+      if hpxml_header.apply_ashrae140_assumptions
+        inside_film = Material.AirFilmVerticalASHRAE140
+        outside_film = Material.AirFilmOutsideASHRAE140
+      end
+      mat_int_finish = Material.InteriorFinishMaterial(wall.interior_finish_type, wall.interior_finish_thickness)
+
+      Constructions.apply_wall_construction(runner, model, surfaces, wall.id, wall.wall_type, wall.insulation_assembly_r_value,
+                                            mat_int_finish, has_radiant_barrier, inside_film, outside_film,
+                                            radiant_barrier_grade, mat_ext_finish, wall.solar_absorptance,
+                                            wall.emittance)
+    end
+  end
+
+  # Adds any HPXML RimJoists to the OpenStudio model.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [nil]
+  def self.apply_rim_joists(runner, model, spaces, hpxml_bldg)
+    default_azimuths = HPXMLDefaults.get_default_azimuths(hpxml_bldg)
+    _walls_top, foundation_top = get_foundation_and_walls_top(hpxml_bldg)
+
+    hpxml_bldg.rim_joists.each do |rim_joist|
+      if rim_joist.azimuth.nil?
+        if rim_joist.is_exterior
+          azimuths = default_azimuths # Model as four directions for average exterior incident solar
+        else
+          azimuths = [default_azimuths[0]] # Arbitrary direction, doesn't receive exterior incident solar
+        end
+      else
+        azimuths = [rim_joist.azimuth]
+      end
+
+      surfaces = []
+
+      azimuths.each do |azimuth|
+        height = 1.0
+        length = (rim_joist.area / height) / azimuths.size
+        z_origin = foundation_top
+
+        vertices = create_wall_vertices(length, height, z_origin, azimuth)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
+        surfaces << surface
+        surface.additionalProperties.setFeature('Length', length)
+        surface.additionalProperties.setFeature('Azimuth', azimuth)
+        surface.additionalProperties.setFeature('Tilt', 90.0)
+        surface.additionalProperties.setFeature('SurfaceType', 'RimJoist')
+        if azimuths.size > 1
+          surface.setName("#{rim_joist.id}:#{azimuth}")
+        else
+          surface.setName(rim_joist.id)
+        end
+        surface.setSurfaceType(EPlus::SurfaceTypeWall)
+        set_surface_interior(model, spaces, surface, rim_joist, hpxml_bldg)
+        set_surface_exterior(model, spaces, surface, rim_joist, hpxml_bldg)
+        if rim_joist.is_interior
+          surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+          surface.setWindExposure(EPlus::SurfaceWindExposureNo)
+        end
+      end
+
+      # Apply construction
+
+      inside_film = Material.AirFilmVertical
+      if rim_joist.is_exterior
+        outside_film = Material.AirFilmOutside
+        mat_ext_finish = Material.ExteriorFinishMaterial(rim_joist.siding)
+      else
+        outside_film = Material.AirFilmVertical
+        mat_ext_finish = nil
+      end
+
+      assembly_r = rim_joist.insulation_assembly_r_value
+
+      constr_sets = [
+        WoodStudConstructionSet.new(Material.Stud2x(2.0), 0.17, 20.0, 2.0, nil, mat_ext_finish),  # 2x4 + R20
+        WoodStudConstructionSet.new(Material.Stud2x(2.0), 0.17, 10.0, 2.0, nil, mat_ext_finish),  # 2x4 + R10
+        WoodStudConstructionSet.new(Material.Stud2x(2.0), 0.17, 0.0, 2.0, nil, mat_ext_finish),   # 2x4
+        WoodStudConstructionSet.new(Material.Stud2x(2.0), 0.01, 0.0, 0.0, nil, mat_ext_finish),   # Fallback
+      ]
+      match, constr_set, cavity_r = Constructions.pick_wood_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film)
+      install_grade = 1
+
+      Constructions.apply_rim_joist(model, surfaces, "#{rim_joist.id} construction",
+                                    cavity_r, install_grade, constr_set.framing_factor,
+                                    constr_set.mat_int_finish, constr_set.osb_thick_in,
+                                    constr_set.rigid_r, constr_set.mat_ext_finish,
+                                    inside_film, outside_film, rim_joist.solar_absorptance,
+                                    rim_joist.emittance)
+      Constructions.check_surface_assembly_rvalue(runner, surfaces, inside_film, outside_film, assembly_r, match)
+    end
+  end
+
+  # Adds any HPXML Floors to the OpenStudio model.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @return [nil]
+  def self.apply_floors(runner, model, spaces, hpxml_bldg, hpxml_header)
+    default_azimuths = HPXMLDefaults.get_default_azimuths(hpxml_bldg)
+    walls_top, foundation_top = get_foundation_and_walls_top(hpxml_bldg)
+
+    hpxml_bldg.floors.each do |floor|
+      next if floor.net_area < 1.0 # skip modeling net surface area for surfaces comprised entirely of subsurface area
+
+      area = floor.net_area
+      width = Math::sqrt(area)
+      length = area / width
+      if floor.interior_adjacent_to.include?('attic') || floor.exterior_adjacent_to.include?('attic')
+        z_origin = walls_top
+      else
+        z_origin = foundation_top
+      end
+
+      if floor.is_ceiling
+        vertices = create_ceiling_vertices(length, width, z_origin, default_azimuths)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
+        surface.additionalProperties.setFeature('SurfaceType', 'Ceiling')
+      else
+        vertices = create_floor_vertices(length, width, z_origin, default_azimuths)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
+        surface.additionalProperties.setFeature('SurfaceType', 'Floor')
+      end
+      surface.additionalProperties.setFeature('Tilt', 0.0)
+      set_surface_interior(model, spaces, surface, floor, hpxml_bldg)
+      set_surface_exterior(model, spaces, surface, floor, hpxml_bldg)
+      surface.setName(floor.id)
+      if floor.is_interior
+        surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+        surface.setWindExposure(EPlus::SurfaceWindExposureNo)
+      elsif floor.is_floor
+        surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+        if floor.exterior_adjacent_to == HPXML::LocationManufacturedHomeUnderBelly
+          foundation = hpxml_bldg.foundations.find { |x| x.to_location == floor.exterior_adjacent_to }
+          if foundation.belly_wing_skirt_present
+            surface.setWindExposure(EPlus::SurfaceWindExposureNo)
+          end
+        end
+      end
+
+      # Apply construction
+
+      if floor.is_ceiling
+        if hpxml_header.apply_ashrae140_assumptions
+          # Attic floor
+          inside_film = Material.AirFilmFloorASHRAE140
+          outside_film = Material.AirFilmFloorASHRAE140
+        else
+          inside_film = Material.AirFilmFloorAverage
+          outside_film = Material.AirFilmFloorAverage
+        end
+        mat_int_finish_or_covering = Material.InteriorFinishMaterial(floor.interior_finish_type, floor.interior_finish_thickness)
+        has_radiant_barrier = floor.radiant_barrier
+        if has_radiant_barrier
+          radiant_barrier_grade = floor.radiant_barrier_grade
+        end
+      else # Floor
+        if hpxml_header.apply_ashrae140_assumptions
+          # Raised floor
+          inside_film = Material.AirFilmFloorASHRAE140
+          outside_film = Material.AirFilmFloorZeroWindASHRAE140
+          surface.setWindExposure(EPlus::SurfaceWindExposureNo)
+          mat_int_finish_or_covering = Material.CoveringBare(1.0)
+        else
+          inside_film = Material.AirFilmFloorReduced
+          if floor.is_exterior
+            outside_film = Material.AirFilmOutside
+          else
+            outside_film = Material.AirFilmFloorReduced
+          end
+          if floor.interior_adjacent_to == HPXML::LocationConditionedSpace
+            mat_int_finish_or_covering = Material.CoveringBare
+          end
+        end
+      end
+
+      Constructions.apply_floor_ceiling_construction(runner, model, [surface], floor.id, floor.floor_type, floor.is_ceiling, floor.insulation_assembly_r_value,
+                                                     mat_int_finish_or_covering, has_radiant_barrier, inside_film, outside_film, radiant_barrier_grade)
+    end
+  end
+
+  # Adds any HPXML Foundation Walls and Slabs to the OpenStudio model.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
+  # @return [nil]
+  def self.apply_foundation_walls_slabs(runner, model, spaces, weather, hpxml_bldg, hpxml_header, schedules_file)
+    default_azimuths = HPXMLDefaults.get_default_azimuths(hpxml_bldg)
+
+    foundation_types = hpxml_bldg.slabs.map { |s| s.interior_adjacent_to }.uniq
+    foundation_types.each do |foundation_type|
+      # Get attached slabs/foundation walls
+      slabs = []
+      hpxml_bldg.slabs.each do |slab|
+        next unless slab.interior_adjacent_to == foundation_type
+
+        slabs << slab
+        slab.exposed_perimeter = [slab.exposed_perimeter, 1.0].max # minimum value to prevent error if no exposed slab
+      end
+
+      slabs.each do |slab|
+        slab_frac = slab.exposed_perimeter / slabs.map { |s| s.exposed_perimeter }.sum
+        ext_fnd_walls = slab.connected_foundation_walls.select { |fw| fw.net_area >= 1.0 && fw.is_exterior }
+
+        if ext_fnd_walls.empty?
+          # Slab w/o foundation walls
+          apply_foundation_slab(model, weather, spaces, hpxml_bldg, hpxml_header, slab, -1 * slab.depth_below_grade.to_f, slab.exposed_perimeter, nil, default_azimuths, schedules_file)
+        else
+          # Slab w/ foundation walls
+          ext_fnd_walls_length = ext_fnd_walls.map { |fw| fw.area / fw.height }.sum
+          remaining_exposed_length = slab.exposed_perimeter
+
+          # Since we don't know which FoundationWalls are adjacent to which Slabs, we apportion
+          # each FoundationWall to each slab.
+          ext_fnd_walls.each do |fnd_wall|
+            # Both the foundation wall and slab must have same exposed length to prevent Kiva errors.
+            # For the foundation wall, we are effectively modeling the net *exposed* area.
+            fnd_wall_length = fnd_wall.area / fnd_wall.height
+            apportioned_exposed_length = fnd_wall_length / ext_fnd_walls_length * slab.exposed_perimeter # Slab exposed perimeter apportioned to this foundation wall
+            apportioned_total_length = fnd_wall_length * slab_frac # Foundation wall length apportioned to this slab
+            exposed_length = [apportioned_exposed_length, apportioned_total_length].min
+            remaining_exposed_length -= exposed_length
+
+            kiva_foundation = apply_foundation_wall(runner, model, spaces, hpxml_bldg, fnd_wall, exposed_length, fnd_wall_length, default_azimuths)
+            apply_foundation_slab(model, weather, spaces, hpxml_bldg, hpxml_header, slab, -1 * fnd_wall.depth_below_grade, exposed_length, kiva_foundation, default_azimuths, schedules_file)
+          end
+
+          if remaining_exposed_length > 1 # Skip if a small length (e.g., due to rounding)
+            # The slab's exposed perimeter exceeds the sum of attached exterior foundation wall lengths.
+            # This may legitimately occur for a walkout basement, where a portion of the slab has no
+            # adjacent foundation wall.
+            apply_foundation_slab(model, weather, spaces, hpxml_bldg, hpxml_header, slab, 0, remaining_exposed_length, nil, default_azimuths, schedules_file)
+          end
+        end
+      end
+
+      # Interzonal foundation wall surfaces
+      # The above-grade portion of these walls are modeled as EnergyPlus surfaces with standard adjacency.
+      # The below-grade portion of these walls (in contact with ground) are not modeled, as Kiva does not
+      # calculate heat flow between two zones through the ground.
+      int_fnd_walls = hpxml_bldg.foundation_walls.select { |fw| fw.is_interior && fw.interior_adjacent_to == foundation_type }
+      int_fnd_walls.each do |fnd_wall|
+        next unless fnd_wall.is_interior
+
+        ag_height = fnd_wall.height - fnd_wall.depth_below_grade
+        ag_net_area = fnd_wall.net_area * ag_height / fnd_wall.height
+        next if ag_net_area < 1.0
+
+        length = ag_net_area / ag_height
+        z_origin = -1 * ag_height
+        if fnd_wall.azimuth.nil?
+          azimuth = default_azimuths[0] # Arbitrary direction, doesn't receive exterior incident solar
+        else
+          azimuth = fnd_wall.azimuth
+        end
+
+        vertices = create_wall_vertices(length, ag_height, z_origin, azimuth)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
+        surface.additionalProperties.setFeature('Length', length)
+        surface.additionalProperties.setFeature('Azimuth', azimuth)
+        surface.additionalProperties.setFeature('Tilt', 90.0)
+        surface.additionalProperties.setFeature('SurfaceType', 'FoundationWall')
+        surface.setName(fnd_wall.id)
+        surface.setSurfaceType(EPlus::SurfaceTypeWall)
+        set_surface_interior(model, spaces, surface, fnd_wall, hpxml_bldg)
+        set_surface_exterior(model, spaces, surface, fnd_wall, hpxml_bldg)
+        surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+        surface.setWindExposure(EPlus::SurfaceWindExposureNo)
+
+        # Apply construction
+
+        wall_type = HPXML::WallTypeConcrete
+        inside_film = Material.AirFilmVertical
+        outside_film = Material.AirFilmVertical
+        assembly_r = fnd_wall.insulation_assembly_r_value
+        mat_int_finish = Material.InteriorFinishMaterial(fnd_wall.interior_finish_type, fnd_wall.interior_finish_thickness)
+        if assembly_r.nil?
+          concrete_thick_in = fnd_wall.thickness
+          int_r = fnd_wall.insulation_interior_r_value
+          ext_r = fnd_wall.insulation_exterior_r_value
+          mat_concrete = Material.Concrete(concrete_thick_in)
+          mat_int_finish_rvalue = mat_int_finish.nil? ? 0.0 : mat_int_finish.rvalue
+          assembly_r = int_r + ext_r + mat_concrete.rvalue + mat_int_finish_rvalue + inside_film.rvalue + outside_film.rvalue
+        end
+        mat_ext_finish = nil
+
+        Constructions.apply_wall_construction(runner, model, [surface], fnd_wall.id, wall_type, assembly_r, mat_int_finish,
+                                              false, inside_film, outside_film, nil, mat_ext_finish, nil, nil)
+      end
+    end
+  end
+
+  # Adds an HPXML Foundation Wall to the OpenStudio model.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param foundation_wall [HPXML::FoundationWall] HPXML Foundation Wall object
+  # @param exposed_length [Double] TODO
+  # @param fnd_wall_length [Double] TODO
+  # @param default_azimuths [TODO] TODO
+  # @return [OpenStudio::Model::FoundationKiva] OpenStudio Foundation Kiva object
+  def self.apply_foundation_wall(runner, model, spaces, hpxml_bldg, foundation_wall, exposed_length, fnd_wall_length, default_azimuths)
+    exposed_fraction = exposed_length / fnd_wall_length
+    net_exposed_area = foundation_wall.net_area * exposed_fraction
+    gross_exposed_area = foundation_wall.area * exposed_fraction
+    height = foundation_wall.height
+    height_ag = height - foundation_wall.depth_below_grade
+    z_origin = -1 * foundation_wall.depth_below_grade
+    if foundation_wall.azimuth.nil?
+      azimuth = default_azimuths[0] # Arbitrary; solar incidence in Kiva is applied as an orientation average (to the above grade portion of the wall)
+    else
+      azimuth = foundation_wall.azimuth
+    end
+
+    return if exposed_length < 0.1 # Avoid Kiva error if exposed wall length is too small
+
+    if gross_exposed_area > net_exposed_area
+      # Create a "notch" in the wall to account for the subsurfaces. This ensures that
+      # we preserve the appropriate wall height, length, and area for Kiva.
+      subsurface_area = gross_exposed_area - net_exposed_area
+    else
+      subsurface_area = 0
+    end
+
+    vertices = create_wall_vertices(exposed_length, height, z_origin, azimuth, subsurface_area: subsurface_area)
+    surface = OpenStudio::Model::Surface.new(vertices, model)
+    surface.additionalProperties.setFeature('Length', exposed_length)
+    surface.additionalProperties.setFeature('Azimuth', azimuth)
+    surface.additionalProperties.setFeature('Tilt', 90.0)
+    surface.additionalProperties.setFeature('SurfaceType', 'FoundationWall')
+    surface.setName(foundation_wall.id)
+    surface.setSurfaceType(EPlus::SurfaceTypeWall)
+    set_surface_interior(model, spaces, surface, foundation_wall, hpxml_bldg)
+    set_surface_exterior(model, spaces, surface, foundation_wall, hpxml_bldg)
+
+    assembly_r = foundation_wall.insulation_assembly_r_value
+    mat_int_finish = Material.InteriorFinishMaterial(foundation_wall.interior_finish_type, foundation_wall.interior_finish_thickness)
+    mat_wall = Material.FoundationWallMaterial(foundation_wall.type, foundation_wall.thickness)
+    if not assembly_r.nil?
+      ext_rigid_height = height
+      ext_rigid_offset = 0.0
+      inside_film = Material.AirFilmVertical
+
+      mat_int_finish_rvalue = mat_int_finish.nil? ? 0.0 : mat_int_finish.rvalue
+      ext_rigid_r = assembly_r - mat_wall.rvalue - mat_int_finish_rvalue - inside_film.rvalue
+      int_rigid_r = 0.0
+      if ext_rigid_r < 0 # Try without interior finish
+        mat_int_finish = nil
+        ext_rigid_r = assembly_r - mat_wall.rvalue - inside_film.rvalue
+      end
+      if (ext_rigid_r > 0) && (ext_rigid_r < 0.1)
+        ext_rigid_r = 0.0 # Prevent tiny strip of insulation
+      end
+      if ext_rigid_r < 0
+        ext_rigid_r = 0.0
+        match = false
+      else
+        match = true
+      end
+    else
+      ext_rigid_offset = foundation_wall.insulation_exterior_distance_to_top
+      ext_rigid_height = foundation_wall.insulation_exterior_distance_to_bottom - ext_rigid_offset
+      ext_rigid_r = foundation_wall.insulation_exterior_r_value
+      int_rigid_offset = foundation_wall.insulation_interior_distance_to_top
+      int_rigid_height = foundation_wall.insulation_interior_distance_to_bottom - int_rigid_offset
+      int_rigid_r = foundation_wall.insulation_interior_r_value
+    end
+
+    soil_k_in = UnitConversions.convert(hpxml_bldg.site.ground_conductivity, 'ft', 'in')
+
+    Constructions.apply_foundation_wall(model, [surface], "#{foundation_wall.id} construction",
+                                        ext_rigid_offset, int_rigid_offset, ext_rigid_height, int_rigid_height,
+                                        ext_rigid_r, int_rigid_r, mat_int_finish, mat_wall, height_ag,
+                                        soil_k_in)
+
+    if not assembly_r.nil?
+      Constructions.check_surface_assembly_rvalue(runner, [surface], inside_film, nil, assembly_r, match)
+    end
+
+    return surface.adjacentFoundation.get
+  end
+
+  # Adds an HPXML Slab to the OpenStudio model.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param slab [HPXML::Slab] HPXML Slab object
+  # @param z_origin [Double] The z-coordinate for which the slab is relative (ft)
+  # @param exposed_length [Double] TODO
+  # @param kiva_foundation [OpenStudio::Model::FoundationKiva] OpenStudio Foundation Kiva object
+  # @param default_azimuths [TODO] TODO
+  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
-  def self.tear_down_model(model:,
-                           runner:)
-    handles = OpenStudio::UUIDVector.new
-    model.objects.each do |obj|
-      handles << obj.handle
+  def self.apply_foundation_slab(model, weather, spaces, hpxml_bldg, hpxml_header, slab, z_origin,
+                                 exposed_length, kiva_foundation, default_azimuths, schedules_file)
+    exposed_fraction = exposed_length / slab.exposed_perimeter
+    slab_tot_perim = exposed_length
+    slab_area = slab.area * exposed_fraction
+    if slab_tot_perim**2 - 16.0 * slab_area <= 0
+      # Cannot construct rectangle with this perimeter/area. Some of the
+      # perimeter is presumably not exposed, so bump up perimeter value.
+      slab_tot_perim = Math.sqrt(16.0 * slab_area)
     end
-    if !handles.empty?
-      runner.registerWarning('The model contains existing objects and is being reset.')
-      model.removeObjects(handles)
+    sqrt_term = [slab_tot_perim**2 - 16.0 * slab_area, 0.0].max
+    slab_length = slab_tot_perim / 4.0 + Math.sqrt(sqrt_term) / 4.0
+    slab_width = slab_tot_perim / 4.0 - Math.sqrt(sqrt_term) / 4.0
+
+    vertices = create_floor_vertices(slab_length, slab_width, z_origin, default_azimuths)
+    surface = OpenStudio::Model::Surface.new(vertices, model)
+    surface.setName(slab.id)
+    surface.setSurfaceType(EPlus::SurfaceTypeFloor)
+    surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionFoundation)
+    surface.additionalProperties.setFeature('SurfaceType', 'Slab')
+    set_surface_interior(model, spaces, surface, slab, hpxml_bldg)
+    surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+    surface.setWindExposure(EPlus::SurfaceWindExposureNo)
+
+    slab_perim_r = slab.perimeter_insulation_r_value
+    slab_perim_depth = slab.perimeter_insulation_depth
+    if (slab_perim_r == 0) || (slab_perim_depth == 0)
+      slab_perim_r = 0
+      slab_perim_depth = 0
     end
+
+    if slab.under_slab_insulation_spans_entire_slab
+      slab_whole_r = slab.under_slab_insulation_r_value
+      slab_under_r = 0
+      slab_under_width = 0
+    else
+      slab_under_r = slab.under_slab_insulation_r_value
+      slab_under_width = slab.under_slab_insulation_width
+      if (slab_under_r == 0) || (slab_under_width == 0)
+        slab_under_r = 0
+        slab_under_width = 0
+      end
+      slab_whole_r = 0
+    end
+    slab_gap_r = slab.gap_insulation_r_value
+
+    mat_carpet = nil
+    if (slab.carpet_fraction > 0) && (slab.carpet_r_value > 0)
+      mat_carpet = Material.CoveringBare(slab.carpet_fraction,
+                                         slab.carpet_r_value)
+    end
+    soil_k_in = UnitConversions.convert(hpxml_bldg.site.ground_conductivity, 'ft', 'in')
+
+    ext_horiz_r = slab.exterior_horizontal_insulation_r_value
+    ext_horiz_width = slab.exterior_horizontal_insulation_width
+    ext_horiz_depth = slab.exterior_horizontal_insulation_depth_below_grade
+
+    Constructions.apply_foundation_slab(model, surface, "#{slab.id} construction",
+                                        slab_under_r, slab_under_width, slab_gap_r, slab_perim_r,
+                                        slab_perim_depth, slab_whole_r, slab.thickness,
+                                        exposed_length, mat_carpet, soil_k_in, kiva_foundation,
+                                        ext_horiz_r, ext_horiz_width, ext_horiz_depth)
+
+    kiva_foundation = surface.adjacentFoundation.get
+
+    Constructions.apply_kiva_initial_temperature(kiva_foundation, weather, hpxml_bldg, hpxml_header,
+                                                 spaces, schedules_file, slab.interior_adjacent_to)
+
+    return kiva_foundation
+  end
+
+  # Adds any HPXML Windows to the OpenStudio model.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @return [nil]
+  def self.apply_windows(model, spaces, hpxml_bldg, hpxml_header)
+    # We already stored @fraction_of_windows_operable, so lets remove the
+    # fraction_operable properties from windows and re-collapse the enclosure
+    # so as to prevent potentially modeling multiple identical windows in E+,
+    # which can increase simulation runtime.
+    hpxml_bldg.windows.each do |window|
+      window.fraction_operable = nil
+    end
+    hpxml_bldg.collapse_enclosure_surfaces()
+
+    _walls_top, foundation_top = get_foundation_and_walls_top(hpxml_bldg)
+
+    shading_schedules = {}
+
+    surfaces = []
+    hpxml_bldg.windows.each do |window|
+      window_height = 4.0 # ft, default
+
+      overhang_depth = nil
+      if (not window.overhangs_depth.nil?) && (window.overhangs_depth > 0)
+        overhang_depth = window.overhangs_depth
+        overhang_distance_to_top = window.overhangs_distance_to_top_of_window
+        overhang_distance_to_bottom = window.overhangs_distance_to_bottom_of_window
+        window_height = overhang_distance_to_bottom - overhang_distance_to_top
+      end
+
+      window_length = window.area / window_height
+      z_origin = foundation_top
+
+      ufactor, shgc = Constructions.get_ufactor_shgc_adjusted_by_storms(window.storm_type, window.ufactor, window.shgc)
+
+      if window.is_exterior
+
+        # Create parent surface slightly bigger than window
+        vertices = create_wall_vertices(window_length, window_height, z_origin, window.azimuth, add_buffer: true)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
+
+        surface.additionalProperties.setFeature('Length', window_length)
+        surface.additionalProperties.setFeature('Azimuth', window.azimuth)
+        surface.additionalProperties.setFeature('Tilt', 90.0)
+        surface.additionalProperties.setFeature('SurfaceType', 'Window')
+        surface.setName("surface #{window.id}")
+        surface.setSurfaceType(EPlus::SurfaceTypeWall)
+        set_surface_interior(model, spaces, surface, window.wall, hpxml_bldg)
+
+        vertices = create_wall_vertices(window_length, window_height, z_origin, window.azimuth)
+        sub_surface = OpenStudio::Model::SubSurface.new(vertices, model)
+        sub_surface.setName(window.id)
+        sub_surface.setSurface(surface)
+        sub_surface.setSubSurfaceType(EPlus::SubSurfaceTypeWindow)
+
+        set_subsurface_exterior(surface, spaces, model, window.wall, hpxml_bldg)
+        surfaces << surface
+
+        if not overhang_depth.nil?
+          overhang = sub_surface.addOverhang(UnitConversions.convert(overhang_depth, 'ft', 'm'), UnitConversions.convert(overhang_distance_to_top, 'ft', 'm'))
+          overhang.get.setName("#{sub_surface.name} overhangs")
+        end
+
+        # Apply construction
+        Constructions.apply_window(model, sub_surface, 'WindowConstruction', ufactor, shgc)
+
+        # Apply interior/exterior shading (as needed)
+        Constructions.apply_window_skylight_shading(model, window, sub_surface, shading_schedules, hpxml_header, hpxml_bldg)
+      else
+        # Window is on an interior surface, which E+ does not allow. Model
+        # as a door instead so that we can get the appropriate conduction
+        # heat transfer; there is no solar gains anyway.
+
+        # Create parent surface slightly bigger than window
+        vertices = create_wall_vertices(window_length, window_height, z_origin, window.azimuth, add_buffer: true)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
+
+        surface.additionalProperties.setFeature('Length', window_length)
+        surface.additionalProperties.setFeature('Azimuth', window.azimuth)
+        surface.additionalProperties.setFeature('Tilt', 90.0)
+        surface.additionalProperties.setFeature('SurfaceType', 'Door')
+        surface.setName("surface #{window.id}")
+        surface.setSurfaceType(EPlus::SurfaceTypeWall)
+        set_surface_interior(model, spaces, surface, window.wall, hpxml_bldg)
+
+        vertices = create_wall_vertices(window_length, window_height, z_origin, window.azimuth)
+        sub_surface = OpenStudio::Model::SubSurface.new(vertices, model)
+        sub_surface.setName(window.id)
+        sub_surface.setSurface(surface)
+        sub_surface.setSubSurfaceType(EPlus::SubSurfaceTypeDoor)
+
+        set_subsurface_exterior(surface, spaces, model, window.wall, hpxml_bldg)
+        surfaces << surface
+
+        # Apply construction
+        inside_film = Material.AirFilmVertical
+        outside_film = Material.AirFilmVertical
+        Constructions.apply_door(model, [sub_surface], 'Window', ufactor, inside_film, outside_film)
+      end
+    end
+
+    Constructions.apply_adiabatic_construction(model, surfaces, 'wall')
+  end
+
+  # Adds any HPXML Doors to the OpenStudio model.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [nil]
+  def self.apply_doors(model, spaces, hpxml_bldg)
+    _walls_top, foundation_top = get_foundation_and_walls_top(hpxml_bldg)
+
+    surfaces = []
+    hpxml_bldg.doors.each do |door|
+      door_height = 6.67 # ft
+      door_length = door.area / door_height
+      z_origin = foundation_top
+
+      # Create parent surface slightly bigger than door
+      vertices = create_wall_vertices(door_length, door_height, z_origin, door.azimuth, add_buffer: true)
+      surface = OpenStudio::Model::Surface.new(vertices, model)
+
+      surface.additionalProperties.setFeature('Length', door_length)
+      surface.additionalProperties.setFeature('Azimuth', door.azimuth)
+      surface.additionalProperties.setFeature('Tilt', 90.0)
+      surface.additionalProperties.setFeature('SurfaceType', 'Door')
+      surface.setName("surface #{door.id}")
+      surface.setSurfaceType(EPlus::SurfaceTypeWall)
+      set_surface_interior(model, spaces, surface, door.wall, hpxml_bldg)
+
+      vertices = create_wall_vertices(door_length, door_height, z_origin, door.azimuth)
+      sub_surface = OpenStudio::Model::SubSurface.new(vertices, model)
+      sub_surface.setName(door.id)
+      sub_surface.setSurface(surface)
+      sub_surface.setSubSurfaceType(EPlus::SubSurfaceTypeDoor)
+
+      set_subsurface_exterior(surface, spaces, model, door.wall, hpxml_bldg)
+      surfaces << surface
+
+      # Apply construction
+      ufactor = 1.0 / door.r_value
+      inside_film = Material.AirFilmVertical
+      if door.wall.is_exterior
+        outside_film = Material.AirFilmOutside
+      else
+        outside_film = Material.AirFilmVertical
+      end
+      Constructions.apply_door(model, [sub_surface], 'Door', ufactor, inside_film, outside_film)
+    end
+
+    Constructions.apply_adiabatic_construction(model, surfaces, 'wall')
+  end
+
+  # Adds any HPXML Skylights to the OpenStudio model.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @return [nil]
+  def self.apply_skylights(model, spaces, hpxml_bldg, hpxml_header)
+    default_azimuths = HPXMLDefaults.get_default_azimuths(hpxml_bldg)
+    walls_top, _foundation_top = get_foundation_and_walls_top(hpxml_bldg)
+
+    surfaces = []
+    shading_schedules = {}
+
+    hpxml_bldg.skylights.each do |skylight|
+      if not skylight.is_conditioned
+        fail "Skylight '#{skylight.id}' not connected to conditioned space; if it's a skylight with a shaft, use AttachedToFloor to connect it to conditioned space."
+      end
+
+      tilt = skylight.roof.pitch / 12.0
+      width = Math::sqrt(skylight.area)
+      length = skylight.area / width
+      z_origin = walls_top + 0.5 * Math.sin(Math.atan(tilt)) * width
+
+      ufactor, shgc = Constructions.get_ufactor_shgc_adjusted_by_storms(skylight.storm_type, skylight.ufactor, skylight.shgc)
+
+      if not skylight.curb_area.nil?
+        # Create parent surface that includes curb heat transfer
+        total_area = skylight.area + skylight.curb_area
+        total_width = Math::sqrt(total_area)
+        total_length = total_area / total_width
+        vertices = create_roof_vertices(total_length, total_width, z_origin, skylight.azimuth, tilt, add_buffer: true)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
+        surface.additionalProperties.setFeature('Length', total_length)
+        surface.additionalProperties.setFeature('Width', total_width)
+
+        # Assign curb construction
+        curb_assembly_r_value = [skylight.curb_assembly_r_value - Material.AirFilmVertical.rvalue - Material.AirFilmOutside.rvalue, 0.1].max
+        curb_mat = OpenStudio::Model::MasslessOpaqueMaterial.new(model, 'Rough', UnitConversions.convert(curb_assembly_r_value, 'hr*ft^2*f/btu', 'm^2*k/w'))
+        curb_mat.setName('SkylightCurbMaterial')
+        curb_const = OpenStudio::Model::Construction.new(model)
+        curb_const.setName('SkylightCurbConstruction')
+        curb_const.insertLayer(0, curb_mat)
+        surface.setConstruction(curb_const)
+      else
+        # Create parent surface slightly bigger than skylight
+        vertices = create_roof_vertices(length, width, z_origin, skylight.azimuth, tilt, add_buffer: true)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
+        surface.additionalProperties.setFeature('Length', length)
+        surface.additionalProperties.setFeature('Width', width)
+        surfaces << surface # Add to surfaces list so it's assigned an adiabatic construction
+      end
+      surface.additionalProperties.setFeature('Azimuth', skylight.azimuth)
+      surface.additionalProperties.setFeature('Tilt', tilt)
+      surface.additionalProperties.setFeature('SurfaceType', 'Skylight')
+      surface.setName("surface #{skylight.id}")
+      surface.setSurfaceType(EPlus::SurfaceTypeRoofCeiling)
+      surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationConditionedSpace, hpxml_bldg))
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors) # cannot be adiabatic because subsurfaces won't be created
+
+      vertices = create_roof_vertices(length, width, z_origin, skylight.azimuth, tilt)
+      sub_surface = OpenStudio::Model::SubSurface.new(vertices, model)
+      sub_surface.setName(skylight.id)
+      sub_surface.setSurface(surface)
+      sub_surface.setSubSurfaceType('Skylight')
+
+      # Apply construction
+      Constructions.apply_skylight(model, sub_surface, 'SkylightConstruction', ufactor, shgc)
+
+      # Apply interior/exterior shading (as needed)
+      Constructions.apply_window_skylight_shading(model, skylight, sub_surface, shading_schedules, hpxml_header, hpxml_bldg)
+
+      next unless (not skylight.shaft_area.nil?) && (not skylight.floor.nil?)
+
+      # Add skylight shaft heat transfer, similar to attic knee walls
+
+      shaft_height = Math::sqrt(skylight.shaft_area)
+      shaft_width = skylight.shaft_area / shaft_height
+      shaft_azimuth = default_azimuths[0] # Arbitrary direction, doesn't receive exterior incident solar
+      shaft_z_origin = walls_top - shaft_height
+
+      vertices = create_wall_vertices(shaft_width, shaft_height, shaft_z_origin, shaft_azimuth)
+      surface = OpenStudio::Model::Surface.new(vertices, model)
+      surface.additionalProperties.setFeature('Length', shaft_width)
+      surface.additionalProperties.setFeature('Width', shaft_height)
+      surface.additionalProperties.setFeature('Azimuth', shaft_azimuth)
+      surface.additionalProperties.setFeature('Tilt', 90.0)
+      surface.additionalProperties.setFeature('SurfaceType', 'Skylight')
+      surface.setName("surface #{skylight.id} shaft")
+      surface.setSurfaceType(EPlus::SurfaceTypeWall)
+      set_surface_interior(model, spaces, surface, skylight.floor, hpxml_bldg)
+      set_surface_exterior(model, spaces, surface, skylight.floor, hpxml_bldg)
+      surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+      surface.setWindExposure(EPlus::SurfaceWindExposureNo)
+
+      # Apply construction
+      shaft_assembly_r_value = [skylight.shaft_assembly_r_value - 2 * Material.AirFilmVertical.rvalue, 0.1].max
+      shaft_mat = OpenStudio::Model::MasslessOpaqueMaterial.new(model, 'Rough', UnitConversions.convert(shaft_assembly_r_value, 'hr*ft^2*f/btu', 'm^2*k/w'))
+      shaft_mat.setName('SkylightShaftMaterial')
+      shaft_const = OpenStudio::Model::Construction.new(model)
+      shaft_const.setName('SkylightShaftConstruction')
+      shaft_const.insertLayer(0, shaft_mat)
+      surface.setConstruction(shaft_const)
+    end
+
+    Constructions.apply_adiabatic_construction(model, surfaces, 'roof')
+  end
+
+  # Check if we need to add floors between conditioned spaces (e.g., between first
+  # and second story or conditioned basement ceiling).
+  # This ensures that the E+ reported Conditioned Floor Area is correct.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [nil]
+  def self.apply_conditioned_floor_area(model, spaces, hpxml_bldg)
+    default_azimuths = HPXMLDefaults.get_default_azimuths(hpxml_bldg)
+    _walls_top, foundation_top = get_foundation_and_walls_top(hpxml_bldg)
+
+    sum_cfa = 0.0
+    hpxml_bldg.floors.each do |floor|
+      next unless floor.is_floor
+      next unless [HPXML::LocationConditionedSpace, HPXML::LocationBasementConditioned].include?(floor.interior_adjacent_to) ||
+                  [HPXML::LocationConditionedSpace, HPXML::LocationBasementConditioned].include?(floor.exterior_adjacent_to)
+
+      sum_cfa += floor.area
+    end
+    hpxml_bldg.slabs.each do |slab|
+      next unless [HPXML::LocationConditionedSpace, HPXML::LocationBasementConditioned].include? slab.interior_adjacent_to
+
+      sum_cfa += slab.area
+    end
+
+    addtl_cfa = hpxml_bldg.building_construction.conditioned_floor_area - sum_cfa
+
+    fail if addtl_cfa < -1.0 # Allow some rounding; EPvalidator.xml should prevent this
+
+    return unless addtl_cfa > 1.0 # Allow some rounding
+
+    floor_width = Math::sqrt(addtl_cfa)
+    floor_length = addtl_cfa / floor_width
+    z_origin = foundation_top + 8.0 * (hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade - 1)
+
+    # Add floor surface
+    vertices = create_floor_vertices(floor_length, floor_width, z_origin, default_azimuths)
+    floor_surface = OpenStudio::Model::Surface.new(vertices, model)
+
+    floor_surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+    floor_surface.setWindExposure(EPlus::SurfaceWindExposureNo)
+    floor_surface.setName('inferred conditioned floor')
+    floor_surface.setSurfaceType(EPlus::SurfaceTypeFloor)
+    floor_surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationConditionedSpace, hpxml_bldg))
+    floor_surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
+    floor_surface.additionalProperties.setFeature('SurfaceType', 'InferredFloor')
+    floor_surface.additionalProperties.setFeature('Tilt', 0.0)
+
+    # Add ceiling surface
+    vertices = create_ceiling_vertices(floor_length, floor_width, z_origin, default_azimuths)
+    ceiling_surface = OpenStudio::Model::Surface.new(vertices, model)
+
+    ceiling_surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+    ceiling_surface.setWindExposure(EPlus::SurfaceWindExposureNo)
+    ceiling_surface.setName('inferred conditioned ceiling')
+    ceiling_surface.setSurfaceType(EPlus::SurfaceTypeRoofCeiling)
+    ceiling_surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationConditionedSpace, hpxml_bldg))
+    ceiling_surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
+    ceiling_surface.additionalProperties.setFeature('SurfaceType', 'InferredCeiling')
+    ceiling_surface.additionalProperties.setFeature('Tilt', 0.0)
+
+    # Apply Construction
+    Constructions.apply_adiabatic_construction(model, [floor_surface, ceiling_surface], 'floor')
+  end
+
+  # Calls construction methods for applying partition walls and furniture to the OpenStudio model.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @return [nil]
+  def self.apply_thermal_mass(model, spaces, hpxml_bldg, hpxml_header)
+    if hpxml_header.apply_ashrae140_assumptions
+      # 1024 ft2 of interior partition wall mass, no furniture mass
+      mat_int_finish = Material.InteriorFinishMaterial(HPXML::InteriorFinishGypsumBoard, 0.5)
+      partition_wall_area = 1024.0 * 2 # Exposed partition wall area (both sides)
+      Constructions.apply_partition_walls(model, 'PartitionWallConstruction', mat_int_finish, partition_wall_area, spaces)
+    else
+      mat_int_finish = Material.InteriorFinishMaterial(hpxml_bldg.partition_wall_mass.interior_finish_type, hpxml_bldg.partition_wall_mass.interior_finish_thickness)
+      partition_wall_area = hpxml_bldg.partition_wall_mass.area_fraction * hpxml_bldg.building_construction.conditioned_floor_area # Exposed partition wall area (both sides)
+      Constructions.apply_partition_walls(model, 'PartitionWallConstruction', mat_int_finish, partition_wall_area, spaces)
+
+      Constructions.apply_furniture(model, hpxml_bldg.furniture_mass, spaces)
+    end
+  end
+
+  # Calculates the assumed above-grade height of the top of the dwelling unit's walls and foundation walls.
+  #
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [Array<Double, Double>] Top of the walls (ft), top of the foundation walls (ft)
+  def self.get_foundation_and_walls_top(hpxml_bldg)
+    foundation_top = [hpxml_bldg.building_construction.unit_height_above_grade, 0].max
+    hpxml_bldg.foundation_walls.each do |foundation_wall|
+      top = -1 * foundation_wall.depth_below_grade + foundation_wall.height
+      foundation_top = top if top > foundation_top
+    end
+    ncfl_ag = hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade
+    walls_top = foundation_top + hpxml_bldg.building_construction.average_ceiling_height * ncfl_ag
+
+    return walls_top, foundation_top
   end
 
   # Get the largest z difference for a surface.
@@ -86,18 +1110,15 @@ module Geometry
     return Float(nbeds) # Per ANSI 301 for an asset calculation
   end
 
-  # Create space and zone based on contents of spaces and value of location.
-  # Set a "dwelling unit multiplier" equal to the number of similar units represented.
+  # Creates a space and zone based on contents of spaces and value of location.
+  # Sets a "dwelling unit multiplier" equal to the number of similar units represented.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param spaces [Hash] keys are locations and values are OpenStudio::Model::Space objects
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param location [String] HPXML location
   # @param zone_multiplier [Integer] the number of similar zones represented
   # @return [OpenStudio::Model::Space, nil] updated spaces hash if location is not already a key
-  def self.create_space_and_zone(model:,
-                                 spaces:,
-                                 location:,
-                                 zone_multiplier:)
+  def self.create_space_and_zone(model, spaces, location, zone_multiplier)
     if not spaces.keys.include? location
       thermal_zone = OpenStudio::Model::ThermalZone.new(model)
       thermal_zone.setName(location)
@@ -121,18 +1142,13 @@ module Geometry
   # @param tilt [TODO] TODO
   # @param add_buffer [TODO] TODO
   # @return [TODO] TODO
-  def self.create_roof_vertices(length:,
-                                width:,
-                                z_origin:,
-                                azimuth:,
-                                tilt:,
-                                add_buffer: false)
+  def self.create_roof_vertices(length, width, z_origin, azimuth, tilt, add_buffer: false)
     length = UnitConversions.convert(length, 'ft', 'm')
     width = UnitConversions.convert(width, 'ft', 'm')
     z_origin = UnitConversions.convert(z_origin, 'ft', 'm')
 
     if add_buffer
-      buffer = calculate_subsurface_parent_buffer(length: length, width: width)
+      buffer = calculate_subsurface_parent_buffer(length, width)
       buffer /= 2.0 # Buffer on each side
     else
       buffer = 0
@@ -201,18 +1217,13 @@ module Geometry
   # @param add_buffer [Boolean] whether to use a buffer on each side of a subsurface
   # @param subsurface_area [Double] the area of a subsurface within the parent surface (ft2)
   # @return [OpenStudio::Point3dVector] an array of points
-  def self.create_wall_vertices(length:,
-                                height:,
-                                z_origin:,
-                                azimuth:,
-                                add_buffer: false,
-                                subsurface_area: 0)
+  def self.create_wall_vertices(length, height, z_origin, azimuth, add_buffer: false, subsurface_area: 0)
     length = UnitConversions.convert(length, 'ft', 'm')
     height = UnitConversions.convert(height, 'ft', 'm')
     z_origin = UnitConversions.convert(z_origin, 'ft', 'm')
 
     if add_buffer
-      buffer = calculate_subsurface_parent_buffer(length: length, width: height)
+      buffer = calculate_subsurface_parent_buffer(length, height)
       buffer /= 2.0 # Buffer on each side
     else
       buffer = 0
@@ -255,27 +1266,21 @@ module Geometry
   #
   # @param length [TODO] TODO
   # @param width [TODO] TODO
-  # @param z_origin [TODO] TODO
+  # @param z_origin [Double] The z-coordinate for which the length and width are relative (ft)
   # @param default_azimuths [TODO] TODO
   # @return [TODO] TODO
-  def self.create_ceiling_vertices(length:,
-                                   width:,
-                                   z_origin:,
-                                   default_azimuths:)
-    return OpenStudio::reverse(create_floor_vertices(length: length, width: width, z_origin: z_origin, default_azimuths: default_azimuths))
+  def self.create_ceiling_vertices(length, width, z_origin, default_azimuths)
+    return OpenStudio::reverse(create_floor_vertices(length, width, z_origin, default_azimuths))
   end
 
   # TODO
   #
   # @param length [TODO] TODO
   # @param width [TODO] TODO
-  # @param z_origin [TODO] TODO
+  # @param z_origin [Double] The z-coordinate for which the length and width are relative (ft)
   # @param default_azimuths [TODO] TODO
   # @return [TODO] TODO
-  def self.create_floor_vertices(length:,
-                                 width:,
-                                 z_origin:,
-                                 default_azimuths:)
+  def self.create_floor_vertices(length, width, z_origin, default_azimuths)
     length = UnitConversions.convert(length, 'ft', 'm')
     width = UnitConversions.convert(width, 'ft', 'm')
     z_origin = UnitConversions.convert(z_origin, 'ft', 'm')
@@ -302,15 +1307,16 @@ module Geometry
     return transformation * vertices
   end
 
-  # TODO
+  # Set calculated zone volumes for HPXML locations on OpenStudio Thermal Zone and Space objects.
+  # TODO why? for reporting?
   #
-  # @param spaces [Hash] keys are locations and values are OpenStudio::Model::Space objects
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param apply_ashrae140_assumptions [TODO] TODO
-  # @return [TODO] TODO
-  def self.set_zone_volumes(spaces:,
-                            hpxml_bldg:,
-                            apply_ashrae140_assumptions:)
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @return [nil]
+  def self.set_zone_volumes(spaces, hpxml_bldg, hpxml_header)
+    apply_ashrae140_assumptions = hpxml_header.apply_ashrae140_assumptions
+
     # Conditioned space
     volume = UnitConversions.convert(hpxml_bldg.building_construction.conditioned_building_volume, 'ft^3', 'm^3')
     spaces[HPXML::LocationConditionedSpace].thermalZone.get.setVolume(volume)
@@ -320,7 +1326,7 @@ module Geometry
     spaces.keys.each do |location|
       next unless [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? location
 
-      volume = UnitConversions.convert(calculate_zone_volume(hpxml_bldg: hpxml_bldg, location: location), 'ft^3', 'm^3')
+      volume = UnitConversions.convert(calculate_zone_volume(hpxml_bldg, location), 'ft^3', 'm^3')
       spaces[location].thermalZone.get.setVolume(volume)
       spaces[location].setVolume(volume)
     end
@@ -332,7 +1338,7 @@ module Geometry
       if apply_ashrae140_assumptions
         volume = UnitConversions.convert(3463, 'ft^3', 'm^3') # Hardcode the attic volume to match ASHRAE 140 Table 7-2 specification
       else
-        volume = UnitConversions.convert(calculate_zone_volume(hpxml_bldg: hpxml_bldg, location: location), 'ft^3', 'm^3')
+        volume = UnitConversions.convert(calculate_zone_volume(hpxml_bldg, location), 'ft^3', 'm^3')
       end
 
       spaces[location].thermalZone.get.setVolume(volume)
@@ -345,11 +1351,8 @@ module Geometry
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param walls_top [Double] the total height of the dwelling unit
   # @return [nil]
-  def self.explode_surfaces(model:,
-                            hpxml_bldg:,
-                            walls_top:)
+  def self.explode_surfaces(model, hpxml_bldg)
     gap_distance = UnitConversions.convert(10.0, 'ft', 'm') # distance between surfaces of the same azimuth
     rad90 = UnitConversions.convert(90, 'deg', 'rad')
 
@@ -392,7 +1395,7 @@ module Geometry
     end
     explode_distance = max_azimuth_length / (2.0 * Math.tan(UnitConversions.convert(180.0 / nsides, 'deg', 'rad')))
 
-    add_neighbor_shading(model: model, length: max_azimuth_length, hpxml_bldg: hpxml_bldg, walls_top: walls_top)
+    add_neighbor_shading(model, max_azimuth_length, hpxml_bldg)
 
     # Initial distance of shifts at 90-degrees to horizontal outward
     azimuth_side_shifts = {}
@@ -486,73 +1489,42 @@ module Geometry
     end
   end
 
-  # TODO
+  # Shift units so they aren't right on top and shade each other.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
-  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param num_occ [Double] Number of occupants in the dwelling unit
-  # @param space [OpenStudio::Model::Space] an OpenStudio::Model::Space object
-  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
+  # @param unit_number [Integer] index number corresponding to an HPXML Building object
   # @return [nil]
-  def self.apply_occupants(model, runner, hpxml_bldg, num_occ, space, schedules_file, unavailable_periods)
-    return if num_occ <= 0
+  def self.shift_surfaces(model, unit_number)
+    y_shift = 200.0 * unit_number # meters
 
-    occ_gain, _hrs_per_day, sens_frac, _lat_frac = get_occupancy_default_values()
-    activity_per_person = UnitConversions.convert(occ_gain, 'Btu/hr', 'W')
-
-    # Hard-coded convective, radiative, latent, and lost fractions
-    occ_sens = sens_frac
-    occ_rad = 0.558 * occ_sens
-
-    # Create schedule
-    people_sch = nil
-    people_col_name = SchedulesFile::Columns[:Occupants].name
-    if not schedules_file.nil?
-      people_sch = schedules_file.create_schedule_file(model, col_name: people_col_name)
-    end
-    if people_sch.nil?
-      people_unavailable_periods = Schedule.get_unavailable_periods(runner, people_col_name, unavailable_periods)
-      weekday_sch = hpxml_bldg.building_occupancy.weekday_fractions.split(',').map(&:to_f)
-      weekday_sch = weekday_sch.map { |v| v / weekday_sch.max }.join(',')
-      weekend_sch = hpxml_bldg.building_occupancy.weekend_fractions.split(',').map(&:to_f)
-      weekend_sch = weekend_sch.map { |v| v / weekend_sch.max }.join(',')
-      monthly_sch = hpxml_bldg.building_occupancy.monthly_multipliers
-      people_sch = MonthWeekdayWeekendSchedule.new(model, Constants::ObjectTypeOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, EPlus::ScheduleTypeLimitsFraction, unavailable_periods: people_unavailable_periods)
-      people_sch = people_sch.schedule
-    else
-      runner.registerWarning("Both '#{people_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml_bldg.building_occupancy.weekday_fractions.nil?
-      runner.registerWarning("Both '#{people_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !hpxml_bldg.building_occupancy.weekend_fractions.nil?
-      runner.registerWarning("Both '#{people_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hpxml_bldg.building_occupancy.monthly_multipliers.nil?
+    # shift the unit so it's not right on top of the previous one
+    model.getSpaces.sort.each do |space|
+      space.setYOrigin(y_shift)
     end
 
-    # Create schedule
-    activity_sch = OpenStudio::Model::ScheduleConstant.new(model)
-    activity_sch.setValue(activity_per_person)
-    activity_sch.setName(Constants::ObjectTypeOccupants + ' activity schedule')
+    # shift shading surfaces
+    m = OpenStudio::Matrix.new(4, 4, 0)
+    m[0, 0] = 1
+    m[1, 1] = 1
+    m[2, 2] = 1
+    m[3, 3] = 1
+    m[1, 3] = y_shift
+    t = OpenStudio::Transformation.new(m)
 
-    # Add people definition for the occ
-    occ_def = OpenStudio::Model::PeopleDefinition.new(model)
-    occ = OpenStudio::Model::People.new(occ_def)
-    occ.setName(Constants::ObjectTypeOccupants)
-    occ.setSpace(space)
-    occ_def.setName(Constants::ObjectTypeOccupants)
-    occ_def.setNumberofPeople(num_occ)
-    occ_def.setFractionRadiant(occ_rad)
-    occ_def.setSensibleHeatFraction(occ_sens)
-    occ_def.setMeanRadiantTemperatureCalculationType('ZoneAveraged')
-    occ_def.setCarbonDioxideGenerationRate(0)
-    occ_def.setEnableASHRAE55ComfortWarnings(false)
-    occ.setActivityLevelSchedule(activity_sch)
-    occ.setNumberofPeopleSchedule(people_sch)
+    model.getShadingSurfaceGroups.each do |shading_surface_group|
+      next if shading_surface_group.space.is_initialized # already got shifted
+
+      shading_surface_group.shadingSurfaces.each do |shading_surface|
+        shading_surface.setVertices(t * shading_surface.vertices)
+      end
+    end
   end
 
   # TODO
   #
   # @param zone [TODO] TODO
   # @return [TODO] TODO
-  def self.get_z_origin_for_zone(zone:)
+  def self.get_z_origin_for_zone(zone)
     z_origins = []
     zone.spaces.each do |space|
       z_origins << UnitConversions.convert(space.zOrigin, 'm', 'ft')
@@ -568,10 +1540,7 @@ module Geometry
   # @param y [Double] the y-coordinate of the translation vector
   # @param z [Double] the z-coordinate of the translation vector
   # @return [OpenStudio::Transformation] the OpenStudio transformation object
-  def self.get_surface_transformation(offset:,
-                                      x:,
-                                      y:,
-                                      z:)
+  def self.get_surface_transformation(offset:, x:, y:, z:)
     x = UnitConversions.convert(x, 'ft', 'm')
     y = UnitConversions.convert(y, 'ft', 'm')
     z = UnitConversions.convert(z, 'ft', 'm')
@@ -593,19 +1562,16 @@ module Geometry
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param length [TODO] TODO
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param walls_top [TODO] TODO
-  # @return [TODO] TODO
-  def self.add_neighbor_shading(model:,
-                                length:,
-                                hpxml_bldg:,
-                                walls_top:)
+  # @return [nil]
+  def self.add_neighbor_shading(model, length, hpxml_bldg)
+    walls_top, _foundation_top = get_foundation_and_walls_top(hpxml_bldg)
     z_origin = 0 # shading surface always starts at grade
 
     shading_surfaces = []
     hpxml_bldg.neighbor_buildings.each do |neighbor_building|
       height = neighbor_building.height.nil? ? walls_top : neighbor_building.height
 
-      vertices = create_wall_vertices(length: length, height: height, z_origin: z_origin, azimuth: neighbor_building.azimuth)
+      vertices = create_wall_vertices(length, height, z_origin, neighbor_building.azimuth)
       shading_surface = OpenStudio::Model::ShadingSurface.new(vertices, model)
       shading_surface.additionalProperties.setFeature('Azimuth', neighbor_building.azimuth)
       shading_surface.additionalProperties.setFeature('Distance', neighbor_building.distance)
@@ -626,10 +1592,9 @@ module Geometry
   # TODO
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
-  # @param location [TODO] TODO
-  # @return [TODO] TODO
-  def self.calculate_zone_volume(hpxml_bldg:,
-                                 location:)
+  # @param location [String] the location of interest (HPXML::LocationXXX)
+  # @return [Double] TODO
+  def self.calculate_zone_volume(hpxml_bldg, location)
     if [HPXML::LocationBasementUnconditioned,
         HPXML::LocationCrawlspaceUnvented,
         HPXML::LocationCrawlspaceVented,
@@ -658,8 +1623,8 @@ module Geometry
   # TODO
   #
   # @param location [String] the general HPXML location
-  # @return [TODO] TODO
-  def self.get_temperature_scheduled_space_values(location:)
+  # @return [Hash] TODO
+  def self.get_temperature_scheduled_space_values(location)
     if location == HPXML::LocationOtherHeatedSpace
       # Average of indoor/outdoor temperatures with minimum of heating setpoint
       return { temp_min: 68,
@@ -715,6 +1680,258 @@ module Geometry
     fail "Unhandled location: #{location}."
   end
 
+  # TODO
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param surface [OpenStudio::Model::Surface] an OpenStudio::Model::Surface object
+  # @param hpxml_surface [HPXML::Wall or HPXML::Roof or HPXML::RimJoist or HPXML::FoundationWall or HPXML::Slab] any HPXML surface
+  # @return [nil]
+  def self.set_surface_interior(model, spaces, surface, hpxml_surface, hpxml_bldg)
+    interior_adjacent_to = hpxml_surface.interior_adjacent_to
+    if HPXML::conditioned_below_grade_locations.include? interior_adjacent_to
+      surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationConditionedSpace, hpxml_bldg))
+    else
+      surface.setSpace(create_or_get_space(model, spaces, interior_adjacent_to, hpxml_bldg))
+    end
+  end
+
+  # TODO
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param surface [OpenStudio::Model::Surface] an OpenStudio::Model::Surface object
+  # @param hpxml_surface [HPXML::Wall or HPXML::Roof or HPXML::RimJoist or HPXML::FoundationWall or HPXML::Slab] any HPXML surface
+  # @return [nil]
+  def self.set_surface_exterior(model, spaces, surface, hpxml_surface, hpxml_bldg)
+    exterior_adjacent_to = hpxml_surface.exterior_adjacent_to
+    is_adiabatic = hpxml_surface.is_adiabatic
+    if [HPXML::LocationOutside, HPXML::LocationManufacturedHomeUnderBelly].include? exterior_adjacent_to
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
+    elsif exterior_adjacent_to == HPXML::LocationGround
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionFoundation)
+    elsif is_adiabatic
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionAdiabatic)
+    elsif [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
+           HPXML::LocationOtherNonFreezingSpace, HPXML::LocationOtherHousingUnit].include? exterior_adjacent_to
+      set_surface_otherside_coefficients(surface, exterior_adjacent_to, model, spaces)
+    elsif HPXML::conditioned_below_grade_locations.include? exterior_adjacent_to
+      adjacent_surface = surface.createAdjacentSurface(create_or_get_space(model, spaces, HPXML::LocationConditionedSpace, hpxml_bldg)).get
+      adjacent_surface.additionalProperties.setFeature('SurfaceType', surface.additionalProperties.getFeatureAsString('SurfaceType').get)
+    else
+      adjacent_surface = surface.createAdjacentSurface(create_or_get_space(model, spaces, exterior_adjacent_to, hpxml_bldg)).get
+      adjacent_surface.additionalProperties.setFeature('SurfaceType', surface.additionalProperties.getFeatureAsString('SurfaceType').get)
+    end
+  end
+
+  # Set its parent surface outside boundary condition, which will be also applied to subsurfaces through OS
+  # The parent surface is entirely comprised of the subsurface.
+  #
+  # @param surface [OpenStudio::Model::Surface] an OpenStudio::Model::Surface object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param hpxml_surface [HPXML::Wall or HPXML::Roof or HPXML::RimJoist or HPXML::FoundationWall or HPXML::Slab] any HPXML surface
+  # @return [nil]
+  def self.set_subsurface_exterior(surface, spaces, model, hpxml_surface, hpxml_bldg)
+    # Subsurface on foundation wall, set it to be adjacent to outdoors
+    if hpxml_surface.exterior_adjacent_to == HPXML::LocationGround
+      surface.setOutsideBoundaryCondition(EPlus::BoundaryConditionOutdoors)
+    else
+      set_surface_exterior(model, spaces, surface, hpxml_surface, hpxml_bldg)
+    end
+  end
+
+  # TODO
+  #
+  # @param surface [OpenStudio::Model::Surface] an OpenStudio::Model::Surface object
+  # @param exterior_adjacent_to [String] Exterior adjacent to location (HPXML::LocationXXX)
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @return [nil]
+  def self.set_surface_otherside_coefficients(surface, exterior_adjacent_to, model, spaces)
+    otherside_coeffs = nil
+    model.getSurfacePropertyOtherSideCoefficientss.each do |c|
+      next unless c.name.to_s == exterior_adjacent_to
+
+      otherside_coeffs = c
+    end
+    if otherside_coeffs.nil?
+      # Create E+ other side coefficient object
+      otherside_coeffs = OpenStudio::Model::SurfacePropertyOtherSideCoefficients.new(model)
+      otherside_coeffs.setName(exterior_adjacent_to)
+      otherside_coeffs.setCombinedConvectiveRadiativeFilmCoefficient(UnitConversions.convert(1.0 / Material.AirFilmVertical.rvalue, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)'))
+      # Schedule of space temperature, can be shared with water heater/ducts
+      sch = get_space_temperature_schedule(model, exterior_adjacent_to, spaces)
+      otherside_coeffs.setConstantTemperatureSchedule(sch)
+    end
+    surface.setSurfacePropertyOtherSideCoefficients(otherside_coeffs)
+    surface.setSunExposure(EPlus::SurfaceSunExposureNo)
+    surface.setWindExposure(EPlus::SurfaceWindExposureNo)
+  end
+
+  # Create outside boundary schedules to be actuated by EMS,
+  # can be shared by any surface, duct adjacent to / located in those spaces.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param location [String] the location of interest (HPXML::LocationXXX)
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @return [OpenStudio::Model::ScheduleConstant] OpenStudio ScheduleConstant object
+  def self.get_space_temperature_schedule(model, location, spaces)
+    # return if already exists
+    model.getScheduleConstants.each do |sch|
+      next unless sch.name.to_s == location
+
+      return sch
+    end
+
+    sch = OpenStudio::Model::ScheduleConstant.new(model)
+    sch.setName(location)
+    sch.additionalProperties.setFeature('ObjectType', location)
+
+    space_values = get_temperature_scheduled_space_values(location)
+
+    htg_weekday_setpoints, htg_weekend_setpoints = HVAC.get_default_heating_setpoint(HPXML::HVACControlTypeManual, @eri_version)
+    if htg_weekday_setpoints.split(', ').uniq.size == 1 && htg_weekend_setpoints.split(', ').uniq.size == 1 && htg_weekday_setpoints.split(', ').uniq == htg_weekend_setpoints.split(', ').uniq
+      default_htg_sp = htg_weekend_setpoints.split(', ').uniq[0].to_f # F
+    else
+      fail 'Unexpected heating setpoints.'
+    end
+
+    clg_weekday_setpoints, clg_weekend_setpoints = HVAC.get_default_cooling_setpoint(HPXML::HVACControlTypeManual, @eri_version)
+    if clg_weekday_setpoints.split(', ').uniq.size == 1 && clg_weekend_setpoints.split(', ').uniq.size == 1 && clg_weekday_setpoints.split(', ').uniq == clg_weekend_setpoints.split(', ').uniq
+      default_clg_sp = clg_weekend_setpoints.split(', ').uniq[0].to_f # F
+    else
+      fail 'Unexpected cooling setpoints.'
+    end
+
+    if location == HPXML::LocationOtherHeatedSpace
+      if spaces[HPXML::LocationConditionedSpace].thermalZone.get.thermostatSetpointDualSetpoint.is_initialized
+        # Create a sensor to get dynamic heating setpoint
+        htg_sch = spaces[HPXML::LocationConditionedSpace].thermalZone.get.thermostatSetpointDualSetpoint.get.heatingSetpointTemperatureSchedule.get
+        sensor_htg_spt = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+        sensor_htg_spt.setName('htg_spt')
+        sensor_htg_spt.setKeyName(htg_sch.name.to_s)
+        space_values[:temp_min] = sensor_htg_spt.name.to_s
+      else
+        # No HVAC system; use the defaulted heating setpoint.
+        space_values[:temp_min] = default_htg_sp # F
+      end
+    end
+
+    # Schedule type limits compatible
+    schedule_type_limits = OpenStudio::Model::ScheduleTypeLimits.new(model)
+    schedule_type_limits.setUnitType('Temperature')
+    sch.setScheduleTypeLimits(schedule_type_limits)
+
+    # Sensors
+    if space_values[:indoor_weight] > 0
+      if not spaces[HPXML::LocationConditionedSpace].thermalZone.get.thermostatSetpointDualSetpoint.is_initialized
+        # No HVAC system; use the average of defaulted heating/cooling setpoints.
+        sensor_ia = UnitConversions.convert((default_htg_sp + default_clg_sp) / 2.0, 'F', 'C')
+      else
+        sensor_ia = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Air Temperature')
+        sensor_ia.setName('cond_zone_temp')
+        sensor_ia.setKeyName(spaces[HPXML::LocationConditionedSpace].thermalZone.get.name.to_s)
+        sensor_ia = sensor_ia.name
+      end
+    end
+
+    if space_values[:outdoor_weight] > 0
+      sensor_oa = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Site Outdoor Air Drybulb Temperature')
+      sensor_oa.setName('oa_temp')
+    end
+
+    if space_values[:ground_weight] > 0
+      sensor_gnd = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Site Surface Ground Temperature')
+      sensor_gnd.setName('ground_temp')
+    end
+
+    actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(sch, *EPlus::EMSActuatorScheduleConstantValue)
+    actuator.setName("#{location.gsub(' ', '_').gsub('-', '_')}_temp_sch")
+
+    # EMS to actuate schedule
+    program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    program.setName("#{location.gsub('-', '_')} Temperature Program")
+    program.addLine("Set #{actuator.name} = 0.0")
+    if not sensor_ia.nil?
+      program.addLine("Set #{actuator.name} = #{actuator.name} + (#{sensor_ia} * #{space_values[:indoor_weight]})")
+    end
+    if not sensor_oa.nil?
+      program.addLine("Set #{actuator.name} = #{actuator.name} + (#{sensor_oa.name} * #{space_values[:outdoor_weight]})")
+    end
+    if not sensor_gnd.nil?
+      program.addLine("Set #{actuator.name} = #{actuator.name} + (#{sensor_gnd.name} * #{space_values[:ground_weight]})")
+    end
+    if not space_values[:temp_min].nil?
+      if space_values[:temp_min].is_a? String
+        min_temp_c = space_values[:temp_min]
+      else
+        min_temp_c = UnitConversions.convert(space_values[:temp_min], 'F', 'C')
+      end
+      program.addLine("If #{actuator.name} < #{min_temp_c}")
+      program.addLine("Set #{actuator.name} = #{min_temp_c}")
+      program.addLine('EndIf')
+    end
+
+    program_cm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    program_cm.setName("#{program.name} calling manager")
+    program_cm.setCallingPoint('EndOfSystemTimestepAfterHVACReporting')
+    program_cm.addProgram(program)
+
+    return sch
+  end
+
+  # Returns an OS:Space, or temperature OS:Schedule for a MF space, or nil if outside
+  # Should be called when the object's energy use is sensitive to ambient temperature
+  # (e.g., water heaters, ducts, and refrigerators).
+  #
+  # @param location [String] the location of interest (HPXML::LocationXXX)
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @return [OpenStudio::Model::Space or OpenStudio::Model::ScheduleConstant] OpenStudio Space or Schedule object
+  def self.get_space_or_schedule_from_location(location, model, spaces)
+    return if [HPXML::LocationOtherExterior,
+               HPXML::LocationOutside,
+               HPXML::LocationRoofDeck].include? location
+
+    sch = nil
+    space = nil
+    if [HPXML::LocationOtherHeatedSpace,
+        HPXML::LocationOtherHousingUnit,
+        HPXML::LocationOtherMultifamilyBufferSpace,
+        HPXML::LocationOtherNonFreezingSpace,
+        HPXML::LocationExteriorWall,
+        HPXML::LocationUnderSlab].include? location
+      # if located in spaces where we don't model a thermal zone, create and return temperature schedule
+      sch = get_space_temperature_schedule(model, location, spaces)
+    else
+      space = get_space_from_location(location, spaces)
+    end
+
+    return space, sch
+  end
+
+  # Returns an OS:Space, or nil if a MF space or outside
+  # Should be called when the object's energy use is NOT sensitive to ambient temperature
+  # (e.g., appliances).
+  #
+  # @param location [String] the location of interest (HPXML::LocationXXX)
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @return [OpenStudio::Model::Space] OpenStudio Space object
+  def self.get_space_from_location(location, spaces)
+    return if [HPXML::LocationOutside,
+               HPXML::LocationOtherHeatedSpace,
+               HPXML::LocationOtherHousingUnit,
+               HPXML::LocationOtherMultifamilyBufferSpace,
+               HPXML::LocationOtherNonFreezingSpace].include? location
+
+    if HPXML::conditioned_locations.include? location
+      location = HPXML::LocationConditionedSpace
+    end
+
+    return spaces[location]
+  end
+
   # Calculates space heights as the max z coordinate minus the min z coordinate.
   #
   # @param spaces [Array<OpenStudio::Model::Space>] array of OpenStudio::Model::Space objects
@@ -746,20 +1963,6 @@ module Geometry
     return yrange
   end
 
-  # Table 4.2.2(3). Internal Gains for Reference Homes
-  #
-  # @return [Array<Double, Double, Double, Double>] TODO
-  def self.get_occupancy_default_values()
-    hrs_per_day = 16.5 # hrs/day
-    sens_gains = 3716.0 # Btu/person/day
-    lat_gains = 2884.0 # Btu/person/day
-    tot_gains = sens_gains + lat_gains
-    heat_gain = tot_gains / hrs_per_day # Btu/person/hr
-    sens_frac = sens_gains / tot_gains
-    lat_frac = lat_gains / tot_gains
-    return heat_gain, hrs_per_day, sens_frac, lat_frac
-  end
-
   # Calculates the minimum buffer distance that the parent surface
   # needs relative to the subsurface in order to prevent E+ warnings
   # about "Very small surface area".
@@ -767,9 +1970,41 @@ module Geometry
   # @param length [Double] length of the subsurface (m)
   # @param width [Double] width of the subsurface (m)
   # @return [Double] minimum needed buffer distance (m)
-  def self.calculate_subsurface_parent_buffer(length:,
-                                              width:)
+  def self.calculate_subsurface_parent_buffer(length, width)
     min_surface_area = 0.005 # m^2
     return 0.5 * (((length + width)**2 + 4.0 * min_surface_area)**0.5 - length - width)
+  end
+
+  # For a provided HPXML Location, create an OpenStudio Space and Thermal Zone if the provided spaces hash doesn't already contain the OpenStudio Space.
+  # Otherwise, return the already-created OpenStudio Space for the provided HPXML Location.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param location [String] the location of interest (HPXML::LocationXXX)
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [OpenStudio::Model::Space] the OpenStudio::Model::Space object corresponding to HPXML::LocationXXX
+  def self.create_or_get_space(model, spaces, location, hpxml_bldg)
+    if spaces[location].nil?
+      create_space_and_zone(model, spaces, location, hpxml_bldg.building_construction.number_of_units)
+    end
+    return spaces[location]
+  end
+
+  # Store the HPXML Building object unit number for use in reporting measure.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param hpxml [HPXML] HPXML object
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [nil]
+  def self.apply_building_unit(model, hpxml, hpxml_bldg)
+    return if hpxml.buildings.size == 1
+
+    unit_num = hpxml.buildings.index(hpxml_bldg) + 1
+
+    unit = OpenStudio::Model::BuildingUnit.new(model)
+    unit.additionalProperties.setFeature('unit_num', unit_num)
+    model.getSpaces.each do |s|
+      s.setBuildingUnit(unit)
+    end
   end
 end

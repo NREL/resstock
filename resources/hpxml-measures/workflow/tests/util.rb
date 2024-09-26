@@ -242,6 +242,9 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     if (not hpxml_bldg.hvac_controls.empty?) && (hpxml_bldg.hvac_controls[0].seasons_heating_begin_month != 1)
       next if message.include? 'It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus outside of an HVAC season.'
     end
+    if !hpxml_header.unavailable_periods.select { |up| (up.column_name == 'No Space Heating') || (up.column_name == 'No Space Cooling') }.empty?
+      next if message.include? 'It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus during an unavailable period.'
+    end
     if hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath.include? 'US_CO_Boulder_AMY_2012.epw'
       next if message.include? 'No design condition info found; calculating design conditions from EPW weather data.'
     end
@@ -253,6 +256,12 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     end
     if hpxml_path.include? 'base-zones'
       next if message.include? 'While multiple conditioned zones are specified, the EnergyPlus model will only include a single conditioned thermal zone.'
+    end
+    if hpxml_bldg.windows.any? { |w| w.exterior_shading_type == 'external overhangs' && w.overhangs_depth.to_f > 0 }
+      next if message.include? "Exterior shading type is 'external overhangs', but overhangs are explicitly defined; exterior shading type will be ignored."
+    end
+    if hpxml_bldg.windows.any? { |w| w.exterior_shading_type == 'building' } && hpxml_bldg.neighbor_buildings.size > 0
+      next if message.include? "Exterior shading type is 'building', but neighbor buildings are explicitly defined; exterior shading type will be ignored."
     end
 
     # FUTURE: Revert this eventually
@@ -1158,9 +1167,9 @@ def _check_unit_multiplier_results(xml, hpxml_bldg, annual_results_1x, annual_re
         end
 
         abs_val_delta = (val_1x - val_10x).abs
-        avg_val = [val_1x, val_10x].sum / 2.0
-        if avg_val > 0
-          abs_val_frac = abs_val_delta / avg_val
+        abs_avg_val = ([val_1x, val_10x].sum / 2.0).abs
+        if abs_avg_val > 0
+          abs_val_frac = abs_val_delta / abs_avg_val
         end
 
         # FUTURE: Address these

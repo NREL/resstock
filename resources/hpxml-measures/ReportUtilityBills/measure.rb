@@ -488,7 +488,8 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
         data = data.zip(*monthly_data)
 
         # Write file
-        CSV.open(monthly_output_path, 'wb') { |csv| data.to_a.each { |elem| csv << elem } }
+        # Note: We don't use the CSV library here because it's slow for large files
+        File.open(monthly_output_path, 'wb') { |csv| data.to_a.each { |elem| csv << "#{elem.join(',')}\n" } }
       elsif ['json', 'msgpack'].include? args[:output_format]
         h = {}
         h['Time'] = data[2..-1]

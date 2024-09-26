@@ -5616,7 +5616,7 @@ Arguments
      - 
      - String
      - auto
-     - Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
+     - Enter a date range like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
    * - ``hvac_control_cooling_weekday_setpoint_temp``
      - true
      - deg-F
@@ -6279,7 +6279,7 @@ Arguments
      - 
      - String
      -
-     - Zip code of the home address.
+     - Zip code of the home address. Either this or the Weather Station: EnergyPlus Weather (EPW) Filepath input below must be provided.
    * - ``site_time_zone_utc_offset``
      - false
      - hr
@@ -6287,11 +6287,11 @@ Arguments
      - auto
      - Time zone UTC offset of the home address. Must be between -12 and 14. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``weather_station_epw_filepath``
-     - true
+     - false
      - 
      - String
      -
-     - Path of the EPW file.
+     - Path of the EPW file. Either this or the Site: Zip Code input above must be provided.
 
 Options
 *******
@@ -36356,6 +36356,12 @@ Arguments
      - Double
      -
      - Average distance from the floor to the ceiling.
+   * - ``geometry_unit_height_above_grade``
+     - false
+     - ft
+     - Double
+     - auto
+     - Describes the above-grade height of apartment units on upper floors or homes above ambient or belly-and-wing foundations. It is defined as the height of the lowest conditioned floor above grade and is used to calculate the wind speed for the infiltration model. If not provided, the OS-HPXML default (see `HPXML Building Construction <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-building-construction>`_) is used.
 
 Options
 *******
@@ -36372,32 +36378,38 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``geometry_unit_type``
      - ``geometry_unit_aspect_ratio``
      - ``geometry_average_ceiling_height``
+     - ``geometry_unit_height_above_grade``
 
    * - Mobile Home
      - 6.2%
      - manufactured home
      - 1.8
      - 8
+     - auto
    * - Multi-Family with 2 - 4 Units
      - 8%
      - apartment unit
      - 0.5556
      - 8
+     - auto
    * - Multi-Family with 5+ Units
      - 18%
      - apartment unit
      - 0.5556
      - 8
+     - auto
    * - Single-Family Attached
      - 5.9%
      - single-family attached
      - 0.5556
      - 8
+     - auto
    * - Single-Family Detached
      - 61%
      - single-family detached
      - 1.8
      - 8
+     - auto
 
 .. _geometry_floor_area:
 
@@ -41621,7 +41633,7 @@ Arguments
      - 
      - String
      - auto
-     - Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
+     - Enter a date range like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
    * - ``hvac_control_heating_weekday_setpoint_temp``
      - true
      - deg-F
@@ -42117,7 +42129,7 @@ Arguments
      - 
      - String
      - auto
-     - Enter a date like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see `HPXML Lighting <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-lighting>`_) is used.
+     - Enter a date range like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see `HPXML Lighting <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-lighting>`_) is used.
 
 Options
 *******
@@ -43888,18 +43900,24 @@ Arguments
      - Type
      - Choices
      - Description
+   * - ``window_interior_shading_type``
+     - false
+     - 
+     - Choice
+     - auto, light curtains, light shades, light blinds, medium curtains, medium shades, medium blinds, dark curtains, dark shades, dark blinds, none
+     - Type of window interior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see `HPXML Interior Shading <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading>`_) is used.
    * - ``window_interior_shading_winter``
      - false
      - Frac
      - Double
      - auto
-     - Interior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+     - Interior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Interior Shading <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading>`_) is used.
    * - ``window_interior_shading_summer``
      - false
      - Frac
      - Double
      - auto
-     - Interior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+     - Interior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Interior Shading <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading>`_) is used.
 
 Options
 *******
@@ -43913,11 +43931,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - Option name
      - Stock saturation
+     - ``window_interior_shading_type``
      - ``window_interior_shading_winter``
      - ``window_interior_shading_summer``
 
    * - Summer = 0.7, Winter = 0.85
      - 100%
+     - auto
      - 0.85
      - 0.7
 
@@ -63535,24 +63555,36 @@ Arguments
      - Double
      -
      - Full-assembly NFRC solar heat gain coefficient.
+   * - ``window_exterior_shading_type``
+     - false
+     - 
+     - Choice
+     - auto, solar film, solar screens, none
+     - Type of window exterior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see `HPXML Exterior Shading <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading>`_) is used.
    * - ``window_exterior_shading_winter``
      - false
      - Frac
      - Double
      - auto
-     - Exterior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+     - Exterior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Exterior Shading <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading>`_) is used.
    * - ``window_exterior_shading_summer``
      - false
      - Frac
      - Double
      - auto
-     - Exterior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+     - Exterior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Exterior Shading <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading>`_) is used.
    * - ``window_shading_summer_season``
      - false
      - 
      - String
      - auto
-     - Enter a date like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+     - Enter a date range like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+   * - ``window_insect_screens``
+     - false
+     - 
+     - Choice
+     - auto, none, exterior, interior
+     - The type of insect screens, if present. If not provided, assumes there are no insect screens.
    * - ``skylight_ufactor``
      - true
      - Btu/hr-ft^2-R
@@ -63587,9 +63619,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``window_natvent_availability``
      - ``window_ufactor``
      - ``window_shgc``
+     - ``window_exterior_shading_type``
      - ``window_exterior_shading_winter``
      - ``window_exterior_shading_summer``
      - ``window_shading_summer_season``
+     - ``window_insect_screens``
      - ``skylight_ufactor``
      - ``skylight_shgc``
      - ``skylight_storm_type``
@@ -63599,6 +63633,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.76
      - 0.67
+     - auto
+     - auto
      - auto
      - auto
      - auto
@@ -63613,6 +63649,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
+     - auto
+     - auto
      - 0.37
      - 0.3
      - auto
@@ -63621,6 +63659,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.49
      - 0.56
+     - auto
+     - auto
      - auto
      - auto
      - auto
@@ -63635,6 +63675,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
+     - auto
+     - auto
      - 0.37
      - 0.3
      - auto
@@ -63643,6 +63685,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.38
      - 0.44
+     - auto
+     - auto
      - auto
      - auto
      - auto
@@ -63657,6 +63701,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
+     - auto
+     - auto
      - 0.37
      - 0.3
      - auto
@@ -63665,6 +63711,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.67
      - 0.56
+     - auto
+     - auto
      - auto
      - auto
      - auto
@@ -63679,6 +63727,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
+     - auto
+     - auto
      - 0.37
      - 0.3
      - auto
@@ -63687,6 +63737,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.47
      - 0.54
+     - auto
+     - auto
      - auto
      - auto
      - auto
@@ -63701,11 +63753,15 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
+     - auto
+     - auto
      - 0.37
      - 0.3
      - auto
    * - Void
      - 0%
+     - 
+     - 
      - 
      - 
      - 

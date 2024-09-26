@@ -1,17 +1,38 @@
 # frozen_string_literal: true
 
-# Collection of methods for adding photovoltaic-related OpenStudio objects.
+# Collection of methods related to Photovoltaic systems.
 module PV
+  # Adds any HPXML Photovoltaics to the OpenStudio model.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [nil]
+  def self.apply(model, hpxml_bldg)
+    # Error-checking
+    hpxml_bldg.pv_systems.each do |pv_system|
+      next if pv_system.inverter.inverter_efficiency == hpxml_bldg.pv_systems[0].inverter.inverter_efficiency
+
+      fail 'Expected all InverterEfficiency values to be equal.'
+    end
+
+    hpxml_bldg.pv_systems.each do |pv_system|
+      apply_pv_system(model, hpxml_bldg, pv_system)
+    end
+  end
+
+  # Adds the HPXML Photovoltaic to the OpenStudio model.
+  #
   # Apply a photovoltaic system to the model using OpenStudio ElectricLoadCenterDistribution, ElectricLoadCenterInverterPVWatts, and GeneratorPVWatts objects.
   # The system may be shared, in which case max power is apportioned to the dwelling unit by total number of bedrooms served.
   # In case an ElectricLoadCenterDistribution object does not already exist, a new ElectricLoadCenterInverterPVWatts object is set on a new ElectricLoadCenterDistribution object.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param pv_system [HPXML::PVSystem] Object that defines a single solar electric photovoltaic (PV) system
-  # @param unit_multiplier [Integer] Number of similar dwelling units
   # @return [nil]
-  def self.apply(model, nbeds, pv_system, unit_multiplier)
+  def self.apply_pv_system(model, hpxml_bldg, pv_system)
+    nbeds = hpxml_bldg.building_construction.number_of_bedrooms
+    unit_multiplier = hpxml_bldg.building_construction.number_of_units
     obj_name = pv_system.id
 
     # Apply unit multiplier

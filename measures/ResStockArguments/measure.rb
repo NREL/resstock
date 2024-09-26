@@ -75,6 +75,21 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Additional arguments
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_vacancy_periods', false)
+    arg.setDisplayName('Schedules: Vacancy Periods')
+    arg.setDescription('Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_power_outage_periods', false)
+    arg.setDisplayName('Schedules: Power Outage Periods')
+    arg.setDescription('Specifies the power outage periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_power_outage_periods_window_natvent_availability', false)
+    arg.setDisplayName('Schedules: Power Outage Periods Window Natural Ventilation Availability')
+    arg.setDescription("The availability of the natural ventilation schedule during the power outage periods. Valid choices are '#{[HPXML::ScheduleRegular, HPXML::ScheduleAvailable, HPXML::ScheduleUnavailable].join("', '")}'. If multiple periods, use a comma-separated list.")
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_unit_cfa_bin', true)
     arg.setDisplayName('Geometry: Unit Conditioned Floor Area Bin')
     arg.setDescription("E.g., '2000-2499'.")
@@ -402,6 +417,41 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
 
+    # Unavailable periods
+    schedules_unavailable_period_types = []
+    schedules_unavailable_period_dates = []
+    schedules_unavailable_period_window_natvent_availabilities = []
+
+    if !args[:schedules_vacancy_periods].nil?
+      schedules_vacancy_periods = args[:schedules_vacancy_periods].split(',').map(&:strip)
+      schedules_vacancy_periods.each do |schedules_vacancy_period|
+        schedules_unavailable_period_types << 'Vacancy'
+        schedules_unavailable_period_dates << schedules_vacancy_period
+        schedules_unavailable_period_window_natvent_availabilities << ''
+      end
+    end
+    if !args[:schedules_power_outage_periods].nil?
+      schedules_power_outage_periods = args[:schedules_power_outage_periods].split(',').map(&:strip)
+
+      natvent_availabilities = []
+      if not args[:schedules_power_outage_periods_window_natvent_availability].nil?
+        natvent_availabilities = args[:schedules_power_outage_periods_window_natvent_availability].split(',').map(&:strip)
+      end
+
+      schedules_power_outage_periods = schedules_power_outage_periods.zip(natvent_availabilities)
+      schedules_power_outage_periods.each do |schedules_power_outage_period|
+        outage_period, natvent_availability = schedules_power_outage_period
+
+        schedules_unavailable_period_types << 'Power Outage'
+        schedules_unavailable_period_dates << outage_period
+        schedules_unavailable_period_window_natvent_availabilities << natvent_availability
+      end
+    end
+
+    args[:schedules_unavailable_period_types] = schedules_unavailable_period_types.join(', ')
+    args[:schedules_unavailable_period_dates] = schedules_unavailable_period_dates.join(', ')
+    args[:schedules_unavailable_period_window_natvent_availabilities] = schedules_unavailable_period_window_natvent_availabilities.join(', ')
+
     # Conditioned floor area
     if args[:geometry_unit_cfa] == Constants::Auto
       # TODO: Disaggregate detached and mobile home
@@ -466,18 +516,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:misc_plug_loads_other_usage_multiplier] = args[:misc_plug_loads_other_usage_multiplier] * args[:misc_plug_loads_other_2_usage_multiplier]
     args[:misc_plug_loads_well_pump_usage_multiplier] = args[:misc_plug_loads_well_pump_usage_multiplier] * args[:misc_plug_loads_well_pump_2_usage_multiplier]
     args[:misc_plug_loads_vehicle_usage_multiplier] = args[:misc_plug_loads_vehicle_usage_multiplier] * args[:misc_plug_loads_vehicle_2_usage_multiplier]
-
-    # Other
-    if args[:misc_plug_loads_other_annual_kwh] == Constants::Auto
-      # TODO: Disaggregate detached and mobile home
-      if [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include?(args[:geometry_unit_type])
-        args[:misc_plug_loads_other_annual_kwh] = 863.26 + 219.26 * args[:geometry_unit_num_occupants] + 0.33 * args[:geometry_unit_cfa] # RECS 2020
-      elsif [HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type])
-        args[:misc_plug_loads_other_annual_kwh] = 654.92 + 206.52 * args[:geometry_unit_num_occupants] + 0.21 * args[:geometry_unit_cfa] # RECS 2020
-      elsif [HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type])
-        args[:misc_plug_loads_other_annual_kwh] = 706.6 + 149.27 * args[:geometry_unit_num_occupants] + 0.1 * args[:geometry_unit_cfa] # RECS 2020
-      end
-    end
 
     # PV
     if args[:pv_system_present]

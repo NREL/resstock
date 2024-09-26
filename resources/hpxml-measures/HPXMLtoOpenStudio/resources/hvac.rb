@@ -1,34 +1,274 @@
 # frozen_string_literal: true
 
-# TODO
+# Collection of methods related to HVAC systems.
 module HVAC
   AirSourceHeatRatedODB = 47.0 # degF, Rated outdoor drybulb for air-source systems, heating
   AirSourceHeatRatedIDB = 70.0 # degF, Rated indoor drybulb for air-source systems, heating
   AirSourceCoolRatedODB = 95.0 # degF, Rated outdoor drybulb for air-source systems, cooling
+  AirSourceCoolRatedOWB = 75.0 # degF, Rated outdoor wetbulb for air-source systems, cooling
+  AirSourceCoolRatedIDB = 80.0 # degF, Rated indoor drybulb for air-source systems, cooling
   AirSourceCoolRatedIWB = 67.0 # degF, Rated indoor wetbulb for air-source systems, cooling
   CrankcaseHeaterTemp = 50.0 # degF
 
   # TODO
   #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
+  # @param hvac_season_days [Hash] Map of htg/clg => Array of 365 days with 1s during the heating/cooling season and 0s otherwise
+  # @return [Hash] Map of HPXML System ID -> AirLoopHVAC (or ZoneHVACFourPipeFanCoil)
+  def self.apply_hvac_systems(runner, model, weather, spaces, hpxml_bldg, hpxml_header, schedules_file, hvac_season_days)
+    # Init
+    hvac_remaining_load_fracs = { htg: 1.0, clg: 1.0 }
+    airloop_map = {}
+
+    if hpxml_bldg.hvac_controls.size == 0
+      return airloop_map
+    end
+
+    hvac_unavailable_periods = { htg: Schedule.get_unavailable_periods(runner, SchedulesFile::Columns[:SpaceHeating].name, hpxml_header.unavailable_periods),
+                                 clg: Schedule.get_unavailable_periods(runner, SchedulesFile::Columns[:SpaceCooling].name, hpxml_header.unavailable_periods) }
+
+    apply_unit_multiplier(hpxml_bldg, hpxml_header)
+    ensure_nonzero_sizing_values(hpxml_bldg)
+    apply_ideal_air_system(model, weather, spaces, hpxml_bldg, hpxml_header, hvac_season_days, hvac_unavailable_periods, hvac_remaining_load_fracs)
+    apply_cooling_system(runner, model, weather, spaces, hpxml_bldg, hpxml_header, schedules_file, airloop_map, hvac_season_days, hvac_unavailable_periods, hvac_remaining_load_fracs)
+    hp_backup_obj = apply_heating_system(runner, model, weather, spaces, hpxml_bldg, hpxml_header, schedules_file, airloop_map, hvac_season_days, hvac_unavailable_periods, hvac_remaining_load_fracs)
+    apply_heat_pump(runner, model, weather, spaces, hpxml_bldg, hpxml_header, schedules_file, airloop_map, hvac_season_days, hvac_unavailable_periods, hvac_remaining_load_fracs, hp_backup_obj)
+
+    return airloop_map
+  end
+
+  # Adds any HPXML Cooling Systems to the OpenStudio model.
+  # TODO for adding more description (e.g., around sequential load fractions)
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
+  # @param airloop_map [Hash] Map of HPXML System ID => OpenStudio AirLoopHVAC (or ZoneHVACFourPipeFanCoil or ZoneHVACBaseboardConvectiveWater) objects
+  # @param hvac_season_days [Hash] Map of htg/clg => Array of 365 days with 1s during the heating/cooling season and 0s otherwise
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
+  # @param hvac_remaining_load_fracs [Hash] Map of htg/clg => Fraction of heating/cooling load that has not yet been met
+  # @return [nil]
+  def self.apply_cooling_system(runner, model, weather, spaces, hpxml_bldg, hpxml_header, schedules_file, airloop_map,
+                                hvac_season_days, hvac_unavailable_periods, hvac_remaining_load_fracs)
+    conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
+
+    get_hpxml_hvac_systems(hpxml_bldg).each do |hvac_system|
+      next if hvac_system[:cooling].nil?
+      next unless hvac_system[:cooling].is_a? HPXML::CoolingSystem
+
+      cooling_system = hvac_system[:cooling]
+      heating_system = hvac_system[:heating]
+
+      check_distribution_system(cooling_system.distribution_system, cooling_system.cooling_system_type)
+
+      hvac_sequential_load_fracs = {}
+
+      # Calculate cooling sequential load fractions
+      hvac_sequential_load_fracs[:clg] = calc_sequential_load_fractions(cooling_system.fraction_cool_load_served.to_f, hvac_remaining_load_fracs[:clg], hvac_season_days[:clg])
+      hvac_remaining_load_fracs[:clg] -= cooling_system.fraction_cool_load_served.to_f
+
+      # Calculate heating sequential load fractions
+      if not heating_system.nil?
+        hvac_sequential_load_fracs[:htg] = calc_sequential_load_fractions(heating_system.fraction_heat_load_served, hvac_remaining_load_fracs[:htg], hvac_season_days[:htg])
+        hvac_remaining_load_fracs[:htg] -= heating_system.fraction_heat_load_served
+      elsif cooling_system.has_integrated_heating
+        hvac_sequential_load_fracs[:htg] = calc_sequential_load_fractions(cooling_system.integrated_heating_system_fraction_heat_load_served, hvac_remaining_load_fracs[:htg], hvac_season_days[:htg])
+        hvac_remaining_load_fracs[:htg] -= cooling_system.integrated_heating_system_fraction_heat_load_served
+      else
+        hvac_sequential_load_fracs[:htg] = [0]
+      end
+
+      sys_id = cooling_system.id
+      if [HPXML::HVACTypeCentralAirConditioner,
+          HPXML::HVACTypeRoomAirConditioner,
+          HPXML::HVACTypeMiniSplitAirConditioner,
+          HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type
+
+        airloop_map[sys_id] = apply_air_source_hvac_systems(model, runner, weather, cooling_system, heating_system, hvac_sequential_load_fracs,
+                                                            conditioned_zone, hvac_unavailable_periods, schedules_file, hpxml_bldg, hpxml_header)
+
+      elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
+
+        airloop_map[sys_id] = apply_evaporative_cooler(model, cooling_system, hvac_sequential_load_fracs, conditioned_zone, hvac_unavailable_periods,
+                                                       hpxml_bldg.building_construction.number_of_units)
+      end
+    end
+  end
+
+  # Adds any HPXML Heating Systems to the OpenStudio model.
+  # TODO for adding more description (e.g., around sequential load fractions)
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
+  # @param airloop_map [Hash] Map of HPXML System ID => OpenStudio AirLoopHVAC (or ZoneHVACFourPipeFanCoil or ZoneHVACBaseboardConvectiveWater) objects
+  # @param hvac_season_days [Hash] Map of htg/clg => Array of 365 days with 1s during the heating/cooling season and 0s otherwise
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
+  # @param hvac_remaining_load_fracs [Hash] Map of htg/clg => Fraction of heating/cooling load that has not yet been met
+  # @return [TODO] TODO
+  def self.apply_heating_system(runner, model, weather, spaces, hpxml_bldg, hpxml_header, schedules_file, airloop_map,
+                                hvac_season_days, hvac_unavailable_periods, hvac_remaining_load_fracs)
+    conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
+    hp_backup_obj = nil
+
+    get_hpxml_hvac_systems(hpxml_bldg).each do |hvac_system|
+      next if hvac_system[:heating].nil?
+      next unless hvac_system[:heating].is_a? HPXML::HeatingSystem
+
+      cooling_system = hvac_system[:cooling]
+      heating_system = hvac_system[:heating]
+
+      check_distribution_system(heating_system.distribution_system, heating_system.heating_system_type)
+
+      if (heating_system.heating_system_type == HPXML::HVACTypeFurnace) && (not cooling_system.nil?)
+        next # Already processed combined AC+furnace
+      end
+
+      hvac_sequential_load_fracs = {}
+
+      # Calculate heating sequential load fractions
+      if heating_system.is_heat_pump_backup_system
+        # Heating system will be last in the EquipmentList and should meet entirety of
+        # remaining load during the heating season.
+        hvac_sequential_load_fracs[:htg] = hvac_season_days[:htg].map(&:to_f)
+        if not heating_system.fraction_heat_load_served.nil?
+          fail 'Heat pump backup system cannot have a fraction heat load served specified.'
+        end
+      else
+        hvac_sequential_load_fracs[:htg] = calc_sequential_load_fractions(heating_system.fraction_heat_load_served, hvac_remaining_load_fracs[:htg], hvac_season_days[:htg])
+        hvac_remaining_load_fracs[:htg] -= heating_system.fraction_heat_load_served
+      end
+
+      sys_id = heating_system.id
+      if [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
+
+        airloop_map[sys_id] = apply_air_source_hvac_systems(model, runner, weather, nil, heating_system, hvac_sequential_load_fracs,
+                                                            conditioned_zone, hvac_unavailable_periods, schedules_file, hpxml_bldg, hpxml_header)
+
+      elsif [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
+
+        airloop_map[sys_id] = apply_boiler(model, runner, heating_system, hvac_sequential_load_fracs, conditioned_zone, hvac_unavailable_periods)
+
+      elsif [HPXML::HVACTypeElectricResistance].include? heating_system.heating_system_type
+
+        apply_electric_baseboard(model, heating_system, hvac_sequential_load_fracs, conditioned_zone, hvac_unavailable_periods)
+
+      elsif [HPXML::HVACTypeStove,
+             HPXML::HVACTypeSpaceHeater,
+             HPXML::HVACTypeWallFurnace,
+             HPXML::HVACTypeFloorFurnace,
+             HPXML::HVACTypeFireplace].include? heating_system.heating_system_type
+
+        apply_unit_heater(model, heating_system, hvac_sequential_load_fracs, conditioned_zone, hvac_unavailable_periods)
+      end
+
+      next unless heating_system.is_heat_pump_backup_system
+
+      # Store OS object for later use
+      hp_backup_obj = model.getZoneHVACEquipmentLists.find { |el| el.thermalZone == conditioned_zone }.equipment[-1]
+    end
+    return hp_backup_obj
+  end
+
+  # Adds any HPXML Heat Pumps to the OpenStudio model.
+  # TODO for adding more description (e.g., around sequential load fractions)
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
+  # @param airloop_map [Hash] Map of HPXML System ID => OpenStudio AirLoopHVAC (or ZoneHVACFourPipeFanCoil or ZoneHVACBaseboardConvectiveWater) objects
+  # @param hvac_season_days [Hash] Map of htg/clg => Array of 365 days with 1s during the heating/cooling season and 0s otherwise
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
+  # @param hvac_remaining_load_fracs [Hash] Map of htg/clg => Fraction of heating/cooling load that has not yet been met
+  # @param hp_backup_obj [TODO] TODO
+  # @return [nil]
+  def self.apply_heat_pump(runner, model, weather, spaces, hpxml_bldg, hpxml_header, schedules_file, airloop_map,
+                           hvac_season_days, hvac_unavailable_periods, hvac_remaining_load_fracs, hp_backup_obj)
+    conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
+
+    get_hpxml_hvac_systems(hpxml_bldg).each do |hvac_system|
+      next if hvac_system[:cooling].nil?
+      next unless hvac_system[:cooling].is_a? HPXML::HeatPump
+
+      heat_pump = hvac_system[:cooling]
+
+      check_distribution_system(heat_pump.distribution_system, heat_pump.heat_pump_type)
+
+      hvac_sequential_load_fracs = {}
+
+      # Calculate heating sequential load fractions
+      hvac_sequential_load_fracs[:htg] = calc_sequential_load_fractions(heat_pump.fraction_heat_load_served, hvac_remaining_load_fracs[:htg], hvac_season_days[:htg])
+      hvac_remaining_load_fracs[:htg] -= heat_pump.fraction_heat_load_served
+
+      # Calculate cooling sequential load fractions
+      hvac_sequential_load_fracs[:clg] = calc_sequential_load_fractions(heat_pump.fraction_cool_load_served, hvac_remaining_load_fracs[:clg], hvac_season_days[:clg])
+      hvac_remaining_load_fracs[:clg] -= heat_pump.fraction_cool_load_served
+
+      sys_id = heat_pump.id
+      if [HPXML::HVACTypeHeatPumpWaterLoopToAir].include? heat_pump.heat_pump_type
+
+        airloop_map[sys_id] = apply_water_loop_to_air_heat_pump(model, heat_pump, hvac_sequential_load_fracs, conditioned_zone, hvac_unavailable_periods)
+
+      elsif [HPXML::HVACTypeHeatPumpAirToAir,
+             HPXML::HVACTypeHeatPumpMiniSplit,
+             HPXML::HVACTypeHeatPumpPTHP,
+             HPXML::HVACTypeHeatPumpRoom].include? heat_pump.heat_pump_type
+
+        airloop_map[sys_id] = apply_air_source_hvac_systems(model, runner, weather, heat_pump, heat_pump, hvac_sequential_load_fracs,
+                                                            conditioned_zone, hvac_unavailable_periods, schedules_file, hpxml_bldg, hpxml_header)
+
+      elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
+
+        airloop_map[sys_id] = apply_ground_to_air_heat_pump(model, runner, weather, heat_pump, hvac_sequential_load_fracs,
+                                                            conditioned_zone, hpxml_bldg.site.ground_conductivity, hpxml_bldg.site.ground_diffusivity,
+                                                            hvac_unavailable_periods, hpxml_bldg.building_construction.number_of_units)
+
+      end
+
+      next if heat_pump.backup_system.nil?
+
+      equipment_list = model.getZoneHVACEquipmentLists.find { |el| el.thermalZone == conditioned_zone }
+
+      # Set priority to be last (i.e., after the heat pump that it is backup for)
+      equipment_list.setHeatingPriority(hp_backup_obj, 99)
+      equipment_list.setCoolingPriority(hp_backup_obj, 99)
+    end
+  end
+
+  # TODO
+  #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param weather [WeatherFile] Weather object containing EPW information
   # @param cooling_system [TODO] TODO
   # @param heating_system [TODO] TODO
-  # @param sequential_cool_load_fracs [TODO] TODO
-  # @param sequential_heat_load_fracs [TODO] TODO
-  # @param weather_max_drybulb [TODO] TODO
-  # @param weather_min_drybulb [TODO] TODO
+  # @param hvac_sequential_load_fracs [Array<Double>] Array of daily fractions of remaining heating/cooling load to bet met by the HVAC system
   # @param control_zone [OpenStudio::Model::ThermalZone] Conditioned space thermal zone
-  # @param hvac_unavailable_periods [TODO] TODO
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @return [TODO] TODO
-  def self.apply_air_source_hvac_systems(model, runner, cooling_system, heating_system,
-                                         sequential_cool_load_fracs, sequential_heat_load_fracs,
-                                         weather_max_drybulb, weather_min_drybulb,
-                                         control_zone, hvac_unavailable_periods, schedules_file, hpxml_bldg,
-                                         hpxml_header)
+  def self.apply_air_source_hvac_systems(model, runner, weather, cooling_system, heating_system, hvac_sequential_load_fracs,
+                                         control_zone, hvac_unavailable_periods, schedules_file, hpxml_bldg, hpxml_header)
     is_heatpump = false
 
     if (not cooling_system.nil?)
@@ -131,7 +371,7 @@ module HVAC
     fan_cfms = []
     if not cooling_system.nil?
       # Cooling Coil
-      clg_coil = create_dx_cooling_coil(model, obj_name, cooling_system, max_rated_fan_cfm, weather_max_drybulb, is_onoff_thermostat_ddb)
+      clg_coil = create_dx_cooling_coil(model, obj_name, cooling_system, max_rated_fan_cfm, weather.data.AnnualMaxDrybulb, is_onoff_thermostat_ddb)
 
       clg_cfm = cooling_system.cooling_airflow_cfm
       clg_ap.cool_fan_speed_ratios.each do |r|
@@ -174,7 +414,7 @@ module HVAC
         end
 
         # Heating Coil
-        htg_coil = create_dx_heating_coil(model, obj_name, heating_system, max_rated_fan_cfm, weather_min_drybulb, hpxml_header.defrost_model_type, p_dot_defrost, is_onoff_thermostat_ddb)
+        htg_coil = create_dx_heating_coil(model, obj_name, heating_system, max_rated_fan_cfm, weather.data.AnnualMinDrybulb, hpxml_header.defrost_model_type, p_dot_defrost, is_onoff_thermostat_ddb)
 
         # Supplemental Heating Coil
         htg_supp_coil = create_supp_heating_coil(model, obj_name, heating_system, hpxml_header, runner, hpxml_bldg)
@@ -242,12 +482,12 @@ module HVAC
     end
 
     # Air Loop
-    air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, sequential_heat_load_fracs, sequential_cool_load_fracs, [htg_cfm.to_f, clg_cfm.to_f].max, heating_system, hvac_unavailable_periods)
+    air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, hvac_sequential_load_fracs, [htg_cfm.to_f, clg_cfm.to_f].max, heating_system, hvac_unavailable_periods)
 
     add_backup_staging_EMS(model, air_loop_unitary, htg_supp_coil, control_zone, htg_coil)
     apply_installation_quality(model, heating_system, cooling_system, air_loop_unitary, htg_coil, clg_coil, control_zone)
 
-    # supp coil control in staing EMS
+    # supp coil control in staging EMS
     apply_two_speed_realistic_staging_EMS(model, air_loop_unitary, htg_supp_coil, control_zone, is_onoff_thermostat_ddb, cooling_system)
 
     apply_supp_coil_EMS_for_ddb_thermostat(model, htg_supp_coil, control_zone, htg_coil, is_onoff_thermostat_ddb, cooling_system)
@@ -265,12 +505,12 @@ module HVAC
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param cooling_system [TODO] TODO
-  # @param sequential_cool_load_fracs [TODO] TODO
+  # @param hvac_sequential_load_fracs [Array<Double>] Array of daily fractions of remaining heating/cooling load to bet met by the HVAC system
   # @param control_zone [OpenStudio::Model::ThermalZone] Conditioned space thermal zone
-  # @param hvac_unavailable_periods [TODO] TODO
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
   # @param unit_multiplier [Integer] Number of similar dwelling units
   # @return [TODO] TODO
-  def self.apply_evaporative_cooler(model, cooling_system, sequential_cool_load_fracs, control_zone,
+  def self.apply_evaporative_cooler(model, cooling_system, hvac_sequential_load_fracs, control_zone,
                                     hvac_unavailable_periods, unit_multiplier)
 
     obj_name = Constants::ObjectTypeEvaporativeCooler
@@ -289,7 +529,7 @@ module HVAC
     evap_cooler.additionalProperties.setFeature('HPXML_ID', cooling_system.id) # Used by reporting measure
 
     # Air Loop
-    air_loop = create_air_loop(model, obj_name, evap_cooler, control_zone, [0], sequential_cool_load_fracs, clg_cfm, nil, hvac_unavailable_periods)
+    air_loop = create_air_loop(model, obj_name, evap_cooler, control_zone, hvac_sequential_load_fracs, clg_cfm, nil, hvac_unavailable_periods)
 
     # Fan
     fan_watts_per_cfm = [2.79 * (clg_cfm / unit_multiplier)**-0.29, 0.6].min # W/cfm; fit of efficacy to air flow from the CEC listed equipment
@@ -326,16 +566,14 @@ module HVAC
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param heat_pump [TODO] TODO
-  # @param sequential_heat_load_fracs [TODO] TODO
-  # @param sequential_cool_load_fracs [TODO] TODO
+  # @param hvac_sequential_load_fracs [Array<Double>] Array of daily fractions of remaining heating/cooling load to bet met by the HVAC system
   # @param control_zone [OpenStudio::Model::ThermalZone] Conditioned space thermal zone
   # @param ground_conductivity [TODO] TODO
   # @param ground_diffusivity [TODO] TODO
-  # @param hvac_unavailable_periods [TODO] TODO
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
   # @param unit_multiplier [Integer] Number of similar dwelling units
   # @return [TODO] TODO
-  def self.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
-                                         sequential_heat_load_fracs, sequential_cool_load_fracs,
+  def self.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump, hvac_sequential_load_fracs,
                                          control_zone, ground_conductivity, ground_diffusivity,
                                          hvac_unavailable_periods, unit_multiplier)
 
@@ -521,7 +759,7 @@ module HVAC
     end
 
     # Air Loop
-    air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, sequential_heat_load_fracs, sequential_cool_load_fracs, [htg_cfm, clg_cfm].max, heat_pump, hvac_unavailable_periods)
+    air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, hvac_sequential_load_fracs, [htg_cfm, clg_cfm].max, heat_pump, hvac_unavailable_periods)
 
     # HVAC Installation Quality
     apply_installation_quality(model, heat_pump, heat_pump, air_loop_unitary, htg_coil, clg_coil, control_zone)
@@ -533,14 +771,11 @@ module HVAC
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param heat_pump [TODO] TODO
-  # @param sequential_heat_load_fracs [TODO] TODO
-  # @param sequential_cool_load_fracs [TODO] TODO
+  # @param hvac_sequential_load_fracs [Array<Double>] Array of daily fractions of remaining heating/cooling load to bet met by the HVAC system
   # @param control_zone [OpenStudio::Model::ThermalZone] Conditioned space thermal zone
-  # @param hvac_unavailable_periods [TODO] TODO
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
   # @return [TODO] TODO
-  def self.apply_water_loop_to_air_heat_pump(model, heat_pump,
-                                             sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                             control_zone, hvac_unavailable_periods)
+  def self.apply_water_loop_to_air_heat_pump(model, heat_pump, hvac_sequential_load_fracs, control_zone, hvac_unavailable_periods)
     if heat_pump.fraction_cool_load_served > 0
       # WLHPs connected to chillers or cooling towers should have already been converted to
       # central air conditioners
@@ -578,7 +813,7 @@ module HVAC
     air_loop_unitary = create_air_loop_unitary_system(model, obj_name, fan, htg_coil, clg_coil, htg_supp_coil, htg_cfm, nil)
 
     # Air Loop
-    air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, sequential_heat_load_fracs, sequential_cool_load_fracs, htg_cfm, heat_pump, hvac_unavailable_periods)
+    air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, hvac_sequential_load_fracs, htg_cfm, heat_pump, hvac_unavailable_periods)
 
     return air_loop
   end
@@ -588,11 +823,11 @@ module HVAC
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param heating_system [TODO] TODO
-  # @param sequential_heat_load_fracs [TODO] TODO
+  # @param hvac_sequential_load_fracs [Array<Double>] Array of daily fractions of remaining heating/cooling load to bet met by the HVAC system
   # @param control_zone [OpenStudio::Model::ThermalZone] Conditioned space thermal zone
-  # @param hvac_unavailable_periods [TODO] TODO
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
   # @return [TODO] TODO
-  def self.apply_boiler(model, runner, heating_system, sequential_heat_load_fracs, control_zone, hvac_unavailable_periods)
+  def self.apply_boiler(model, runner, heating_system, hvac_sequential_load_fracs, control_zone, hvac_unavailable_periods)
     obj_name = Constants::ObjectTypeBoiler
     is_condensing = false # FUTURE: Expose as input; default based on AFUE
     oat_reset_enabled = false
@@ -773,7 +1008,7 @@ module HVAC
       end
     end
 
-    set_sequential_load_fractions(model, control_zone, zone_hvac, sequential_heat_load_fracs, nil, hvac_unavailable_periods, heating_system)
+    set_sequential_load_fractions(model, control_zone, zone_hvac, hvac_sequential_load_fracs, hvac_unavailable_periods, heating_system)
 
     return zone_hvac
   end
@@ -782,13 +1017,11 @@ module HVAC
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param heating_system [TODO] TODO
-  # @param sequential_heat_load_fracs [TODO] TODO
+  # @param hvac_sequential_load_fracs [Array<Double>] Array of daily fractions of remaining heating/cooling load to bet met by the HVAC system
   # @param control_zone [OpenStudio::Model::ThermalZone] Conditioned space thermal zone
-  # @param hvac_unavailable_periods [TODO] TODO
-  # @return [TODO] TODO
-  def self.apply_electric_baseboard(model, heating_system,
-                                    sequential_heat_load_fracs, control_zone, hvac_unavailable_periods)
-
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
+  # @return [nil]
+  def self.apply_electric_baseboard(model, heating_system, hvac_sequential_load_fracs, control_zone, hvac_unavailable_periods)
     obj_name = Constants::ObjectTypeElectricBaseboard
 
     # Baseboard
@@ -800,20 +1033,18 @@ module HVAC
     zone_hvac.additionalProperties.setFeature('HPXML_ID', heating_system.id) # Used by reporting measure
     zone_hvac.additionalProperties.setFeature('IsHeatPumpBackup', heating_system.is_heat_pump_backup_system) # Used by reporting measure
 
-    set_sequential_load_fractions(model, control_zone, zone_hvac, sequential_heat_load_fracs, nil, hvac_unavailable_periods, heating_system)
+    set_sequential_load_fractions(model, control_zone, zone_hvac, hvac_sequential_load_fracs, hvac_unavailable_periods, heating_system)
   end
 
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param heating_system [TODO] TODO
-  # @param sequential_heat_load_fracs [TODO] TODO
+  # @param hvac_sequential_load_fracs [Array<Double>] Array of daily fractions of remaining heating/cooling load to bet met by the HVAC system
   # @param control_zone [OpenStudio::Model::ThermalZone] Conditioned space thermal zone
-  # @param hvac_unavailable_periods [TODO] TODO
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
   # @return [TODO] TODO
-  def self.apply_unit_heater(model, heating_system,
-                             sequential_heat_load_fracs, control_zone, hvac_unavailable_periods)
-
+  def self.apply_unit_heater(model, heating_system, hvac_sequential_load_fracs, control_zone, hvac_unavailable_periods)
     obj_name = Constants::ObjectTypeUnitHeater
 
     # Heating Coil
@@ -845,20 +1076,74 @@ module HVAC
     unitary_system.setControllingZoneorThermostatLocation(control_zone)
     unitary_system.addToThermalZone(control_zone)
 
-    set_sequential_load_fractions(model, control_zone, unitary_system, sequential_heat_load_fracs, nil, hvac_unavailable_periods, heating_system)
+    set_sequential_load_fractions(model, control_zone, unitary_system, hvac_sequential_load_fracs, hvac_unavailable_periods, heating_system)
+  end
+
+  # Adds an ideal air system as needed to meet the load under certain circumstances:
+  # 1. the sum of fractions load served is less than 1 and greater than 0 (e.g., room ACs serving a portion of the home's load),
+  #    in which case we need the ideal system to help fully condition the thermal zone to prevent incorrect heat transfers, or
+  # 2. ASHRAE 140 tests where we need heating/cooling loads.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param hvac_season_days [Hash] Map of htg/clg => Array of 365 days with 1s during the heating/cooling season and 0s otherwise
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
+  # @param hvac_remaining_load_fracs [Hash] Map of htg/clg => Fraction of heating/cooling load that has not yet been met
+  # @return [nil]
+  def self.apply_ideal_air_system(model, weather, spaces, hpxml_bldg, hpxml_header, hvac_season_days,
+                                  hvac_unavailable_periods, hvac_remaining_load_fracs)
+    conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
+
+    if hpxml_header.apply_ashrae140_assumptions && (hpxml_bldg.total_fraction_heat_load_served + hpxml_bldg.total_fraction_heat_load_served == 0.0)
+      cooling_load_frac = 1.0
+      heating_load_frac = 1.0
+      if hpxml_header.apply_ashrae140_assumptions
+        if weather.header.StateProvinceRegion.downcase == 'co'
+          cooling_load_frac = 0.0
+        elsif weather.header.StateProvinceRegion.downcase == 'nv'
+          heating_load_frac = 0.0
+        else
+          fail 'Unexpected weather file for ASHRAE 140 run.'
+        end
+      end
+      hvac_sequential_load_fracs = { htg: [heating_load_frac],
+                                     clg: [cooling_load_frac] }
+      apply_ideal_air_loads(model, hvac_sequential_load_fracs, conditioned_zone, hvac_unavailable_periods)
+      return
+    end
+
+    hvac_sequential_load_fracs = {}
+
+    if (hpxml_bldg.total_fraction_heat_load_served < 1.0) && (hpxml_bldg.total_fraction_heat_load_served > 0.0)
+      hvac_sequential_load_fracs[:htg] = calc_sequential_load_fractions(hvac_remaining_load_fracs[:htg] - hpxml_bldg.total_fraction_heat_load_served, hvac_remaining_load_fracs[:htg], hvac_season_days[:htg])
+      hvac_remaining_load_fracs[:htg] -= (1.0 - hpxml_bldg.total_fraction_heat_load_served)
+    else
+      hvac_sequential_load_fracs[:htg] = [0.0]
+    end
+
+    if (hpxml_bldg.total_fraction_cool_load_served < 1.0) && (hpxml_bldg.total_fraction_cool_load_served > 0.0)
+      hvac_sequential_load_fracs[:clg] = calc_sequential_load_fractions(hvac_remaining_load_fracs[:clg] - hpxml_bldg.total_fraction_cool_load_served, hvac_remaining_load_fracs[:clg], hvac_season_days[:clg])
+      hvac_remaining_load_fracs[:clg] -= (1.0 - hpxml_bldg.total_fraction_cool_load_served)
+    else
+      hvac_sequential_load_fracs[:clg] = [0.0]
+    end
+
+    if (hvac_sequential_load_fracs[:htg].sum > 0.0) || (hvac_sequential_load_fracs[:clg].sum > 0.0)
+      apply_ideal_air_loads(model, hvac_sequential_load_fracs, conditioned_zone, hvac_unavailable_periods)
+    end
   end
 
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param sequential_cool_load_fracs [TODO] TODO
-  # @param sequential_heat_load_fracs [TODO] TODO
+  # @param hvac_sequential_load_fracs [Array<Double>] Array of daily fractions of remaining heating/cooling load to bet met by the HVAC system
   # @param control_zone [OpenStudio::Model::ThermalZone] Conditioned space thermal zone
-  # @param hvac_unavailable_periods [TODO] TODO
-  # @return [TODO] TODO
-  def self.apply_ideal_air_loads(model, sequential_cool_load_fracs,
-                                 sequential_heat_load_fracs, control_zone, hvac_unavailable_periods)
-
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
+  # @return [nil]
+  def self.apply_ideal_air_loads(model, hvac_sequential_load_fracs, control_zone, hvac_unavailable_periods)
     obj_name = Constants::ObjectTypeIdealAirSystem
 
     # Ideal Air System
@@ -868,13 +1153,13 @@ module HVAC
     ideal_air.setMinimumCoolingSupplyAirTemperature(10)
     ideal_air.setMaximumHeatingSupplyAirHumidityRatio(0.015)
     ideal_air.setMinimumCoolingSupplyAirHumidityRatio(0.01)
-    if sequential_heat_load_fracs.sum > 0
+    if hvac_sequential_load_fracs[:htg].sum > 0
       ideal_air.setHeatingLimit('NoLimit')
     else
       ideal_air.setHeatingLimit('LimitCapacity')
       ideal_air.setMaximumSensibleHeatingCapacity(0)
     end
-    if sequential_cool_load_fracs.sum > 0
+    if hvac_sequential_load_fracs[:clg].sum > 0
       ideal_air.setCoolingLimit('NoLimit')
     else
       ideal_air.setCoolingLimit('LimitCapacity')
@@ -884,19 +1169,24 @@ module HVAC
     ideal_air.setHumidificationControlType('None')
     ideal_air.addToThermalZone(control_zone)
 
-    set_sequential_load_fractions(model, control_zone, ideal_air, sequential_heat_load_fracs, sequential_cool_load_fracs, hvac_unavailable_periods)
+    set_sequential_load_fractions(model, control_zone, ideal_air, hvac_sequential_load_fracs, hvac_unavailable_periods)
   end
 
-  # TODO
+  # Adds any HPXML Dehumidifiers to the OpenStudio model.
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param dehumidifiers [TODO] TODO
-  # @param conditioned_space [TODO] TODO
-  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @return [TODO] TODO
-  def self.apply_dehumidifiers(runner, model, dehumidifiers, conditioned_space, unavailable_periods, unit_multiplier)
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @return [nil]
+  def self.apply_dehumidifiers(runner, model, spaces, hpxml_bldg, hpxml_header)
+    dehumidifiers = hpxml_bldg.dehumidifiers
+    return if dehumidifiers.size == 0
+
+    conditioned_space = spaces[HPXML::LocationConditionedSpace]
+    unit_multiplier = hpxml_bldg.building_construction.number_of_units
+
     dehumidifier_id = dehumidifiers[0].id # Syncs with the ReportSimulationOutput measure, which only looks at first dehumidifier ID
 
     if dehumidifiers.map { |d| d.rh_setpoint }.uniq.size > 1
@@ -953,7 +1243,7 @@ module HVAC
     control_zone.setZoneControlHumidistat(humidistat)
 
     # Availability Schedule
-    dehum_unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::Columns[:Dehumidifier].name, unavailable_periods)
+    dehum_unavailable_periods = Schedule.get_unavailable_periods(runner, SchedulesFile::Columns[:Dehumidifier].name, hpxml_header.unavailable_periods)
     avail_sch = ScheduleConstant.new(model, obj_name + ' schedule', 1.0, EPlus::ScheduleTypeLimitsFraction, unavailable_periods: dehum_unavailable_periods)
     avail_sch = avail_sch.schedule
 
@@ -974,18 +1264,21 @@ module HVAC
     end
   end
 
-  # TODO
+  # Adds an HPXML Ceiling Fan to the OpenStudio model.
   #
-  # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @param ceiling_fan [TODO] TODO
-  # @param conditioned_space [TODO] TODO
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @return [TODO] TODO
-  def self.apply_ceiling_fans(model, runner, weather, ceiling_fan, conditioned_space, schedules_file,
-                              unavailable_periods)
+  # @return [nil]
+  def self.apply_ceiling_fans(runner, model, spaces, weather, hpxml_bldg, hpxml_header, schedules_file)
+    return if hpxml_bldg.ceiling_fans.size == 0
+
+    ceiling_fan = hpxml_bldg.ceiling_fans[0]
+
     obj_name = Constants::ObjectTypeCeilingFan
     hrs_per_day = 10.5 # From ANSI 301-2019
     cfm_per_w = ceiling_fan.efficiency
@@ -1002,12 +1295,12 @@ module HVAC
     ceiling_fan_sch = nil
     ceiling_fan_col_name = SchedulesFile::Columns[:CeilingFan].name
     if not schedules_file.nil?
-      annual_kwh *= HVAC.get_default_ceiling_fan_months(weather).map(&:to_f).sum(0.0) / 12.0
+      annual_kwh *= get_default_ceiling_fan_months(weather).map(&:to_f).sum(0.0) / 12.0
       ceiling_fan_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: ceiling_fan_col_name, annual_kwh: annual_kwh)
       ceiling_fan_sch = schedules_file.create_schedule_file(model, col_name: ceiling_fan_col_name)
     end
     if ceiling_fan_sch.nil?
-      ceiling_fan_unavailable_periods = Schedule.get_unavailable_periods(runner, ceiling_fan_col_name, unavailable_periods)
+      ceiling_fan_unavailable_periods = Schedule.get_unavailable_periods(runner, ceiling_fan_col_name, hpxml_header.unavailable_periods)
       annual_kwh *= ceiling_fan.monthly_multipliers.split(',').map(&:to_f).sum(0.0) / 12.0
       weekday_sch = ceiling_fan.weekday_fractions
       weekend_sch = ceiling_fan.weekend_fractions
@@ -1025,7 +1318,7 @@ module HVAC
     equip_def.setName(obj_name)
     equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
     equip.setName(equip_def.name.to_s)
-    equip.setSpace(conditioned_space)
+    equip.setSpace(spaces[HPXML::LocationConditionedSpace])
     equip_def.setDesignLevel(ceiling_fan_design_level)
     equip_def.setFractionRadiant(0.558)
     equip_def.setFractionLatent(0)
@@ -1034,20 +1327,33 @@ module HVAC
     equip.setSchedule(ceiling_fan_sch)
   end
 
-  # TODO
+  # Adds an HPXML HVAC Control to the OpenStudio model.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @param hvac_control [TODO] TODO
-  # @param conditioned_zone [TODO] TODO
-  # @param has_ceiling_fan [TODO] TODO
-  # @param heating_days [TODO] TODO
-  # @param cooling_days [TODO] TODO
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @return [TODO] TODO
-  def self.apply_setpoints(model, runner, weather, hvac_control, conditioned_zone, has_ceiling_fan, heating_days, cooling_days, hpxml_header, schedules_file)
+  # @return [Hash] Map of htg/clg => Array of 365 days with 1s during the heating/cooling season and 0s otherwise
+  def self.apply_setpoints(model, runner, weather, spaces, hpxml_bldg, hpxml_header, schedules_file)
+    return {} if hpxml_bldg.hvac_controls.size == 0
+
+    hvac_control = hpxml_bldg.hvac_controls[0]
+    conditioned_zone = spaces[HPXML::LocationConditionedSpace].thermalZone.get
+    has_ceiling_fan = (hpxml_bldg.ceiling_fans.size > 0)
+
+    # Set 365 (or 366 for a leap year) heating/cooling day arrays based on heating/cooling seasons.
+    hvac_season_days = {}
+    hvac_season_days[:htg] = Calendar.get_daily_season(hpxml_header.sim_calendar_year, hvac_control.seasons_heating_begin_month, hvac_control.seasons_heating_begin_day,
+                                                       hvac_control.seasons_heating_end_month, hvac_control.seasons_heating_end_day)
+    hvac_season_days[:clg] = Calendar.get_daily_season(hpxml_header.sim_calendar_year, hvac_control.seasons_cooling_begin_month, hvac_control.seasons_cooling_begin_day,
+                                                       hvac_control.seasons_cooling_end_month, hvac_control.seasons_cooling_end_day)
+    if hvac_season_days[:htg].include?(0) || hvac_season_days[:clg].include?(0)
+      runner.registerWarning('It is not possible to eliminate all HVAC energy use (e.g. crankcase/defrost energy) in EnergyPlus outside of an HVAC season.')
+    end
+
     heating_sch = nil
     cooling_sch = nil
     year = hpxml_header.sim_calendar_year
@@ -1061,29 +1367,29 @@ module HVAC
 
     # permit mixing detailed schedules with simple schedules
     if heating_sch.nil?
-      htg_weekday_setpoints, htg_weekend_setpoints = get_heating_setpoints(hvac_control, year, onoff_thermostat_ddb)
+      htg_wd_setpoints, htg_we_setpoints = get_heating_setpoints(hvac_control, year, onoff_thermostat_ddb)
     else
       runner.registerWarning("Both '#{SchedulesFile::Columns[:HeatingSetpoint].name}' schedule file and heating setpoint temperature provided; the latter will be ignored.") if !hvac_control.heating_setpoint_temp.nil?
     end
 
     if cooling_sch.nil?
-      clg_weekday_setpoints, clg_weekend_setpoints = get_cooling_setpoints(hvac_control, has_ceiling_fan, year, weather, onoff_thermostat_ddb)
+      clg_wd_setpoints, clg_we_setpoints = get_cooling_setpoints(hvac_control, has_ceiling_fan, year, weather, onoff_thermostat_ddb)
     else
       runner.registerWarning("Both '#{SchedulesFile::Columns[:CoolingSetpoint].name}' schedule file and cooling setpoint temperature provided; the latter will be ignored.") if !hvac_control.cooling_setpoint_temp.nil?
     end
 
     # only deal with deadband issue if both schedules are simple
     if heating_sch.nil? && cooling_sch.nil?
-      htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints = create_setpoint_schedules(runner, heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, year)
+      htg_wd_setpoints, htg_we_setpoints, clg_wd_setpoints, clg_we_setpoints = create_setpoint_schedules(runner, htg_wd_setpoints, htg_we_setpoints, clg_wd_setpoints, clg_we_setpoints, year, hvac_season_days)
     end
 
     if heating_sch.nil?
-      heating_setpoint = HourlyByDaySchedule.new(model, 'heating setpoint', htg_weekday_setpoints, htg_weekend_setpoints, nil, false)
+      heating_setpoint = HourlyByDaySchedule.new(model, 'heating setpoint', htg_wd_setpoints, htg_we_setpoints, nil, false)
       heating_sch = heating_setpoint.schedule
     end
 
     if cooling_sch.nil?
-      cooling_setpoint = HourlyByDaySchedule.new(model, 'cooling setpoint', clg_weekday_setpoints, clg_weekend_setpoints, nil, false)
+      cooling_setpoint = HourlyByDaySchedule.new(model, 'cooling setpoint', clg_wd_setpoints, clg_we_setpoints, nil, false)
       cooling_sch = cooling_setpoint.schedule
     end
 
@@ -1094,62 +1400,62 @@ module HVAC
     thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_sch)
     thermostat_setpoint.setTemperatureDifferenceBetweenCutoutAndSetpoint(UnitConversions.convert(onoff_thermostat_ddb, 'deltaF', 'deltaC'))
     conditioned_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
+
+    return hvac_season_days
   end
 
-  # TODO
+  # Creates setpoint schedules.
+  # This method ensures that we don't construct a setpoint schedule where the cooling setpoint
+  # is less than the heating setpoint, which would result in an E+ error.
+  #
+  # Note: It's tempting to adjust the setpoints, e.g., outside of the heating/cooling seasons,
+  # to prevent unmet hours being reported. This is a dangerous idea. These setpoints are used
+  # by natural ventilation, Kiva initialization, and probably other things.
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
-  # @param heating_days [TODO] TODO
-  # @param cooling_days [TODO] TODO
-  # @param htg_weekday_setpoints [TODO] TODO
-  # @param htg_weekend_setpoints [TODO] TODO
-  # @param clg_weekday_setpoints [TODO] TODO
-  # @param clg_weekend_setpoints [TODO] TODO
+  # @param htg_wd_setpoints [TODO] TODO
+  # @param htg_we_setpoints [TODO] TODO
+  # @param clg_wd_setpoints [TODO] TODO
+  # @param clg_we_setpoints [TODO] TODO
   # @param year [Integer] the calendar year
+  # @param hvac_season_days [Hash] Map of htg/clg => Array of 365 days with 1s during the heating/cooling season and 0s otherwise
   # @return [TODO] TODO
-  def self.create_setpoint_schedules(runner, heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, year)
-    # Create setpoint schedules
-    # This method ensures that we don't construct a setpoint schedule where the cooling setpoint
-    # is less than the heating setpoint, which would result in an E+ error.
-
-    # Note: It's tempting to adjust the setpoints, e.g., outside of the heating/cooling seasons,
-    # to prevent unmet hours being reported. This is a dangerous idea. These setpoints are used
-    # by natural ventilation, Kiva initialization, and probably other things.
-
+  def self.create_setpoint_schedules(runner, htg_wd_setpoints, htg_we_setpoints, clg_wd_setpoints, clg_we_setpoints, year,
+                                     hvac_season_days)
     warning = false
     for i in 0..(Calendar.num_days_in_year(year) - 1)
-      if (heating_days[i] == cooling_days[i]) # both (or neither) heating/cooling seasons
-        htg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
-        htg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
-        clg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
-        clg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
-      elsif heating_days[i] == 1 # heating only seasons; cooling has minimum of heating
-        htg_wkdy = htg_weekday_setpoints[i]
-        htg_wked = htg_weekend_setpoints[i]
-        clg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? h : c }
-        clg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? h : c }
-      elsif cooling_days[i] == 1 # cooling only seasons; heating has maximum of cooling
-        htg_wkdy = clg_weekday_setpoints[i].zip(htg_weekday_setpoints[i]).map { |c, h| c < h ? c : h }
-        htg_wked = clg_weekend_setpoints[i].zip(htg_weekend_setpoints[i]).map { |c, h| c < h ? c : h }
-        clg_wkdy = clg_weekday_setpoints[i]
-        clg_wked = clg_weekend_setpoints[i]
+      if (hvac_season_days[:htg][i] == hvac_season_days[:clg][i]) # both (or neither) heating/cooling seasons
+        htg_wkdy = htg_wd_setpoints[i].zip(clg_wd_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
+        htg_wked = htg_we_setpoints[i].zip(clg_we_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
+        clg_wkdy = htg_wd_setpoints[i].zip(clg_wd_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
+        clg_wked = htg_we_setpoints[i].zip(clg_we_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
+      elsif hvac_season_days[:htg][i] == 1 # heating only seasons; cooling has minimum of heating
+        htg_wkdy = htg_wd_setpoints[i]
+        htg_wked = htg_we_setpoints[i]
+        clg_wkdy = htg_wd_setpoints[i].zip(clg_wd_setpoints[i]).map { |h, c| c < h ? h : c }
+        clg_wked = htg_we_setpoints[i].zip(clg_we_setpoints[i]).map { |h, c| c < h ? h : c }
+      elsif hvac_season_days[:clg][i] == 1 # cooling only seasons; heating has maximum of cooling
+        htg_wkdy = clg_wd_setpoints[i].zip(htg_wd_setpoints[i]).map { |c, h| c < h ? c : h }
+        htg_wked = clg_we_setpoints[i].zip(htg_we_setpoints[i]).map { |c, h| c < h ? c : h }
+        clg_wkdy = clg_wd_setpoints[i]
+        clg_wked = clg_we_setpoints[i]
       else
         fail 'HeatingSeason and CoolingSeason, when combined, must span the entire year.'
       end
-      if (htg_wkdy != htg_weekday_setpoints[i]) || (htg_wked != htg_weekend_setpoints[i]) || (clg_wkdy != clg_weekday_setpoints[i]) || (clg_wked != clg_weekend_setpoints[i])
+      if (htg_wkdy != htg_wd_setpoints[i]) || (htg_wked != htg_we_setpoints[i]) || (clg_wkdy != clg_wd_setpoints[i]) || (clg_wked != clg_we_setpoints[i])
         warning = true
       end
-      htg_weekday_setpoints[i] = htg_wkdy
-      htg_weekend_setpoints[i] = htg_wked
-      clg_weekday_setpoints[i] = clg_wkdy
-      clg_weekend_setpoints[i] = clg_wked
+      htg_wd_setpoints[i] = htg_wkdy
+      htg_we_setpoints[i] = htg_wked
+      clg_wd_setpoints[i] = clg_wkdy
+      clg_we_setpoints[i] = clg_wked
     end
 
     if warning
       runner.registerWarning('HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
     end
 
-    return htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints
+    return htg_wd_setpoints, htg_we_setpoints, clg_wd_setpoints, clg_we_setpoints
   end
 
   # TODO
@@ -1164,7 +1470,7 @@ module HVAC
     if hvac_control.weekday_heating_setpoints.nil? || hvac_control.weekend_heating_setpoints.nil?
       # Base heating setpoint
       htg_setpoint = hvac_control.heating_setpoint_temp
-      htg_weekday_setpoints = [[htg_setpoint] * 24] * num_days
+      htg_wd_setpoints = [[htg_setpoint] * 24] * num_days
       # Apply heating setback?
       htg_setback = hvac_control.heating_setback_temp
       if not htg_setback.nil?
@@ -1172,26 +1478,26 @@ module HVAC
         htg_setback_start_hr = hvac_control.heating_setback_start_hour
         for d in 1..num_days
           for hr in htg_setback_start_hr..htg_setback_start_hr + Integer(htg_setback_hrs_per_week / 7.0) - 1
-            htg_weekday_setpoints[d - 1][hr % 24] = htg_setback
+            htg_wd_setpoints[d - 1][hr % 24] = htg_setback
           end
         end
       end
-      htg_weekend_setpoints = htg_weekday_setpoints.dup
+      htg_we_setpoints = htg_wd_setpoints.dup
     else
       # 24-hr weekday/weekend heating setpoint schedules
-      htg_weekday_setpoints = hvac_control.weekday_heating_setpoints.split(',').map { |i| Float(i) }
-      htg_weekday_setpoints = [htg_weekday_setpoints] * num_days
-      htg_weekend_setpoints = hvac_control.weekend_heating_setpoints.split(',').map { |i| Float(i) }
-      htg_weekend_setpoints = [htg_weekend_setpoints] * num_days
+      htg_wd_setpoints = hvac_control.weekday_heating_setpoints.split(',').map { |i| Float(i) }
+      htg_wd_setpoints = [htg_wd_setpoints] * num_days
+      htg_we_setpoints = hvac_control.weekend_heating_setpoints.split(',').map { |i| Float(i) }
+      htg_we_setpoints = [htg_we_setpoints] * num_days
     end
     # Apply thermostat offset due to onoff control
-    htg_weekday_setpoints = htg_weekday_setpoints.map { |i| i.map { |j| j - offset_db / 2.0 } }
-    htg_weekend_setpoints = htg_weekend_setpoints.map { |i| i.map { |j| j - offset_db / 2.0 } }
+    htg_wd_setpoints = htg_wd_setpoints.map { |i| i.map { |j| j - offset_db / 2.0 } }
+    htg_we_setpoints = htg_we_setpoints.map { |i| i.map { |j| j - offset_db / 2.0 } }
 
-    htg_weekday_setpoints = htg_weekday_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
-    htg_weekend_setpoints = htg_weekend_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
+    htg_wd_setpoints = htg_wd_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
+    htg_we_setpoints = htg_we_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
 
-    return htg_weekday_setpoints, htg_weekend_setpoints
+    return htg_wd_setpoints, htg_we_setpoints
   end
 
   # TODO
@@ -1208,7 +1514,7 @@ module HVAC
     if hvac_control.weekday_cooling_setpoints.nil? || hvac_control.weekend_cooling_setpoints.nil?
       # Base cooling setpoint
       clg_setpoint = hvac_control.cooling_setpoint_temp
-      clg_weekday_setpoints = [[clg_setpoint] * 24] * num_days
+      clg_wd_setpoints = [[clg_setpoint] * 24] * num_days
       # Apply cooling setup?
       clg_setup = hvac_control.cooling_setup_temp
       if not clg_setup.nil?
@@ -1216,17 +1522,17 @@ module HVAC
         clg_setup_start_hr = hvac_control.cooling_setup_start_hour
         for d in 1..num_days
           for hr in clg_setup_start_hr..clg_setup_start_hr + Integer(clg_setup_hrs_per_week / 7.0) - 1
-            clg_weekday_setpoints[d - 1][hr % 24] = clg_setup
+            clg_wd_setpoints[d - 1][hr % 24] = clg_setup
           end
         end
       end
-      clg_weekend_setpoints = clg_weekday_setpoints.dup
+      clg_we_setpoints = clg_wd_setpoints.dup
     else
       # 24-hr weekday/weekend cooling setpoint schedules
-      clg_weekday_setpoints = hvac_control.weekday_cooling_setpoints.split(',').map { |i| Float(i) }
-      clg_weekday_setpoints = [clg_weekday_setpoints] * num_days
-      clg_weekend_setpoints = hvac_control.weekend_cooling_setpoints.split(',').map { |i| Float(i) }
-      clg_weekend_setpoints = [clg_weekend_setpoints] * num_days
+      clg_wd_setpoints = hvac_control.weekday_cooling_setpoints.split(',').map { |i| Float(i) }
+      clg_wd_setpoints = [clg_wd_setpoints] * num_days
+      clg_we_setpoints = hvac_control.weekend_cooling_setpoints.split(',').map { |i| Float(i) }
+      clg_we_setpoints = [clg_we_setpoints] * num_days
     end
     # Apply cooling setpoint offset due to ceiling fan?
     if has_ceiling_fan
@@ -1236,19 +1542,19 @@ module HVAC
         Calendar.months_to_days(year, months).each_with_index do |operation, d|
           next if operation != 1
 
-          clg_weekday_setpoints[d] = [clg_weekday_setpoints[d], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.sum }
-          clg_weekend_setpoints[d] = [clg_weekend_setpoints[d], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.sum }
+          clg_wd_setpoints[d] = [clg_wd_setpoints[d], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.sum }
+          clg_we_setpoints[d] = [clg_we_setpoints[d], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.sum }
         end
       end
     end
 
     # Apply thermostat offset due to onoff control
-    clg_weekday_setpoints = clg_weekday_setpoints.map { |i| i.map { |j| j + offset_db / 2.0 } }
-    clg_weekend_setpoints = clg_weekend_setpoints.map { |i| i.map { |j| j + offset_db / 2.0 } }
-    clg_weekday_setpoints = clg_weekday_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
-    clg_weekend_setpoints = clg_weekend_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
+    clg_wd_setpoints = clg_wd_setpoints.map { |i| i.map { |j| j + offset_db / 2.0 } }
+    clg_we_setpoints = clg_we_setpoints.map { |i| i.map { |j| j + offset_db / 2.0 } }
+    clg_wd_setpoints = clg_wd_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
+    clg_we_setpoints = clg_we_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
 
-    return clg_weekday_setpoints, clg_weekend_setpoints
+    return clg_wd_setpoints, clg_we_setpoints
   end
 
   # TODO
@@ -1258,20 +1564,20 @@ module HVAC
   # @return [TODO] TODO
   def self.get_default_heating_setpoint(control_type, eri_version)
     # Per ANSI/RESNET/ICC 301
-    htg_weekday_setpoints = '68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68'
-    htg_weekend_setpoints = '68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68'
+    htg_wd_setpoints = '68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68'
+    htg_we_setpoints = '68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68'
     if control_type == HPXML::HVACControlTypeProgrammable
       if Constants::ERIVersions.index(eri_version) >= Constants::ERIVersions.index('2022')
-        htg_weekday_setpoints = '66, 66, 66, 66, 66, 67, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 66'
-        htg_weekend_setpoints = '66, 66, 66, 66, 66, 67, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 66'
+        htg_wd_setpoints = '66, 66, 66, 66, 66, 67, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 66'
+        htg_we_setpoints = '66, 66, 66, 66, 66, 67, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 66'
       else
-        htg_weekday_setpoints = '66, 66, 66, 66, 66, 66, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 66'
-        htg_weekend_setpoints = '66, 66, 66, 66, 66, 66, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 66'
+        htg_wd_setpoints = '66, 66, 66, 66, 66, 66, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 66'
+        htg_we_setpoints = '66, 66, 66, 66, 66, 66, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 66'
       end
     elsif control_type != HPXML::HVACControlTypeManual
       fail "Unexpected control type #{control_type}."
     end
-    return htg_weekday_setpoints, htg_weekend_setpoints
+    return htg_wd_setpoints, htg_we_setpoints
   end
 
   # TODO
@@ -1281,20 +1587,20 @@ module HVAC
   # @return [TODO] TODO
   def self.get_default_cooling_setpoint(control_type, eri_version)
     # Per ANSI/RESNET/ICC 301
-    clg_weekday_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78'
-    clg_weekend_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78'
+    clg_wd_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78'
+    clg_we_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78'
     if control_type == HPXML::HVACControlTypeProgrammable
       if Constants::ERIVersions.index(eri_version) >= Constants::ERIVersions.index('2022')
-        clg_weekday_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 80, 80, 80, 80, 80, 79, 78, 78, 78, 78, 78, 78, 78, 78, 78'
-        clg_weekend_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 80, 80, 80, 80, 80, 79, 78, 78, 78, 78, 78, 78, 78, 78, 78'
+        clg_wd_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 80, 80, 80, 80, 80, 79, 78, 78, 78, 78, 78, 78, 78, 78, 78'
+        clg_we_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 80, 80, 80, 80, 80, 79, 78, 78, 78, 78, 78, 78, 78, 78, 78'
       else
-        clg_weekday_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 80, 80, 80, 80, 80, 80, 78, 78, 78, 78, 78, 78, 78, 78, 78'
-        clg_weekend_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 80, 80, 80, 80, 80, 80, 78, 78, 78, 78, 78, 78, 78, 78, 78'
+        clg_wd_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 80, 80, 80, 80, 80, 80, 78, 78, 78, 78, 78, 78, 78, 78, 78'
+        clg_we_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 80, 80, 80, 80, 80, 80, 78, 78, 78, 78, 78, 78, 78, 78, 78'
       end
     elsif control_type != HPXML::HVACControlTypeManual
       fail "Unexpected control type #{control_type}."
     end
-    return clg_weekday_setpoints, clg_weekend_setpoints
+    return clg_wd_setpoints, clg_we_setpoints
   end
 
   # TODO
@@ -2357,13 +2663,12 @@ module HVAC
   # @param obj_name [String] Name for the OpenStudio object
   # @param system [TODO] TODO
   # @param control_zone [OpenStudio::Model::ThermalZone] Conditioned space thermal zone
-  # @param sequential_heat_load_fracs [TODO] TODO
-  # @param sequential_cool_load_fracs [TODO] TODO
+  # @param hvac_sequential_load_fracs [Array<Double>] Array of daily fractions of remaining heating/cooling load to bet met by the HVAC system
   # @param airflow_cfm [TODO] TODO
   # @param heating_system [TODO] TODO
-  # @param hvac_unavailable_periods [TODO] TODO
-  # @return [TODO] TODO
-  def self.create_air_loop(model, obj_name, system, control_zone, sequential_heat_load_fracs, sequential_cool_load_fracs, airflow_cfm, heating_system, hvac_unavailable_periods)
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
+  # @return [OpenStudio::Model::AirLoopHVAC] OpenStudio Air Loop HVAC object
+  def self.create_air_loop(model, obj_name, system, control_zone, hvac_sequential_load_fracs, airflow_cfm, heating_system, hvac_unavailable_periods)
     air_loop = OpenStudio::Model::AirLoopHVAC.new(model)
     air_loop.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
     air_loop.setName(obj_name + ' airloop')
@@ -2384,7 +2689,7 @@ module HVAC
     air_terminal.setName(obj_name + ' terminal')
     air_loop.multiAddBranchForZone(control_zone, air_terminal)
 
-    set_sequential_load_fractions(model, control_zone, air_terminal, sequential_heat_load_fracs, sequential_cool_load_fracs, hvac_unavailable_periods, heating_system)
+    set_sequential_load_fractions(model, control_zone, air_terminal, hvac_sequential_load_fracs, hvac_unavailable_periods, heating_system)
 
     return air_loop
   end
@@ -3331,7 +3636,7 @@ module HVAC
       clg_ap.cool_rated_shrs_gross = [cooling_system.cooling_shr] # We don't model the fan separately, so set gross == net
     else
       # rated shr gross and fan speed ratios
-      dB_rated = 80.0 # F
+      dB_rated = HVAC::AirSourceCoolRatedIDB
       win = 0.01118470 # Humidity ratio corresponding to 80F dry bulb/67F wet bulb (from EnergyPlus)
 
       if cooling_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
@@ -4294,13 +4599,13 @@ module HVAC
 
   # Returns the EnergyPlus sequential load fractions for every day of the year.
   #
-  # @param load_fraction [TODO] TODO
-  # @param remaining_fraction [TODO] TODO
+  # @param load_frac [Double] Fraction of heating or cooling load served by this HVAC system
+  # @param remaining_load_frac [Double] Fraction of heating (or cooling) load remaining prior to this HVAC system
   # @param availability_days [TODO] TODO
-  # @return [TODO] TODO
-  def self.calc_sequential_load_fractions(load_fraction, remaining_fraction, availability_days)
-    if remaining_fraction > 0
-      sequential_load_frac = load_fraction / remaining_fraction # Fraction of remaining load served by this system
+  # @return [Array<Double>] Array of daily fractions of remaining heating/cooling load to bet met by the HVAC system
+  def self.calc_sequential_load_fractions(load_frac, remaining_load_frac, availability_days)
+    if remaining_load_frac > 0
+      sequential_load_frac = load_frac / remaining_load_frac
     else
       sequential_load_frac = 0.0
     end
@@ -4342,14 +4647,13 @@ module HVAC
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param control_zone [OpenStudio::Model::ThermalZone] Conditioned space thermal zone
   # @param hvac_object [TODO] TODO
-  # @param sequential_heat_load_fracs [TODO] TODO
-  # @param sequential_cool_load_fracs [TODO] TODO
-  # @param hvac_unavailable_periods [TODO] TODO
+  # @param hvac_sequential_load_fracs [Array<Double>] Array of daily fractions of remaining heating/cooling load to bet met by the HVAC system
+  # @param hvac_unavailable_periods [Hash] Map of htg/clg => HPXML::UnavailablePeriods for heating/cooling
   # @param heating_system [TODO] TODO
   # @return [TODO] TODO
-  def self.set_sequential_load_fractions(model, control_zone, hvac_object, sequential_heat_load_fracs, sequential_cool_load_fracs, hvac_unavailable_periods, heating_system = nil)
-    heating_sch = get_sequential_load_schedule(model, sequential_heat_load_fracs, hvac_unavailable_periods)
-    cooling_sch = get_sequential_load_schedule(model, sequential_cool_load_fracs, hvac_unavailable_periods)
+  def self.set_sequential_load_fractions(model, control_zone, hvac_object, hvac_sequential_load_fracs, hvac_unavailable_periods, heating_system = nil)
+    heating_sch = get_sequential_load_schedule(model, hvac_sequential_load_fracs[:htg], hvac_unavailable_periods[:htg])
+    cooling_sch = get_sequential_load_schedule(model, hvac_sequential_load_fracs[:clg], hvac_unavailable_periods[:clg])
     control_zone.setSequentialHeatingFractionSchedule(hvac_object, heating_sch)
     control_zone.setSequentialCoolingFractionSchedule(hvac_object, cooling_sch)
 
@@ -4783,14 +5087,15 @@ module HVAC
     program_calling_manager.addProgram(fault_program)
   end
 
-  # TODO
+  # Calculate delivered cooling load and compressor power during defrost when using
+  # the advanced defrost model.
   #
-  # @param heat_pump [TODO] TODO
+  # @param heat_pump [HPXML::HeatPump] HPXML Heat Pump object
   # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @param design_airflow [TODO] TODO
-  # @param max_heating_airflow [TODO] TODO
-  # @param fan_watts_per_cfm [TODO] TODO
-  # @return [TODO] TODO
+  # @param design_airflow [Float] Heat pump design air flow rate [cfm]
+  # @param max_heating_airflow [Float] Maximum heat pump heating air flow rate [cfm]
+  # @param fan_watts_per_cfm [Float] Heat pump watts per cfm [W/cfm]
+  # @return [Array<Float, Float>] Calculated delivered cooling q_dot and compressor power p_dot [W]
   def self.calculate_heat_pump_defrost_load_power_watts(heat_pump, unit_multiplier, design_airflow, max_heating_airflow, fan_watts_per_cfm)
     # Calculate q_dot and p_dot
     # q_dot is used for EMS program to account for introduced cooling load and supp coil power consumption by actuating other equipment objects
@@ -4807,32 +5112,36 @@ module HVAC
       capacity_defrost_multiplier = 0.1
       cop_defrost_multiplier = 0.08
     end
-    nominal_cooling_capacity_1x = heat_pump.cooling_capacity / unit_multiplier
-    max_heating_airflow_1x = max_heating_airflow / unit_multiplier
-    design_airflow_1x = design_airflow / unit_multiplier
-    defrost_flow_fraction = max_heating_airflow_1x / design_airflow_1x
-    defrost_power_fraction = defrost_flow_fraction**3
-    power_design = fan_watts_per_cfm * design_airflow_1x
+    # cooling capacity and airflow are already with unit multiplier, calculate the capacity w/o multiplier
+    nominal_cooling_capacity = heat_pump.cooling_capacity / unit_multiplier
+    defrost_power_fraction = (max_heating_airflow / design_airflow)**3
+    power_design = fan_watts_per_cfm * design_airflow / unit_multiplier
     p_dot_blower = power_design * defrost_power_fraction
     # Based on manufacturer data for ~70 systems ranging from 1.5 to 5 tons with varying efficiency levels
-    p_dot_odu_fan = 44.348 * UnitConversions.convert(nominal_cooling_capacity_1x, 'Btu/hr', 'ton') + 62.452
-    rated_clg_cop = heat_pump.additional_properties.cool_rated_cops[-1]
-    q_dot_defrost = UnitConversions.convert(nominal_cooling_capacity_1x, 'Btu/hr', 'W') * capacity_defrost_multiplier
-    cop_defrost = rated_clg_cop * cop_defrost_multiplier
+    if nominal_cooling_capacity > 18000.0 # > 1.5 tons
+      p_dot_odu_fan = 44.348 * UnitConversions.convert(nominal_cooling_capacity, 'Btu/hr', 'ton') + 62.452
+    else # < 1.5 tons, scale fan power to avoid negative p_dot_defrost
+      # Use p_dot_odu_fan at 1.5 ton to scale down
+      p_dot_odu_fan = 128.974 * (nominal_cooling_capacity / 18000.0)
+    end
+    q_dot_defrost = UnitConversions.convert(nominal_cooling_capacity, 'Btu/hr', 'W') * capacity_defrost_multiplier
+    cop_defrost = heat_pump.additional_properties.cool_rated_cops[-1] * cop_defrost_multiplier
     p_dot_defrost = (q_dot_defrost / cop_defrost - p_dot_odu_fan + p_dot_blower) * unit_multiplier # p_dot_defrost is used in coil object, which needs to be scaled up for unit multiplier
+
     return q_dot_defrost, p_dot_defrost
   end
 
-  # TODO
+  # Create EMS program and Other equipment objects to account for delivered cooling load and supplemental heating energy during defrost
+  # when using the advanced defrost model.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param htg_coil [TODO] TODO
+  # @param htg_coil [OpenStudio::Model::CoilHeatingDXSingleSpeed or OpenStudio::Model::CoilHeatingDXMultiSpeed]  OpenStudio Heating Coil object
   # @param air_loop_unitary [OpenStudio::Model::AirLoopHVACUnitarySystem] Air loop for the HVAC system
-  # @param conditioned_space [TODO] TODO
-  # @param htg_supp_coil [TODO] TODO
-  # @param heat_pump [TODO] TODO
-  # @param q_dot_defrost [TODO] TODO
-  # @return [TODO] TODO
+  # @param conditioned_space [OpenStudio::Model::Space]  OpenStudio Space object for conditioned zone
+  # @param htg_supp_coil [OpenStudio::Model::CoilHeatingElectric or CoilHeatingElectricMultiStage] OpenStudio Supplemental Heating Coil object
+  # @param heat_pump [HPXML::HeatPump] HPXML Heat Pump object
+  # @param q_dot_defrost [Float] Calculated delivered cooling q_dot [W]
+  # @return [nil]
   def self.apply_advanced_defrost(model, htg_coil, air_loop_unitary, conditioned_space, htg_supp_coil, heat_pump, q_dot_defrost)
     if htg_supp_coil.nil?
       backup_system = heat_pump.backup_system
@@ -5202,7 +5511,7 @@ module HVAC
     return hvac_systems
   end
 
-  # TODO
+  # Ensure that no capacities/airflows are zero in order to prevent potential E+ errors.
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @return [TODO] TODO
@@ -5250,15 +5559,14 @@ module HVAC
     end
   end
 
-  # TODO
+  # Apply unit multiplier (E+ thermal zone multiplier) to HVAC systems; E+ sends the
+  # multiplied thermal zone load to the HVAC system, so the HVAC system needs to be
+  # sized to meet the entire multiplied zone load.
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @return [TODO] TODO
   def self.apply_unit_multiplier(hpxml_bldg, hpxml_header)
-    # Apply unit multiplier (E+ thermal zone multiplier); E+ sends the
-    # multiplied thermal zone load to the HVAC system, so the HVAC system
-    # needs to be sized to meet the entire multiplied zone load.
     unit_multiplier = hpxml_bldg.building_construction.number_of_units
     hpxml_bldg.heating_systems.each do |htg_sys|
       htg_sys.heating_capacity *= unit_multiplier
@@ -5349,6 +5657,29 @@ module HVAC
       return hspf2 / 0.85
     else # Ductless system
       return hspf2 / 0.90
+    end
+  end
+
+  # Check provided HVAC system and distribution types against what is allowed.
+  #
+  # @param hvac_distribution [HPXML::HVACDistribution] HPXML HVAC Distribution object
+  # @param system_type [String] the HVAC system type of interest
+  # @return [nil]
+  def self.check_distribution_system(hvac_distribution, system_type)
+    return if hvac_distribution.nil?
+
+    hvac_distribution_type_map = { HPXML::HVACTypeFurnace => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+                                   HPXML::HVACTypeBoiler => [HPXML::HVACDistributionTypeHydronic, HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+                                   HPXML::HVACTypeCentralAirConditioner => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+                                   HPXML::HVACTypeEvaporativeCooler => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+                                   HPXML::HVACTypeMiniSplitAirConditioner => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+                                   HPXML::HVACTypeHeatPumpAirToAir => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+                                   HPXML::HVACTypeHeatPumpMiniSplit => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+                                   HPXML::HVACTypeHeatPumpGroundToAir => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+                                   HPXML::HVACTypeHeatPumpWaterLoopToAir => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE] }
+
+    if not hvac_distribution_type_map[system_type].include? hvac_distribution.distribution_system_type
+      fail "Incorrect HVAC distribution system type for HVAC type: '#{system_type}'. Should be one of: #{hvac_distribution_type_map[system_type]}"
     end
   end
 end

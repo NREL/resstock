@@ -2151,7 +2151,7 @@ module Geometry
     end
 
     # Gable too short?
-    # TODO: super crude safety factor of 1.5
+    # super crude safety factor of 1.5
     if is_gable_wall(surface: surface) && (min_wall_height > get_surface_height(surface: surface) / 1.5)
       return 0.0
     end
