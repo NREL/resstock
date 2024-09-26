@@ -569,6 +569,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # HVAC Unavailability
+    args[:schedules_space_heating_unavailable_days] = 0
+    args[:schedules_space_cooling_unavailable_days] = 0
     if (args[:schedules_space_heating_unavailable_days] > 0) || (args[:schedules_space_cooling_unavailable_days] > 0)
       epw_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../weather', File.basename(args[:weather_station_epw_filepath])))
       if not File.exist? epw_path
