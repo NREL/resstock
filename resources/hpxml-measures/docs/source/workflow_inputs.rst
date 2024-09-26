@@ -819,7 +819,7 @@ Additional inputs for ACCA Manual J design loads, used for sizing HVAC equipment
   ``HumidityDifference``             double    grains               No        See [#]_      Difference between absolute humidity of the outdoor/indoor air during the summer
   ``InternalLoadsSensible``          double    Btu/hr  >= 0         No        See [#]_      Sensible internal loads for cooling design load
   ``InternalLoadsLatent``            double    Btu/hr  >= 0         No        0             Latent internal loads for cooling design load
-  ``NumberofOccupants``              integer           >= 0         No        See [#]_      Number of occupants for cooling design load
+  ``NumberofOccupants``              double            >= 0         No        See [#]_      Number of occupants for cooling design load
   ``InfiltrationShieldingClass``     integer           >= 1, <= 5   No        See [#]_      Wind shielding class for infiltration design loads
   ``InfiltrationMethod``             string            See [#]_     No        See [#]_      Method to calculate infiltration design loads
   =================================  ========  ======  ===========  ========  ============  ============================================
@@ -900,7 +900,7 @@ Each space within a conditioned zone can be entered as a ``/HPXML/Building/Build
   ``FloorArea``                                          double   ft2      > 0          Yes                 Space floor area
   ``extension/ManualJInputs/InternalLoadsSensible``      double   Btu/hr   >= 0         No [#]_   See [#]_  Conditioned space sensible internal loads for cooling design load
   ``extension/ManualJInputs/InternalLoadsLatent``        double   Btu/hr   >= 0         No [#]_   See [#]_  Conditioned space latent internal loads for cooling design load
-  ``extension/ManualJInputs/NumberofOccupants``          integer           >= 0         No [#]_   See [#]_  Conditioned space number of occupants for cooling design load
+  ``extension/ManualJInputs/NumberofOccupants``          double            >= 0         No [#]_   See [#]_  Conditioned space number of occupants for cooling design load
   ``extension/ManualJInputs/FenestrationLoadProcedure``  string            See [#]_     No        standard  Conditioned space fenestration load procedure [#]_
   =====================================================  =======  =======  ===========  ========  ========  ==============================================
 

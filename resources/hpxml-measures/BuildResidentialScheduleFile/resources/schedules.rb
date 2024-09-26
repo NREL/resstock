@@ -853,12 +853,15 @@ class ScheduleGenerator
       schedule_keys = table[0] + schedule_keys
       schedule_rows = schedule_rows.map.with_index { |row, i| table[i + 1] + row }
     end
-    CSV.open(schedules_path, 'w') do |csv|
-      csv << schedule_keys
+
+    # Note: We don't use the CSV library here because it's slow for large files
+    File.open(schedules_path, 'w') do |csv|
+      csv << "#{schedule_keys.join(',')}\n"
       schedule_rows.each do |row|
-        csv << row
+        csv << "#{row.join(',')}\n"
       end
     end
+
     return true
   end
 

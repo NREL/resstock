@@ -2549,7 +2549,7 @@ class HPXML < Object
              :manualj_humidity_difference,          # [Double] HVACSizingControl/ManualJInputs/HumidityDifference (grains)
              :manualj_internal_loads_sensible,      # [Double] HVACSizingControl/ManualJInputs/InternalLoadsSensible (Btu/hr)
              :manualj_internal_loads_latent,        # [Double] HVACSizingControl/ManualJInputs/InternalLoadsLatent (Btu/hr)
-             :manualj_num_occupants,                # [Integer] HVACSizingControl/ManualJInputs/NumberofOccupants
+             :manualj_num_occupants,                # [Double] HVACSizingControl/ManualJInputs/NumberofOccupants
              :manualj_infiltration_shielding_class, # [Integer] HVACSizingControl/ManualJInputs/InfiltrationShieldingClass (1-5)
              :manualj_infiltration_method,          # [String] HVACSizingControl/ManualJInputs/InfiltrationMethod (HPXML::ManualJInfiltrationMethodXXX)
              :natvent_days_per_week,                # [Integer] NaturalVentilationAvailabilityDaysperWeek
@@ -2595,7 +2595,7 @@ class HPXML < Object
         XMLHelper.add_element(manualj_sizing_inputs, 'HumidityDifference', @manualj_humidity_difference, :float, @manualj_humidity_difference_isdefaulted) unless @manualj_humidity_difference.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InternalLoadsSensible', @manualj_internal_loads_sensible, :float, @manualj_internal_loads_sensible_isdefaulted) unless @manualj_internal_loads_sensible.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InternalLoadsLatent', @manualj_internal_loads_latent, :float, @manualj_internal_loads_latent_isdefaulted) unless @manualj_internal_loads_latent.nil?
-        XMLHelper.add_element(manualj_sizing_inputs, 'NumberofOccupants', @manualj_num_occupants, :integer, @manualj_num_occupants_isdefaulted) unless @manualj_num_occupants.nil?
+        XMLHelper.add_element(manualj_sizing_inputs, 'NumberofOccupants', @manualj_num_occupants, :float, @manualj_num_occupants_isdefaulted) unless @manualj_num_occupants.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InfiltrationShieldingClass', @manualj_infiltration_shielding_class, :integer, @manualj_infiltration_shielding_class_isdefaulted) unless @manualj_infiltration_shielding_class.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InfiltrationMethod', @manualj_infiltration_method, :string, @manualj_infiltration_method_isdefaulted) unless @manualj_infiltration_method.nil?
       end
@@ -2648,7 +2648,7 @@ class HPXML < Object
       @manualj_humidity_difference = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/HumidityDifference', :float)
       @manualj_internal_loads_sensible = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InternalLoadsSensible', :float)
       @manualj_internal_loads_latent = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InternalLoadsLatent', :float)
-      @manualj_num_occupants = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/NumberofOccupants', :integer)
+      @manualj_num_occupants = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/NumberofOccupants', :float)
       @manualj_infiltration_shielding_class = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InfiltrationShieldingClass', :integer)
       @manualj_infiltration_method = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InfiltrationMethod', :string)
       @extension_properties = {}
