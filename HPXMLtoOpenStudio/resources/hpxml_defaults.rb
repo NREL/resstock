@@ -329,7 +329,7 @@ module HPXMLDefaults
       runner.registerWarning("ManualJInputs/InternalLoadsLatent (#{hpxml_bldg.header.manualj_internal_loads_latent}) does not match sum of conditioned spaces (#{sum_space_manualj_internal_loads_latent}).")
     end
 
-    sum_space_manualj_num_occupants = hpxml_bldg.conditioned_spaces.map { |space| space.manualj_num_occupants.to_f }.sum.round
+    sum_space_manualj_num_occupants = hpxml_bldg.conditioned_spaces.map { |space| space.manualj_num_occupants.to_f }.sum
     if hpxml_bldg.header.manualj_num_occupants.nil?
       if sum_space_manualj_num_occupants > 0
         hpxml_bldg.header.manualj_num_occupants = sum_space_manualj_num_occupants
@@ -348,7 +348,7 @@ module HPXMLDefaults
         space.manualj_num_occupants = (hpxml_bldg.header.manualj_num_occupants * space.floor_area / total_floor_area).round(2)
         space.manualj_num_occupants_isdefaulted = true
       end
-    elsif (hpxml_bldg.header.manualj_num_occupants - sum_space_manualj_num_occupants).abs >= 1 # Tolerance for rounding
+    elsif (hpxml_bldg.header.manualj_num_occupants - sum_space_manualj_num_occupants).abs >= 0.1
       runner.registerWarning("ManualJInputs/NumberofOccupants (#{hpxml_bldg.header.manualj_num_occupants}) does not match sum of conditioned spaces (#{sum_space_manualj_num_occupants}).")
     end
 
@@ -4292,7 +4292,7 @@ module HPXMLDefaults
     zipcode_csv_filepath = File.join(File.dirname(__FILE__), 'data', 'zipcode_weather_stations.csv')
 
     if $zip_csv_data.nil?
-      # Don't use the CSV library because it's much slower
+      # Note: We don't use the CSV library here because it's slow for large files
       $zip_csv_data = File.readlines(zipcode_csv_filepath).map(&:strip)
     end
 

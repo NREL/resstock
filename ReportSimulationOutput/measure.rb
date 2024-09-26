@@ -1869,7 +1869,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
 
       # Write file
-      CSV.open(timeseries_output_path, 'wb') { |csv| data.to_a.each { |elem| csv << elem } }
+      # Note: We don't use the CSV library here because it's slow for large files
+      File.open(timeseries_output_path, 'wb') { |csv| data.to_a.each { |elem| csv << "#{elem.join(',')}\n" } }
     elsif ['json', 'msgpack'].include? args[:output_format]
       # Assemble data
       h = {}
