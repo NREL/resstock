@@ -325,10 +325,10 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     assert_equal(4, default_hpxml_bldg.header.manualj_num_occupants)
 
     # Test defaults w/ NumberOfResidents provided and greater than Nbr+1
-    hpxml_bldg.building_occupancy.number_of_residents = 6
+    hpxml_bldg.building_occupancy.number_of_residents = 5.5
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    assert_equal(6, default_hpxml_bldg.header.manualj_num_occupants)
+    assert_equal(5.5, default_hpxml_bldg.header.manualj_num_occupants)
 
     # Test defaults - DST in weather file
     hpxml, hpxml_bldg = _create_hpxml('base-location-AMY-2012.xml')

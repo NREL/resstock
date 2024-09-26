@@ -197,17 +197,17 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
   def test_operational_defaults
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-5.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-5-5.xml'))
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscPlugLoads)
-    assert_in_delta(2887, kwh_yr, 1.0)
+    assert_in_delta(3008, kwh_yr, 1.0)
     assert_equal(0, therm_yr)
 
     # Check television
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscTelevision)
-    assert_in_delta(957, kwh_yr, 1.0)
+    assert_in_delta(1003, kwh_yr, 1.0)
     assert_equal(0, therm_yr)
 
     # Check vehicle
