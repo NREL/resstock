@@ -84,3 +84,19 @@ Development Changelog
         OpenStudio-HPXML: `pull request 1690 <https://github.com/NREL/OpenStudio-HPXML/pull/1690>`_, `pull request 1775 <https://github.com/NREL/OpenStudio-HPXML/pull/1775>`_
 
         Assignees: Joe Robertson
+
+
+    .. change::
+        :tags: workflow, hvac, feature
+        :pullreq: 1254
+
+        **Date**: 2024-09-218
+
+        Title:
+        Heating and Cooling Unavailable Days
+
+        Description:
+        The purpose of this PR is to account for dwelling units whose HVAC system (heating/cooling) is unavailable for some number of days during the year (per RECS 2020).
+        Specifically, this PR modifies HVAC heating/cooling seasons using number of unavailable days and BAHSP definition for heating/cooling months.
+
+        Assignees: Joe Robertson

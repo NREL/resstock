@@ -5167,6 +5167,17 @@ Multiplier on the permanent spa heater energy usage that can reflect, e.g., high
 
 <br/>
 
+**Building Unit ID**
+
+The building unit number (between 1 and the number of samples).
+
+- **Name:** ``building_id``
+- **Type:** ``Integer``
+
+- **Required:** ``false``
+
+<br/>
+
 **Schedules: Vacancy Periods**
 
 Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.
@@ -5195,6 +5206,28 @@ The availability of the natural ventilation schedule during the power outage per
 
 - **Name:** ``schedules_power_outage_periods_window_natvent_availability``
 - **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Schedules: Space Heating Unavailability**
+
+Number of days space heating equipment is unavailable.
+
+- **Name:** ``schedules_space_heating_unavailable_days``
+- **Type:** ``Integer``
+
+- **Required:** ``false``
+
+<br/>
+
+**Schedules: Space Cooling Unavailability**
+
+Number of days space cooling equipment is unavailable.
+
+- **Name:** ``schedules_space_cooling_unavailable_days``
+- **Type:** ``Integer``
 
 - **Required:** ``false``
 
