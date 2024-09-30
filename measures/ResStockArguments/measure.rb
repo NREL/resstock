@@ -404,46 +404,70 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Conditioned floor area
     if args[:geometry_unit_cfa] == Constants.Auto
-      cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 360,  # From RECS2020
-               ['0-499', HPXML::ResidentialTypeSFA] => 367,  # From RECS2020
-               ['0-499', HPXML::ResidentialTypeApartment] => 377,  # From RECS2020
-               ['0-499', HPXML::ResidentialTypeManufactured] => 386,  # From RECS2020
-               ['500-749', HPXML::ResidentialTypeSFD] => 575,  # From RECS2020
-               ['500-749', HPXML::ResidentialTypeSFA] => 550,  # From RECS2020
-               ['500-749', HPXML::ResidentialTypeApartment] => 589,  # From RECS2020
-               ['500-749', HPXML::ResidentialTypeManufactured] => 614,  # From RECS2020
-               ['750-999', HPXML::ResidentialTypeSFD] => 814,  # From RECS2020
-               ['750-999', HPXML::ResidentialTypeSFA] => 804,  # From RECS2020
-               ['750-999', HPXML::ResidentialTypeApartment] => 818,  # From RECS2020
-               ['750-999', HPXML::ResidentialTypeManufactured] => 856,  # From RECS2020
-               ['1000-1499', HPXML::ResidentialTypeSFD] => 1171,  # From RECS2020
-               ['1000-1499', HPXML::ResidentialTypeSFA] => 1161,  # From RECS2020
-               ['1000-1499', HPXML::ResidentialTypeApartment] => 1119,  # From RECS2020
-               ['1000-1499', HPXML::ResidentialTypeManufactured] => 1177,  # From RECS2020
-               ['1500-1999', HPXML::ResidentialTypeSFD] => 1596,  # From RECS2020
-               ['1500-1999', HPXML::ResidentialTypeSFA] => 1571,  # From RECS2020
-               ['1500-1999', HPXML::ResidentialTypeApartment] => 1603,  # From RECS2020
-               ['1500-1999', HPXML::ResidentialTypeManufactured] => 1615,  # From RECS2020
-               ['2000-2499', HPXML::ResidentialTypeSFD] => 2062,  # From RECS2020
-               ['2000-2499', HPXML::ResidentialTypeSFA] => 1983,  # From RECS2020
-               ['2000-2499', HPXML::ResidentialTypeApartment] => 2135,  # From RECS2020
-               ['2000-2499', HPXML::ResidentialTypeManufactured] => 2082,  # From RECS2020
-               ['2500-2999', HPXML::ResidentialTypeSFD] => 2451,  # From RECS2020
-               ['2500-2999', HPXML::ResidentialTypeSFA] => 2299,  # From RECS2020
-               ['2500-2999', HPXML::ResidentialTypeApartment] => 2818,  # From RECS2020
-               ['2500-2999', HPXML::ResidentialTypeManufactured] => 2616,  # From RECS2020
-               ['3000-3999', HPXML::ResidentialTypeSFD] => 2998,  # From RECS2020
-               ['3000-3999', HPXML::ResidentialTypeSFA] => 3077,  # From RECS2020
-               ['3000-3999', HPXML::ResidentialTypeApartment] => 3106,  # From RECS2020
-               ['3000-3999', HPXML::ResidentialTypeManufactured] => 3000,  # From RECS2020
-               ['4000+', HPXML::ResidentialTypeSFD] => 4277,  # From RECS2020
-               ['4000+', HPXML::ResidentialTypeSFA] => 3795,  # From RECS2020
-               ['4000+', HPXML::ResidentialTypeApartment] => 5000,  # From RECS2020
-               ['4000+', HPXML::ResidentialTypeManufactured] => 5587,  # From AHS 2021, 1 detached and mobile home weighted average
+      cfas = {
+               ['0-499', HPXML::ResidentialTypeSFD, 'Yes'] => 451,  # From RECS2020
+                ['0-499', HPXML::ResidentialTypeSFD, 'No'] => 341,  # From RECS2020
+                ['0-499', HPXML::ResidentialTypeSFA, 'Yes'] => 390,  # From RECS2020
+                ['0-499', HPXML::ResidentialTypeSFA, 'No'] => 344,  # From RECS2020
+                ['0-499', HPXML::ResidentialTypeApartment, 'No'] => 377,  # From RECS2020
+                ['0-499', HPXML::ResidentialTypeManufactured, 'No'] => 386,  # From RECS2020
+                ['500-749', HPXML::ResidentialTypeSFD, 'Yes'] => 643,  # From RECS2020
+                ['500-749', HPXML::ResidentialTypeSFD, 'No'] => 562,  # From RECS2020
+                ['500-749', HPXML::ResidentialTypeSFA, 'Yes'] => 578,  # From RECS2020
+                ['500-749', HPXML::ResidentialTypeSFA, 'No'] => 549,  # From RECS2020
+                ['500-749', HPXML::ResidentialTypeApartment, 'No'] => 589,  # From RECS2020
+                ['500-749', HPXML::ResidentialTypeManufactured, 'No'] => 614,  # From RECS2020
+                ['750-999', HPXML::ResidentialTypeSFD, 'Yes'] => 881,  # From RECS2020
+                ['750-999', HPXML::ResidentialTypeSFD, 'No'] => 803,  # From RECS2020
+                ['750-999', HPXML::ResidentialTypeSFA, 'Yes'] => 902,  # From RECS2020
+                ['750-999', HPXML::ResidentialTypeSFA, 'No'] => 798,  # From RECS2020
+                ['750-999', HPXML::ResidentialTypeApartment, 'No'] => 818,  # From RECS2020
+                ['750-999', HPXML::ResidentialTypeManufactured, 'No'] => 856,  # From RECS2020
+                ['1000-1499', HPXML::ResidentialTypeSFD, 'Yes'] => 1254,  # From RECS2020
+                ['1000-1499', HPXML::ResidentialTypeSFD, 'No'] => 1151,  # From RECS2020
+                ['1000-1499', HPXML::ResidentialTypeSFA, 'Yes'] => 1241,  # From RECS2020
+                ['1000-1499', HPXML::ResidentialTypeSFA, 'No'] => 1143,  # From RECS2020
+                ['1000-1499', HPXML::ResidentialTypeApartment, 'No'] => 1119,  # From RECS2020
+                ['1000-1499', HPXML::ResidentialTypeManufactured, 'No'] => 1177,  # From RECS2020
+                ['1500-1999', HPXML::ResidentialTypeSFD, 'Yes'] => 1716,  # From RECS2020
+                ['1500-1999', HPXML::ResidentialTypeSFD, 'No'] => 1554,  # From RECS2020
+                ['1500-1999', HPXML::ResidentialTypeSFA, 'Yes'] => 1716,  # From RECS2020
+                ['1500-1999', HPXML::ResidentialTypeSFA, 'No'] => 1504,  # From RECS2020
+                ['1500-1999', HPXML::ResidentialTypeApartment, 'No'] => 1603,  # From RECS2020
+                ['1500-1999', HPXML::ResidentialTypeManufactured, 'No'] => 1615,  # From RECS2020
+                ['2000-2499', HPXML::ResidentialTypeSFD, 'Yes'] => 2214,  # From RECS2020
+                ['2000-2499', HPXML::ResidentialTypeSFD, 'No'] => 1982,  # From RECS2020
+                ['2000-2499', HPXML::ResidentialTypeSFA, 'Yes'] => 2178,  # From RECS2020
+                ['2000-2499', HPXML::ResidentialTypeSFA, 'No'] => 1847,  # From RECS2020
+                ['2000-2499', HPXML::ResidentialTypeApartment, 'No'] => 2135,  # From RECS2020
+                ['2000-2499', HPXML::ResidentialTypeManufactured, 'No'] => 2082,  # From RECS2020
+                ['2500-2999', HPXML::ResidentialTypeSFD, 'Yes'] => 2663,  # From RECS2020
+                ['2500-2999', HPXML::ResidentialTypeSFD, 'No'] => 2296,  # From RECS2020
+                ['2500-2999', HPXML::ResidentialTypeSFA, 'Yes'] => 2570,  # From RECS2020
+                ['2500-2999', HPXML::ResidentialTypeSFA, 'No'] => 2079,  # From RECS2020
+                ['2500-2999', HPXML::ResidentialTypeApartment, 'No'] => 2818,  # From RECS2020
+                ['2500-2999', HPXML::ResidentialTypeManufactured, 'No'] => 2616,  # From RECS2020
+                ['3000-3999', HPXML::ResidentialTypeSFD, 'Yes'] => 3353,  # From RECS2020
+                ['3000-3999', HPXML::ResidentialTypeSFD, 'No'] => 2690,  # From RECS2020
+                ['3000-3999', HPXML::ResidentialTypeSFA, 'Yes'] => 3336,  # From RECS2020
+                ['3000-3999', HPXML::ResidentialTypeSFA, 'No'] => 2650,  # From RECS2020
+                ['3000-3999', HPXML::ResidentialTypeApartment, 'No'] => 3106,  # From RECS2020
+                ['3000-3999', HPXML::ResidentialTypeManufactured, 'No'] => 3000,  # From RECS2020
+                ['4000+', HPXML::ResidentialTypeSFD, 'Yes'] => 4862,  # From RECS2020
+                ['4000+', HPXML::ResidentialTypeSFD, 'No'] => 3682,  # From RECS2020
+                ['4000+', HPXML::ResidentialTypeSFA, 'Yes'] => 4792,  # From RECS2020
+                ['4000+', HPXML::ResidentialTypeSFA, 'No'] => 3377,  # From RECS2020
+                ['4000+', HPXML::ResidentialTypeApartment, 'No'] => 5000,  # From RECS2020
+                ['4000+', HPXML::ResidentialTypeManufactured, 'No'] => 5587,  # From AHS 2021, 1 detached and mobile home weighted average
       }
-      cfa = cfas[[args[:geometry_unit_cfa_bin], args[:geometry_unit_type]]]
+      if args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned
+        has_conditioned_basement = 'Yes'
+      else
+        has_conditioned_basement = 'No'
+      end
+      cfa = cfas[[args[:geometry_unit_cfa_bin], args[:geometry_unit_type], has_conditioned_basement]]
       if cfa.nil?
-        runner.registerError("ResStockArguments: Could not look up conditioned floor area for '#{args[:geometry_unit_cfa_bin]}' and '#{args[:geometry_unit_type]}'.")
+        runner.registerError("ResStockArguments: Could not look up conditioned floor area for '#{args[:geometry_unit_cfa_bin]}' and '#{args[:geometry_unit_type]}' with conditioned basement status: '#{has_conditioned_basement}'.")
         return false
       end
       args[:geometry_unit_cfa] = Float(cfa)
