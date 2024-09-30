@@ -214,7 +214,7 @@
     <sch:rule context='/h:HPXML/h:Building/h:Site'>
       <sch:assert role='ERROR' test='count(h:Address/h:CityMunicipality) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Address/CityMunicipality</sch:assert>
       <sch:assert role='ERROR' test='count(h:Address/h:StateCode) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Address/StateCode</sch:assert>
-      <sch:assert role='ERROR' test='count(h:Address/h:ZipCode) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Address/ZipCode</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Address/h:ZipCode) + count(../h:BuildingDetails/h:ClimateandRiskZones/h:WeatherStation/h:extension/h:EPWFilePath) &gt;= 1'>Expected 1 or more element(s) for xpath: Address/ZipCode | ../BuildingDetails/ClimateandRiskZones/WeatherStation/extension/EPWFilePath</sch:assert>
       <sch:assert role='ERROR' test='count(h:GeoLocation/h:Latitude) &lt;= 1'>Expected 0 or 1 element(s) for xpath: GeoLocation/Latitude</sch:assert>
       <sch:assert role='ERROR' test='count(h:GeoLocation/h:Longitude) &lt;= 1'>Expected 0 or 1 element(s) for xpath: GeoLocation/Longitude</sch:assert>
       <sch:assert role='ERROR' test='count(h:Elevation) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Elevation</sch:assert>
@@ -237,7 +237,6 @@
       <sch:assert role='ERROR' test='count(h:BuildingSummary/h:BuildingOccupancy) &lt;= 1'>Expected 0 or 1 element(s) for xpath: BuildingSummary/BuildingOccupancy</sch:assert> <!-- See [BuildingOccupancy]-->
       <sch:assert role='ERROR' test='count(h:BuildingSummary/h:BuildingConstruction) = 1'>Expected 1 element(s) for xpath: BuildingSummary/BuildingConstruction</sch:assert> <!-- See [BuildingConstruction] -->
       <sch:assert role='ERROR' test='count(h:ClimateandRiskZones/h:ClimateZoneIECC) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ClimateandRiskZones/ClimateZoneIECC</sch:assert> <!-- See [ClimateZoneIECC] -->
-      <sch:assert role='ERROR' test='count(h:ClimateandRiskZones/h:WeatherStation) = 1'>Expected 1 element(s) for xpath: ClimateandRiskZones/WeatherStation</sch:assert> <!-- See [WeatherStation] -->
       <sch:assert role='ERROR' test='count(h:Zones) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Zones</sch:assert> <!-- See [Zones] -->
       <sch:assert role='ERROR' test='count(h:Enclosure/h:Attics/h:Attic) &gt;= 0'>Expected 0 or more element(s) for xpath: Enclosure/Attics/Attic</sch:assert> <!-- See [VentedAttic] or [UnventedAttic] -->
       <sch:assert role='ERROR' test='count(h:Enclosure/h:Foundations/h:Foundation) &gt;= 0'>Expected 0 or more element(s) for xpath: Enclosure/Foundations/Foundation</sch:assert> <!-- See [VentedCrawl] or [UnventedCrawl] or [UncondBasement] or [ManufacturedHomeBelly] -->
@@ -358,6 +357,9 @@
       <sch:assert role='ERROR' test='number(h:ManualJInputs/h:InternalLoadsLatent) &gt;= 0 or not(h:ManualJInputs/h:InternalLoadsLatent)'>Expected ManualJInputs/InternalLoadsLatent to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:ManualJInputs/h:NumberofOccupants) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ManualJInputs/NumberofOccupants</sch:assert>
       <sch:assert role='ERROR' test='number(h:ManualJInputs/h:NumberofOccupants) &gt;= 0 or not(h:ManualJInputs/h:NumberofOccupants)'>Expected ManualJInputs/NumberofOccupants to be greater than or equal to 0</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ManualJInputs/h:InfiltrationShieldingClass) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ManualJInputs/InfiltrationShieldingClass</sch:assert>
+      <sch:assert role='ERROR' test='number(h:ManualJInputs/h:InfiltrationShieldingClass) &gt;= 1 or not(h:ManualJInputs/h:InfiltrationShieldingClass)'>Expected ManualJInputs/InfiltrationShieldingClass to be greater than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='number(h:ManualJInputs/h:InfiltrationShieldingClass) &lt;= 5 or not(h:ManualJInputs/h:InfiltrationShieldingClass)'>Expected ManualJInputs/InfiltrationShieldingClass to be less than or equal to 5</sch:assert>
       <sch:assert role='ERROR' test='count(h:ManualJInputs/h:InfiltrationMethod) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ManualJInputs/InfiltrationMethod</sch:assert> <!-- See [ManualJInfiltrationMethod=DefaultInfiltrationTable] or [ManualJInfiltrationMethod=BlowerDoor] -->
       <sch:assert role='ERROR' test='h:ManualJInputs/h:InfiltrationMethod[text()="default infiltration table" or text()="blower door"] or not(h:ManualJInputs/h:InfiltrationMethod)'>Expected InfiltrationMethod/DailyTemperatureRange to be 'default infiltration table' or 'blower door'</sch:assert>
       <!-- Moved/deprecated UseMaxLoadForHeatPumps input; see https://github.com/NREL/OpenStudio-HPXML/pull/1039 -->
@@ -454,6 +456,7 @@
       <sch:assert role='ERROR' test='count(h:YearBuilt) &lt;= 1'>Expected 0 or 1 element(s) for xpath: YearBuilt</sch:assert>
       <sch:assert role='ERROR' test='count(h:ResidentialFacilityType) = 1'>Expected 1 element(s) for xpath: ResidentialFacilityType</sch:assert> <!-- See [BuildingType=SFAorMF] -->
       <sch:assert role='ERROR' test='h:ResidentialFacilityType[text()="single-family detached" or text()="single-family attached" or text()="apartment unit" or text()="manufactured home"] or not(h:ResidentialFacilityType)'>Expected ResidentialFacilityType to be 'single-family detached' or 'single-family attached' or 'apartment unit' or 'manufactured home'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:UnitHeightAboveGrade) &lt;= 1'>Expected 0 or 1 element(s) for xpath: UnitHeightAboveGrade</sch:assert>
       <sch:assert role='ERROR' test='count(h:NumberofUnits) &lt;= 1'>Expected 0 or 1 element(s) for xpath: NumberofUnits</sch:assert>
       <sch:assert role='ERROR' test='count(h:NumberofConditionedFloors) = 1'>Expected 1 element(s) for xpath: NumberofConditionedFloors</sch:assert>
       <sch:assert role='ERROR' test='count(h:NumberofConditionedFloorsAboveGrade) = 1'>Expected 1 element(s) for xpath: NumberofConditionedFloorsAboveGrade</sch:assert>
@@ -486,13 +489,6 @@
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:ClimateandRiskZones/h:ClimateZoneIECC'>
       <sch:assert role='ERROR' test='count(h:Year) = 1'>Expected 1 element(s) for xpath: Year</sch:assert>
       <sch:assert role='ERROR' test='count(h:ClimateZone) = 1'>Expected 1 element(s) for xpath: ClimateZone</sch:assert>
-    </sch:rule>
-  </sch:pattern>
-
-  <sch:pattern>
-    <sch:title>[WeatherStation]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:ClimateandRiskZones/h:WeatherStation'>
-      <sch:assert role='ERROR' test='count(h:extension/h:EPWFilePath) = 1'>Expected 1 element(s) for xpath: extension/EPWFilePath</sch:assert>
     </sch:rule>
   </sch:pattern>
 
@@ -816,6 +812,9 @@
       <sch:assert role='ERROR' test='count(h:DepthBelowGrade) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DepthBelowGrade</sch:assert>
       <sch:assert role='ERROR' test='count(h:PerimeterInsulation/h:Layer/h:NominalRValue) = 1'>Expected 1 element(s) for xpath: PerimeterInsulation/Layer/NominalRValue</sch:assert>
       <sch:assert role='ERROR' test='count(h:PerimeterInsulation/h:Layer/h:InsulationDepth) = 1'>Expected 1 element(s) for xpath: PerimeterInsulation/Layer/InsulationDepth</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorHorizontalInsulation/h:Layer/h:NominalRValue) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorHorizontalInsulation/Layer/NominalRValue</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorHorizontalInsulation/h:Layer/h:InsulationWidth) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorHorizontalInsulation/Layer/InsulationWidth</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorHorizontalInsulation/h:Layer/h:InsulationDepthBelowGrade) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorHorizontalInsulation/Layer/InsulationDepthBelowGrade</sch:assert>
       <sch:assert role='ERROR' test='count(h:UnderSlabInsulation/h:Layer/h:NominalRValue) = 1'>Expected 1 element(s) for xpath: UnderSlabInsulation/Layer/NominalRValue</sch:assert>
       <sch:assert role='ERROR' test='count(h:UnderSlabInsulation/h:Layer/h:InsulationWidth) + count(h:UnderSlabInsulation/h:Layer/h:InsulationSpansEntireSlab[text()="true"]) = 1'>Expected 1 element(s) for xpath: UnderSlabInsulation/Layer/InsulationWidth | UnderSlabInsulation/Layer/InsulationSpansEntireSlab[text()="true"]</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:GapInsulationRValue) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/GapInsulationRValue</sch:assert>
@@ -828,6 +827,7 @@
       <sch:report role='WARN' test='number(h:ExposedPerimeter) &gt; 2*number(h:Area)'>Slab exposed perimeter is more than twice the slab area, this may indicate an input error.</sch:report>
       <sch:report role='WARN' test='number(h:Thickness) &lt; 1 and number(h:Thickness) &gt; 0'>Thickness is less than 1 inch; this may indicate incorrect units.</sch:report>
       <sch:report role='WARN' test='number(h:Thickness) &gt; 12'>Thickness is greater than 12 inches; this may indicate incorrect units.</sch:report>
+      <sch:report role='WARN' test='number(h:ExteriorHorizontalInsulation/h:Layer/h:NominalRValue) &gt; 0 and number(h:PerimeterInsulation/h:Layer/h:NominalRValue)=0'> There is ExteriorHorizontalInsulation but no PerimeterInsulation, this may indicate an input error.</sch:report>
     </sch:rule>
   </sch:pattern>
 
@@ -839,14 +839,31 @@
       <sch:assert role='ERROR' test='count(h:UFactor) + count(h:GlassLayers) &gt;= 1'>Expected 1 or more element(s) for xpath: UFactor | GlassLayers</sch:assert> <!-- See [Window=PhysicalProperties] -->
       <sch:assert role='ERROR' test='count(h:SHGC) + count(h:GlassLayers) &gt;= 1'>Expected 1 or more element(s) for xpath: SHGC | GlassLayers</sch:assert> <!-- See [Window=PhysicalProperties] -->
       <sch:assert role='ERROR' test='h:GlassLayers[text()="single-pane" or text()="double-pane" or text()="triple-pane" or text()="glass block"] or not(h:GlassLayers) or h:UFactor'>Expected GlassLayers to be 'single-pane' or 'double-pane' or 'triple-pane' or 'glass block'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorShading/h:Type) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/Type</sch:assert>
+      <sch:assert role='ERROR' test='h:ExteriorShading/h:Type[text()="external overhangs" or text()="awnings" or text()="solar screens" or text()="solar film" or text()="deciduous tree" or text()="evergreen tree" or text()="building" or text()="other" or text()="none"] or not(h:ExteriorShading/h:Type)'>Expected ExteriorShading/Type to be 'external overhangs' or 'awnings' or 'solar screens' or 'solar film' or 'deciduous tree' or 'evergreen tree' or 'building' or 'other' or 'none'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorShading/h:SummerFractionCovered) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/SummerFractionCovered</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ExteriorShading/h:WinterFractionCovered) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/WinterFractionCovered</sch:assert>
       <sch:assert role='ERROR' test='count(h:ExteriorShading/h:SummerShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/SummerShadingCoefficient</sch:assert>
       <sch:assert role='ERROR' test='count(h:ExteriorShading/h:WinterShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/WinterShadingCoefficient</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InteriorShading/h:Type) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/Type</sch:assert>
+      <sch:assert role='ERROR' test='h:InteriorShading/h:Type[text()="light blinds" or text()="medium blinds" or text()="dark blinds" or text()="light shades" or text()="medium shades" or text()="dark shades" or text()="light curtains" or text()="medium curtains" or text()="dark curtains" or text()="other" or text()="none"] or not(h:InteriorShading/h:Type)'>Expected InteriorShading/Type to be 'light blinds' or 'medium blinds' or 'dark blinds' or 'light shades' or 'medium shades' or 'dark shades' or 'light curtains' or 'medium curtains' or 'dark curtains' or 'other' or 'none'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InteriorShading/h:BlindsSummerClosedOrOpen) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/BlindsSummerClosedOrOpen</sch:assert>
+      <sch:assert role='ERROR' test='h:InteriorShading/h:BlindsSummerClosedOrOpen[text()="closed" or text()="open" or text()="half open"] or not(h:InteriorShading/h:BlindsSummerClosedOrOpen)'>Expected InteriorShading/BlindsSummerClosedOrOpen to be 'closed' or 'open' or 'half open'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InteriorShading/h:BlindsWinterClosedOrOpen) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/BlindsWinterClosedOrOpen</sch:assert>
+      <sch:assert role='ERROR' test='h:InteriorShading/h:BlindsWinterClosedOrOpen[text()="closed" or text()="open" or text()="half open"] or not(h:InteriorShading/h:BlindsWinterClosedOrOpen)'>Expected InteriorShading/BlindsWinterClosedOrOpen to be 'closed' or 'open' or 'half open'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InteriorShading/h:SummerFractionCovered) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/SummerFractionCovered</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InteriorShading/h:WinterFractionCovered) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/WinterFractionCovered</sch:assert>
       <sch:assert role='ERROR' test='count(h:InteriorShading/h:SummerShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/SummerShadingCoefficient</sch:assert>
       <sch:assert role='ERROR' test='count(h:InteriorShading/h:WinterShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/WinterShadingCoefficient</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InsectScreen) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InsectScreen</sch:assert> <!-- See [WindowInsectScreen] -->
       <sch:assert role='ERROR' test='count(h:StormWindow) &lt;= 1'>Expected 0 or 1 element(s) for xpath: StormWindow</sch:assert> <!-- See [WindowStorm] -->
       <sch:assert role='ERROR' test='count(h:Overhangs) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Overhangs</sch:assert> <!-- See [WindowOverhangs] -->
       <sch:assert role='ERROR' test='count(h:FractionOperable) &lt;= 1'>Expected 0 or 1 element(s) for xpath: FractionOperable</sch:assert>
       <sch:assert role='ERROR' test='count(h:AttachedToWall) = 1'>Expected 1 element(s) for xpath: AttachedToWall</sch:assert>
+      <!-- Warnings -->
+      <sch:report role='WARN' test='h:ExteriorShading/h:Type[text()="external overhangs"] and count(h:Overhangs) &gt; 0'>Exterior shading type is 'external overhangs', but overhangs are explicitly defined; exterior shading type will be ignored.</sch:report>
+      <sch:report role='WARN' test='h:ExteriorShading/h:Type[text()="awnings"] and count(h:Overhangs) &gt; 0'>Exterior shading type is 'external overhangs', but overhangs are explicitly defined; exterior shading type will be ignored.</sch:report>
+      <sch:report role='WARN' test='h:ExteriorShading/h:Type[text()="building"] and count(../../../h:BuildingSummary/h:Site/h:extension/h:Neighbors/h:NeighborBuilding) &gt; 0'>Exterior shading type is 'building', but neighbor buildings are explicitly defined; exterior shading type will be ignored.</sch:report>
     </sch:rule>
   </sch:pattern>
   
@@ -865,6 +882,16 @@
     <sch:title>[Window=MetalFrame]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window/h:FrameType/h:Metal | /h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window/h:FrameType/h:Aluminum'>
       <sch:assert role='ERROR' test='count(h:ThermalBreak) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ThermalBreak</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[WindowInsectScreen]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window/h:InsectScreen'>
+      <sch:assert role='ERROR' test='count(h:Location) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Location</sch:assert>
+      <sch:assert role='ERROR' test='h:Location[text()="interior" or text()="exterior"] or not(h:Location)'>Expected Location to be 'interior' or 'exterior'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SummerFractionCovered) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SummerFractionCovered</sch:assert>
+      <sch:assert role='ERROR' test='count(h:WinterFractionCovered) &lt;= 1'>Expected 0 or 1 element(s) for xpath: WinterFractionCovered</sch:assert>
     </sch:rule>
   </sch:pattern>
 

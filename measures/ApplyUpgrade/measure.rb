@@ -25,15 +25,15 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   end
 
   def num_options
-    return Constants.NumApplyUpgradeOptions # Synced with UpgradeCosts measure
+    return Constants::NumApplyUpgradeOptions # Synced with UpgradeCosts measure
   end
 
   def num_costs_per_option
-    return Constants.NumApplyUpgradesCostsPerOption # Synced with UpgradeCosts measure
+    return Constants::NumApplyUpgradesCostsPerOption # Synced with UpgradeCosts measure
   end
 
   def cost_multiplier_choices
-    return Constants.CostMultiplierChoices # Synced with UpgradeCosts measure
+    return Constants::CostMultiplierChoices # Synced with UpgradeCosts measure
   end
 
   # define the arguments that the user will input
@@ -296,7 +296,9 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Run the ResStockArguments measure
+      measures['ResStockArguments'][0]['building_id'] = values['building_id']
       if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+        register_logs(runner, resstock_arguments_runner)
         return false
       end
     end # apply_package_upgrade
@@ -333,7 +335,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Assign ResStockArgument's runner arguments to BuildResidentialHPXML
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
-        next if value == ''
+        next if value == '' || Constants::ArgumentsToExclude.include?(step_value.name)
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end

@@ -137,7 +137,7 @@ module MathTools
     dx = 0.1
 
     # Test for convergence
-    if (((x0 - x1).abs < tolRel * [x0.abs, Constants.small].max) && (icount != 1)) || (f0 == 0)
+    if (((x0 - x1).abs < tolRel * [x0.abs, Constants::Small].max) && (icount != 1)) || (f0 == 0)
       x_new = x0
       cvg = true
     else
@@ -165,9 +165,9 @@ module MathTools
           b = (f1 - f0) / (x1 - x0) - (x1 + x0) * c
           a = f0 - (b + c * x0) * x0
 
-          if c.abs < Constants.small # If points are co-linear, use linear fit
+          if c.abs < Constants::Small # If points are co-linear, use linear fit
             mode = 2
-          elsif ((a + (b + c * x1) * x1 - f1) / f1).abs > Constants.small
+          elsif ((a + (b + c * x1) * x1 - f1) / f1).abs > Constants::Small
             # If coefficients do not accurately predict data points due to
             # round-off, use linear fit
             mode = 2
@@ -220,7 +220,7 @@ module MathTools
 
       if mode == 1
         # Perturbation
-        if x0.abs > Constants.small
+        if x0.abs > Constants::Small
           x_new = x0 * (1 + dx)
         else
           x_new = dx

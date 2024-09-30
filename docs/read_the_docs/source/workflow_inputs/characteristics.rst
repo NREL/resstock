@@ -5616,7 +5616,7 @@ Arguments
      - 
      - String
      - auto
-     - Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
+     - Enter a date range like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
    * - ``hvac_control_cooling_weekday_setpoint_temp``
      - true
      - deg-F
@@ -6149,6 +6149,89 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
      - 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
+.. _cooling_unavailable_days:
+
+Cooling Unavailable Days
+------------------------
+
+Description
+***********
+
+Number of days in a year the cooling system is unavailable.
+
+Created by
+**********
+
+``sources/recs/recs2020/tsv_maker.py``
+
+Source
+******
+
+- \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``schedules_space_cooling_unavailable_days``
+     - false
+     - 
+     - Integer
+     -
+     - Number of days space cooling equipment is unavailable.
+
+Options
+*******
+
+From ``project_national`` the list of options, option stock sturation, and option arguments for the **Cooling Unavailable Days** characteristic.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: auto
+
+   * - Option name
+     - Stock saturation
+     - ``schedules_space_cooling_unavailable_days``
+
+   * - 1 day
+     - 0.64%
+     - 1
+   * - 1 month
+     - 0.95%
+     - 30
+   * - 1 week
+     - 0.87%
+     - 7
+   * - 2 weeks
+     - 0.74%
+     - 14
+   * - 3 days
+     - 1.1%
+     - 3
+   * - 3 months
+     - 0.61%
+     - 90
+   * - Never
+     - 95%
+     - 0
+   * - Year round
+     - 0.23%
+     - 365
+   * - Void
+     - 0%
+     - 
+
 .. _corridor:
 
 Corridor
@@ -6279,7 +6362,7 @@ Arguments
      - 
      - String
      -
-     - Zip code of the home address.
+     - Zip code of the home address. Either this or the Weather Station: EnergyPlus Weather (EPW) Filepath input below must be provided.
    * - ``site_time_zone_utc_offset``
      - false
      - hr
@@ -6287,11 +6370,11 @@ Arguments
      - auto
      - Time zone UTC offset of the home address. Must be between -12 and 14. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
    * - ``weather_station_epw_filepath``
-     - true
+     - false
      - 
      - String
      -
-     - Path of the EPW file.
+     - Path of the EPW file. Either this or the Site: Zip Code input above must be provided.
 
 Options
 *******
@@ -34956,7 +35039,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``ducts_return_fraction_rectangular``
 
    * - 0% Leakage to Outside, Uninsulated
-     - 31%
+     - 30%
      - Percent
      - 0
      - 0
@@ -34967,7 +35050,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - 10% Leakage to Outside, R-4
-     - 3.8%
+     - 3.9%
      - Percent
      - 0.067
      - 4
@@ -35011,7 +35094,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - 20% Leakage to Outside, R-4
-     - 6.9%
+     - 7%
      - Percent
      - 0.133
      - 4
@@ -35232,7 +35315,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - Garage
-     - 4.5%
+     - 4.8%
      - garage
      - auto
      - auto
@@ -35694,7 +35777,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``geometry_roof_pitch``
 
    * - Finished Attic or Cathedral Ceilings
-     - 1.8%
+     - 1.4%
      - ConditionedAttic
      - gable
      - 6:12
@@ -35709,7 +35792,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - gable
      - 6:12
    * - Vented Attic
-     - 39%
+     - 40%
      - VentedAttic
      - gable
      - 6:12
@@ -36356,6 +36439,12 @@ Arguments
      - Double
      -
      - Average distance from the floor to the ceiling.
+   * - ``geometry_unit_height_above_grade``
+     - false
+     - ft
+     - Double
+     - auto
+     - Describes the above-grade height of apartment units on upper floors or homes above ambient or belly-and-wing foundations. It is defined as the height of the lowest conditioned floor above grade and is used to calculate the wind speed for the infiltration model. If not provided, the OS-HPXML default (see `HPXML Building Construction <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-building-construction>`_) is used.
 
 Options
 *******
@@ -36372,32 +36461,38 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``geometry_unit_type``
      - ``geometry_unit_aspect_ratio``
      - ``geometry_average_ceiling_height``
+     - ``geometry_unit_height_above_grade``
 
    * - Mobile Home
      - 6.2%
      - manufactured home
      - 1.8
      - 8
+     - auto
    * - Multi-Family with 2 - 4 Units
      - 8%
      - apartment unit
      - 0.5556
      - 8
+     - auto
    * - Multi-Family with 5+ Units
      - 18%
      - apartment unit
      - 0.5556
      - 8
+     - auto
    * - Single-Family Attached
      - 5.9%
      - single-family attached
      - 0.5556
      - 8
+     - auto
    * - Single-Family Detached
      - 61%
      - single-family detached
      - 1.8
      - 8
+     - auto
 
 .. _geometry_floor_area:
 
@@ -36794,22 +36889,22 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``geometry_garage_position``
 
    * - 1 Car
-     - 11%
+     - 10%
      - 12
      - 24
      - Right
    * - 2 Car
-     - 18%
+     - 19%
      - 24
      - 24
      - Right
    * - 3 Car
-     - 2.5%
+     - 2.6%
      - 36
      - 24
      - Right
    * - None
-     - 69%
+     - 68%
      - 0
      - 24
      - Right
@@ -36911,7 +37006,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Multi-Family with 5+ Units Top Unit, Vented Crawlspace, No Attic, No Garage
      - 1.5%
    * - Single-Family Attached, Heated Basement, Finished Attic, No Garage
-     - 0.044%
+     - 0.04%
    * - Single-Family Attached, Heated Basement, No Attic, No Garage
      - 0.63%
    * - Single-Family Attached, Heated Basement, Unvented Attic, No Garage
@@ -36919,7 +37014,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Single-Family Attached, Heated Basement, Vented Attic, No Garage
      - 0.46%
    * - Single-Family Attached, Slab, Finished Attic, No Garage
-     - 0.061%
+     - 0.057%
    * - Single-Family Attached, Slab, No Attic, No Garage
      - 1.2%
    * - Single-Family Attached, Slab, Unvented Attic, No Garage
@@ -36927,13 +37022,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Single-Family Attached, Slab, Vented Attic, No Garage
      - 0.94%
    * - Single-Family Attached, Unheated Basement, Finished Attic, No Garage
-     - 0.056%
+     - 0.049%
    * - Single-Family Attached, Unheated Basement, No Attic, No Garage
      - 0.51%
    * - Single-Family Attached, Unheated Basement, Unvented Attic, No Garage
      - 0.036%
    * - Single-Family Attached, Unheated Basement, Vented Attic, No Garage
-     - 0.34%
+     - 0.35%
    * - Single-Family Attached, Unvented Crawlspace, Finished Attic, No Garage
      - 0.0031%
    * - Single-Family Attached, Unvented Crawlspace, No Attic, No Garage
@@ -36943,7 +37038,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Single-Family Attached, Unvented Crawlspace, Vented Attic, No Garage
      - 0.063%
    * - Single-Family Attached, Vented Crawlspace, Finished Attic, No Garage
-     - 0.045%
+     - 0.04%
    * - Single-Family Attached, Vented Crawlspace, No Attic, No Garage
      - 0.69%
    * - Single-Family Attached, Vented Crawlspace, Unvented Attic, No Garage
@@ -36951,7 +37046,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Single-Family Attached, Vented Crawlspace, Vented Attic, No Garage
      - 0.47%
    * - Single-Family Detached, Ambient, Finished Attic, No Garage
-     - 0.065%
+     - 0.053%
    * - Single-Family Detached, Ambient, No Attic, No Garage
      - 0.82%
    * - Single-Family Detached, Ambient, Unvented Attic, No Garage
@@ -36959,165 +37054,165 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Single-Family Detached, Ambient, Vented Attic, No Garage
      - 1.6%
    * - Single-Family Detached, Heated Basement, Finished Attic, 1 Car Garage
-     - 0.035%
+     - 0.026%
    * - Single-Family Detached, Heated Basement, Finished Attic, 2 Car Garage
-     - 0.077%
+     - 0.071%
    * - Single-Family Detached, Heated Basement, Finished Attic, 3 Car Garage
-     - 0.0055%
+     - 0.0057%
    * - Single-Family Detached, Heated Basement, Finished Attic, No Garage
-     - 0.15%
+     - 0.11%
    * - Single-Family Detached, Heated Basement, No Attic, 1 Car Garage
-     - 0.81%
+     - 0.75%
    * - Single-Family Detached, Heated Basement, No Attic, 2 Car Garage
      - 1.1%
    * - Single-Family Detached, Heated Basement, No Attic, 3 Car Garage
-     - 0.052%
+     - 0.051%
    * - Single-Family Detached, Heated Basement, No Attic, No Garage
-     - 1.7%
+     - 1.8%
    * - Single-Family Detached, Heated Basement, Unvented Attic, 1 Car Garage
      - 0.1%
    * - Single-Family Detached, Heated Basement, Unvented Attic, 2 Car Garage
      - 0.13%
    * - Single-Family Detached, Heated Basement, Unvented Attic, 3 Car Garage
-     - 0.0057%
+     - 0.0059%
    * - Single-Family Detached, Heated Basement, Unvented Attic, No Garage
-     - 0.25%
+     - 0.26%
    * - Single-Family Detached, Heated Basement, Vented Attic, 1 Car Garage
-     - 1.4%
+     - 1.3%
    * - Single-Family Detached, Heated Basement, Vented Attic, 2 Car Garage
      - 2.1%
    * - Single-Family Detached, Heated Basement, Vented Attic, 3 Car Garage
      - 0.1%
    * - Single-Family Detached, Heated Basement, Vented Attic, No Garage
-     - 3.1%
+     - 3.3%
    * - Single-Family Detached, Slab, Finished Attic, 1 Car Garage
-     - 0.073%
+     - 0.052%
    * - Single-Family Detached, Slab, Finished Attic, 2 Car Garage
-     - 0.24%
+     - 0.23%
    * - Single-Family Detached, Slab, Finished Attic, 3 Car Garage
-     - 0.061%
+     - 0.059%
    * - Single-Family Detached, Slab, Finished Attic, No Garage
-     - 0.17%
+     - 0.12%
    * - Single-Family Detached, Slab, No Attic, 1 Car Garage
-     - 1.6%
+     - 1.5%
    * - Single-Family Detached, Slab, No Attic, 2 Car Garage
-     - 2.6%
+     - 3%
    * - Single-Family Detached, Slab, No Attic, 3 Car Garage
-     - 0.45%
+     - 0.5%
    * - Single-Family Detached, Slab, No Attic, No Garage
-     - 2.9%
+     - 2.6%
    * - Single-Family Detached, Slab, Unvented Attic, 1 Car Garage
-     - 0.24%
+     - 0.22%
    * - Single-Family Detached, Slab, Unvented Attic, 2 Car Garage
-     - 0.45%
+     - 0.51%
    * - Single-Family Detached, Slab, Unvented Attic, 3 Car Garage
-     - 0.068%
+     - 0.076%
    * - Single-Family Detached, Slab, Unvented Attic, No Garage
-     - 0.46%
+     - 0.41%
    * - Single-Family Detached, Slab, Vented Attic, 1 Car Garage
-     - 2.9%
+     - 2.7%
    * - Single-Family Detached, Slab, Vented Attic, 2 Car Garage
-     - 5.6%
+     - 6.3%
    * - Single-Family Detached, Slab, Vented Attic, 3 Car Garage
-     - 0.92%
+     - 1%
    * - Single-Family Detached, Slab, Vented Attic, No Garage
-     - 5.3%
+     - 4.8%
    * - Single-Family Detached, Unheated Basement, Finished Attic, 1 Car Garage
-     - 0.039%
+     - 0.026%
    * - Single-Family Detached, Unheated Basement, Finished Attic, 2 Car Garage
-     - 0.047%
+     - 0.045%
    * - Single-Family Detached, Unheated Basement, Finished Attic, 3 Car Garage
-     - 0.0084%
+     - 0.0075%
    * - Single-Family Detached, Unheated Basement, Finished Attic, No Garage
-     - 0.21%
+     - 0.15%
    * - Single-Family Detached, Unheated Basement, No Attic, 1 Car Garage
-     - 0.53%
+     - 0.46%
    * - Single-Family Detached, Unheated Basement, No Attic, 2 Car Garage
      - 0.55%
    * - Single-Family Detached, Unheated Basement, No Attic, 3 Car Garage
-     - 0.091%
+     - 0.084%
    * - Single-Family Detached, Unheated Basement, No Attic, No Garage
      - 1.6%
    * - Single-Family Detached, Unheated Basement, Unvented Attic, 1 Car Garage
-     - 0.082%
+     - 0.074%
    * - Single-Family Detached, Unheated Basement, Unvented Attic, 2 Car Garage
-     - 0.067%
+     - 0.069%
    * - Single-Family Detached, Unheated Basement, Unvented Attic, 3 Car Garage
-     - 0.0094%
+     - 0.009%
    * - Single-Family Detached, Unheated Basement, Unvented Attic, No Garage
-     - 0.28%
+     - 0.3%
    * - Single-Family Detached, Unheated Basement, Vented Attic, 1 Car Garage
-     - 0.98%
+     - 0.86%
    * - Single-Family Detached, Unheated Basement, Vented Attic, 2 Car Garage
      - 1.1%
    * - Single-Family Detached, Unheated Basement, Vented Attic, 3 Car Garage
-     - 0.17%
+     - 0.16%
    * - Single-Family Detached, Unheated Basement, Vented Attic, No Garage
-     - 3%
+     - 3.2%
    * - Single-Family Detached, Unvented Crawlspace, Finished Attic, 1 Car Garage
-     - 0.0017%
+     - 0.0013%
    * - Single-Family Detached, Unvented Crawlspace, Finished Attic, 2 Car Garage
-     - 0.01%
+     - 0.0098%
    * - Single-Family Detached, Unvented Crawlspace, Finished Attic, 3 Car Garage
-     - 0.0029%
+     - 0.0026%
    * - Single-Family Detached, Unvented Crawlspace, Finished Attic, No Garage
-     - 0.0038%
+     - 0.003%
    * - Single-Family Detached, Unvented Crawlspace, No Attic, 1 Car Garage
-     - 0.046%
+     - 0.043%
    * - Single-Family Detached, Unvented Crawlspace, No Attic, 2 Car Garage
-     - 0.15%
+     - 0.16%
    * - Single-Family Detached, Unvented Crawlspace, No Attic, 3 Car Garage
-     - 0.037%
+     - 0.034%
    * - Single-Family Detached, Unvented Crawlspace, No Attic, No Garage
      - 0.1%
    * - Single-Family Detached, Unvented Crawlspace, Unvented Attic, 1 Car Garage
-     - 0.006%
+     - 0.0057%
    * - Single-Family Detached, Unvented Crawlspace, Unvented Attic, 2 Car Garage
-     - 0.02%
+     - 0.022%
    * - Single-Family Detached, Unvented Crawlspace, Unvented Attic, 3 Car Garage
-     - 0.0037%
+     - 0.0035%
    * - Single-Family Detached, Unvented Crawlspace, Unvented Attic, No Garage
-     - 0.014%
+     - 0.013%
    * - Single-Family Detached, Unvented Crawlspace, Vented Attic, 1 Car Garage
-     - 0.084%
+     - 0.08%
    * - Single-Family Detached, Unvented Crawlspace, Vented Attic, 2 Car Garage
-     - 0.31%
+     - 0.33%
    * - Single-Family Detached, Unvented Crawlspace, Vented Attic, 3 Car Garage
-     - 0.067%
+     - 0.062%
    * - Single-Family Detached, Unvented Crawlspace, Vented Attic, No Garage
-     - 0.2%
+     - 0.19%
    * - Single-Family Detached, Vented Crawlspace, Finished Attic, 1 Car Garage
-     - 0.05%
+     - 0.041%
    * - Single-Family Detached, Vented Crawlspace, Finished Attic, 2 Car Garage
-     - 0.089%
+     - 0.085%
    * - Single-Family Detached, Vented Crawlspace, Finished Attic, 3 Car Garage
      - 0.014%
    * - Single-Family Detached, Vented Crawlspace, Finished Attic, No Garage
-     - 0.22%
+     - 0.14%
    * - Single-Family Detached, Vented Crawlspace, No Attic, 1 Car Garage
-     - 0.83%
+     - 0.8%
    * - Single-Family Detached, Vented Crawlspace, No Attic, 2 Car Garage
-     - 1%
+     - 1.2%
    * - Single-Family Detached, Vented Crawlspace, No Attic, 3 Car Garage
-     - 0.13%
+     - 0.14%
    * - Single-Family Detached, Vented Crawlspace, No Attic, No Garage
-     - 2.7%
+     - 2.5%
    * - Single-Family Detached, Vented Crawlspace, Unvented Attic, 1 Car Garage
      - 0.11%
    * - Single-Family Detached, Vented Crawlspace, Unvented Attic, 2 Car Garage
-     - 0.14%
+     - 0.17%
    * - Single-Family Detached, Vented Crawlspace, Unvented Attic, 3 Car Garage
-     - 0.017%
+     - 0.019%
    * - Single-Family Detached, Vented Crawlspace, Unvented Attic, No Garage
-     - 0.42%
+     - 0.41%
    * - Single-Family Detached, Vented Crawlspace, Vented Attic, 1 Car Garage
      - 1.3%
    * - Single-Family Detached, Vented Crawlspace, Vented Attic, 2 Car Garage
-     - 1.9%
+     - 2.2%
    * - Single-Family Detached, Vented Crawlspace, Vented Attic, 3 Car Garage
-     - 0.25%
+     - 0.27%
    * - Single-Family Detached, Vented Crawlspace, Vented Attic, No Garage
-     - 4.6%
+     - 4.4%
    * - Void
      - 0%
 
@@ -37191,13 +37286,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``geometry_num_floors_above_grade``
 
    * - 1
-     - 49%
+     - 53%
      - 1
    * - 2
-     - 37%
+     - 33%
      - 2
    * - 3
-     - 8%
+     - 7.7%
      - 3
    * - 4
      - 2%
@@ -37280,11 +37375,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - Stock saturation
 
    * - 1
-     - 49%
+     - 53%
    * - 2
-     - 37%
+     - 33%
    * - 3
-     - 8%
+     - 7.7%
    * - 4+
      - 5.7%
 
@@ -38110,22 +38205,22 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``cooling_system_fraction_cool_load_served``
 
    * - <10% Conditioned
-     - 0.57%
+     - 0.46%
      - .1
    * - 20% Conditioned
-     - 6.8%
+     - 6.3%
      - .2
    * - 40% Conditioned
-     - 5.6%
+     - 5.8%
      - .4
    * - 60% Conditioned
-     - 6.6%
+     - 6.5%
      - .6
    * - 80% Conditioned
-     - 3.8%
+     - 3.6%
      - .8
    * - 100% Conditioned
-     - 66%
+     - 67%
      - 1
    * - None
      - 11%
@@ -39995,7 +40090,7 @@ Arguments
      - 
      - Choice
      - none, Furnace, WallFurnace, FloorFurnace, Boiler, ElectricResistance, Stove, SpaceHeater, Fireplace
-     - The type of the second heating system.
+     - The type of the second heating system. If a heat pump is specified and the backup type is 'separate', this heating system represents 'separate' backup heating. For ducted heat pumps where the backup heating system is a 'Furnace', the backup would typically be characterized as 'integrated' in that the furnace and heat pump share the same distribution system and blower fan; a 'Furnace' as 'separate' backup to a ducted heat pump is not supported.
    * - ``heating_system_2_heating_efficiency``
      - true
      - Frac
@@ -41621,7 +41716,7 @@ Arguments
      - 
      - String
      - auto
-     - Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
+     - Enter a date range like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see `HPXML HVAC Control <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control>`_) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
    * - ``hvac_control_heating_weekday_setpoint_temp``
      - true
      - deg-F
@@ -42066,6 +42161,102 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
      - 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
+.. _heating_unavailable_days:
+
+Heating Unavailable Days
+------------------------
+
+Description
+***********
+
+Number of days in a year the heating system is unavailable
+
+Created by
+**********
+
+``sources/recs/recs2020/tsv_maker.py``
+
+Source
+******
+
+- \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
+
+
+Assumption
+**********
+
+- \Where samples are less than 10, the data is aggregated in the following order until there are no rows with less than 10 samples:
+
+- \1. The Federal Poverty Level dependency is aggregated every 100%
+
+- \2. The Federal Poverty Level dependency is aggregated every 200%
+
+- \3. The Geometry Building Type RECS dependency is aggregated into SF, MF, and MH bins.
+
+- \4. The Cooling Unavailable Days dependency is aggregated into Days, Weeks, Month, and All Year bins.
+
+- \5. The Cooling Unavailable Days dependancy is removed.
+
+
+Arguments
+*********
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Required
+     - Units
+     - Type
+     - Choices
+     - Description
+   * - ``schedules_space_heating_unavailable_days``
+     - false
+     - 
+     - Integer
+     -
+     - Number of days space heating equipment is unavailable.
+
+Options
+*******
+
+From ``project_national`` the list of options, option stock sturation, and option arguments for the **Heating Unavailable Days** characteristic.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: auto
+
+   * - Option name
+     - Stock saturation
+     - ``schedules_space_heating_unavailable_days``
+
+   * - 1 day
+     - 0.82%
+     - 0
+   * - 1 month
+     - 0.35%
+     - 30
+   * - 1 week
+     - 0.62%
+     - 7
+   * - 2 weeks
+     - 0.43%
+     - 14
+   * - 3 days
+     - 1.1%
+     - 3
+   * - 3 months
+     - 0.36%
+     - 90
+   * - Never
+     - 96%
+     - 0
+   * - Year round
+     - 0.24%
+     - 365
+
 .. _holiday_lighting:
 
 Holiday Lighting
@@ -42117,7 +42308,7 @@ Arguments
      - 
      - String
      - auto
-     - Enter a date like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see `HPXML Lighting <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-lighting>`_) is used.
+     - Enter a date range like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see `HPXML Lighting <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-lighting>`_) is used.
 
 Options
 *******
@@ -42290,17 +42481,13 @@ Created by
 Source
 ******
 
-- \Field data from a demand management program with 1700 residential electric resistance water heaters in the Northeast U.S.
+- \Field data from a demand management program with 1700 residential electric resistance water heaters in the Northeast U.S., mean-shifted from 0.8 to 1 average usage.
 
 
 Assumption
 **********
 
-- \A lognormal distribution was shown to match the distribution of annual energy consumption.
-
-- \For the lognormal distribution the average multiplier is 0.8 and the standard deviation is 0.2.
-
-- \Low, Medium, and High usage is assigned based on the lower 25th percent, middle 50th percent, and upper 25th percent. The bins do not align perfectly with these bins so the lower users are a total of 25 percent, the medium users are 47 percent, and the high users are 28 percent of the stock.
+- \Low, Medium, and High usage is assigned based on the lower 25th percent, middle 50th percent, and upper 25th percent.
 
 
 Arguments
@@ -42351,88 +42538,83 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``water_fixtures_sink_low_flow``
      - ``water_fixtures_usage_multiplier``
 
-   * - 40% Usage
-     - 0.026%
-     - false
-     - false
-     - 0.4
    * - 50% Usage
-     - 0.9%
+     - 0.47%
      - false
      - false
      - 0.5
    * - 60% Usage
-     - 6.5%
+     - 3.6%
      - false
      - false
      - 0.6
    * - 70% Usage
-     - 18%
+     - 9.9%
      - false
      - false
      - 0.7
    * - 80% Usage
-     - 26%
+     - 14%
      - false
      - false
      - 0.8
    * - 90% Usage
-     - 24%
+     - 17%
      - false
      - false
      - 0.9
    * - 100% Usage
-     - 13%
+     - 18%
      - false
      - false
      - 1.0
    * - 110% Usage
-     - 6.9%
+     - 13%
      - false
      - false
      - 1.1
    * - 120% Usage
-     - 3.1%
+     - 8.9%
      - false
      - false
      - 1.2
    * - 130% Usage
-     - 1.2%
+     - 6.8%
      - false
      - false
      - 1.3
    * - 140% Usage
-     - 0.45%
+     - 3.8%
      - false
      - false
      - 1.4
    * - 150% Usage
-     - 0.16%
+     - 2.1%
      - false
      - false
      - 1.5
    * - 160% Usage
-     - 0.051%
+     - 0.99%
      - false
      - false
      - 1.6
    * - 170% Usage
-     - 0.016%
+     - 0.73%
      - false
      - false
      - 1.7
    * - 180% Usage
-     - 0.0051%
+     - 0.31%
      - false
      - false
      - 1.8
    * - 190% Usage
-     - 0.0016%
+     - 0%
      - false
      - false
      - 1.9
    * - 200% Usage
-     - 0.00048%
+     - 0.1%
      - false
      - false
      - 2.0
@@ -42742,7 +42924,7 @@ Infiltration
 Description
 ***********
 
-Air leakage rates for the living and garage spaces
+Total infiltration to the dwelling unit.
 
 Created by
 **********
@@ -42769,6 +42951,8 @@ Assumption
 - \Homes are assumed to not be Weatherization Assistance Program (WAP) qualified and not ENERGY STAR certified.
 
 - \Climate zones 7AK and 8AK are averages of 6A and 6B.
+
+- \ResStock models multi-family and SFA units with the unit total air leakage type. The unit total air leakage assume that some of the sampled ACH50 value goes to neighboring units. The model infiltration value to the exterior is a smaller infiltration value that what is sampled and is adjusted by the ratio of exterior envelope surface area to total envelope surface area. The modeled infiltration to the exterior is reported in the results.
 
 - \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
@@ -42851,7 +43035,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 1
-     - unit exterior only
+     - unit total
    * - 2 ACH50
      - 0.66%
      - normal
@@ -42859,7 +43043,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 2
-     - unit exterior only
+     - unit total
    * - 3 ACH50
      - 1.4%
      - normal
@@ -42867,7 +43051,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 3
-     - unit exterior only
+     - unit total
    * - 4 ACH50
      - 2.3%
      - normal
@@ -42875,7 +43059,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 4
-     - unit exterior only
+     - unit total
    * - 5 ACH50
      - 3.4%
      - normal
@@ -42883,7 +43067,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 5
-     - unit exterior only
+     - unit total
    * - 6 ACH50
      - 4.3%
      - normal
@@ -42891,7 +43075,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 6
-     - unit exterior only
+     - unit total
    * - 7 ACH50
      - 4.9%
      - normal
@@ -42899,7 +43083,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 7
-     - unit exterior only
+     - unit total
    * - 8 ACH50
      - 5.3%
      - normal
@@ -42907,7 +43091,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 8
-     - unit exterior only
+     - unit total
    * - 10 ACH50
      - 11%
      - normal
@@ -42915,7 +43099,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 10
-     - unit exterior only
+     - unit total
    * - 15 ACH50
      - 24%
      - normal
@@ -42923,7 +43107,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 15
-     - unit exterior only
+     - unit total
    * - 20 ACH50
      - 17%
      - normal
@@ -42931,7 +43115,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 20
-     - unit exterior only
+     - unit total
    * - 25 ACH50
      - 10%
      - normal
@@ -42939,7 +43123,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 25
-     - unit exterior only
+     - unit total
    * - 30 ACH50
      - 6.1%
      - normal
@@ -42947,7 +43131,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 30
-     - unit exterior only
+     - unit total
    * - 40 ACH50
      - 5.7%
      - normal
@@ -42955,7 +43139,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 40
-     - unit exterior only
+     - unit total
    * - 50 ACH50
      - 3.2%
      - normal
@@ -42963,7 +43147,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ACH
      - 50
      - 50
-     - unit exterior only
+     - unit total
 
 .. _insulation_ceiling:
 
@@ -43046,11 +43230,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 8.7
      - 7
    * - R-13
-     - 5.2%
+     - 5.3%
      - 14.6
      - 13
    * - R-19
-     - 8.3%
+     - 8.4%
      - 20.6
      - 19
    * - R-30
@@ -43555,6 +43739,24 @@ Arguments
      - Double
      -
      - Depth from grade to bottom of vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_exterior_horizontal_insulation_r``
+     - false
+     - h-ft^2-R/Btu
+     - Double
+     -
+     - Nominal R-value of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_exterior_horizontal_insulation_width``
+     - false
+     - ft
+     - Double
+     -
+     - Width of the slab exterior horizontal insulation measured from the exterior surface of the vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+   * - ``slab_exterior_horizontal_insulation_depth_below_grade``
+     - false
+     - ft
+     - Double
+     -
+     - Depth of the slab exterior horizontal insulation measured from the top surface of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
    * - ``slab_under_insulation_r``
      - true
      - h-ft^2-R/Btu
@@ -43600,6 +43802,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - Stock saturation
      - ``slab_perimeter_insulation_r``
      - ``slab_perimeter_insulation_depth``
+     - ``slab_exterior_horizontal_insulation_r``
+     - ``slab_exterior_horizontal_insulation_width``
+     - ``slab_exterior_horizontal_insulation_depth_below_grade``
      - ``slab_under_insulation_r``
      - ``slab_under_insulation_width``
      - ``slab_thickness``
@@ -43608,6 +43813,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - None
      - 61%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 0
@@ -43621,11 +43829,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - auto
      - auto
      - auto
    * - 2ft R5 Under, Horizontal
      - 2.6%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 5
@@ -43637,6 +43851,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2.3%
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - 10
      - 2
      - auto
@@ -43644,6 +43861,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
    * - 4ft R5 Under, Horizontal
      - 0%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 5
@@ -43657,6 +43877,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - auto
      - auto
      - auto
@@ -43666,11 +43889,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 2
      - 0
      - 0
+     - 0
+     - 0
+     - 0
      - auto
      - auto
      - auto
    * - R10 Whole Slab, Horizontal
      - 0%
+     - 0
+     - 0
+     - 0
      - 0
      - 0
      - 10
@@ -43850,18 +44079,24 @@ Arguments
      - Type
      - Choices
      - Description
+   * - ``window_interior_shading_type``
+     - false
+     - 
+     - Choice
+     - auto, light curtains, light shades, light blinds, medium curtains, medium shades, medium blinds, dark curtains, dark shades, dark blinds, none
+     - Type of window interior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see `HPXML Interior Shading <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading>`_) is used.
    * - ``window_interior_shading_winter``
      - false
      - Frac
      - Double
      - auto
-     - Interior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+     - Interior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Interior Shading <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading>`_) is used.
    * - ``window_interior_shading_summer``
      - false
      - Frac
      - Double
      - auto
-     - Interior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+     - Interior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Interior Shading <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading>`_) is used.
 
 Options
 *******
@@ -43875,11 +44110,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - Option name
      - Stock saturation
+     - ``window_interior_shading_type``
      - ``window_interior_shading_winter``
      - ``window_interior_shading_summer``
 
    * - Summer = 0.7, Winter = 0.85
      - 100%
+     - auto
      - 0.85
      - 0.7
 
@@ -47622,25 +47859,25 @@ Arguments
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the front. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the front. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
    * - ``neighbor_back_height``
      - false
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the back. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the back. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
    * - ``neighbor_left_height``
      - false
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the left. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the left. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
    * - ``neighbor_right_height``
      - false
      - ft
      - Double
      - auto
-     - The height of the neighboring building to the right. If not provided, the OS-HPXML default (see `HPXML Site <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site>`_) is used.
+     - The height of the neighboring building to the right. If not provided, the OS-HPXML default (see `HPXML Neighbor Building <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings>`_) is used.
 
 Options
 *******
@@ -63137,7 +63374,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``water_heater_location``
 
    * - Attic
-     - 0.9%
+     - 0.87%
      - attic
    * - Conditioned Mechanical Room
      - 14%
@@ -63146,16 +63383,16 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0.18%
      - crawlspace
    * - Garage
-     - 14%
+     - 15%
      - garage
    * - Heated Basement
      - 11%
      - basement - conditioned
    * - Living Space
-     - 44%
+     - 43%
      - conditioned space
    * - Outside
-     - 7.3%
+     - 7.1%
      - other exterior
    * - Unheated Basement
      - 8.7%
@@ -63214,49 +63451,49 @@ Arguments
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.
+     - The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead. If the front wall is adiabatic, the value will be ignored.
    * - ``window_back_wwr``
      - true
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.
+     - The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead. If the back wall is adiabatic, the value will be ignored.
    * - ``window_left_wwr``
      - true
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.
+     - The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead. If the left wall is adiabatic, the value will be ignored.
    * - ``window_right_wwr``
      - true
      - Frac
      - Double
      -
-     - The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.
+     - The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead. If the right wall is adiabatic, the value will be ignored.
    * - ``window_area_front``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead. If the front wall is adiabatic, the value will be ignored.
    * - ``window_area_back``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead. If the back wall is adiabatic, the value will be ignored.
    * - ``window_area_left``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead. If the left wall is adiabatic, the value will be ignored.
    * - ``window_area_right``
      - true
      - ft^2
      - Double
      -
-     - The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead.
+     - The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead. If the right wall is adiabatic, the value will be ignored.
    * - ``window_aspect_ratio``
      - true
      - Frac
@@ -63497,24 +63734,36 @@ Arguments
      - Double
      -
      - Full-assembly NFRC solar heat gain coefficient.
+   * - ``window_exterior_shading_type``
+     - false
+     - 
+     - Choice
+     - auto, solar film, solar screens, none
+     - Type of window exterior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see `HPXML Exterior Shading <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading>`_) is used.
    * - ``window_exterior_shading_winter``
      - false
      - Frac
      - Double
      - auto
-     - Exterior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+     - Exterior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Exterior Shading <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading>`_) is used.
    * - ``window_exterior_shading_summer``
      - false
      - Frac
      - Double
      - auto
-     - Exterior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+     - Exterior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see `HPXML Exterior Shading <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading>`_) is used.
    * - ``window_shading_summer_season``
      - false
      - 
      - String
      - auto
-     - Enter a date like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+     - Enter a date range like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see `HPXML Windows <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows>`_) is used.
+   * - ``window_insect_screens``
+     - false
+     - 
+     - Choice
+     - auto, none, exterior, interior
+     - The type of insect screens, if present. If not provided, assumes there are no insect screens.
    * - ``skylight_ufactor``
      - true
      - Btu/hr-ft^2-R
@@ -63549,9 +63798,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``window_natvent_availability``
      - ``window_ufactor``
      - ``window_shgc``
+     - ``window_exterior_shading_type``
      - ``window_exterior_shading_winter``
      - ``window_exterior_shading_summer``
      - ``window_shading_summer_season``
+     - ``window_insect_screens``
      - ``skylight_ufactor``
      - ``skylight_shgc``
      - ``skylight_storm_type``
@@ -63561,6 +63812,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.76
      - 0.67
+     - auto
+     - auto
      - auto
      - auto
      - auto
@@ -63575,6 +63828,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
+     - auto
+     - auto
      - 0.37
      - 0.3
      - auto
@@ -63583,6 +63838,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.49
      - 0.56
+     - auto
+     - auto
      - auto
      - auto
      - auto
@@ -63597,6 +63854,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
+     - auto
+     - auto
      - 0.37
      - 0.3
      - auto
@@ -63605,6 +63864,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.38
      - 0.44
+     - auto
+     - auto
      - auto
      - auto
      - auto
@@ -63619,6 +63880,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
+     - auto
+     - auto
      - 0.37
      - 0.3
      - auto
@@ -63627,6 +63890,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.67
      - 0.56
+     - auto
+     - auto
      - auto
      - auto
      - auto
@@ -63641,6 +63906,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
+     - auto
+     - auto
      - 0.37
      - 0.3
      - auto
@@ -63649,6 +63916,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.47
      - 0.54
+     - auto
+     - auto
      - auto
      - auto
      - auto
@@ -63663,11 +63932,15 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
+     - auto
+     - auto
      - 0.37
      - 0.3
      - auto
    * - Void
      - 0%
+     - 
+     - 
      - 
      - 
      - 

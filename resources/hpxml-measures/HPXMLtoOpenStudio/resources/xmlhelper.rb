@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# TODO
+# Collection of helper methods related to XML reading/writing.
 module XMLHelper
   # Adds the child element with 'element_name' and sets its value. Returns the
   # child element.
@@ -243,7 +243,7 @@ module XMLHelper
 
   # TODO
   #
-  # @param hpxml_path [TODO] TODO
+  # @param hpxml_path [String] Path to the HPXML file
   # @return [TODO] TODO
   def self.parse_file(hpxml_path)
     file_read = File.read(hpxml_path)

@@ -4,7 +4,7 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'openstudio'
-require_relative 'resources/constants.rb'
+require_relative 'resources/constants'
 require_relative '../ApplyUpgrade/resources/constants'
 require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 
@@ -40,15 +40,15 @@ class UpgradeCosts < OpenStudio::Measure::ModelMeasure
   end
 
   def num_options
-    return Constants.NumApplyUpgradeOptions # Synced with ApplyUpgrade measure
+    return Constants::NumApplyUpgradeOptions # Synced with ApplyUpgrade measure
   end
 
   def num_costs_per_option
-    return Constants.NumApplyUpgradesCostsPerOption # Synced with ApplyUpgrade measure
+    return Constants::NumApplyUpgradesCostsPerOption # Synced with ApplyUpgrade measure
   end
 
   def cost_multiplier_choices
-    return Constants.CostMultiplierChoices # Synced with ApplyUpgrade measure
+    return Constants::CostMultiplierChoices # Synced with ApplyUpgrade measure
   end
 
   # define what happens when the measure is run

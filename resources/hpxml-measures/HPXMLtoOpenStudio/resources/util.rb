@@ -9,7 +9,7 @@ module UrlResolver
   # @param agent [String] a string of text that a web browser sends to a web server to identify itself and provide information about the browser's capabilities
   # @param max_attempts [Integer] the maximum number of attempts
   # @param timeout [Integer] both the number of seconds to (1) wait for the connection to open and (2) wait for one block to be read (via one read(2) call)
-  # @return [void]
+  # @return [nil]
   def self.fetch(uri_str, outfile, agent = 'curl/7.43.0', max_attempts = 10, timeout = 10)
     attempts = 0
     cookie = nil

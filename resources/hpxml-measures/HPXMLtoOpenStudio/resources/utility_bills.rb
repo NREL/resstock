@@ -25,7 +25,7 @@ class UtilityBills
   # @param marginal_rate [Double] the marginal flat rate (USD/kWh or USD/therm, etc.)
   # @return [Array<Double, Double>] the marginal and average rates (USD/kWh or USD/therm, etc., USD/month)
   def self.get_rates_from_eia_data(runner, state_code, fuel_type, fixed_charge, marginal_rate = nil)
-    msn_codes = Constants.StateCodesMap.keys
+    msn_codes = Constants::StateCodesMap.keys
     msn_codes << 'US'
     return unless msn_codes.include? state_code # Check if the state_code is valid
 

@@ -72,7 +72,9 @@ class HPXML < Object
   BatteryTypeLithiumIon = 'Li-ion'
   BatteryLifetimeModelNone = 'None'
   BatteryLifetimeModelKandlerSmith = 'KandlerSmith'
-  BuildingAmerica = 'BuildingAmerica'
+  BlindsClosed = 'closed'
+  BlindsOpen = 'open'
+  BlindsHalfOpen = 'half open'
   CapacityDescriptionMinimum = 'minimum'
   CapacityDescriptionMaximum = 'maximum'
   CertificationEnergyStar = 'Energy Star'
@@ -254,6 +256,10 @@ class HPXML < Object
   InteriorShadingTypeLightBlinds = 'light blinds'
   InteriorShadingTypeLightCurtains = 'light curtains'
   InteriorShadingTypeLightShades = 'light shades'
+  InteriorShadingTypeMediumBlinds = 'medium blinds'
+  InteriorShadingTypeMediumCurtains = 'medium curtains'
+  InteriorShadingTypeMediumShades = 'medium shades'
+  InteriorShadingTypeOther = 'other'
   InteriorShadingTypeNone = 'none'
   InfiltrationTypeUnitTotal = 'unit total'
   InfiltrationTypeUnitExterior = 'unit exterior only'
@@ -615,7 +621,7 @@ class HPXML < Object
   # Populates the HPXML object(s) from the XML document.
   #
   # @param hpxml_element [Oga::XML::Element] Root XML element of the HPXML document
-  # @return [void]
+  # @return [nil]
   def from_doc(hpxml_element)
     @header = Header.new(self, hpxml_element)
     @buildings = Buildings.new(self, hpxml_element)
@@ -625,7 +631,7 @@ class HPXML < Object
   #
   # @param hpxml_doc [Oga::XML::Document] HPXML object as an XML document
   # @param last_building_only [Boolean] Whether to update IDs for all Building elements or only the last Building element
-  # @return [void]
+  # @return [nil]
   def set_unique_hpxml_ids(hpxml_doc, last_building_only = false)
     buildings = XMLHelper.get_elements(hpxml_doc, '/HPXML/Building')
 
@@ -798,7 +804,7 @@ class HPXML < Object
     # Adds each object in the array to the provided Oga XML element.
     #
     # @param xml_element [Oga::XML::Element] XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(xml_element)
       each do |child|
         child.to_doc(xml_element)
@@ -874,7 +880,7 @@ class HPXML < Object
     # Adds this object to the Oga XML document.
     #
     # @param hpxml_doc [Oga::XML::Document] HPXML object as an XML document
-    # @return [void]
+    # @return [nil]
     def to_doc(hpxml_doc)
       return if nil?
 
@@ -930,7 +936,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param hpxml [Oga::XML::Element] Root XML element of the HPXML document
-    # @return [void]
+    # @return [nil]
     def from_doc(hpxml)
       return if hpxml.nil?
 
@@ -967,7 +973,7 @@ class HPXML < Object
   class EmissionsScenarios < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << EmissionsScenario.new(@parent_object, **kwargs)
     end
@@ -975,7 +981,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param hpxml [Oga::XML::Element] Root XML element of the HPXML document
-    # @return [void]
+    # @return [nil]
     def from_doc(hpxml)
       return if hpxml.nil?
 
@@ -1015,7 +1021,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.header.emissions_scenarios.delete(self)
     end
@@ -1031,7 +1037,7 @@ class HPXML < Object
     # Adds this object to the Oga XML document.
     #
     # @param hpxml [Oga::XML::Element] Root XML element of the HPXML document
-    # @return [void]
+    # @return [nil]
     def to_doc(hpxml)
       emissions_scenarios = XMLHelper.create_elements_as_needed(hpxml, ['SoftwareInfo', 'extension', 'EmissionsScenarios'])
       emissions_scenario = XMLHelper.add_element(emissions_scenarios, 'EmissionsScenario')
@@ -1072,7 +1078,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param emissions_scenario [Oga::XML::Element] The current EmissionsScenario XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(emissions_scenario)
       return if emissions_scenario.nil?
 
@@ -1102,7 +1108,7 @@ class HPXML < Object
   class UtilityBillScenarios < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << UtilityBillScenario.new(@parent_object, **kwargs)
     end
@@ -1110,7 +1116,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param hpxml [Oga::XML::Element] Root XML element of the HPXML document
-    # @return [void]
+    # @return [nil]
     def from_doc(hpxml)
       return if hpxml.nil?
 
@@ -1162,7 +1168,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.header.utility_bill_scenarios.delete(self)
     end
@@ -1178,7 +1184,7 @@ class HPXML < Object
     # Adds this object to the Oga XML document.
     #
     # @param hpxml [Oga::XML::Element] Root XML element of the HPXML document
-    # @return [void]
+    # @return [nil]
     def to_doc(hpxml)
       utility_bill_scenarios = XMLHelper.create_elements_as_needed(hpxml, ['SoftwareInfo', 'extension', 'UtilityBillScenarios'])
       utility_bill_scenario = XMLHelper.add_element(utility_bill_scenarios, 'UtilityBillScenario')
@@ -1227,7 +1233,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param utility_bill_scenario [Oga::XML::Element] The current UtilityBillScenario XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(utility_bill_scenario)
       return if utility_bill_scenario.nil?
 
@@ -1265,7 +1271,7 @@ class HPXML < Object
   class UnavailablePeriods < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << UnavailablePeriod.new(@parent_object, **kwargs)
     end
@@ -1273,7 +1279,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param hpxml [Oga::XML::Element] Root XML element of the HPXML document
-    # @return [void]
+    # @return [nil]
     def from_doc(hpxml)
       return if hpxml.nil?
 
@@ -1297,7 +1303,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.header.unavailable_periods.delete(self)
     end
@@ -1314,7 +1320,7 @@ class HPXML < Object
     # Adds this object to the Oga XML document.
     #
     # @param hpxml [Oga::XML::Element] Root XML element of the HPXML document
-    # @return [void]
+    # @return [nil]
     def to_doc(hpxml)
       unavailable_periods = XMLHelper.create_elements_as_needed(hpxml, ['SoftwareInfo', 'extension', 'UnavailablePeriods'])
       unavailable_period = XMLHelper.add_element(unavailable_periods, 'UnavailablePeriod')
@@ -1331,7 +1337,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param unavailable_period [Oga::XML::Element] The current UnavailablePeriod XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(unavailable_period)
       return if unavailable_period.nil?
 
@@ -1350,7 +1356,7 @@ class HPXML < Object
   class Buildings < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Building.new(@parent_object, **kwargs)
     end
@@ -1358,7 +1364,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param hpxml [Oga::XML::Element] Root XML element of the HPXML document
-    # @return [void]
+    # @return [nil]
     def from_doc(hpxml)
       return if hpxml.nil?
 
@@ -1457,7 +1463,7 @@ class HPXML < Object
     # Adds this object to the Oga XML document.
     #
     # @param hpxml_doc [Oga::XML::Document] HPXML object as an XML document
-    # @return [void]
+    # @return [nil]
     def to_doc(hpxml_doc)
       return if nil?
 
@@ -1569,7 +1575,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       if not building.nil?
         @building_id = HPXML::get_id(building, 'BuildingID')
@@ -1850,9 +1856,22 @@ class HPXML < Object
     #
     # @return [Double] Above-grade conditioned volume (ft3)
     def above_grade_conditioned_volume
-      ag_wall_area, bg_wall_area = thermal_boundary_wall_areas()
-      ag_ratio = ag_wall_area / (ag_wall_area + bg_wall_area)
-      return @building_construction.conditioned_building_volume * ag_ratio
+      ag_cond_vol = @building_construction.conditioned_building_volume
+
+      # Subtract below grade conditioned volume
+      HPXML::conditioned_below_grade_locations.each do |location|
+        adj_fnd_walls = @foundation_walls.select { |fw| fw.is_exterior && fw.interior_adjacent_to == location }
+
+        floor_area = @slabs.select { |s| s.interior_adjacent_to == location }.map { |s| s.area }.sum
+        next if floor_area <= 0
+
+        # Calculate weighted-average (by length) below-grade depth
+        avg_depth_bg = adj_fnd_walls.map { |fw| fw.depth_below_grade * (fw.area / fw.height) }.sum(0.0) / adj_fnd_walls.map { |fw| fw.area / fw.height }.sum
+
+        ag_cond_vol -= avg_depth_bg * floor_area
+      end
+
+      return ag_cond_vol
     end
 
     # Calculates common wall area.
@@ -1984,7 +2003,7 @@ class HPXML < Object
 
     # Deletes any adiabatic sub-surfaces since EnergyPlus does not allow it.
     #
-    # @return [void]
+    # @return [nil]
     def delete_adiabatic_subsurfaces
       @doors.reverse_each do |door|
         next if door.wall.nil?
@@ -2132,7 +2151,7 @@ class HPXML < Object
     # surfaces (e.g., windows).
     #
     # @param surf_types_of_interest [Array<Symbol>] Subset of surface types (e.g., :roofs, :walls, etc.) to collapse
-    # @return [void]
+    # @return [nil]
     def collapse_enclosure_surfaces(surf_types_of_interest = nil)
       surf_types = { roofs: @roofs,
                      walls: @walls,
@@ -2147,6 +2166,7 @@ class HPXML < Object
       attrs_to_ignore = [:id,
                          :insulation_id,
                          :perimeter_insulation_id,
+                         :exterior_horizontal_insulation_id,
                          :under_slab_insulation_id,
                          :area,
                          :length,
@@ -2254,7 +2274,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -2291,7 +2311,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -2316,7 +2336,7 @@ class HPXML < Object
   class NeighborBuildings < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << NeighborBuilding.new(@parent_object, **kwargs)
     end
@@ -2324,7 +2344,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -2353,7 +2373,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -2368,7 +2388,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param neighbor_building [Oga::XML::Element] The current NeighborBuilding XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(neighbor_building)
       return if neighbor_building.nil?
 
@@ -2402,7 +2422,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -2420,7 +2440,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -2442,6 +2462,7 @@ class HPXML < Object
   class BuildingConstruction < BaseElement
     ATTRS = [:year_built,                               # [Integer] YearBuilt
              :residential_facility_type,                # [String] ResidentialFacilityType (HXPML::ResidentialTypeXXX)
+             :unit_height_above_grade,                  # [Double] UnitHeightAboveGrade
              :number_of_units,                          # [Integer] NumberofUnits
              :number_of_units_in_building,              # [Integer] NumberofUnitsInBuilding
              :number_of_conditioned_floors,             # [Double] NumberofConditionedFloors
@@ -2466,13 +2487,14 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
       building_construction = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'BuildingSummary', 'BuildingConstruction'])
       XMLHelper.add_element(building_construction, 'YearBuilt', @year_built, :integer) unless @year_built.nil?
       XMLHelper.add_element(building_construction, 'ResidentialFacilityType', @residential_facility_type, :string) unless @residential_facility_type.nil?
+      XMLHelper.add_element(building_construction, 'UnitHeightAboveGrade', @unit_height_above_grade, :float, @unit_height_above_grade_isdefaulted) unless @unit_height_above_grade.nil?
       XMLHelper.add_element(building_construction, 'NumberofUnits', @number_of_units, :integer, @number_of_units_isdefaulted) unless @number_of_units.nil?
       XMLHelper.add_element(building_construction, 'NumberofUnitsInBuilding', @number_of_units_in_building, :integer) unless @number_of_units_in_building.nil?
       XMLHelper.add_element(building_construction, 'NumberofConditionedFloors', @number_of_conditioned_floors, :float) unless @number_of_conditioned_floors.nil?
@@ -2489,7 +2511,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -2498,6 +2520,7 @@ class HPXML < Object
 
       @year_built = XMLHelper.get_value(building_construction, 'YearBuilt', :integer)
       @residential_facility_type = XMLHelper.get_value(building_construction, 'ResidentialFacilityType', :string)
+      @unit_height_above_grade = XMLHelper.get_value(building_construction, 'UnitHeightAboveGrade', :float)
       @number_of_units = XMLHelper.get_value(building_construction, 'NumberofUnits', :integer)
       @number_of_units_in_building = XMLHelper.get_value(building_construction, 'NumberofUnitsInBuilding', :integer)
       @number_of_conditioned_floors = XMLHelper.get_value(building_construction, 'NumberofConditionedFloors', :float)
@@ -2514,27 +2537,28 @@ class HPXML < Object
 
   # Object for high-level Building-specific information in /HPXML/Building/BuildingDetails/BuildingSummary/extension.
   class BuildingHeader < BaseElement
-    ATTRS = [:heat_pump_sizing_methodology,        # [String] HVACSizingControl/HeatPumpSizingMethodology (HPXML::HeatPumpSizingXXX)
-             :heat_pump_backup_sizing_methodology, # [String] HVACSizingControl/HeatPumpBackupSizingMethodology (HPXML::HeatPumpBackupSizingXXX)
-             :allow_increased_fixed_capacities,    # [Boolean] HVACSizingControl/AllowIncreasedFixedCapacities
-             :manualj_heating_design_temp,         # [Double] HVACSizingControl/ManualJInputs/HeatingDesignTemperature (F)
-             :manualj_cooling_design_temp,         # [Double] HVACSizingControl/ManualJInputs/CoolingDesignTemperature (F)
-             :manualj_daily_temp_range,            # [String] HVACSizingControl/ManualJInputs/DailyTemperatureRange (HPXML::ManualJDailyTempRangeXXX)
-             :manualj_heating_setpoint,            # [Double] HVACSizingControl/ManualJInputs/HeatingSetpoint (F)
-             :manualj_cooling_setpoint,            # [Double] HVACSizingControl/ManualJInputs/CoolingSetpoint (F)
-             :manualj_humidity_setpoint,           # [Double] HVACSizingControl/ManualJInputs/HumiditySetpoint (frac)
-             :manualj_humidity_difference,         # [Double] HVACSizingControl/ManualJInputs/HumidityDifference (grains)
-             :manualj_internal_loads_sensible,     # [Double] HVACSizingControl/ManualJInputs/InternalLoadsSensible (Btu/hr)
-             :manualj_internal_loads_latent,       # [Double] HVACSizingControl/ManualJInputs/InternalLoadsLatent (Btu/hr)
-             :manualj_num_occupants,               # [Integer] HVACSizingControl/ManualJInputs/NumberofOccupants
-             :manualj_infiltration_method,         # [String] HVACSizingControl/ManualJInputs/InfiltrationMethod (HPXML::ManualJInfiltrationMethodXXX)
-             :natvent_days_per_week,               # [Integer] NaturalVentilationAvailabilityDaysperWeek
-             :schedules_filepaths,                 # [Array<String>] SchedulesFilePath
-             :shading_summer_begin_month,          # [Integer] ShadingControl/SummerBeginMonth
-             :shading_summer_begin_day,            # [Integer] ShadingControl/SummerBeginDayOfMonth
-             :shading_summer_end_month,            # [Integer] ShadingControl/SummerEndMonth
-             :shading_summer_end_day,              # [Integer] ShadingControl/SummerEndDayOfMonth
-             :extension_properties]                # [Hash] AdditionalProperties
+    ATTRS = [:heat_pump_sizing_methodology,         # [String] HVACSizingControl/HeatPumpSizingMethodology (HPXML::HeatPumpSizingXXX)
+             :heat_pump_backup_sizing_methodology,  # [String] HVACSizingControl/HeatPumpBackupSizingMethodology (HPXML::HeatPumpBackupSizingXXX)
+             :allow_increased_fixed_capacities,     # [Boolean] HVACSizingControl/AllowIncreasedFixedCapacities
+             :manualj_heating_design_temp,          # [Double] HVACSizingControl/ManualJInputs/HeatingDesignTemperature (F)
+             :manualj_cooling_design_temp,          # [Double] HVACSizingControl/ManualJInputs/CoolingDesignTemperature (F)
+             :manualj_daily_temp_range,             # [String] HVACSizingControl/ManualJInputs/DailyTemperatureRange (HPXML::ManualJDailyTempRangeXXX)
+             :manualj_heating_setpoint,             # [Double] HVACSizingControl/ManualJInputs/HeatingSetpoint (F)
+             :manualj_cooling_setpoint,             # [Double] HVACSizingControl/ManualJInputs/CoolingSetpoint (F)
+             :manualj_humidity_setpoint,            # [Double] HVACSizingControl/ManualJInputs/HumiditySetpoint (frac)
+             :manualj_humidity_difference,          # [Double] HVACSizingControl/ManualJInputs/HumidityDifference (grains)
+             :manualj_internal_loads_sensible,      # [Double] HVACSizingControl/ManualJInputs/InternalLoadsSensible (Btu/hr)
+             :manualj_internal_loads_latent,        # [Double] HVACSizingControl/ManualJInputs/InternalLoadsLatent (Btu/hr)
+             :manualj_num_occupants,                # [Double] HVACSizingControl/ManualJInputs/NumberofOccupants
+             :manualj_infiltration_shielding_class, # [Integer] HVACSizingControl/ManualJInputs/InfiltrationShieldingClass (1-5)
+             :manualj_infiltration_method,          # [String] HVACSizingControl/ManualJInputs/InfiltrationMethod (HPXML::ManualJInfiltrationMethodXXX)
+             :natvent_days_per_week,                # [Integer] NaturalVentilationAvailabilityDaysperWeek
+             :schedules_filepaths,                  # [Array<String>] SchedulesFilePath
+             :shading_summer_begin_month,           # [Integer] ShadingControl/SummerBeginMonth
+             :shading_summer_begin_day,             # [Integer] ShadingControl/SummerBeginDayOfMonth
+             :shading_summer_end_month,             # [Integer] ShadingControl/SummerEndMonth
+             :shading_summer_end_day,               # [Integer] ShadingControl/SummerEndDayOfMonth
+             :extension_properties]                 # [Hash] AdditionalProperties
     attr_accessor(*ATTRS)
 
     # Additional error-checking beyond what's checked in Schema/Schematron validators.
@@ -2549,7 +2573,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -2560,7 +2584,7 @@ class HPXML < Object
         XMLHelper.add_element(hvac_sizing_control, 'HeatPumpBackupSizingMethodology', @heat_pump_backup_sizing_methodology, :string, @heat_pump_backup_sizing_methodology_isdefaulted) unless @heat_pump_backup_sizing_methodology.nil?
         XMLHelper.add_element(hvac_sizing_control, 'AllowIncreasedFixedCapacities', @allow_increased_fixed_capacities, :boolean, @allow_increased_fixed_capacities_isdefaulted) unless @allow_increased_fixed_capacities.nil?
       end
-      if (not @manualj_heating_design_temp.nil?) || (not @manualj_cooling_design_temp.nil?) || (not @manualj_daily_temp_range.nil?) || (not @manualj_humidity_difference.nil?) || (not @manualj_heating_setpoint.nil?) || (not @manualj_cooling_setpoint.nil?) || (not @manualj_humidity_setpoint.nil?) || (not @manualj_internal_loads_sensible.nil?) || (not @manualj_internal_loads_latent.nil?) || (not @manualj_num_occupants.nil?) || (not @manualj_infiltration_method.nil?)
+      if (not @manualj_heating_design_temp.nil?) || (not @manualj_cooling_design_temp.nil?) || (not @manualj_daily_temp_range.nil?) || (not @manualj_humidity_difference.nil?) || (not @manualj_heating_setpoint.nil?) || (not @manualj_cooling_setpoint.nil?) || (not @manualj_humidity_setpoint.nil?) || (not @manualj_internal_loads_sensible.nil?) || (not @manualj_internal_loads_latent.nil?) || (not @manualj_num_occupants.nil?) || (not @manualj_infiltration_shielding_class.nil?) || (not @manualj_infiltration_method.nil?)
         manualj_sizing_inputs = XMLHelper.create_elements_as_needed(building_summary, ['extension', 'HVACSizingControl', 'ManualJInputs'])
         XMLHelper.add_element(manualj_sizing_inputs, 'HeatingDesignTemperature', @manualj_heating_design_temp, :float, @manualj_heating_design_temp_isdefaulted) unless @manualj_heating_design_temp.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'CoolingDesignTemperature', @manualj_cooling_design_temp, :float, @manualj_cooling_design_temp_isdefaulted) unless @manualj_cooling_design_temp.nil?
@@ -2571,7 +2595,8 @@ class HPXML < Object
         XMLHelper.add_element(manualj_sizing_inputs, 'HumidityDifference', @manualj_humidity_difference, :float, @manualj_humidity_difference_isdefaulted) unless @manualj_humidity_difference.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InternalLoadsSensible', @manualj_internal_loads_sensible, :float, @manualj_internal_loads_sensible_isdefaulted) unless @manualj_internal_loads_sensible.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InternalLoadsLatent', @manualj_internal_loads_latent, :float, @manualj_internal_loads_latent_isdefaulted) unless @manualj_internal_loads_latent.nil?
-        XMLHelper.add_element(manualj_sizing_inputs, 'NumberofOccupants', @manualj_num_occupants, :integer, @manualj_num_occupants_isdefaulted) unless @manualj_num_occupants.nil?
+        XMLHelper.add_element(manualj_sizing_inputs, 'NumberofOccupants', @manualj_num_occupants, :float, @manualj_num_occupants_isdefaulted) unless @manualj_num_occupants.nil?
+        XMLHelper.add_element(manualj_sizing_inputs, 'InfiltrationShieldingClass', @manualj_infiltration_shielding_class, :integer, @manualj_infiltration_shielding_class_isdefaulted) unless @manualj_infiltration_shielding_class.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InfiltrationMethod', @manualj_infiltration_method, :string, @manualj_infiltration_method_isdefaulted) unless @manualj_infiltration_method.nil?
       end
       XMLHelper.add_extension(building_summary, 'NaturalVentilationAvailabilityDaysperWeek', @natvent_days_per_week, :integer, @natvent_days_per_week_isdefaulted) unless @natvent_days_per_week.nil?
@@ -2598,7 +2623,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -2623,7 +2648,8 @@ class HPXML < Object
       @manualj_humidity_difference = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/HumidityDifference', :float)
       @manualj_internal_loads_sensible = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InternalLoadsSensible', :float)
       @manualj_internal_loads_latent = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InternalLoadsLatent', :float)
-      @manualj_num_occupants = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/NumberofOccupants', :integer)
+      @manualj_num_occupants = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/NumberofOccupants', :float)
+      @manualj_infiltration_shielding_class = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InfiltrationShieldingClass', :integer)
       @manualj_infiltration_method = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InfiltrationMethod', :string)
       @extension_properties = {}
       XMLHelper.get_elements(building_summary, 'extension/AdditionalProperties').each do |property|
@@ -2663,7 +2689,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -2675,16 +2701,16 @@ class HPXML < Object
         weather_station = XMLHelper.add_element(climate_and_risk_zones, 'WeatherStation')
         sys_id = XMLHelper.add_element(weather_station, 'SystemIdentifier')
         XMLHelper.add_attribute(sys_id, 'id', @weather_station_id)
-        XMLHelper.add_element(weather_station, 'Name', @weather_station_name, :string) unless @weather_station_name.nil?
-        XMLHelper.add_element(weather_station, 'WMO', @weather_station_wmo, :string) unless @weather_station_wmo.nil?
-        XMLHelper.add_extension(weather_station, 'EPWFilePath', @weather_station_epw_filepath, :string) unless @weather_station_epw_filepath.nil?
+        XMLHelper.add_element(weather_station, 'Name', @weather_station_name, :string, @weather_station_name_isdefaulted) unless @weather_station_name.nil?
+        XMLHelper.add_element(weather_station, 'WMO', @weather_station_wmo, :string, @weather_station_wmo_isdefaulted) unless @weather_station_wmo.nil?
+        XMLHelper.add_extension(weather_station, 'EPWFilePath', @weather_station_epw_filepath, :string, @weather_station_epw_filepath_isdefaulted) unless @weather_station_epw_filepath.nil?
       end
     end
 
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -2707,7 +2733,7 @@ class HPXML < Object
   class ClimateZoneIECCs < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << ClimateZoneIECC.new(@parent_object, **kwargs)
     end
@@ -2715,7 +2741,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -2733,7 +2759,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.climate_and_risk_zones.climate_zone_ieccs.delete(self)
     end
@@ -2749,7 +2775,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param climate_and_risk_zones [Oga::XML::Element] Parent XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(climate_and_risk_zones)
       climate_zone_iecc = XMLHelper.add_element(climate_and_risk_zones, 'ClimateZoneIECC')
       XMLHelper.add_element(climate_zone_iecc, 'Year', @year, :integer, @year_isdefaulted) unless @year.nil?
@@ -2759,7 +2785,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param climate_and_risk_zones [Oga::XML::Element] The current ClimateZoneIECC XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(climate_zone_iecc)
       return if climate_zone_iecc.nil?
 
@@ -2772,7 +2798,7 @@ class HPXML < Object
   class Zones < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Zone.new(@parent_object, **kwargs)
     end
@@ -2780,7 +2806,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -2824,7 +2850,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       hvac_systems.reverse_each do |hvac_system|
         hvac_system.attached_to_zone_idref = nil
@@ -2944,10 +2970,17 @@ class HPXML < Object
       return (roofs + rim_joists + walls + foundation_walls + floors + slabs)
     end
 
+    # Returns all HPXML enclosure sub-surfaces for this zone.
+    #
+    # @return [Array<HPXML::XXX>] List of sub-surface objects
+    def subsurfaces
+      return (windows + skylights + doors)
+    end
+
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -2965,7 +2998,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param zone [Oga::XML::Element] The current Zone XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(zone)
       return if zone.nil?
 
@@ -2980,7 +3013,7 @@ class HPXML < Object
   class Spaces < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Space.new(@parent_object, **kwargs)
     end
@@ -2988,7 +3021,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param zone [Oga::XML::Element] The current Zone XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(zone)
       return if zone.nil?
 
@@ -3021,7 +3054,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       surfaces.reverse_each do |surface|
         surface.attached_to_space_idref = nil
@@ -3106,10 +3139,17 @@ class HPXML < Object
       return (roofs + rim_joists + walls + foundation_walls + floors + slabs)
     end
 
+    # Returns all HPXML enclosure sub-surfaces for this space.
+    #
+    # @return [Array<HPXML::XXX>] List of sub-surface objects
+    def subsurfaces
+      return (windows + skylights + doors)
+    end
+
     # Adds this object to the provided Oga XML element.
     #
     # @param zone [Oga::XML::Element] Parent XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(zone)
       return if nil?
 
@@ -3133,7 +3173,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param space [Oga::XML::Element] The current Space XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(space)
       return if space.nil?
 
@@ -3163,7 +3203,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -3174,7 +3214,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -3189,7 +3229,7 @@ class HPXML < Object
   class AirInfiltrationMeasurements < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << AirInfiltrationMeasurement.new(@parent_object, **kwargs)
     end
@@ -3197,7 +3237,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -3233,7 +3273,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -3259,7 +3299,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param air_infiltration_measurement [Oga::XML::Element] The current AirInfiltrationMeasurement XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(air_infiltration_measurement)
       return if air_infiltration_measurement.nil?
 
@@ -3281,7 +3321,7 @@ class HPXML < Object
   class Attics < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Attic.new(@parent_object, **kwargs)
     end
@@ -3289,7 +3329,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -3372,7 +3412,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.attics.delete(self)
     end
@@ -3392,7 +3432,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -3450,7 +3490,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param attic [Oga::XML::Element] The current Attic XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(attic)
       return if attic.nil?
 
@@ -3492,7 +3532,7 @@ class HPXML < Object
   class Foundations < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Foundation.new(@parent_object, **kwargs)
     end
@@ -3500,7 +3540,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -3641,7 +3681,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.foundations.delete(self)
     end
@@ -3663,7 +3703,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -3738,7 +3778,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param foundation [Oga::XML::Element] The current Foundation XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(foundation)
       return if foundation.nil?
 
@@ -3794,7 +3834,7 @@ class HPXML < Object
   class Roofs < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Roof.new(@parent_object, **kwargs)
     end
@@ -3802,7 +3842,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -3867,9 +3907,6 @@ class HPXML < Object
     #
     # @return [Double] Net area (ft2)
     def net_area
-      return if nil?
-      return if @area.nil?
-
       val = @area
       skylights.each do |skylight|
         val -= skylight.area
@@ -3925,7 +3962,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.roofs.delete(self)
       skylights.reverse_each do |skylight|
@@ -3949,7 +3986,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -4017,7 +4054,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param roof [Oga::XML::Element] The current Roof XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(roof)
       return if roof.nil?
 
@@ -4067,7 +4104,7 @@ class HPXML < Object
   class RimJoists < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << RimJoist.new(@parent_object, **kwargs)
     end
@@ -4075,7 +4112,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -4177,7 +4214,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.rim_joists.delete(self)
       @parent_object.foundations.each do |foundation|
@@ -4197,7 +4234,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -4255,7 +4292,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param rim_joist [Oga::XML::Element] The current RimJoist XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(rim_joist)
       return if rim_joist.nil?
 
@@ -4295,7 +4332,7 @@ class HPXML < Object
   class Walls < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Wall.new(@parent_object, **kwargs)
     end
@@ -4303,7 +4340,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -4378,9 +4415,6 @@ class HPXML < Object
     #
     # @return [Double] Net area (ft2)
     def net_area
-      return if nil?
-      return if @area.nil?
-
       val = @area
       (windows + doors).each do |subsurface|
         val -= subsurface.area
@@ -4438,7 +4472,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.walls.delete(self)
       windows.reverse_each do |window|
@@ -4468,7 +4502,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -4544,7 +4578,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param wall [Oga::XML::Element] The current Wall XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(wall)
       return if wall.nil?
 
@@ -4599,7 +4633,7 @@ class HPXML < Object
   class FoundationWalls < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << FoundationWall.new(@parent_object, **kwargs)
     end
@@ -4607,7 +4641,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -4678,10 +4712,7 @@ class HPXML < Object
     #
     # @return [Double] Net area (ft2)
     def net_area
-      return if nil?
-      return if @area.nil?
-
-      val = @area
+      val = @area.nil? ? @length * @height : @area
       (@parent_object.windows + @parent_object.doors).each do |subsurface|
         next unless subsurface.attached_to_wall_idref == @id
 
@@ -4690,6 +4721,30 @@ class HPXML < Object
       fail "Calculated a negative net surface area for surface '#{@id}'." if val < 0
 
       return val
+    end
+
+    # Calculates the above-grade gross area.
+    #
+    # @return [Double] Above-grade gross area (ft2)
+    def above_grade_area
+      gross_area = @area.nil? ? @length * @height : @area
+      ag_frac = (@height - @depth_below_grade) / @height
+      return gross_area * ag_frac
+    end
+
+    # Calculates the below-grade area.
+    #
+    # @return [Double] Below-grade area (ft2)
+    def below_grade_area
+      gross_area = @area.nil? ? @length * @height : @area
+      return gross_area - above_grade_area
+    end
+
+    # Calculates the above-grade net area (net area minus below grade area).
+    #
+    # @return [Double] Above-grade net area (ft2)
+    def above_grade_net_area
+      return net_area - below_grade_area
     end
 
     # Returns all slabs that are adjacent to the same HPXML::LocationXXX as the connected
@@ -4768,7 +4823,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.foundation_walls.delete(self)
       windows.reverse_each do |window|
@@ -4795,7 +4850,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -4859,7 +4914,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param foundation_wall [Oga::XML::Element] The current FoundationWall XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(foundation_wall)
       return if foundation_wall.nil?
 
@@ -4908,7 +4963,7 @@ class HPXML < Object
   class Floors < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Floor.new(@parent_object, **kwargs)
     end
@@ -4916,7 +4971,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -4977,9 +5032,6 @@ class HPXML < Object
     #
     # @return [Double] Net area (ft2)
     def net_area
-      return if nil?
-      return if @area.nil?
-
       val = @area
       skylights.each do |skylight|
         val -= skylight.area
@@ -5063,7 +5115,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.floors.delete(self)
       skylights.reverse_each do |skylight|
@@ -5093,7 +5145,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -5160,7 +5212,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param floor [Oga::XML::Element] The current Floor XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(floor)
       return if floor.nil?
 
@@ -5206,7 +5258,7 @@ class HPXML < Object
   class Slabs < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Slab.new(@parent_object, **kwargs)
     end
@@ -5214,7 +5266,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -5226,25 +5278,30 @@ class HPXML < Object
 
   # Object for /HPXML/Building/BuildingDetails/Enclosure/Slabs/Slab.
   class Slab < BaseElement
-    ATTRS = [:id,                                      # [String] SystemIdentifier/@id
-             :attached_to_space_idref,                 # [String] AttachedToSpace/@idref
-             :interior_adjacent_to,                    # [String] InteriorAdjacentTo (HPXML::LocationXXX)
-             :area,                                    # [Double] Area (ft2)
-             :thickness,                               # [Double] Thickness (in)
-             :exposed_perimeter,                       # [Double] ExposedPerimeter (ft)
-             :depth_below_grade,                       # [Double] DepthBelowGrade (ft)
-             :perimeter_insulation_id,                 # [String] PerimeterInsulation/SystemIdentifier/@id
-             :perimeter_insulation_material,           # [String] PerimeterInsulation/Layer/InsulationMaterial/*
-             :perimeter_insulation_r_value,            # [Double] PerimeterInsulation/Layer/NominalRValue (F-ft2-hr/Btu)
-             :perimeter_insulation_depth,              # [Double] PerimeterInsulation/Layer/InsulationDepth (ft)
-             :under_slab_insulation_id,                # [String] UnderSlabInsulation/SystemIdentifier/@id
-             :under_slab_insulation_material,          # [String] UnderSlabInsulation/Layer/InsulationMaterial/*
-             :under_slab_insulation_r_value,           # [Double] UnderSlabInsulation/Layer/NominalRValue (F-ft2-hr/Btu)
-             :under_slab_insulation_width,             # [Double] UnderSlabInsulation/Layer/InsulationWidth (ft)
-             :under_slab_insulation_spans_entire_slab, # [Boolean] UnderSlabInsulation/Layer/InsulationSpansEntireSlab
-             :gap_insulation_r_value,                  # [Double] extension/GapInsulationRValue (F-ft2-hr/Btu)
-             :carpet_fraction,                         # [Double] extension/CarpetFraction (frac)
-             :carpet_r_value]                          # [Double] extension/CarpetRValue (F-ft2-hr/Btu)
+    ATTRS = [:id,                                               # [String] SystemIdentifier/@id
+             :attached_to_space_idref,                          # [String] AttachedToSpace/@idref
+             :interior_adjacent_to,                             # [String] InteriorAdjacentTo (HPXML::LocationXXX)
+             :area,                                             # [Double] Area (ft2)
+             :thickness,                                        # [Double] Thickness (in)
+             :exposed_perimeter,                                # [Double] ExposedPerimeter (ft)
+             :depth_below_grade,                                # [Double] DepthBelowGrade (ft)
+             :perimeter_insulation_id,                          # [String] PerimeterInsulation/SystemIdentifier/@id
+             :perimeter_insulation_material,                    # [String] PerimeterInsulation/Layer/InsulationMaterial/*
+             :perimeter_insulation_r_value,                     # [Double] PerimeterInsulation/Layer/NominalRValue (F-ft2-hr/Btu)
+             :perimeter_insulation_depth,                       # [Double] PerimeterInsulation/Layer/InsulationDepth (ft)
+             :exterior_horizontal_insulation_id,                # [String] ExteriorHorizontalInsulation/SystemIdentifier/@id
+             :exterior_horizontal_insulation_material,          # [String] ExteriorHorizontalInsulation/Layer/InsulationMaterial/*
+             :exterior_horizontal_insulation_r_value,           # [Double] ExteriorHorizontalInsulation/Layer/NominalRValue (F-ft2-hr/Btu)
+             :exterior_horizontal_insulation_width,             # [Double] ExteriorHorizontalInsulation/Layer/InsulationWidth (ft)
+             :exterior_horizontal_insulation_depth_below_grade, # [Double] ExteriorHorizontalInsulation/Layer/InsulationDepthBelowGrade (ft)
+             :under_slab_insulation_id,                         # [String] UnderSlabInsulation/SystemIdentifier/@id
+             :under_slab_insulation_material,                   # [String] UnderSlabInsulation/Layer/InsulationMaterial/*
+             :under_slab_insulation_r_value,                    # [Double] UnderSlabInsulation/Layer/NominalRValue (F-ft2-hr/Btu)
+             :under_slab_insulation_width,                      # [Double] UnderSlabInsulation/Layer/InsulationWidth (ft)
+             :under_slab_insulation_spans_entire_slab,          # [Boolean] UnderSlabInsulation/Layer/InsulationSpansEntireSlab
+             :gap_insulation_r_value,                           # [Double] extension/GapInsulationRValue (F-ft2-hr/Btu)
+             :carpet_fraction,                                  # [Double] extension/CarpetFraction (frac)
+             :carpet_r_value]                                   # [Double] extension/CarpetRValue (F-ft2-hr/Btu)
     attr_accessor(*ATTRS)
 
     # Returns the space that the slab is attached to.
@@ -5317,7 +5374,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.slabs.delete(self)
       @parent_object.foundations.each do |foundation|
@@ -5337,7 +5394,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -5354,37 +5411,63 @@ class HPXML < Object
       XMLHelper.add_element(slab, 'Thickness', @thickness, :float, @thickness_isdefaulted) unless @thickness.nil?
       XMLHelper.add_element(slab, 'ExposedPerimeter', @exposed_perimeter, :float) unless @exposed_perimeter.nil?
       XMLHelper.add_element(slab, 'DepthBelowGrade', @depth_below_grade, :float, @depth_below_grade_isdefaulted) unless @depth_below_grade.nil?
-      insulation = XMLHelper.add_element(slab, 'PerimeterInsulation')
-      sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
-      if not @perimeter_insulation_id.nil?
-        XMLHelper.add_attribute(sys_id, 'id', @perimeter_insulation_id)
-      else
-        XMLHelper.add_attribute(sys_id, 'id', @id + 'PerimeterInsulation')
+
+      if (not @perimeter_insulation_id.nil?) || (not @perimeter_insulation_r_value.nil?) || (not @perimeter_insulation_depth.nil?)
+        insulation = XMLHelper.add_element(slab, 'PerimeterInsulation')
+        sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
+        if not @perimeter_insulation_id.nil?
+          XMLHelper.add_attribute(sys_id, 'id', @perimeter_insulation_id)
+        else
+          XMLHelper.add_attribute(sys_id, 'id', @id + 'PerimeterInsulation')
+        end
+        layer = XMLHelper.add_element(insulation, 'Layer')
+        if not @perimeter_insulation_material.nil?
+          material = XMLHelper.add_element(layer, 'InsulationMaterial')
+          values = @perimeter_insulation_material.split('/')
+          XMLHelper.add_element(material, values[0], values[1], :string)
+        end
+        XMLHelper.add_element(layer, 'NominalRValue', @perimeter_insulation_r_value, :float, @perimeter_insulation_r_value_isdefaulted) unless @perimeter_insulation_r_value.nil?
+        XMLHelper.add_element(layer, 'InsulationDepth', @perimeter_insulation_depth, :float, @perimeter_insulation_depth_isdefaulted) unless @perimeter_insulation_depth.nil?
       end
-      layer = XMLHelper.add_element(insulation, 'Layer')
-      if not @perimeter_insulation_material.nil?
-        material = XMLHelper.add_element(layer, 'InsulationMaterial')
-        values = @perimeter_insulation_material.split('/')
-        XMLHelper.add_element(material, values[0], values[1], :string)
+
+      if (not @exterior_horizontal_insulation_id.nil?) || (not @exterior_horizontal_insulation_r_value.nil?) || (not @exterior_horizontal_insulation_width.nil?) || (not @exterior_horizontal_insulation_depth_below_grade.nil?)
+        insulation = XMLHelper.add_element(slab, 'ExteriorHorizontalInsulation')
+        sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
+        if not @exterior_horizontal_insulation_id.nil?
+          XMLHelper.add_attribute(sys_id, 'id', @exterior_horizontal_insulation_id)
+        else
+          XMLHelper.add_attribute(sys_id, 'id', @id + 'ExteriorHorizontalInsulation')
+        end
+        layer = XMLHelper.add_element(insulation, 'Layer')
+        if not @exterior_horizontal_insulation_material.nil?
+          material = XMLHelper.add_element(layer, 'InsulationMaterial')
+          values = @exterior_horizontal_insulation_material.split('/')
+          XMLHelper.add_element(material, values[0], values[1], :string)
+        end
+        XMLHelper.add_element(layer, 'NominalRValue', @exterior_horizontal_insulation_r_value, :float, @exterior_horizontal_insulation_r_value_isdefaulted) unless @exterior_horizontal_insulation_r_value.nil?
+        XMLHelper.add_element(layer, 'InsulationWidth', @exterior_horizontal_insulation_width, :float, @exterior_horizontal_insulation_width_isdefaulted) unless @exterior_horizontal_insulation_width.nil?
+        XMLHelper.add_element(layer, 'InsulationDepthBelowGrade', @exterior_horizontal_insulation_depth_below_grade, :float, @exterior_horizontal_insulation_depth_below_grade_isdefaulted) unless @exterior_horizontal_insulation_depth_below_grade.nil?
       end
-      XMLHelper.add_element(layer, 'NominalRValue', @perimeter_insulation_r_value, :float) unless @perimeter_insulation_r_value.nil?
-      XMLHelper.add_element(layer, 'InsulationDepth', @perimeter_insulation_depth, :float) unless @perimeter_insulation_depth.nil?
-      insulation = XMLHelper.add_element(slab, 'UnderSlabInsulation')
-      sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
-      if not @under_slab_insulation_id.nil?
-        XMLHelper.add_attribute(sys_id, 'id', @under_slab_insulation_id)
-      else
-        XMLHelper.add_attribute(sys_id, 'id', @id + 'UnderSlabInsulation')
+
+      if (not @under_slab_insulation_id.nil?) || (not @under_slab_insulation_r_value.nil?) || (not @under_slab_insulation_width.nil?) || (not @under_slab_insulation_spans_entire_slab.nil?)
+        insulation = XMLHelper.add_element(slab, 'UnderSlabInsulation')
+        sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
+        if not @under_slab_insulation_id.nil?
+          XMLHelper.add_attribute(sys_id, 'id', @under_slab_insulation_id)
+        else
+          XMLHelper.add_attribute(sys_id, 'id', @id + 'UnderSlabInsulation')
+        end
+        layer = XMLHelper.add_element(insulation, 'Layer')
+        if not @under_slab_insulation_material.nil?
+          material = XMLHelper.add_element(layer, 'InsulationMaterial')
+          values = @under_slab_insulation_material.split('/')
+          XMLHelper.add_element(material, values[0], values[1], :string)
+        end
+        XMLHelper.add_element(layer, 'NominalRValue', @under_slab_insulation_r_value, :float, @under_slab_insulation_r_value_isdefaulted) unless @under_slab_insulation_r_value.nil?
+        XMLHelper.add_element(layer, 'InsulationWidth', @under_slab_insulation_width, :float, @under_slab_insulation_width_isdefaulted) unless @under_slab_insulation_width.nil?
+        XMLHelper.add_element(layer, 'InsulationSpansEntireSlab', @under_slab_insulation_spans_entire_slab, :boolean, @under_slab_insulation_spans_entire_slab_isdefaulted) unless @under_slab_insulation_spans_entire_slab.nil?
       end
-      layer = XMLHelper.add_element(insulation, 'Layer')
-      if not @under_slab_insulation_material.nil?
-        material = XMLHelper.add_element(layer, 'InsulationMaterial')
-        values = @under_slab_insulation_material.split('/')
-        XMLHelper.add_element(material, values[0], values[1], :string)
-      end
-      XMLHelper.add_element(layer, 'NominalRValue', @under_slab_insulation_r_value, :float) unless @under_slab_insulation_r_value.nil?
-      XMLHelper.add_element(layer, 'InsulationWidth', @under_slab_insulation_width, :float) unless @under_slab_insulation_width.nil?
-      XMLHelper.add_element(layer, 'InsulationSpansEntireSlab', @under_slab_insulation_spans_entire_slab, :boolean) unless @under_slab_insulation_spans_entire_slab.nil?
+
       XMLHelper.add_extension(slab, 'GapInsulationRValue', @gap_insulation_r_value, :float, @gap_insulation_r_value_isdefaulted) unless @gap_insulation_r_value.nil?
       XMLHelper.add_extension(slab, 'CarpetFraction', @carpet_fraction, :float, @carpet_fraction_isdefaulted) unless @carpet_fraction.nil?
       XMLHelper.add_extension(slab, 'CarpetRValue', @carpet_r_value, :float, @carpet_r_value_isdefaulted) unless @carpet_r_value.nil?
@@ -5393,7 +5476,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param slab [Oga::XML::Element] The current Slab XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(slab)
       return if slab.nil?
 
@@ -5414,6 +5497,20 @@ class HPXML < Object
         @perimeter_insulation_r_value = XMLHelper.get_value(perimeter_insulation, 'Layer/NominalRValue', :float)
         @perimeter_insulation_depth = XMLHelper.get_value(perimeter_insulation, 'Layer/InsulationDepth', :float)
       end
+
+      exterior_horizontal_insulation = XMLHelper.get_element(slab, 'ExteriorHorizontalInsulation')
+      if not exterior_horizontal_insulation.nil?
+        @exterior_horizontal_insulation_id = HPXML::get_id(exterior_horizontal_insulation)
+        @exterior_horizontal_insulation_material = XMLHelper.get_child_name(exterior_horizontal_insulation, 'Layer/InsulationMaterial')
+        if not @exterior_horizontal_insulation_material.nil?
+          material_type = XMLHelper.get_value(exterior_horizontal_insulation, "Layer/InsulationMaterial/#{@pexterior_horizontal_insulation_material}", :string)
+          @exterior_horizontal_insulation_material += "/#{material_type}" unless material_type.nil?
+        end
+        @exterior_horizontal_insulation_r_value = XMLHelper.get_value(exterior_horizontal_insulation, 'Layer/NominalRValue', :float)
+        @exterior_horizontal_insulation_width = XMLHelper.get_value(exterior_horizontal_insulation, 'Layer/InsulationWidth', :float)
+        @exterior_horizontal_insulation_depth_below_grade = XMLHelper.get_value(exterior_horizontal_insulation, 'Layer/InsulationDepthBelowGrade', :float)
+      end
+
       under_slab_insulation = XMLHelper.get_element(slab, 'UnderSlabInsulation')
       if not under_slab_insulation.nil?
         @under_slab_insulation_id = HPXML::get_id(under_slab_insulation)
@@ -5437,7 +5534,7 @@ class HPXML < Object
   class Windows < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Window.new(@parent_object, **kwargs)
     end
@@ -5445,7 +5542,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -5457,32 +5554,44 @@ class HPXML < Object
 
   # Object for /HPXML/Building/BuildingDetails/Enclosure/Windows/Window.
   class Window < BaseElement
-    ATTRS = [:id,                                     # [String] SystemIdentifier/@id
-             :area,                                   # [Double] Area (ft2)
-             :azimuth,                                # [Integer] Azimuth (deg)
-             :orientation,                            # [String] Orientation (HPXML::OrientationXXX)
-             :frame_type,                             # [String] FrameType/* (HPXML::WindowFrameTypeXXX)
-             :thermal_break,                          # [Boolean] FrameType/*/ThermalBreak
-             :glass_layers,                           # [String] GlassLayers (HPXML::WindowLayersXXX)
-             :glass_type,                             # [String] GlassType (HPXML::WindowGlassTypeXXX)
-             :gas_fill,                               # [String] GasFill (HPXML::WindowGasXXX)
-             :ufactor,                                # [Double] UFactor (Btu/F-ft2-hr)
-             :shgc,                                   # [Double] SHGC
-             :exterior_shading_id,                    # [String] ExteriorShading/SystemIdentifier/@id
-             :exterior_shading_type,                  # [String] ExteriorShading/Type
-             :exterior_shading_factor_summer,         # [Double] ExteriorShading/SummerShadingCoefficient (frac)
-             :exterior_shading_factor_winter,         # [Double] ExteriorShading/WinterShadingCoefficient (frac)
-             :interior_shading_id,                    # [String] InteriorShading/SystemIdentifier/@id
-             :interior_shading_type,                  # [String] InteriorShading/Type
-             :interior_shading_factor_summer,         # [Double] InteriorShading/SummerShadingCoefficient (frac)
-             :interior_shading_factor_winter,         # [Double] InteriorShading/WinterShadingCoefficient (frac)
-             :storm_type,                             # [String] StormWindow/GlassType (HPXML::WindowGlassTypeXXX)
-             :overhangs_depth,                        # [Double] Overhangs/Depth (ft)
-             :overhangs_distance_to_top_of_window,    # [Double] Overhangs/DistanceToTopOfWindow (ft)
-             :overhangs_distance_to_bottom_of_window, # [Double] Overhangs/DistanceToBottomOfWindow (ft)
-             :fraction_operable,                      # [Double] FractionOperable (frac)
-             :performance_class,                      # [String] PerformanceClass (HPXML::WindowClassXXX)
-             :attached_to_wall_idref]                 # [String] AttachedToWall/@idref
+    ATTRS = [:id,                                             # [String] SystemIdentifier/@id
+             :area,                                           # [Double] Area (ft2)
+             :azimuth,                                        # [Integer] Azimuth (deg)
+             :orientation,                                    # [String] Orientation (HPXML::OrientationXXX)
+             :frame_type,                                     # [String] FrameType/* (HPXML::WindowFrameTypeXXX)
+             :thermal_break,                                  # [Boolean] FrameType/*/ThermalBreak
+             :glass_layers,                                   # [String] GlassLayers (HPXML::WindowLayersXXX)
+             :glass_type,                                     # [String] GlassType (HPXML::WindowGlassTypeXXX)
+             :gas_fill,                                       # [String] GasFill (HPXML::WindowGasXXX)
+             :ufactor,                                        # [Double] UFactor (Btu/F-ft2-hr)
+             :shgc,                                           # [Double] SHGC
+             :exterior_shading_id,                            # [String] ExteriorShading/SystemIdentifier/@id
+             :exterior_shading_type,                          # [String] ExteriorShading/Type (HPXML::ExteriorShadingTypeXXX)
+             :exterior_shading_coverage_summer,               # [Double] ExteriorShading/SummerFractionCovered
+             :exterior_shading_coverage_winter,               # [Double] ExteriorShading/WinterFractionCovered
+             :exterior_shading_factor_summer,                 # [Double] ExteriorShading/SummerShadingCoefficient (frac)
+             :exterior_shading_factor_winter,                 # [Double] ExteriorShading/WinterShadingCoefficient (frac)
+             :interior_shading_id,                            # [String] InteriorShading/SystemIdentifier/@id
+             :interior_shading_type,                          # [String] InteriorShading/Type (HPXML::InteriorShadingTypeXXX)
+             :interior_shading_blinds_summer_closed_or_open,  # [String] InteriorShading/BlindsSummerClosedOrOpen (HPXML::BlindsXXX)
+             :interior_shading_blinds_winter_closed_or_open,  # [String] InteriorShading/BlindsWinterClosedOrOpen (HPXML::BlindsXXX)
+             :interior_shading_coverage_summer,               # [Double] InteriorShading/SummerFractionCovered
+             :interior_shading_coverage_winter,               # [Double] InteriorShading/WinterFractionCovered
+             :interior_shading_factor_summer,                 # [Double] InteriorShading/SummerShadingCoefficient (frac)
+             :interior_shading_factor_winter,                 # [Double] InteriorShading/WinterShadingCoefficient (frac)
+             :storm_type,                                     # [String] StormWindow/GlassType (HPXML::WindowGlassTypeXXX)
+             :insect_screen_present,                          # [Element] InsectScreen
+             :insect_screen_location,                         # [String] InsectScreen/Location (HPXML::LocationXXX)
+             :insect_screen_coverage_summer,                  # [Double] InsectScreen/SummerFractionCovered (frac)
+             :insect_screen_coverage_winter,                  # [Double] InsectScreen/WinterFractionCovered (frac)
+             :insect_screen_factor_summer,                    # [Double] InsectScreen/SummerShadingCoefficient (frac)
+             :insect_screen_factor_winter,                    # [Double] InsectScreen/WinterShadingCoefficient (frac)
+             :overhangs_depth,                                # [Double] Overhangs/Depth (ft)
+             :overhangs_distance_to_top_of_window,            # [Double] Overhangs/DistanceToTopOfWindow (ft)
+             :overhangs_distance_to_bottom_of_window,         # [Double] Overhangs/DistanceToBottomOfWindow (ft)
+             :fraction_operable,                              # [Double] FractionOperable (frac)
+             :performance_class,                              # [String] PerformanceClass (HPXML::WindowClassXXX)
+             :attached_to_wall_idref]                         # [String] AttachedToWall/@idref
     attr_accessor(*ATTRS)
 
     # Returns the parent wall that includes this skylight.
@@ -5538,7 +5647,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.windows.delete(self)
     end
@@ -5555,7 +5664,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -5578,7 +5687,7 @@ class HPXML < Object
       XMLHelper.add_element(window, 'GasFill', @gas_fill, :string, @gas_fill_isdefaulted) unless @gas_fill.nil?
       XMLHelper.add_element(window, 'UFactor', @ufactor, :float, @ufactor_isdefaulted) unless @ufactor.nil?
       XMLHelper.add_element(window, 'SHGC', @shgc, :float, @shgc_isdefaulted) unless @shgc.nil?
-      if (not @exterior_shading_type.nil?) || (not @exterior_shading_factor_summer.nil?) || (not @exterior_shading_factor_winter.nil?)
+      if (not @exterior_shading_type.nil?) || (not @exterior_shading_factor_summer.nil?) || (not @exterior_shading_factor_winter.nil?) || (not @exterior_shading_coverage_summer.nil?) || (not @exterior_shading_coverage_winter.nil?)
         exterior_shading = XMLHelper.add_element(window, 'ExteriorShading')
         sys_id = XMLHelper.add_element(exterior_shading, 'SystemIdentifier')
         if @exterior_shading_id.nil?
@@ -5586,11 +5695,13 @@ class HPXML < Object
         else
           XMLHelper.add_attribute(sys_id, 'id', @exterior_shading_id)
         end
-        XMLHelper.add_element(exterior_shading, 'Type', @exterior_shading_type, :string) unless @exterior_shading_type.nil?
+        XMLHelper.add_element(exterior_shading, 'Type', @exterior_shading_type, :string, @exterior_shading_type_isdefaulted) unless @exterior_shading_type.nil?
+        XMLHelper.add_element(exterior_shading, 'SummerFractionCovered', @exterior_shading_coverage_summer, :float, @exterior_shading_coverage_summer_isdefaulted) unless @exterior_shading_coverage_summer.nil?
+        XMLHelper.add_element(exterior_shading, 'WinterFractionCovered', @exterior_shading_coverage_winter, :float, @exterior_shading_coverage_winter_isdefaulted) unless @exterior_shading_coverage_winter.nil?
         XMLHelper.add_element(exterior_shading, 'SummerShadingCoefficient', @exterior_shading_factor_summer, :float, @exterior_shading_factor_summer_isdefaulted) unless @exterior_shading_factor_summer.nil?
         XMLHelper.add_element(exterior_shading, 'WinterShadingCoefficient', @exterior_shading_factor_winter, :float, @exterior_shading_factor_winter_isdefaulted) unless @exterior_shading_factor_winter.nil?
       end
-      if (not @interior_shading_type.nil?) || (not @interior_shading_factor_summer.nil?) || (not @interior_shading_factor_winter.nil?)
+      if (not @interior_shading_type.nil?) || (not @interior_shading_factor_summer.nil?) || (not @interior_shading_factor_winter.nil?) || (not @interior_shading_blinds_summer_closed_or_open.nil?) || (not @interior_shading_blinds_winter_closed_or_open.nil?) || (not @interior_shading_coverage_summer.nil?) || (not @interior_shading_coverage_winter.nil?)
         interior_shading = XMLHelper.add_element(window, 'InteriorShading')
         sys_id = XMLHelper.add_element(interior_shading, 'SystemIdentifier')
         if @interior_shading_id.nil?
@@ -5598,15 +5709,29 @@ class HPXML < Object
         else
           XMLHelper.add_attribute(sys_id, 'id', @interior_shading_id)
         end
-        XMLHelper.add_element(interior_shading, 'Type', @interior_shading_type, :string) unless @interior_shading_type.nil?
+        XMLHelper.add_element(interior_shading, 'Type', @interior_shading_type, :string, @interior_shading_type_isdefaulted) unless @interior_shading_type.nil?
+        XMLHelper.add_element(interior_shading, 'BlindsSummerClosedOrOpen', @interior_shading_blinds_summer_closed_or_open, :string, @interior_shading_blinds_summer_closed_or_open_isdefaulted) unless @interior_shading_blinds_summer_closed_or_open.nil?
+        XMLHelper.add_element(interior_shading, 'BlindsWinterClosedOrOpen', @interior_shading_blinds_winter_closed_or_open, :string, @interior_shading_blinds_winter_closed_or_open_isdefaulted) unless @interior_shading_blinds_winter_closed_or_open.nil?
+        XMLHelper.add_element(interior_shading, 'SummerFractionCovered', @interior_shading_coverage_summer, :float, @interior_shading_coverage_summer_isdefaulted) unless @interior_shading_coverage_summer.nil?
+        XMLHelper.add_element(interior_shading, 'WinterFractionCovered', @interior_shading_coverage_winter, :float, @interior_shading_coverage_winter_isdefaulted) unless @interior_shading_coverage_winter.nil?
         XMLHelper.add_element(interior_shading, 'SummerShadingCoefficient', @interior_shading_factor_summer, :float, @interior_shading_factor_summer_isdefaulted) unless @interior_shading_factor_summer.nil?
         XMLHelper.add_element(interior_shading, 'WinterShadingCoefficient', @interior_shading_factor_winter, :float, @interior_shading_factor_winter_isdefaulted) unless @interior_shading_factor_winter.nil?
+      end
+      if @insect_screen_present
+        insect_screen = XMLHelper.add_element(window, 'InsectScreen')
+        sys_id = XMLHelper.add_element(insect_screen, 'SystemIdentifier')
+        XMLHelper.add_attribute(sys_id, 'id', "#{id}InsectScreen")
+        XMLHelper.add_element(insect_screen, 'Location', @insect_screen_location, :string, @insect_screen_location_isdefaulted) unless @insect_screen_location.nil?
+        XMLHelper.add_element(insect_screen, 'SummerFractionCovered', @insect_screen_coverage_summer, :float, @insect_screen_coverage_summer_isdefaulted) unless @insect_screen_coverage_summer.nil?
+        XMLHelper.add_element(insect_screen, 'WinterFractionCovered', @insect_screen_coverage_winter, :float, @insect_screen_coverage_winter_isdefaulted) unless @insect_screen_coverage_winter.nil?
+        XMLHelper.add_element(insect_screen, 'SummerShadingCoefficient', @insect_screen_factor_summer, :float, @insect_screen_factor_summer_isdefaulted) unless @insect_screen_factor_summer.nil?
+        XMLHelper.add_element(insect_screen, 'WinterShadingCoefficient', @insect_screen_factor_winter, :float, @insect_screen_factor_winter_isdefaulted) unless @insect_screen_factor_winter.nil?
       end
       if not @storm_type.nil?
         storm_window = XMLHelper.add_element(window, 'StormWindow')
         sys_id = XMLHelper.add_element(storm_window, 'SystemIdentifier')
         XMLHelper.add_attribute(sys_id, 'id', "#{id}StormWindow")
-        XMLHelper.add_element(storm_window, 'GlassType', @storm_type, :string) unless @storm_type.nil?
+        XMLHelper.add_element(storm_window, 'GlassType', @storm_type, :string, @storm_type_isdefaulted) unless @storm_type.nil?
       end
       if (not @overhangs_depth.nil?) || (not @overhangs_distance_to_top_of_window.nil?) || (not @overhangs_distance_to_bottom_of_window.nil?)
         overhangs = XMLHelper.add_element(window, 'Overhangs')
@@ -5625,7 +5750,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param window [Oga::XML::Element] The current Window XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(window)
       return if window.nil?
 
@@ -5646,10 +5771,16 @@ class HPXML < Object
       @shgc = XMLHelper.get_value(window, 'SHGC', :float)
       @exterior_shading_id = HPXML::get_id(window, 'ExteriorShading/SystemIdentifier')
       @exterior_shading_type = XMLHelper.get_value(window, 'ExteriorShading/Type', :string)
+      @exterior_shading_coverage_summer = XMLHelper.get_value(window, 'ExteriorShading/SummerFractionCovered', :float)
+      @exterior_shading_coverage_winter = XMLHelper.get_value(window, 'ExteriorShading/WinterFractionCovered', :float)
       @exterior_shading_factor_summer = XMLHelper.get_value(window, 'ExteriorShading/SummerShadingCoefficient', :float)
       @exterior_shading_factor_winter = XMLHelper.get_value(window, 'ExteriorShading/WinterShadingCoefficient', :float)
       @interior_shading_id = HPXML::get_id(window, 'InteriorShading/SystemIdentifier')
       @interior_shading_type = XMLHelper.get_value(window, 'InteriorShading/Type', :string)
+      @interior_shading_blinds_summer_closed_or_open = XMLHelper.get_value(window, 'InteriorShading/BlindsSummerClosedOrOpen', :string)
+      @interior_shading_blinds_winter_closed_or_open = XMLHelper.get_value(window, 'InteriorShading/BlindsWinterClosedOrOpen', :string)
+      @interior_shading_coverage_summer = XMLHelper.get_value(window, 'InteriorShading/SummerFractionCovered', :float)
+      @interior_shading_coverage_winter = XMLHelper.get_value(window, 'InteriorShading/WinterFractionCovered', :float)
       @interior_shading_factor_summer = XMLHelper.get_value(window, 'InteriorShading/SummerShadingCoefficient', :float)
       @interior_shading_factor_winter = XMLHelper.get_value(window, 'InteriorShading/WinterShadingCoefficient', :float)
       @overhangs_depth = XMLHelper.get_value(window, 'Overhangs/Depth', :float)
@@ -5659,6 +5790,14 @@ class HPXML < Object
       @performance_class = XMLHelper.get_value(window, 'PerformanceClass', :string)
       @attached_to_wall_idref = HPXML::get_idref(XMLHelper.get_element(window, 'AttachedToWall'))
       @storm_type = XMLHelper.get_value(window, 'StormWindow/GlassType', :string)
+      @insect_screen_present = XMLHelper.has_element(window, 'InsectScreen')
+      if @insect_screen_present
+        @insect_screen_location = XMLHelper.get_value(window, 'InsectScreen/Location', :string)
+        @insect_screen_coverage_summer = XMLHelper.get_value(window, 'InsectScreen/SummerFractionCovered', :float)
+        @insect_screen_coverage_winter = XMLHelper.get_value(window, 'InsectScreen/WinterFractionCovered', :float)
+        @insect_screen_factor_summer = XMLHelper.get_value(window, 'InsectScreen/SummerShadingCoefficient', :float)
+        @insect_screen_factor_winter = XMLHelper.get_value(window, 'InsectScreen/WinterShadingCoefficient', :float)
+      end
     end
   end
 
@@ -5666,7 +5805,7 @@ class HPXML < Object
   class Skylights < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Skylight.new(@parent_object, **kwargs)
     end
@@ -5674,7 +5813,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -5783,7 +5922,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.skylights.delete(self)
     end
@@ -5801,7 +5940,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -5844,7 +5983,7 @@ class HPXML < Object
         storm_window = XMLHelper.add_element(skylight, 'StormWindow')
         sys_id = XMLHelper.add_element(storm_window, 'SystemIdentifier')
         XMLHelper.add_attribute(sys_id, 'id', "#{id}StormWindow")
-        XMLHelper.add_element(storm_window, 'GlassType', @storm_type, :string) unless @storm_type.nil?
+        XMLHelper.add_element(storm_window, 'GlassType', @storm_type, :string, @storm_type_isdefaulted) unless @storm_type.nil?
       end
       if not @attached_to_roof_idref.nil?
         attached_to_roof = XMLHelper.add_element(skylight, 'AttachedToRoof')
@@ -5869,7 +6008,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param skylight [Oga::XML::Element] The current Skylight XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(skylight)
       return if skylight.nil?
 
@@ -5908,7 +6047,7 @@ class HPXML < Object
   class Doors < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Door.new(@parent_object, **kwargs)
     end
@@ -5916,7 +6055,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -5989,7 +6128,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.doors.delete(self)
     end
@@ -6006,7 +6145,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -6027,7 +6166,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param door [Oga::XML::Element] The current Door XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(door)
       return if door.nil?
 
@@ -6058,7 +6197,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -6074,7 +6213,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -6107,7 +6246,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -6119,7 +6258,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -6135,7 +6274,7 @@ class HPXML < Object
   class HeatingSystems < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << HeatingSystem.new(@parent_object, **kwargs)
     end
@@ -6143,7 +6282,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -6278,7 +6417,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.heating_systems.delete(self)
       @parent_object.water_heating_systems.each do |water_heating_system|
@@ -6302,7 +6441,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -6376,7 +6515,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param heating_system [Oga::XML::Element] The current HeatingSystem XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(heating_system)
       return if heating_system.nil?
 
@@ -6426,7 +6565,7 @@ class HPXML < Object
   class CoolingSystems < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << CoolingSystem.new(@parent_object, **kwargs)
     end
@@ -6434,7 +6573,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -6559,7 +6698,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.cooling_systems.delete(self)
       @parent_object.water_heating_systems.each do |water_heating_system|
@@ -6583,7 +6722,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -6667,7 +6806,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param cooling_system [Oga::XML::Element] The current CoolingSystem XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(cooling_system)
       return if cooling_system.nil?
 
@@ -6721,7 +6860,7 @@ class HPXML < Object
   class HeatPumps < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << HeatPump.new(@parent_object, **kwargs)
     end
@@ -6729,7 +6868,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -6905,7 +7044,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.heat_pumps.delete(self)
       @parent_object.water_heating_systems.each do |water_heating_system|
@@ -6931,7 +7070,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -7058,7 +7197,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param heat_pump [Oga::XML::Element] The current HeatPump XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(heat_pump)
       return if heat_pump.nil?
 
@@ -7136,7 +7275,7 @@ class HPXML < Object
   class GeothermalLoops < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << GeothermalLoop.new(@parent_object, **kwargs)
     end
@@ -7144,7 +7283,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -7193,7 +7332,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.geothermal_loops.delete(self)
       @parent_object.heat_pumps.each do |heat_pump|
@@ -7215,7 +7354,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -7253,7 +7392,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param geothermal_loop [Oga::XML::Element] The current GeothermalLoop XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(geothermal_loop)
       return if geothermal_loop.nil?
 
@@ -7290,7 +7429,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -7301,7 +7440,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -7316,7 +7455,7 @@ class HPXML < Object
   class HVACControls < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << HVACControl.new(@parent_object, **kwargs)
     end
@@ -7324,7 +7463,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -7363,7 +7502,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.hvac_controls.delete(self)
     end
@@ -7381,7 +7520,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -7422,7 +7561,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param hvac_control [Oga::XML::Element] The current HVACControl XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(hvac_control)
       return if hvac_control.nil?
 
@@ -7456,7 +7595,7 @@ class HPXML < Object
   class HVACDistributions < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << HVACDistribution.new(@parent_object, **kwargs)
     end
@@ -7464,7 +7603,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -7536,7 +7675,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.hvac_distributions.delete(self)
       @parent_object.hvac_systems.each do |hvac_system|
@@ -7566,7 +7705,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -7615,7 +7754,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param hvac_distribution [Oga::XML::Element] The current HVACDistribution XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(hvac_distribution)
       return if hvac_distribution.nil?
 
@@ -7650,7 +7789,7 @@ class HPXML < Object
   class DuctLeakageMeasurements < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << DuctLeakageMeasurement.new(@parent_object, **kwargs)
     end
@@ -7658,7 +7797,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param hvac_distribution [Oga::XML::Element] The current HVACDistribution XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(hvac_distribution)
       return if hvac_distribution.nil?
 
@@ -7679,7 +7818,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.hvac_distributions.each do |hvac_distribution|
         next unless hvac_distribution.duct_leakage_measurements.include? self
@@ -7699,7 +7838,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param air_distribution [Oga::XML::Element] Parent XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(air_distribution)
       duct_leakage_measurement_el = XMLHelper.add_element(air_distribution, 'DuctLeakageMeasurement')
       XMLHelper.add_element(duct_leakage_measurement_el, 'DuctType', @duct_type, :string) unless @duct_type.nil?
@@ -7715,7 +7854,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param duct_leakage_measurement [Oga::XML::Element] The current DuctLeakageMeasurement XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(duct_leakage_measurement)
       return if duct_leakage_measurement.nil?
 
@@ -7731,7 +7870,7 @@ class HPXML < Object
   class Ducts < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Duct.new(@parent_object, **kwargs)
     end
@@ -7739,7 +7878,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param hvac_distribution [Oga::XML::Element] The current HVACDistribution XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(hvac_distribution)
       return if hvac_distribution.nil?
 
@@ -7767,7 +7906,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.hvac_distributions.each do |hvac_distribution|
         next unless hvac_distribution.ducts.include? self
@@ -7787,7 +7926,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param air_distribution [Oga::XML::Element] Parent XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(air_distribution)
       ducts_el = XMLHelper.add_element(air_distribution, 'Ducts')
       sys_id = XMLHelper.add_element(ducts_el, 'SystemIdentifier')
@@ -7811,7 +7950,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param duct [Oga::XML::Element] The current Duct XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(duct)
       return if duct.nil?
 
@@ -7834,7 +7973,7 @@ class HPXML < Object
   class VentilationFans < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << VentilationFan.new(@parent_object, **kwargs)
     end
@@ -7842,7 +7981,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -8070,7 +8209,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.ventilation_fans.delete(self)
     end
@@ -8089,7 +8228,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -8154,7 +8293,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param ventilation_fan [Oga::XML::Element] The current VentilationFan XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(ventilation_fan)
       return if ventilation_fan.nil?
 
@@ -8199,7 +8338,7 @@ class HPXML < Object
   class WaterHeatingSystems < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << WaterHeatingSystem.new(@parent_object, **kwargs)
     end
@@ -8207,7 +8346,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -8263,7 +8402,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.water_heating_systems.delete(self)
       @parent_object.solar_thermal_systems.each do |solar_thermal_system|
@@ -8295,7 +8434,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -8345,7 +8484,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param water_heating_system [Oga::XML::Element] The current WaterHeatingSystem XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(water_heating_system)
       return if water_heating_system.nil?
 
@@ -8381,7 +8520,7 @@ class HPXML < Object
   class HotWaterDistributions < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << HotWaterDistribution.new(@parent_object, **kwargs)
     end
@@ -8389,7 +8528,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -8424,7 +8563,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.hot_water_distributions.delete(self)
     end
@@ -8440,7 +8579,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -8489,7 +8628,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param hot_water_distribution [Oga::XML::Element] The current HotWaterDistribution XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(hot_water_distribution)
       return if hot_water_distribution.nil?
 
@@ -8524,7 +8663,7 @@ class HPXML < Object
   class WaterFixtures < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << WaterFixture.new(@parent_object, **kwargs)
     end
@@ -8532,7 +8671,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -8553,7 +8692,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.water_fixtures.delete(self)
     end
@@ -8569,7 +8708,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -8586,7 +8725,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param water_fixture [Oga::XML::Element] The current WaterFixture XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(water_fixture)
       return if water_fixture.nil?
 
@@ -8617,7 +8756,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -8631,7 +8770,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -8649,7 +8788,7 @@ class HPXML < Object
   class SolarThermalSystems < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << SolarThermalSystem.new(@parent_object, **kwargs)
     end
@@ -8657,7 +8796,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -8700,7 +8839,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.solar_thermal_systems.delete(self)
     end
@@ -8717,7 +8856,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -8745,7 +8884,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param solar_thermal_system [Oga::XML::Element] The current SolarThermalSystem XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(solar_thermal_system)
       return if solar_thermal_system.nil?
 
@@ -8769,7 +8908,7 @@ class HPXML < Object
   class PVSystems < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << PVSystem.new(@parent_object, **kwargs)
     end
@@ -8777,7 +8916,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -8821,7 +8960,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.pv_systems.delete(self)
     end
@@ -8838,7 +8977,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -8867,7 +9006,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param pv_system [Oga::XML::Element] The current PVSystem XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(pv_system)
       return if pv_system.nil?
 
@@ -8892,7 +9031,7 @@ class HPXML < Object
   class Inverters < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Inverter.new(@parent_object, **kwargs)
     end
@@ -8900,7 +9039,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -8938,7 +9077,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.inverters.delete(self)
     end
@@ -8955,7 +9094,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -8969,7 +9108,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param inverter [Oga::XML::Element] The current Inverter XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(inverter)
       return if inverter.nil?
 
@@ -8982,7 +9121,7 @@ class HPXML < Object
   class Batteries < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Battery.new(@parent_object, **kwargs)
     end
@@ -8990,7 +9129,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -9019,7 +9158,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.batteries.delete(self)
     end
@@ -9035,7 +9174,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -9076,7 +9215,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param battery [Oga::XML::Element] The current Battery XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(battery)
       return if battery.nil?
 
@@ -9100,7 +9239,7 @@ class HPXML < Object
   class Generators < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Generator.new(@parent_object, **kwargs)
     end
@@ -9108,7 +9247,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -9130,7 +9269,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.generators.delete(self)
     end
@@ -9146,7 +9285,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -9164,7 +9303,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param generator [Oga::XML::Element] The current Generator XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(generator)
       return if generator.nil?
 
@@ -9181,7 +9320,7 @@ class HPXML < Object
   class ClothesWashers < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << ClothesWasher.new(@parent_object, **kwargs)
     end
@@ -9189,7 +9328,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -9252,7 +9391,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.clothes_washers.delete(self)
     end
@@ -9270,7 +9409,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -9306,7 +9445,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param clothes_washer [Oga::XML::Element] The current ClothesWasher XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(clothes_washer)
       return if clothes_washer.nil?
 
@@ -9336,7 +9475,7 @@ class HPXML < Object
   class ClothesDryers < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << ClothesDryer.new(@parent_object, **kwargs)
     end
@@ -9344,7 +9483,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -9375,7 +9514,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.clothes_dryers.delete(self)
     end
@@ -9391,7 +9530,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -9418,7 +9557,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param clothes_dryer [Oga::XML::Element] The current ClothesDryer XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(clothes_dryer)
       return if clothes_dryer.nil?
 
@@ -9444,7 +9583,7 @@ class HPXML < Object
   class Dishwashers < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Dishwasher.new(@parent_object, **kwargs)
     end
@@ -9452,7 +9591,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -9512,7 +9651,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.dishwashers.delete(self)
     end
@@ -9530,7 +9669,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -9563,7 +9702,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param dishwasher [Oga::XML::Element] The current Dishwasher XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(dishwasher)
       return if dishwasher.nil?
 
@@ -9590,7 +9729,7 @@ class HPXML < Object
   class Refrigerators < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Refrigerator.new(@parent_object, **kwargs)
     end
@@ -9598,7 +9737,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -9624,7 +9763,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.refrigerators.delete(self)
     end
@@ -9640,7 +9779,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -9662,7 +9801,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param refrigerator [Oga::XML::Element] The current Refrigerator XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(refrigerator)
       return if refrigerator.nil?
 
@@ -9683,7 +9822,7 @@ class HPXML < Object
   class Freezers < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Freezer.new(@parent_object, **kwargs)
     end
@@ -9691,7 +9830,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -9716,7 +9855,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.freezers.delete(self)
     end
@@ -9732,7 +9871,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -9753,7 +9892,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param freezer [Oga::XML::Element] The current Freezer XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(freezer)
       return if freezer.nil?
 
@@ -9773,7 +9912,7 @@ class HPXML < Object
   class Dehumidifiers < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Dehumidifier.new(@parent_object, **kwargs)
     end
@@ -9781,7 +9920,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -9805,7 +9944,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.dehumidifiers.delete(self)
     end
@@ -9821,7 +9960,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -9841,7 +9980,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param dehumidifier [Oga::XML::Element] The current Dehumidifier XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(dehumidifier)
       return if dehumidifier.nil?
 
@@ -9860,7 +9999,7 @@ class HPXML < Object
   class CookingRanges < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << CookingRange.new(@parent_object, **kwargs)
     end
@@ -9868,7 +10007,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -9892,7 +10031,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.cooking_ranges.delete(self)
     end
@@ -9908,7 +10047,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -9928,7 +10067,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param cooking_range [Oga::XML::Element] The current CookingRange XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(cooking_range)
       return if cooking_range.nil?
 
@@ -9947,7 +10086,7 @@ class HPXML < Object
   class Ovens < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Oven.new(@parent_object, **kwargs)
     end
@@ -9955,7 +10094,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -9973,7 +10112,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.ovens.delete(self)
     end
@@ -9989,7 +10128,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -10003,7 +10142,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param oven [Oga::XML::Element] The current Oven XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(oven)
       return if oven.nil?
 
@@ -10016,7 +10155,7 @@ class HPXML < Object
   class LightingGroups < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << LightingGroup.new(@parent_object, **kwargs)
     end
@@ -10024,7 +10163,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -10045,7 +10184,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.lighting_groups.delete(self)
     end
@@ -10061,7 +10200,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -10085,7 +10224,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param lighting_group [Oga::XML::Element] The current LightingGroup XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(lighting_group)
       return if lighting_group.nil?
 
@@ -10101,7 +10240,7 @@ class HPXML < Object
   class CeilingFans < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << CeilingFan.new(@parent_object, **kwargs)
     end
@@ -10109,7 +10248,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -10132,7 +10271,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.ceiling_fans.delete(self)
     end
@@ -10148,7 +10287,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -10171,7 +10310,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param ceiling_fan [Oga::XML::Element] The current CeilingFan XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(ceiling_fan)
       @id = HPXML::get_id(ceiling_fan)
       @efficiency = XMLHelper.get_value(ceiling_fan, "Airflow[FanSpeed='medium']/Efficiency", :float)
@@ -10219,7 +10358,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -10255,7 +10394,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -10293,7 +10432,7 @@ class HPXML < Object
   class Pools < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << Pool.new(@parent_object, **kwargs)
     end
@@ -10301,7 +10440,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -10334,7 +10473,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.pools.delete(self)
     end
@@ -10350,7 +10489,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -10405,7 +10544,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param pool [Oga::XML::Element] The current Pool XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(pool)
       @id = HPXML::get_id(pool)
       @type = XMLHelper.get_value(pool, 'Type', :string)
@@ -10437,7 +10576,7 @@ class HPXML < Object
   class PermanentSpas < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << PermanentSpa.new(@parent_object, **kwargs)
     end
@@ -10445,7 +10584,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -10478,7 +10617,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.permanent_spas.delete(self)
     end
@@ -10494,7 +10633,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -10549,7 +10688,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param spa [Oga::XML::Element] The current Spa XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(spa)
       @id = HPXML::get_id(spa)
       @type = XMLHelper.get_value(spa, 'Type', :string)
@@ -10581,7 +10720,7 @@ class HPXML < Object
   class PortableSpas < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << PortableSpa.new(@parent_object, **kwargs)
     end
@@ -10589,7 +10728,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -10606,7 +10745,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.portable_spas.delete(self)
     end
@@ -10622,7 +10761,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -10635,7 +10774,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param spa [Oga::XML::Element] The current Spa XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(spa)
       @id = HPXML::get_id(spa)
     end
@@ -10645,7 +10784,7 @@ class HPXML < Object
   class PlugLoads < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << PlugLoad.new(@parent_object, **kwargs)
     end
@@ -10653,7 +10792,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -10678,7 +10817,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.plug_loads.delete(self)
     end
@@ -10694,7 +10833,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -10719,7 +10858,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param plug_load [Oga::XML::Element] The current PlugLoad XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(plug_load)
       @id = HPXML::get_id(plug_load)
       @plug_load_type = XMLHelper.get_value(plug_load, 'PlugLoadType', :string)
@@ -10737,7 +10876,7 @@ class HPXML < Object
   class FuelLoads < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << FuelLoad.new(@parent_object, **kwargs)
     end
@@ -10745,7 +10884,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(building)
       return if building.nil?
 
@@ -10771,7 +10910,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       @parent_object.fuel_loads.delete(self)
     end
@@ -10787,7 +10926,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param building [Oga::XML::Element] The current Building XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(building)
       return if nil?
 
@@ -10813,7 +10952,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param fuel_load [Oga::XML::Element] The current FuelLoad XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(fuel_load)
       @id = HPXML::get_id(fuel_load)
       @fuel_load_type = XMLHelper.get_value(fuel_load, 'FuelLoadType', :string)
@@ -10832,7 +10971,7 @@ class HPXML < Object
   class CoolingDetailedPerformanceData < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << CoolingPerformanceDataPoint.new(@parent_object, **kwargs)
     end
@@ -10857,7 +10996,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param hvac_system [Oga::XML::Element] The current HVAC system XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(hvac_system)
       return if hvac_system.nil?
 
@@ -10883,7 +11022,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       (@parent_object.cooling_systems + @parent_object.heat_pumps).each do |cooling_system|
         cooling_system.cooling_detailed_performance_data.delete(self)
@@ -10901,7 +11040,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param hvac_system [Oga::XML::Element] Parent XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(hvac_system)
       detailed_performance_data = XMLHelper.create_elements_as_needed(hvac_system, ['CoolingDetailedPerformanceData'])
       performance_data_point = XMLHelper.add_element(detailed_performance_data, 'PerformanceDataPoint')
@@ -10922,7 +11061,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param performance_data_point [Oga::XML::Element] The current CoolingPerformanceDataPoint XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(performance_data_point)
       return if performance_data_point.nil?
 
@@ -10940,7 +11079,7 @@ class HPXML < Object
   class HeatingDetailedPerformanceData < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
     #
-    # @return [void]
+    # @return [nil]
     def add(**kwargs)
       self << HeatingPerformanceDataPoint.new(@parent_object, **kwargs)
     end
@@ -10965,7 +11104,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param hvac_system [Oga::XML::Element] The current HVAC system XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(hvac_system)
       return if hvac_system.nil?
 
@@ -10990,7 +11129,7 @@ class HPXML < Object
 
     # Deletes the current object from the array.
     #
-    # @return [void]
+    # @return [nil]
     def delete
       (@parent_object.heating_systems + @parent_object.heat_pumps).each do |heating_system|
         heating_system.cooling_detailed_performance_data.delete(self)
@@ -11008,7 +11147,7 @@ class HPXML < Object
     # Adds this object to the provided Oga XML element.
     #
     # @param hvac_system [Oga::XML::Element] Parent XML element
-    # @return [void]
+    # @return [nil]
     def to_doc(hvac_system)
       detailed_performance_data = XMLHelper.create_elements_as_needed(hvac_system, ['HeatingDetailedPerformanceData'])
       performance_data_point = XMLHelper.add_element(detailed_performance_data, 'PerformanceDataPoint')
@@ -11028,7 +11167,7 @@ class HPXML < Object
     # Populates the HPXML object(s) from the XML document.
     #
     # @param performance_data_point [Oga::XML::Element] The current HeatingPerformanceDataPoint XML element
-    # @return [void]
+    # @return [nil]
     def from_doc(performance_data_point)
       return if performance_data_point.nil?
 
@@ -11119,9 +11258,9 @@ class HPXML < Object
             HPXML::LocationBasementConditioned]
   end
 
-  # Returns the set of all location types that are conditioned and above-grade.
+  # Returns the set of all location types that are conditioned and below-grade.
   #
-  # @return [Array<String>] List of conditioned, above-grade locations (HPXML::LocationXXX)
+  # @return [Array<String>] List of conditioned, below-grade locations (HPXML::LocationXXX)
   def self.conditioned_below_grade_locations
     return [HPXML::LocationBasementConditioned,
             HPXML::LocationCrawlspaceConditioned]
@@ -11258,7 +11397,7 @@ class HPXML < Object
   #
   # @param hpxml_object [HPXML::XXX] The Zone/Space/HVACPlant object
   # @param hpxml_element [Oga::XML::Element] The Zone/Space/HVACPlant XML element
-  # @return [void]
+  # @return [nil]
   def self.design_loads_to_doc(hpxml_object, hpxml_element)
     { HDL_ATTRS => 'Heating',
       CDL_SENS_ATTRS => 'CoolingSensible',
@@ -11282,7 +11421,7 @@ class HPXML < Object
   #
   # @param hpxml_object [HPXML::XXX] The Zone/Space/HVACPlant object
   # @param hpxml_element [Oga::XML::Element] The Zone/Space/HVACPlant XML element
-  # @return [void]
+  # @return [nil]
   def self.design_loads_from_doc(hpxml_object, hpxml_element)
     { HDL_ATTRS => 'Heating',
       CDL_SENS_ATTRS => 'CoolingSensible',
