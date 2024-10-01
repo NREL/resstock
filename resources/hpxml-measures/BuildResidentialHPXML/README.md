@@ -1434,9 +1434,22 @@ Full-assembly NFRC solar heat gain coefficient.
 
 <br/>
 
-**Windows: Winter Interior Shading**
+**Windows: Interior Shading Type**
 
-Interior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Type of window interior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'>HPXML Interior Shading</a>) is used.
+
+- **Name:** ``window_interior_shading_type``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `light curtains`, `light shades`, `light blinds`, `medium curtains`, `medium shades`, `medium blinds`, `dark curtains`, `dark shades`, `dark blinds`, `none`
+
+<br/>
+
+**Windows: Winter Interior Shading Coefficient**
+
+Interior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'>HPXML Interior Shading</a>) is used.
 
 - **Name:** ``window_interior_shading_winter``
 - **Type:** ``Double``
@@ -1447,9 +1460,9 @@ Interior shading coefficient for the winter season. 1.0 indicates no reduction i
 
 <br/>
 
-**Windows: Summer Interior Shading**
+**Windows: Summer Interior Shading Coefficient**
 
-Interior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Interior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'>HPXML Interior Shading</a>) is used.
 
 - **Name:** ``window_interior_shading_summer``
 - **Type:** ``Double``
@@ -1460,9 +1473,22 @@ Interior shading coefficient for the summer season. 1.0 indicates no reduction i
 
 <br/>
 
-**Windows: Winter Exterior Shading**
+**Windows: Exterior Shading Type**
 
-Exterior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Type of window exterior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'>HPXML Exterior Shading</a>) is used.
+
+- **Name:** ``window_exterior_shading_type``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `solar film`, `solar screens`, `none`
+
+<br/>
+
+**Windows: Winter Exterior Shading Coefficient**
+
+Exterior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'>HPXML Exterior Shading</a>) is used.
 
 - **Name:** ``window_exterior_shading_winter``
 - **Type:** ``Double``
@@ -1473,9 +1499,9 @@ Exterior shading coefficient for the winter season. 1.0 indicates no reduction i
 
 <br/>
 
-**Windows: Summer Exterior Shading**
+**Windows: Summer Exterior Shading Coefficient**
 
-Exterior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Exterior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'>HPXML Exterior Shading</a>) is used.
 
 - **Name:** ``window_exterior_shading_summer``
 - **Type:** ``Double``
@@ -1494,6 +1520,19 @@ Enter a date range like 'May 1 - Sep 30'. Defines the summer season for purposes
 - **Type:** ``String``
 
 - **Required:** ``false``
+
+<br/>
+
+**Windows: Insect Screens**
+
+The type of insect screens, if present. If not provided, assumes there are no insect screens.
+
+- **Name:** ``window_insect_screens``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `none`, `exterior`, `interior`
 
 <br/>
 

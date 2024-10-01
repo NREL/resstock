@@ -1287,7 +1287,8 @@ class SchedulesFile
     num_hrs_in_year = Calendar.num_hours_in_year(@year)
     @schedules = {}
     schedules_paths.each do |schedules_path|
-      columns = CSV.read(schedules_path).transpose
+      # Note: We don't use the CSV library here because it's slow for large files
+      columns = File.readlines(schedules_path).map(&:strip).map { |r| r.split(',') }.transpose
       columns.each do |col|
         col_name = col[0]
         column = Columns.values.find { |c| c.name == col_name }
@@ -1348,11 +1349,11 @@ class SchedulesFile
   def export()
     return false if @output_schedules_path.nil?
 
-    CSV.open(@output_schedules_path, 'wb') do |csv|
-      csv << @tmp_schedules.keys
-      rows = @tmp_schedules.values.transpose
-      rows.each do |row|
-        csv << row
+    # Note: We don't use the CSV library here because it's slow for large files
+    File.open(@output_schedules_path, 'w') do |csv|
+      csv << "#{@tmp_schedules.keys.join(',')}\n"
+      @tmp_schedules.values.transpose.each do |row|
+        csv << "#{row.join(',')}\n"
       end
     end
 

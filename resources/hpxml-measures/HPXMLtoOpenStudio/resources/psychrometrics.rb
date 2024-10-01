@@ -525,7 +525,7 @@ module Psychrometrics
   # @param q [Double] Total capacity of unit (kBtu/h)
   # @param cfm [Double] Volumetric flow rate of unit (CFM)
   # @param ao [Double] Coil Ao factor (=UA/Cp - IN SI UNITS)
-  # @param win [Double] Entering humidity ratio
+  # @param win [Double] Entering humidity ratio (dimensionless)
   # @return [Double] Sensible Heat Ratio
   def self.CalculateSHR(dBin, p, q, cfm, ao, win)
     mfr = UnitConversions.convert(self.CalculateMassflowRate(dBin, p, cfm, win), 'lbm/min', 'kg/s')

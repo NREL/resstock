@@ -7,6 +7,21 @@ Development Changelog
     :released: pending
 
     .. change::
+
+        :tags: bugfix, characteristics
+        :pullreq: 1265
+        :tickets: 1236
+
+        **Date**: 2024-08-06
+
+        Title:
+        Fix Hot Water Fixtures multipliers
+
+        Description:
+        Mean-shift hot water usage multipliers distribution by increasing weighted average from 0.8 to 1.0 in Hot Water Fixtures.tsv.
+
+        Assignees: Lixi Liu
+
         :tags: workflow, infiltration, bugfix
         :pullreq: 1257
 
@@ -22,6 +37,19 @@ Development Changelog
 
         Assignees: Joe Robertson
 
+    .. change::
+        :tags: characteristics, floor area, bugfix
+        :pullreq: 1301
+
+        **Date**: 2024-09-18
+
+        Title:
+        Fix RECS floor area bins
+
+        Description:
+        RECS have been using incorrect floor area bins when assigning some characteristics due to a bug on how floor area bin is calculated. This PR fixes the issue.
+
+        Assignees: Rajendra Adhikari, Anthony Fontanini
 
     .. change::
         :tags: workflow, hot water, feature
@@ -44,7 +72,7 @@ Development Changelog
         :tags: workflow, plug loads, feature
         :pullreq: 1298
 
-        **Date**: 2024-09-19
+        **Date**: 2024-09-24
 
         Title:
         Latest OS-HPXML
@@ -54,5 +82,21 @@ Development Changelog
         For operational calculations in general, we are also updating the relationships between number of bedrooms/occupants based on RECS 2020 and disaggregated by building types.
 
         OpenStudio-HPXML: `pull request 1690 <https://github.com/NREL/OpenStudio-HPXML/pull/1690>`_, `pull request 1775 <https://github.com/NREL/OpenStudio-HPXML/pull/1775>`_
+
+        Assignees: Joe Robertson
+
+
+    .. change::
+        :tags: workflow, hvac, feature
+        :pullreq: 1254
+
+        **Date**: 2024-09-218
+
+        Title:
+        Heating and Cooling Unavailable Days
+
+        Description:
+        The purpose of this PR is to account for dwelling units whose HVAC system (heating/cooling) is unavailable for some number of days during the year (per RECS 2020).
+        Specifically, this PR modifies HVAC heating/cooling seasons using number of unavailable days and BAHSP definition for heating/cooling months.
 
         Assignees: Joe Robertson

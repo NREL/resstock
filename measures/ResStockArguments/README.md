@@ -1091,9 +1091,22 @@ Full-assembly NFRC solar heat gain coefficient.
 
 <br/>
 
-**Windows: Winter Interior Shading**
+**Windows: Interior Shading Type**
 
-Interior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Type of window interior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'>HPXML Interior Shading</a>) is used.
+
+- **Name:** ``window_interior_shading_type``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `auto`, `light curtains`, `light shades`, `light blinds`, `medium curtains`, `medium shades`, `medium blinds`, `dark curtains`, `dark shades`, `dark blinds`, `none`
+
+<br/>
+
+**Windows: Winter Interior Shading Coefficient**
+
+Interior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'>HPXML Interior Shading</a>) is used.
 
 - **Name:** ``window_interior_shading_winter``
 - **Type:** ``String``
@@ -1102,9 +1115,9 @@ Interior shading coefficient for the winter season. 1.0 indicates no reduction i
 
 <br/>
 
-**Windows: Summer Interior Shading**
+**Windows: Summer Interior Shading Coefficient**
 
-Interior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Interior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'>HPXML Interior Shading</a>) is used.
 
 - **Name:** ``window_interior_shading_summer``
 - **Type:** ``String``
@@ -1113,9 +1126,22 @@ Interior shading coefficient for the summer season. 1.0 indicates no reduction i
 
 <br/>
 
-**Windows: Winter Exterior Shading**
+**Windows: Exterior Shading Type**
 
-Exterior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Type of window exterior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'>HPXML Exterior Shading</a>) is used.
+
+- **Name:** ``window_exterior_shading_type``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `auto`, `solar film`, `solar screens`, `none`
+
+<br/>
+
+**Windows: Winter Exterior Shading Coefficient**
+
+Exterior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'>HPXML Exterior Shading</a>) is used.
 
 - **Name:** ``window_exterior_shading_winter``
 - **Type:** ``String``
@@ -1124,9 +1150,9 @@ Exterior shading coefficient for the winter season. 1.0 indicates no reduction i
 
 <br/>
 
-**Windows: Summer Exterior Shading**
+**Windows: Summer Exterior Shading Coefficient**
 
-Exterior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Exterior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'>HPXML Exterior Shading</a>) is used.
 
 - **Name:** ``window_exterior_shading_summer``
 - **Type:** ``String``
@@ -1143,6 +1169,19 @@ Enter a date range like 'May 1 - Sep 30'. Defines the summer season for purposes
 - **Type:** ``String``
 
 - **Required:** ``false``
+
+<br/>
+
+**Windows: Insect Screens**
+
+The type of insect screens, if present. If not provided, assumes there are no insect screens.
+
+- **Name:** ``window_insect_screens``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `auto`, `none`, `exterior`, `interior`
 
 <br/>
 
@@ -5117,6 +5156,17 @@ Multiplier on the permanent spa heater energy usage that can reflect, e.g., high
 
 <br/>
 
+**Building Unit ID**
+
+The building unit number (between 1 and the number of samples).
+
+- **Name:** ``building_id``
+- **Type:** ``Integer``
+
+- **Required:** ``false``
+
+<br/>
+
 **Schedules: Vacancy Periods**
 
 Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.
@@ -5145,6 +5195,28 @@ The availability of the natural ventilation schedule during the power outage per
 
 - **Name:** ``schedules_power_outage_periods_window_natvent_availability``
 - **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Schedules: Space Heating Unavailability**
+
+Number of days space heating equipment is unavailable.
+
+- **Name:** ``schedules_space_heating_unavailable_days``
+- **Type:** ``Integer``
+
+- **Required:** ``false``
+
+<br/>
+
+**Schedules: Space Cooling Unavailability**
+
+Number of days space cooling equipment is unavailable.
+
+- **Name:** ``schedules_space_cooling_unavailable_days``
+- **Type:** ``Integer``
 
 - **Required:** ``false``
 
