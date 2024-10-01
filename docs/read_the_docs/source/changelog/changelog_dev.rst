@@ -90,7 +90,7 @@ Development Changelog
         :tags: workflow, hvac, feature
         :pullreq: 1254
 
-        **Date**: 2024-09-218
+        **Date**: 2024-09-27
 
         Title:
         Heating and Cooling Unavailable Days
@@ -100,3 +100,21 @@ Development Changelog
         Specifically, this PR modifies HVAC heating/cooling seasons using number of unavailable days and BAHSP definition for heating/cooling months.
 
         Assignees: Joe Robertson
+
+
+    .. change::
+        :tags: buxfix, floor area
+        :pullreq: 1284
+
+        **Date**: 2024-10-01
+
+        Title:
+        Update Avg Conditioned Floor Area
+
+        Description:
+        Reconcile differences between the AHS floor area definition and the OpenStudio-HPXML conditioned floor area. The change updates ResStockArguments to include
+        Different floor area values for homes with and without heated basements. AHS includes unheated basements in the floor area definition. So sometimes when the
+        unit has an unheated basement, then the modeled conditioned floor area is smaller than the lower bound of the floor area bin range. This fix also assigns
+        floor areas for manufactured homes, where previously they were the same as single-family detached units.
+
+        Assignees: Rajendra Adhikari, Anthony Fontanini
