@@ -482,26 +482,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args[:geometry_unit_cfa] = args[:geometry_unit_cfa]
     end
 
-    # Height Above Grade
-    if [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type])
-      args[:geometry_unit_height_above_grade] = 0.0
-    elsif [HPXML::ResidentialTypeManufactured].include?(args[:geometry_unit_type])
-      args[:geometry_unit_height_above_grade] = 2.0
-    elsif [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type])
-      n_floors = Float(args[:geometry_num_floors_above_grade])
-      if [HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type])
-        args[:geometry_unit_height_above_grade] = (n_floors - 1) / 2.0 * args[:geometry_average_ceiling_height]
-      elsif [HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type])
-        if args[:geometry_unit_level] == 'Bottom'
-          args[:geometry_unit_height_above_grade] = 0.0
-        elsif args[:geometry_unit_level] == 'Middle'
-          args[:geometry_unit_height_above_grade] = (n_floors - 1) / 2.0 * args[:geometry_average_ceiling_height]
-        elsif args[:geometry_unit_level] == 'Top'
-          args[:geometry_unit_height_above_grade] = (n_floors - 1) * args[:geometry_average_ceiling_height]
-        end
-      end
-    end
-
     # Vintage
     if !args[:vintage].nil? && args[:year_built] == Constants::Auto
       args[:year_built] = Integer(Float(args[:vintage].gsub(/[^0-9]/, ''))) # strip non-numeric
@@ -819,6 +799,22 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       elsif args[:geometry_unit_level] == 'Top'
         args[:geometry_foundation_type] = HPXML::FoundationTypeAboveApartment
       end
+    end
+
+    # Height Above Grade
+    if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
+      n_floors = Float(args[:geometry_num_floors_above_grade])
+      avg_ceiling_height = args[:geometry_average_ceiling_height]
+
+      if args[:geometry_unit_level] == 'Top'
+        args[:geometry_unit_height_above_grade] = (n_floors - 1) * avg_ceiling_height
+      elsif args[:geometry_unit_level] == 'Middle'
+        args[:geometry_unit_height_above_grade] = (n_floors - 1) / 2.0 * avg_ceiling_height
+      elsif args[:geometry_unit_level] == 'Bottom'
+        args[:geometry_unit_height_above_grade] = Constants::Auto
+      end
+    else
+      args[:geometry_unit_height_above_grade] = Constants::Auto
     end
 
     # Wall Assembly R-Value
