@@ -433,7 +433,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
 
-    # Conditioned floor area
+    # Assign a conditioned floor area from the floor area bins
+    # In ResStock AHS is used in to assign the distribution of floor areas.
+    # AHS includes unheated basements in their floor area estimates, and needs to be removed for the OS-HPXML conditioned floor area.
+    # Sometimes the conditioned floor area assigned will be smaller than the bin assigned for units with unheated basements.
+    # The bin values are created from RECS 2020 by using the maximum of the heated and cooled floor area minus an estimate of the 
+    # garage floor area if the garage is heated or cooled. The script for generating these values is in the ResStock-Estimation repository.
     if args[:geometry_unit_cfa] == Constants::Auto
       cfas = {
                ['0-499', HPXML::ResidentialTypeSFD, 'Yes'] => 451,  # From RECS2020
