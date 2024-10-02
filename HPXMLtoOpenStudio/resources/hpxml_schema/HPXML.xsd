@@ -2388,7 +2388,7 @@
 									</xs:element>
 									<xs:element minOccurs="0" name="PrimaryLocation" type="VehicleLocation"/>
 									<xs:element minOccurs="0" name="Mileage" type="HPXMLDoubleGreaterThanOrEqualToZero"/>
-									<xs:element minOccurs="0" name="MilesDrivenPerYear" type="HPXMLDoubleGreaterThanZero"/>
+									<xs:element minOccurs="0" name="MilesDrivenPerYear" type="HPXMLDoubleGreaterThanOrEqualToZero"/>
 									<xs:element minOccurs="0" name="HoursDrivenPerWeek" type="HPXMLDoubleGreaterThanOrEqualToZero"/>
 									<xs:element minOccurs="0" name="FuelEconomyCombined">
 										<xs:complexType>
@@ -4382,6 +4382,11 @@
 											<xs:documentation>[ft] height of building</xs:documentation>
 										</xs:annotation>
 									</xs:element>
+									<xs:element minOccurs="0" name="UnitHeightAboveGrade" type="HPXMLDouble">
+										<xs:annotation>
+											<xs:documentation>[ft] Height of the unit's lowest conditioned floor above grade. Useful to characterize the height of apartment units above ground level or homes on pier and beam foundations. Can be negative for, e.g., a garden-level apartment unit.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
 									<xs:element minOccurs="0" name="NumberofUnits" type="IntegerGreaterThanZero">
 										<xs:annotation>
 											<xs:documentation>Number of dwelling units represented by the HPXML Building element. Used as a multiplier.</xs:documentation>
@@ -5354,6 +5359,26 @@
 					<xs:sequence>
 						<xs:group ref="SystemInfo"/>
 						<xs:element minOccurs="0" name="Type" type="InteriorShading"/>
+						<xs:element minOccurs="0" name="BlindsSummerClosedOrOpen" type="BlindsClosedOrOpen">
+							<xs:annotation>
+								<xs:documentation>Specifies if the blinds are open or closed during the summer.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="BlindsWinterClosedOrOpen" type="BlindsClosedOrOpen">
+							<xs:annotation>
+								<xs:documentation>Specifies if the blinds are open or closed during the winter.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="SummerFractionCovered" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>Use, e.g., 0.5 for a shade that is drawn halfway and 1.0 for a fully drawn shade during the summer.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="WinterFractionCovered" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>Use, e.g., 0.5 for a shade that is drawn halfway and 1.0 for a fully drawn shade during the winter.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element minOccurs="0" name="SummerShadingCoefficient" type="Fraction">
 							<xs:annotation>
 								<xs:documentation>The shading coefficient to apply during the summer months. Shading coefficients are defined as a multiplier on transmittance: 1 is transparent, 0 is
@@ -5366,6 +5391,27 @@
 									opaque. </xs:documentation>
 							</xs:annotation>
 						</xs:element>
+						<xs:element minOccurs="0" ref="extension"/>
+					</xs:sequence>
+					<xs:attribute name="dataSource" type="DataSource"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element minOccurs="0" name="InsectScreen">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:group ref="SystemInfo"/>
+						<xs:element minOccurs="0" name="Location" type="StormLocation"/>
+						<xs:element minOccurs="0" name="SummerFractionCovered" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>The fraction of the window area covered by the insect screen during the summer.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="WinterFractionCovered" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>The fraction of the window area covered by the insect screen during the winter.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="Condition" type="WindowCondition"/>
 						<xs:element minOccurs="0" ref="extension"/>
 					</xs:sequence>
 					<xs:attribute name="dataSource" type="DataSource"/>
@@ -7027,6 +7073,7 @@
 	</xs:complexType>
 	<xs:simpleType name="IECCYear_simple">
 		<xs:restriction base="xs:integer">
+			<xs:enumeration value="2024"/>
 			<xs:enumeration value="2021"/>
 			<xs:enumeration value="2018"/>
 			<xs:enumeration value="2015"/>
@@ -8257,10 +8304,13 @@
 	<xs:simpleType name="InteriorShading_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="light blinds"/>
+			<xs:enumeration value="medium blinds"/>
 			<xs:enumeration value="dark blinds"/>
 			<xs:enumeration value="light shades"/>
+			<xs:enumeration value="medium shades"/>
 			<xs:enumeration value="dark shades"/>
 			<xs:enumeration value="light curtains"/>
+			<xs:enumeration value="medium curtains"/>
 			<xs:enumeration value="dark curtains"/>
 			<xs:enumeration value="none"/>
 		</xs:restriction>
@@ -11484,6 +11534,20 @@
 	<xs:complexType name="StormLocation">
 		<xs:simpleContent>
 			<xs:extension base="StormLocation_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="BlindsClosedOrOpen_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="closed"/>
+			<xs:enumeration value="open"/>
+			<xs:enumeration value="half open"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="BlindsClosedOrOpen">
+		<xs:simpleContent>
+			<xs:extension base="BlindsClosedOrOpen_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
