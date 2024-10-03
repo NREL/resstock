@@ -184,7 +184,7 @@ class WeatherFile
   # @param rowdata [Array<Hash>] Weather data for each EPW record
   # @return [Double] WSF value
   def calc_ashrae_622_wsf(rowdata)
-    weather_data = HPXMLDefaults.lookup_weather_data_from_wmo(header.WMONumber)
+    weather_data = Defaults.lookup_weather_data_from_wmo(header.WMONumber)
     if not weather_data.nil?
       return Float(weather_data[:station_ashrae_622_wsf])
     end

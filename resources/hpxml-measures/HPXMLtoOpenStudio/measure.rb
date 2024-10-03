@@ -109,7 +109,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
 
     Version.check_openstudio_version()
-    Model.tear_down(model: model, runner: runner)
+    Model.reset(model, runner)
 
     args = runner.getArgumentValues(arguments(model), user_arguments)
     set_file_paths(args)
@@ -291,7 +291,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       hpxml_sch_map[hpxml_bldg] = schedules_file
 
       # HPXML defaults
-      all_zone_loads, all_space_loads = HPXMLDefaults.apply(runner, hpxml, hpxml_bldg, weather, schedules_file: schedules_file)
+      all_zone_loads, all_space_loads = Defaults.apply(runner, hpxml, hpxml_bldg, weather, schedules_file: schedules_file)
       hpxml_all_zone_loads[hpxml_bldg] = all_zone_loads
       hpxml_all_space_loads[hpxml_bldg] = all_space_loads
     end

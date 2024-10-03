@@ -17,7 +17,7 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
     @year = 2007
     @tol = 0.005
 
-    @default_schedules_csv_data = HPXMLDefaults.get_default_schedules_csv_data()
+    @default_schedules_csv_data = Defaults.get_schedules_csv_data()
   end
 
   def teardown

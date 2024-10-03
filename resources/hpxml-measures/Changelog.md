@@ -36,6 +36,7 @@ __New Features__
 - Adds a warning if the sum of supply/return duct leakage to outside values is very high.
 
 __Bugfixes__
+- Prevents possible error if only one of FracSensible/FracLatent are provided for a PlugLoad or FuelLoad; **Breaking change**: FracSensible and FracLatent must now be both be provided or omitted.
 - Prevents possible error when using multiple `Attic`/`Foundation` elements for the same attic/foundation type.
 - Adds error-checking for `NumberofConditionedFloorsAboveGrade`=0, which is not allowed per the documentation.
 - Fixes utility bill calculations if there is battery storage or a generator.

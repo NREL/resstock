@@ -1386,7 +1386,7 @@ module HVACSizing
         lengths_by_azimuth = {}
         adj_fnd_walls.each do |fnd_wall|
           if fnd_wall.azimuth.nil?
-            azimuths = HPXMLDefaults.get_default_azimuths(hpxml_bldg)
+            azimuths = Defaults.get_azimuths(hpxml_bldg)
           else
             azimuths = [fnd_wall.azimuth]
           end
@@ -2498,7 +2498,7 @@ module HVACSizing
       coefficients_1speed = HVAC.get_cool_cap_eir_ft_spec(HPXML::HVACCompressorTypeSingleStage)[0][0]
     elsif mode == :htg
       rated_indoor_temp = HVAC::AirSourceHeatRatedIDB
-      capacity_retention_temp_1speed, capacity_retention_fraction_1speed = HVAC.get_default_heating_capacity_retention(HPXML::HVACCompressorTypeSingleStage)
+      capacity_retention_temp_1speed, capacity_retention_fraction_1speed = Defaults.get_heating_capacity_retention(HPXML::HVACCompressorTypeSingleStage)
       coefficients_1speed = HVAC.get_heat_cap_eir_ft_spec(HPXML::HVACCompressorTypeSingleStage, capacity_retention_temp_1speed, capacity_retention_fraction_1speed)[0][0]
     end
     return MathTools.biquadratic(indoor_temp, outdoor_temp, coefficients_1speed) / MathTools.biquadratic(rated_indoor_temp, outdoor_temp, coefficients_1speed)
@@ -3809,7 +3809,7 @@ module HVACSizing
       end
       ach = Airflow.get_infiltration_ACH_from_SLA(sla, 8.202, weather) if ach.nil?
     else # Unvented space
-      ach = Airflow.get_default_unvented_space_ach()
+      ach = Airflow::UnventedSpaceACH
     end
     volume = Geometry.calculate_zone_volume(hpxml_bldg, location)
     infiltration_cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
@@ -4175,7 +4175,7 @@ module HVACSizing
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param leakiness_description [String] Leakiness description to look up the infiltration ach value
   # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
-  # @return [Array<Float, Float>] Heating and cooling ACH values from Manual J Table 5A/5B
+  # @return [Array<Double, Double>] Heating and cooling ACH values from Manual J Table 5A/5B
   def self.get_mj_default_ach_values(hpxml_bldg, leakiness_description, cfa)
     ncfl_ag = hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade
     # Manual J Table 5A
