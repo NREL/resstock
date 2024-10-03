@@ -32,9 +32,11 @@ class ScheduleConstant
       elsif val == 0.0 && (schedule_type_limits_name.nil? || schedule_type_limits_name == EPlus::ScheduleTypeLimitsOnOff)
         schedule = model.alwaysOffDiscreteSchedule
       else
-        schedule = OpenStudio::Model::ScheduleConstant.new(model)
-        schedule.setName(sch_name)
-        schedule.setValue(val)
+        schedule = Model.add_schedule_constant(
+          model,
+          name: sch_name,
+          value: val
+        )
 
         Schedule.set_schedule_type_limits(model, schedule, schedule_type_limits_name)
       end
@@ -1657,7 +1659,7 @@ class SchedulesFile
 
   # Convert detailed setpoint schedule values from F to C.
   #
-  # @param offset_db [Float] On-off thermostat deadband
+  # @param offset_db [Double] On-off thermostat deadband
   # @return [nil]
   def convert_setpoints(offset_db)
     setpoint_col_names = Columns.values.select { |c| c.type == :setpoint }.map { |c| c.name }

@@ -61,13 +61,14 @@ def create_hpxmls
     end
 
     for i in 1..num_apply_measures
-      measures['BuildResidentialHPXML'][0]['existing_hpxml_path'] = hpxml_path if i > 1
+      build_residential_hpxml = measures['BuildResidentialHPXML'][0]
+      build_residential_hpxml['existing_hpxml_path'] = hpxml_path if i > 1
       if hpxml_path.include?('base-bldgtype-mf-whole-building.xml')
         suffix = "_#{i}" if i > 1
-        measures['BuildResidentialHPXML'][0]['schedules_filepaths'] = "../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic#{suffix}.csv"
-        measures['BuildResidentialHPXML'][0]['geometry_foundation_type'] = (i <= 2 ? 'UnconditionedBasement' : 'AboveApartment')
-        measures['BuildResidentialHPXML'][0]['geometry_attic_type'] = (i >= 5 ? 'VentedAttic' : 'BelowApartment')
-        measures['BuildResidentialHPXML'][0]['geometry_unit_height_above_grade'] = { 1 => 0.0, 2 => 0.0, 3 => 10.0, 4 => 10.0, 5 => 20.0, 6 => 20.0 }[i]
+        build_residential_hpxml['schedules_filepaths'] = "../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic#{suffix}.csv"
+        build_residential_hpxml['geometry_foundation_type'] = (i <= 2 ? 'UnconditionedBasement' : 'AboveApartment')
+        build_residential_hpxml['geometry_attic_type'] = (i >= 5 ? 'VentedAttic' : 'BelowApartment')
+        build_residential_hpxml['geometry_unit_height_above_grade'] = { 1 => 0.0, 2 => 0.0, 3 => 10.0, 4 => 10.0, 5 => 20.0, 6 => 20.0 }[i]
       end
 
       # Re-generate stochastic schedule CSV?
@@ -285,7 +286,7 @@ def apply_hpxml_modification_hers_hot_water(hpxml)
 end
 
 def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
-  default_schedules_csv_data = HPXMLDefaults.get_default_schedules_csv_data()
+  default_schedules_csv_data = Defaults.get_schedules_csv_data()
 
   # Set detailed HPXML values for sample files
   hpxml_file = File.basename(hpxml_path)
@@ -2329,7 +2330,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
     if ['base-pv-battery-lifetime-model.xml'].include? hpxml_file
       hpxml_bldg.batteries[0].lifetime_model = HPXML::BatteryLifetimeModelKandlerSmith
     elsif ['base-pv-battery-ah.xml'].include? hpxml_file
-      default_values = Battery.get_battery_default_values()
+      default_values = Defaults.get_battery_values(false)
       hpxml_bldg.batteries[0].nominal_capacity_ah = Battery.get_Ah_from_kWh(hpxml_bldg.batteries[0].nominal_capacity_kwh,
                                                                             default_values[:nominal_voltage])
       hpxml_bldg.batteries[0].usable_capacity_ah = hpxml_bldg.batteries[0].nominal_capacity_ah * default_values[:usable_fraction]

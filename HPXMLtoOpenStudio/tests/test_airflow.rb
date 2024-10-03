@@ -830,18 +830,18 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     f_rect_return = 1.0
 
     # Supply, uninsulated
-    effective_r = Airflow.get_duct_effective_r_value(0.0, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationNone, f_rect_supply)
+    effective_r = Defaults.get_duct_effective_r_value(0.0, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationNone, f_rect_supply)
     assert_equal(1.7, effective_r)
 
     # Return, uninsulated
-    effective_r = Airflow.get_duct_effective_r_value(0.0, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationNone, f_rect_return)
+    effective_r = Defaults.get_duct_effective_r_value(0.0, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationNone, f_rect_return)
     assert_equal(1.7, effective_r)
 
     # Supply, not buried
     { 4.2 => 4.53,
       6.0 => 5.73,
       8.0 => 6.94 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationNone, f_rect_supply)
+      effective_r = Defaults.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationNone, f_rect_supply)
       assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
@@ -849,7 +849,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     { 4.2 => 5.20,
       6.0 => 7.00,
       8.0 => 9.00 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationNone, f_rect_return)
+      effective_r = Defaults.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationNone, f_rect_return)
       assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
@@ -860,7 +860,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     { 4.2 => 6.8,
       6.0 => 8.6,
       8.0 => 9.3 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationPartial, f_rect_supply)
+      effective_r = Defaults.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationPartial, f_rect_supply)
       assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
@@ -868,7 +868,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     { 4.2 => 10.1,
       6.0 => 12.6,
       8.0 => 15.1 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationPartial, f_rect_return)
+      effective_r = Defaults.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationPartial, f_rect_return)
       assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
@@ -876,7 +876,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     { 4.2 => 9.9,
       6.0 => 11.7,
       8.0 => 13.3 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationFull, f_rect_supply)
+      effective_r = Defaults.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationFull, f_rect_supply)
       assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
@@ -884,7 +884,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     { 4.2 => 14.3,
       6.0 => 16.7,
       8.0 => 19.2 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationFull, f_rect_return)
+      effective_r = Defaults.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationFull, f_rect_return)
       assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
@@ -892,7 +892,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     { 4.2 => 16.0,
       6.0 => 17.3,
       8.0 => 18.4 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationDeep, f_rect_supply)
+      effective_r = Defaults.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeSupply, HPXML::DuctBuriedInsulationDeep, f_rect_supply)
       assert_in_epsilon(expected_r, effective_r, 0.1)
     end
 
@@ -900,7 +900,7 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     { 4.2 => 22.8,
       6.0 => 24.7,
       8.0 => 26.6 }.each do |nominal_r, expected_r|
-      effective_r = Airflow.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationDeep, f_rect_return)
+      effective_r = Defaults.get_duct_effective_r_value(nominal_r, HPXML::DuctTypeReturn, HPXML::DuctBuriedInsulationDeep, f_rect_return)
       assert_in_epsilon(expected_r, effective_r, 0.1)
     end
   end

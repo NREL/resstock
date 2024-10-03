@@ -5,7 +5,7 @@ require_relative '../../HPXMLtoOpenStudio/resources/calendar'
 require_relative '../../HPXMLtoOpenStudio/resources/constants'
 require_relative '../../HPXMLtoOpenStudio/resources/energyplus'
 require_relative '../../HPXMLtoOpenStudio/resources/hpxml'
-require_relative '../../HPXMLtoOpenStudio/resources/hpxml_defaults'
+require_relative '../../HPXMLtoOpenStudio/resources/defaults'
 require_relative '../../HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../HPXMLtoOpenStudio/resources/schedules'
 require_relative '../../HPXMLtoOpenStudio/resources/unit_conversions'
@@ -80,8 +80,8 @@ class ReportUtilityBillsTest < Minitest::Test
 
     # Check for presence of fuels once
     has_fuel = @hpxml_bldg.has_fuels(@hpxml.to_doc)
-    HPXMLDefaults.apply_header(@hpxml_header, @hpxml_bldg, nil)
-    HPXMLDefaults.apply_utility_bill_scenarios(nil, @hpxml_header, @hpxml_bldg, has_fuel)
+    Defaults.apply_header(@hpxml_header, @hpxml_bldg, nil)
+    Defaults.apply_utility_bill_scenarios(nil, @hpxml_header, @hpxml_bldg, has_fuel)
 
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
     @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')

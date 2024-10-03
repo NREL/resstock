@@ -97,18 +97,14 @@ module Lighting
         runner.registerWarning("Both '#{interior_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !lighting.interior_monthly_multipliers.nil?
       end
 
-      # Add lighting
-      ltg_def = OpenStudio::Model::LightsDefinition.new(model)
-      ltg = OpenStudio::Model::Lights.new(ltg_def)
-      ltg.setName(interior_obj_name)
-      ltg.setSpace(spaces[HPXML::LocationConditionedSpace])
-      ltg.setEndUseSubcategory(interior_obj_name)
-      ltg_def.setName(interior_obj_name)
-      ltg_def.setLightingLevel(design_level)
-      ltg_def.setFractionRadiant(0.6)
-      ltg_def.setFractionVisible(0.2)
-      ltg_def.setReturnAirFraction(0.0)
-      ltg.setSchedule(interior_sch)
+      Model.add_lights(
+        model,
+        name: interior_obj_name,
+        end_use: interior_obj_name,
+        space: spaces[HPXML::LocationConditionedSpace],
+        design_level: design_level,
+        schedule: interior_sch
+      )
     end
 
     # Add lighting to garage space
@@ -133,18 +129,14 @@ module Lighting
         runner.registerWarning("Both '#{garage_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !lighting.garage_monthly_multipliers.nil?
       end
 
-      # Add lighting
-      ltg_def = OpenStudio::Model::LightsDefinition.new(model)
-      ltg = OpenStudio::Model::Lights.new(ltg_def)
-      ltg.setName(garage_obj_name)
-      ltg.setSpace(spaces[HPXML::LocationGarage])
-      ltg.setEndUseSubcategory(garage_obj_name)
-      ltg_def.setName(garage_obj_name)
-      ltg_def.setLightingLevel(design_level)
-      ltg_def.setFractionRadiant(0.6)
-      ltg_def.setFractionVisible(0.2)
-      ltg_def.setReturnAirFraction(0.0)
-      ltg.setSchedule(garage_sch)
+      Model.add_lights(
+        model,
+        name: garage_obj_name,
+        end_use: garage_obj_name,
+        space: spaces[HPXML::LocationGarage],
+        design_level: design_level,
+        schedule: garage_sch
+      )
     end
 
     # Add exterior lighting
@@ -169,14 +161,14 @@ module Lighting
         runner.registerWarning("Both '#{exterior_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !lighting.exterior_monthly_multipliers.nil?
       end
 
-      # Add exterior lighting
-      ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
-      ltg = OpenStudio::Model::ExteriorLights.new(ltg_def)
-      ltg.setName(exterior_obj_name)
-      ltg.setEndUseSubcategory(exterior_obj_name)
-      ltg_def.setName(exterior_obj_name)
-      ltg_def.setDesignLevel(design_level)
-      ltg.setSchedule(exterior_sch)
+      Model.add_lights(
+        model,
+        name: exterior_obj_name,
+        end_use: exterior_obj_name,
+        space: nil,
+        design_level: design_level,
+        schedule: exterior_sch
+      )
     end
 
     # Add exterior holiday lighting
@@ -202,32 +194,15 @@ module Lighting
         runner.registerWarning("Both '#{exterior_holiday_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !lighting.exterior_monthly_multipliers.nil?
       end
 
-      # Add exterior holiday lighting
-      ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
-      ltg = OpenStudio::Model::ExteriorLights.new(ltg_def)
-      ltg.setName(exterior_holiday_obj_name)
-      ltg.setEndUseSubcategory(exterior_holiday_obj_name)
-      ltg_def.setName(exterior_holiday_obj_name)
-      ltg_def.setDesignLevel(design_level)
-      ltg.setSchedule(exterior_holiday_sch)
+      Model.add_lights(
+        model,
+        name: exterior_holiday_obj_name,
+        end_use: exterior_holiday_obj_name,
+        space: nil,
+        design_level: design_level,
+        schedule: exterior_holiday_sch
+      )
     end
-  end
-
-  # TODO
-  #
-  # @return [TODO] TODO
-  def self.get_default_fractions()
-    ltg_fracs = {}
-    [HPXML::LocationInterior, HPXML::LocationExterior, HPXML::LocationGarage].each do |location|
-      [HPXML::LightingTypeCFL, HPXML::LightingTypeLFL, HPXML::LightingTypeLED].each do |lighting_type|
-        if (location == HPXML::LocationInterior) && (lighting_type == HPXML::LightingTypeCFL)
-          ltg_fracs[[location, lighting_type]] = 0.1
-        else
-          ltg_fracs[[location, lighting_type]] = 0
-        end
-      end
-    end
-    return ltg_fracs
   end
 
   # TODO

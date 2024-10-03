@@ -13,7 +13,7 @@ require_relative '../resources/constants.rb'
 require_relative '../resources/util.rb'
 require_relative '../resources/location.rb'
 require_relative '../resources/calendar.rb'
-require_relative '../resources/hpxml_defaults.rb'
+require_relative '../resources/defaults.rb'
 require_relative '../resources/math.rb'
 
 class HPXMLtoOpenStudioWeatherTest < Minitest::Test
