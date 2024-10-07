@@ -2104,7 +2104,8 @@ module Constructions
           sf_sch = Model.add_schedule_constant(
             model,
             name: sch_name,
-            value: sf_values[0][0]
+            value: sf_values[0][0],
+            limits: EPlus::ScheduleTypeLimitsFraction
           )
         else
           sf_sch = HourlyByDaySchedule.new(model, sch_name, sf_values, sf_values, EPlus::ScheduleTypeLimitsFraction, false).schedule

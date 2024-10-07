@@ -2,6 +2,8 @@
 
 # Collection of methods related to water heating systems.
 module Waterheater
+  DefaultTankHeight = 4.0 # ft, assumption from BEopt
+
   # TODO
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
@@ -146,41 +148,41 @@ module Waterheater
     t_set_c = get_t_set_c(water_heating_system.temperature, water_heating_system.water_heater_type)
     loop = create_new_loop(model, t_set_c, hpxml_header.eri_calculation_version, unit_multiplier)
 
-    h_tank = 0.0188 * water_heating_system.tank_volume + 0.0935 # Linear relationship that gets GE height at 50 gal and AO Smith height at 80 gal
-
     # Add in schedules for Tamb, RHamb, and the compressor
     hpwh_tamb = Model.add_schedule_constant(
       model,
       name: "#{obj_name} Tamb act",
-      value: 23
+      value: 23,
+      limits: EPlus::ScheduleTypeLimitsTemperature
     )
 
     hpwh_rhamb = Model.add_schedule_constant(
       model,
       name: "#{obj_name} RHamb act",
-      value: 0.5
+      value: 0.5,
+      limits: EPlus::ScheduleTypeLimitsFraction
     )
 
     # Note: These get overwritten by EMS later, see HPWH Control program
     top_element_sp = Model.add_schedule_constant(
       model,
       name: "#{obj_name} TopElementSetpoint",
-      value: nil
+      value: nil,
+      limits: EPlus::ScheduleTypeLimitsTemperature
     )
     bottom_element_sp = Model.add_schedule_constant(
       model,
       name: "#{obj_name} BottomElementSetpoint",
-      value: nil
+      value: nil,
+      limits: EPlus::ScheduleTypeLimitsTemperature
     )
 
     setpoint_schedule = nil
     if not schedules_file.nil?
       # To handle variable setpoints, need one schedule that gets sensed and a new schedule that gets actuated
       # Sensed schedule
-      setpoint_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
+      setpoint_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name, schedule_type_limits_name: EPlus::ScheduleTypeLimitsTemperature)
       if not setpoint_schedule.nil?
-        Schedule.set_schedule_type_limits(model, setpoint_schedule, EPlus::ScheduleTypeLimitsTemperature)
-
         # Actuated schedule
         control_setpoint_schedule = ScheduleConstant.new(model, "#{obj_name} ControlSetpoint", 0.0, EPlus::ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
         control_setpoint_schedule = control_setpoint_schedule.schedule
@@ -203,7 +205,7 @@ module Waterheater
     coil = setup_hpwh_dxcoil(model, runner, water_heating_system, hpxml_bldg.elevation, obj_name, airflow_rate, unit_multiplier)
 
     # WaterHeater:Stratified
-    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name, h_tank, solar_fraction, hpwh_tamb, bottom_element_sp, top_element_sp, unit_multiplier, hpxml_bldg.building_construction.number_of_bedrooms)
+    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name, solar_fraction, hpwh_tamb, bottom_element_sp, top_element_sp, unit_multiplier, hpxml_bldg.building_construction.number_of_bedrooms)
     loop.addSupplyBranchForComponent(tank)
 
     add_desuperheater(model, runner, water_heating_system, tank, loc_space, loc_schedule, loop, unit_multiplier)
@@ -221,7 +223,7 @@ module Waterheater
     fan.additionalProperties.setFeature('ObjectType', Constants::ObjectTypeWaterHeater) # Used by reporting measure
 
     # WaterHeater:HeatPump:WrappedCondenser
-    hpwh = setup_hpwh_wrapped_condenser(model, obj_name, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, control_setpoint_schedule, unit_multiplier)
+    hpwh = setup_hpwh_wrapped_condenser(model, obj_name, coil, tank, fan, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, control_setpoint_schedule, unit_multiplier)
 
     # Amb temp & RH sensors, temp sensor shared across programs
     amb_temp_sensor, amb_rh_sensors = get_loc_temp_rh_sensors(model, obj_name, loc_space, loc_schedule, conditioned_zone)
@@ -312,7 +314,8 @@ module Waterheater
     source_stp_sch = Model.add_schedule_constant(
       model,
       name: "#{obj_name_combi} Source Spt",
-      value: boiler_heating_spt
+      value: boiler_heating_spt,
+      limits: EPlus::ScheduleTypeLimitsTemperature
     )
     # reset dhw boiler setpoint
     boiler_spt_mngr.to_SetpointManagerScheduled.get.setSchedule(source_stp_sch)
@@ -424,7 +427,7 @@ module Waterheater
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param water_heating_systems [Array<HPXML::WaterHeatingSystem>] The HPXML water heaters of interest
   # @param plantloop_map [Hash] Map of HPXML System ID => OpenStudio PlantLoop objects
-  # @return [TODO] TODO
+  # @return [nil]
   def self.apply_combi_system_EMS(model, water_heating_systems, plantloop_map)
     water_heating_systems.select { |wh|
       [HPXML::WaterHeaterTypeCombiStorage,
@@ -901,7 +904,6 @@ module Waterheater
   # @param coil [TODO] TODO
   # @param tank [TODO] TODO
   # @param fan [TODO] TODO
-  # @param h_tank [TODO] TODO
   # @param airflow_rate [TODO] TODO
   # @param hpwh_tamb [TODO] TODO
   # @param hpwh_rhamb [TODO] TODO
@@ -910,17 +912,12 @@ module Waterheater
   # @param setpoint_schedule [TODO] TODO
   # @param unit_multiplier [Integer] Number of similar dwelling units
   # @return [TODO] TODO
-  def self.setup_hpwh_wrapped_condenser(model, obj_name, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, setpoint_schedule, unit_multiplier)
-    h_condtop = (1.0 - (5.5 / 12.0)) * h_tank # in the 6th node of the tank (counting from top)
-    h_condbot = 0.01 * unit_multiplier # bottom node
-    h_hpctrl_up = (1.0 - (2.5 / 12.0)) * h_tank # in the 3rd node of the tank
-    h_hpctrl_low = (1.0 - (8.5 / 12.0)) * h_tank # in the 9th node of the tank
-
+  def self.setup_hpwh_wrapped_condenser(model, obj_name, coil, tank, fan, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, setpoint_schedule, unit_multiplier)
     hpwh = OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser.new(model, coil, tank, fan, setpoint_schedule, model.alwaysOnDiscreteSchedule)
     hpwh.setName("#{obj_name} hpwh")
     hpwh.setDeadBandTemperatureDifference(3.89)
-    hpwh.setCondenserBottomLocation(h_condbot)
-    hpwh.setCondenserTopLocation(h_condtop)
+    hpwh.setCondenserBottomLocation((1.0 - (12 - 0.5) / 12.0) * tank.tankHeight.get) # in the 12th node of a 12-node tank (counting from top)
+    hpwh.setCondenserTopLocation((1.0 - (6 - 0.5) / 12.0) * tank.tankHeight.get) # in the 6th node of a 12-node tank (counting from top)
     hpwh.setEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate * unit_multiplier, 'ft^3/min', 'm^3/s'))
     hpwh.setInletAirConfiguration('Schedule')
     hpwh.setInletAirTemperatureSchedule(hpwh_tamb)
@@ -934,9 +931,9 @@ module Waterheater
     hpwh.setOffCycleParasiticElectricLoad(0)
     hpwh.setParasiticHeatRejectionLocation('Outdoors')
     hpwh.setTankElementControlLogic('MutuallyExclusive')
-    hpwh.setControlSensor1HeightInStratifiedTank(h_hpctrl_up)
+    hpwh.setControlSensor1HeightInStratifiedTank((1.0 - (3 - 0.5) / 12.0) * tank.tankHeight.get) # in the 3rd node of a 12-node tank (counting from top)
     hpwh.setControlSensor1Weight(0.75)
-    hpwh.setControlSensor2HeightInStratifiedTank(h_hpctrl_low)
+    hpwh.setControlSensor2HeightInStratifiedTank((1.0 - (9 - 0.5) / 12.0) * tank.tankHeight.get) # in the 9th node of a 12-node tank (counting from top)
 
     return hpwh
   end
@@ -1023,7 +1020,6 @@ module Waterheater
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param water_heating_system [HPXML::WaterHeatingSystem] The HPXML water heating system of interest
   # @param obj_name [String] Name for the OpenStudio object
-  # @param h_tank [TODO] TODO
   # @param solar_fraction [TODO] TODO
   # @param hpwh_tamb [TODO] TODO
   # @param hpwh_bottom_element_sp [TODO] TODO
@@ -1031,7 +1027,9 @@ module Waterheater
   # @param unit_multiplier [Integer] Number of similar dwelling units
   # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @return [TODO] TODO
-  def self.setup_hpwh_stratified_tank(model, water_heating_system, obj_name, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp, unit_multiplier, nbeds)
+  def self.setup_hpwh_stratified_tank(model, water_heating_system, obj_name, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp, unit_multiplier, nbeds)
+    h_tank = 0.0188 * water_heating_system.tank_volume + 0.0935 # m; Linear relationship that gets GE height at 50 gal and AO Smith height at 80 gal
+
     # Calculate some geometry parameters for UA, the location of sensors and heat sources in the tank
     v_actual = calc_storage_tank_actual_vol(water_heating_system.tank_volume, water_heating_system.fuel_type) # gal
     a_tank, a_side = calc_tank_areas(v_actual, UnitConversions.convert(h_tank, 'm', 'ft')) # sqft
@@ -1054,9 +1052,6 @@ module Waterheater
     e_cap *= unit_multiplier
     parasitics *= unit_multiplier
 
-    h_UE = (1.0 - (3.5 / 12.0)) * h_tank # in the 3rd node of the tank (counting from top)
-    h_LE = (1.0 - (9.5 / 12.0)) * h_tank # in the 10th node of the tank (counting from top)
-
     tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     tank.setName("#{obj_name} tank")
     tank.setEndUseSubcategory('Domestic Hot Water')
@@ -1067,12 +1062,12 @@ module Waterheater
     tank.heater1SetpointTemperatureSchedule.remove
     tank.setHeater1SetpointTemperatureSchedule(hpwh_top_element_sp)
     tank.setHeater1Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
-    tank.setHeater1Height(h_UE)
+    tank.setHeater1Height((1.0 - (3 - 0.5) / 12.0) * h_tank) # in the 3rd node of a 12-node tank (counting from top)
     tank.setHeater1DeadbandTemperatureDifference(18.5)
     tank.heater2SetpointTemperatureSchedule.remove
     tank.setHeater2SetpointTemperatureSchedule(hpwh_bottom_element_sp)
     tank.setHeater2Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
-    tank.setHeater2Height(h_LE)
+    tank.setHeater2Height((1.0 - (10 - 0.5) / 12.0) * h_tank) # in the 10th node of a 12-node tank (counting from top)
     tank.setHeater2DeadbandTemperatureDifference(3.89)
     tank.setHeaterFuelType(EPlus::FuelTypeElectricity)
     tank.setHeaterThermalEfficiency(1.0)
@@ -1342,13 +1337,11 @@ module Waterheater
 
     op_mode_schedule = nil
     if not schedules_file.nil?
-      op_mode_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterOperatingMode].name)
+      op_mode_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterOperatingMode].name, schedule_type_limits_name: EPlus::ScheduleTypeLimitsFraction)
     end
 
     # Sensor on op_mode_schedule
     if not op_mode_schedule.nil?
-      Schedule.set_schedule_type_limits(model, op_mode_schedule, EPlus::ScheduleTypeLimitsFraction)
-
       op_mode_sensor = Model.add_ems_sensor(
         model,
         name: "#{obj_name} op_mode",
@@ -1403,7 +1396,7 @@ module Waterheater
   # @param tank [TODO] TODO
   # @param u_tank [TODO] TODO
   # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @return [TODO] TODO
+  # @return [nil]
   def self.set_stratified_tank_ua(tank, u_tank, unit_multiplier)
     node_ua = [0] * 12 # Max number of nodes in E+ stratified tank model
     if unit_multiplier == 1
@@ -1543,7 +1536,8 @@ module Waterheater
     new_schedule = Model.add_schedule_constant(
       model,
       name: "#{desuperheater_name} setpoint schedule",
-      value: dsh_setpoint
+      value: dsh_setpoint,
+      limits: EPlus::ScheduleTypeLimitsTemperature
     )
 
     # create a desuperheater object
@@ -1559,19 +1553,6 @@ module Waterheater
     desuperheater.setHeatingSource(desuperheater_clg_coil)
     desuperheater.setWaterFlowRate(0.0001 * unit_multiplier)
     desuperheater.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
-  end
-
-  # TODO
-  #
-  # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param name [TODO] TODO
-  # @return [TODO] TODO
-  def self.create_new_hx(model, name)
-    hx = OpenStudio::Model::HeatExchangerFluidToFluid.new(model)
-    hx.setName(name)
-    hx.setControlType('OperationSchemeModulated')
-
-    return hx
   end
 
   # TODO
@@ -1605,7 +1586,7 @@ module Waterheater
   # @return [TODO] TODO
   def self.calc_tank_areas(act_vol, height = nil)
     if height.nil?
-      height = get_tank_height()
+      height = DefaultTankHeight
     end
     diameter = 2.0 * (UnitConversions.convert(act_vol, 'gal', 'ft^3') / (height * Math::PI))**0.5 # feet
     a_top = Math::PI * diameter**2.0 / 4.0 # sqft
@@ -1613,13 +1594,6 @@ module Waterheater
     surface_area = 2.0 * a_top + a_side # sqft
 
     return surface_area, a_side
-  end
-
-  # TODO
-  #
-  # @return [TODO] TODO
-  def self.get_tank_height()
-    return 4.0 # feet, assumption from BEopt
   end
 
   # TODO
@@ -1988,21 +1962,20 @@ module Waterheater
     act_vol *= unit_multiplier
 
     if tank_model_type == HPXML::WaterHeaterTankModelTypeStratified
-      h_tank = get_tank_height() # ft
+      h_tank = UnitConversions.convert(DefaultTankHeight, 'ft', 'm')
 
       # Add a WaterHeater:Stratified to the model
       new_heater = OpenStudio::Model::WaterHeaterStratified.new(model)
       new_heater.setEndUseSubcategory('Domestic Hot Water')
       new_heater.setTankVolume(UnitConversions.convert(act_vol, 'gal', 'm^3'))
-      new_heater.setTankHeight(UnitConversions.convert(h_tank, 'ft', 'm'))
+      new_heater.setTankHeight(h_tank)
       new_heater.setMaximumTemperatureLimit(90)
       new_heater.setHeaterPriorityControl('MasterSlave')
-      configure_stratified_tank_setpoint_schedules(new_heater, schedules_file, t_set_c, model, runner, unavailable_periods)
       new_heater.setHeater1Capacity(UnitConversions.convert(cap, 'kBtu/hr', 'W'))
-      new_heater.setHeater1Height(UnitConversions.convert(h_tank * 0.733333333, 'ft', 'm')) # node 4; height of upper element based on TRNSYS assumptions for an ERWH
+      new_heater.setHeater1Height((1.0 - (4 - 0.5) / 15) * h_tank) # in the 4th node of a 15-node tank (counting from top); height of upper element based on TRNSYS assumptions for an ERWH
       new_heater.setHeater1DeadbandTemperatureDifference(5.556)
       new_heater.setHeater2Capacity(UnitConversions.convert(cap, 'kBtu/hr', 'W'))
-      new_heater.setHeater2Height(UnitConversions.convert(h_tank * 0.733333333, 'ft', 'm')) # node 13; height of upper element based on TRNSYS assumptions for an ERWH
+      new_heater.setHeater2Height((1.0 - (13 - 0.5) / 15) * h_tank) # in the 13th node of a 15-node tank (counting from top); height of upper element based on TRNSYS assumptions for an ERWH
       new_heater.setHeater2DeadbandTemperatureDifference(5.556)
       new_heater.setHeaterThermalEfficiency(1.0)
       new_heater.setNumberofNodes(12)
@@ -2010,8 +1983,8 @@ module Waterheater
       new_heater.setUseSideDesignFlowRate(UnitConversions.convert(act_vol, 'gal', 'm^3') / 60.1)
       new_heater.setSourceSideDesignFlowRate(0)
       new_heater.setSourceSideFlowControlMode('')
-      new_heater.setSourceSideInletHeight(0)
-      new_heater.setSourceSideOutletHeight(0)
+      new_heater.setSourceSideInletHeight((1.0 - (1 - 0.5) / 15) * h_tank) # in the 1st node of a 15-node tank (counting from top)
+      new_heater.setSourceSideOutletHeight((1.0 - (15 - 0.5) / 15) * h_tank) # in the 15th node of a 15-node tank (counting from top)
       new_heater.setSkinLossFractiontoZone(1.0 / unit_multiplier) # Tank losses are multiplied by E+ zone multiplier, so need to compensate here
       new_heater.setOffCycleFlueLossFractiontoZone(1.0 / unit_multiplier)
       set_stratified_tank_ua(new_heater, u, unit_multiplier)
@@ -2019,7 +1992,6 @@ module Waterheater
       new_heater = OpenStudio::Model::WaterHeaterMixed.new(model)
       new_heater.setTankVolume(UnitConversions.convert(act_vol, 'gal', 'm^3'))
       new_heater.setHeaterThermalEfficiency(eta_c) unless eta_c.nil?
-      configure_mixed_tank_setpoint_schedule(new_heater, schedules_file, t_set_c, model, runner, unavailable_periods)
       new_heater.setMaximumTemperatureLimit(99.0)
       if [HPXML::WaterHeaterTypeTankless, HPXML::WaterHeaterTypeCombiTankless].include? tank_type
         new_heater.setHeaterControlType('Modulate')
@@ -2059,6 +2031,8 @@ module Waterheater
       new_heater.setOffCycleLossCoefficienttoAmbientTemperature(ua_w_k)
     end
 
+    assign_water_heater_setpoint(runner, model, new_heater, schedules_file, t_set_c, unavailable_periods)
+
     if not water_heating_system.nil?
       new_heater.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
     end
@@ -2086,7 +2060,7 @@ module Waterheater
   # @param loc_space [OpenStudio::Model::Space] The space where the water heater is located
   # @param loc_schedule [OpenStudio::Model::ScheduleConstant] The temperature schedule for where the water heater is located, if not in a space
   # @param wh_obj [TODO] TODO
-  # @return [TODO] TODO
+  # @return [nil]
   def self.set_wh_ambient(loc_space, loc_schedule, wh_obj)
     if wh_obj.ambientTemperatureSchedule.is_initialized
       wh_obj.ambientTemperatureSchedule.get.remove
@@ -2103,54 +2077,35 @@ module Waterheater
 
   # TODO
   #
-  # @param new_heater [TODO] TODO
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param water_heater [TODO] TODO
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param t_set_c [TODO] TODO
-  # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @return [TODO] TODO
-  def self.configure_mixed_tank_setpoint_schedule(new_heater, schedules_file, t_set_c, model, runner, unavailable_periods)
-    new_schedule = nil
+  # @return [nil]
+  def self.assign_water_heater_setpoint(runner, model, water_heater, schedules_file, t_set_c, unavailable_periods)
+    setpoint_sch = nil
     if not schedules_file.nil?
-      new_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
+      setpoint_sch = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
     end
-    if new_schedule.nil? # constant
-      new_schedule = ScheduleConstant.new(model, Constants::ObjectTypeWaterHeaterSetpoint, t_set_c, EPlus::ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
-      new_schedule = new_schedule.schedule
+    if setpoint_sch.nil? # constant
+      setpoint_sch = ScheduleConstant.new(model, Constants::ObjectTypeWaterHeaterSetpoint, t_set_c, EPlus::ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
+      setpoint_sch = setpoint_sch.schedule
     else
       runner.registerWarning("Both '#{SchedulesFile::Columns[:WaterHeaterSetpoint].name}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
     end
-    if new_heater.setpointTemperatureSchedule.is_initialized
-      new_heater.setpointTemperatureSchedule.get.remove
+    if water_heater.is_a? OpenStudio::Model::WaterHeaterStratified
+      water_heater.heater1SetpointTemperatureSchedule.remove
+      water_heater.heater2SetpointTemperatureSchedule.remove
+      water_heater.setHeater1SetpointTemperatureSchedule(setpoint_sch)
+      water_heater.setHeater2SetpointTemperatureSchedule(setpoint_sch)
+    elsif water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
+      if water_heater.setpointTemperatureSchedule.is_initialized
+        water_heater.setpointTemperatureSchedule.get.remove
+      end
+      water_heater.setSetpointTemperatureSchedule(setpoint_sch)
     end
-    new_heater.setSetpointTemperatureSchedule(new_schedule)
-  end
-
-  # TODO
-  #
-  # @param new_heater [TODO] TODO
-  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param t_set_c [TODO] TODO
-  # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
-  # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @return [TODO] TODO
-  def self.configure_stratified_tank_setpoint_schedules(new_heater, schedules_file, t_set_c, model, runner, unavailable_periods)
-    new_schedule = nil
-    if not schedules_file.nil?
-      new_schedule = schedules_file.create_schedule_file(model, col_name: SchedulesFile::Columns[:WaterHeaterSetpoint].name)
-    end
-    if new_schedule.nil? # constant
-      new_schedule = ScheduleConstant.new(model, Constants::ObjectTypeWaterHeaterSetpoint, t_set_c, EPlus::ScheduleTypeLimitsTemperature, unavailable_periods: unavailable_periods)
-      new_schedule = new_schedule.schedule
-    else
-      runner.registerWarning("Both '#{SchedulesFile::Columns[:WaterHeaterSetpoint].name}' schedule file and setpoint temperature provided; the latter will be ignored.") if !t_set_c.nil?
-    end
-    new_heater.heater1SetpointTemperatureSchedule.remove
-    new_heater.heater2SetpointTemperatureSchedule.remove
-    new_heater.setHeater1SetpointTemperatureSchedule(new_schedule)
-    new_heater.setHeater2SetpointTemperatureSchedule(new_schedule)
   end
 
   # TODO

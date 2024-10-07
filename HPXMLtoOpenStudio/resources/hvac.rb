@@ -940,7 +940,8 @@ module HVAC
     supply_setpoint = Model.add_schedule_constant(
       model,
       name: "#{obj_name} hydronic heat supply setpoint",
-      value: UnitConversions.convert(design_temp, 'F', 'C')
+      value: UnitConversions.convert(design_temp, 'F', 'C'),
+      limits: EPlus::ScheduleTypeLimitsTemperature
     )
 
     setpoint_manager = OpenStudio::Model::SetpointManagerScheduled.new(model, supply_setpoint)
@@ -2570,9 +2571,9 @@ module HVAC
     cycle_fan_sch = Model.add_schedule_constant(
       model,
       name: "#{obj_name} auto fan schedule",
-      value: 0
-    ) # 0 denotes that fan cycles on and off to meet the load (i.e., AUTO fan) as opposed to continuous operation
-    Schedule.set_schedule_type_limits(model, cycle_fan_sch, EPlus::ScheduleTypeLimitsOnOff)
+      value: 0, # 0 denotes that fan cycles on and off to meet the load (i.e., AUTO fan) as opposed to continuous operation
+      limits: EPlus::ScheduleTypeLimitsOnOff
+    )
 
     air_loop_unitary = OpenStudio::Model::AirLoopHVACUnitarySystem.new(model)
     air_loop_unitary.setName(obj_name + ' unitary system')
@@ -4603,10 +4604,8 @@ module HVAC
       s = ScheduleConstant.new(model, sch_name, values[0], EPlus::ScheduleTypeLimitsFraction, unavailable_periods: unavailable_periods)
       s = s.schedule
     else
-      s = Schedule.create_ruleset_from_daily_season(model, values)
-      s.setName(sch_name)
-      Schedule.set_unavailable_periods(s, sch_name, unavailable_periods, model.getYearDescription.assumedYear)
-      Schedule.set_schedule_type_limits(model, s, EPlus::ScheduleTypeLimitsFraction)
+      s = Schedule.create_ruleset_from_daily_season(model, sch_name, values)
+      Schedule.set_unavailable_periods(model, s, sch_name, unavailable_periods)
     end
 
     return s
