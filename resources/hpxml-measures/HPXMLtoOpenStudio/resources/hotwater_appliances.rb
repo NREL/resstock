@@ -407,9 +407,9 @@ module HotWaterAndAppliances
       mw_temp_schedule = Model.add_schedule_constant(
         model,
         name: 'mixed water temperature schedule',
-        value: UnitConversions.convert(t_mix, 'F', 'C')
+        value: UnitConversions.convert(t_mix, 'F', 'C'),
+        limits: EPlus::ScheduleTypeLimitsTemperature
       )
-      Schedule.set_schedule_type_limits(model, mw_temp_schedule, EPlus::ScheduleTypeLimitsTemperature)
 
       # Create schedule
       fixtures_schedule = nil

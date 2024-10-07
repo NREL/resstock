@@ -542,12 +542,149 @@ module Model
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param name [String] Name for the OpenStudio object
   # @param value [Double] Constant value for the year
+  # @param limits [String] Data type for the values contained in the schedule (EPlus::ScheduleTypeXXX)
   # @return [OpenStudio::Model::ScheduleConstant] The model object
-  def self.add_schedule_constant(model, name:, value:)
+  def self.add_schedule_constant(model, name:, value:, limits: nil)
     sch = OpenStudio::Model::ScheduleConstant.new(model)
     sch.setName(name)
     sch.setValue(value) unless value.nil? # EMS-actuated if nil
+    add_schedule_type_limits(model, schedule: sch, limits: limits)
     return sch
+  end
+
+  # Adds a ScheduleRuleset object to the OpenStudio model.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param name [String] Name for the OpenStudio object
+  # @param limits [String] Data type for the values contained in the schedule (EPlus::ScheduleTypeXXX)
+  # @return [OpenStudio::Model::ScheduleRuleset] The model object
+  def self.add_schedule_ruleset(model, name:, limits: nil)
+    sch = OpenStudio::Model::ScheduleRuleset.new(model)
+    sch.setName(name)
+    sch.defaultDaySchedule.setName("#{name} default day")
+    add_schedule_type_limits(model, schedule: sch, limits: limits)
+    return sch
+  end
+
+  # Adds a ScheduleRule object to the OpenStudio model for a given ruleset.
+  #
+  # @param schedule [OpenStudio::Model::ScheduleRuleset] The ruleset to which the rule applies
+  # @param start_date [OpenStudio::Date] Start date
+  # @param end_date [OpenStudio::Date] End data
+  # @param apply_to_days [Array<Integer>] Values for Sun, Mon, ..., Sat, where 1 means the rule applies
+  # @param hourly_values [Array<Double>] 24 hourly values
+  # @return [OpenStudio::Model::ScheduleRule] The model object
+  def self.add_schedule_ruleset_rule(schedule, start_date:, end_date:, apply_to_days: [1, 1, 1, 1, 1, 1, 1], hourly_values:)
+    rule = OpenStudio::Model::ScheduleRule.new(schedule)
+
+    if (not apply_to_days.is_a? Array) || (apply_to_days.size != 7)
+      fail 'Unexpected apply_to_days.'
+    end
+
+    # Allow for either 0-based or 1-based array for now
+    # FUTURE: Restrict to 0-based
+    if (not hourly_values.is_a? Array) || (hourly_values.size != 24 && hourly_values.size != 25)
+      fail 'Unexpected hourly_values.'
+    end
+
+    if hourly_values.size == 24
+      hourly_values = [nil] + hourly_values
+    end
+
+    if apply_to_days == [1, 1, 1, 1, 1, 1, 1]
+      rule.setName("#{schedule.name} allday rule")
+    elsif apply_to_days == [0, 1, 1, 1, 1, 1, 0]
+      rule.setName("#{schedule.name} weekday rule")
+    elsif apply_to_days == [1, 0, 0, 0, 0, 0, 1]
+      rule.setName("#{schedule.name} weekend rule")
+    else
+      rule.setName("#{schedule.name} rule")
+    end
+    rule.setStartDate(start_date)
+    rule.setEndDate(end_date)
+    rule.setApplySunday(apply_to_days[0])
+    rule.setApplyMonday(apply_to_days[1])
+    rule.setApplyTuesday(apply_to_days[2])
+    rule.setApplyWednesday(apply_to_days[3])
+    rule.setApplyThursday(apply_to_days[4])
+    rule.setApplyFriday(apply_to_days[5])
+    rule.setApplySaturday(apply_to_days[6])
+
+    day_sch = rule.daySchedule
+    day_sch.setName("#{schedule.name} day")
+
+    previous_value = hourly_values[1]
+    for h in 1..24
+      next if (h != 24) && (hourly_values[h + 1] == previous_value)
+
+      day_sch.addValue(OpenStudio::Time.new(0, h, 0, 0), previous_value)
+      previous_value = hourly_values[h + 1]
+    end
+
+    return rule
+  end
+
+  # Adds a ScheduleFile object to the OpenStudio model.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param name [String] Name for the OpenStudio object
+  # @param file_path [String] Full path to the CSV schedule file
+  # @param col_num [Integer] The column number with the desired schedule values; first column is 1
+  # @param rows_to_skip [Integer] The number of header rows to skip
+  # @param num_hours [Integer] Number of hours of data, should be 8760 of 8784
+  # @param mins_per_item [Integer] Number of minutes associated with each line of the file
+  # @param limits [String] Data type for the values contained in the schedule (EPlus::ScheduleTypeXXX)
+  # @return [OpenStudio::Model::ScheduleFile] The model object
+  def self.add_schedule_file(model, name:, file_path:, col_num:, rows_to_skip:, num_hours:, mins_per_item:, limits: nil)
+    file_dir = File.dirname(file_path)
+    if not model.workflowJSON.filePaths.map(&:to_s).include?(file_dir)
+      model.workflowJSON.addFilePath(file_dir)
+    end
+
+    sch = OpenStudio::Model::ScheduleFile.new(model, File.basename(file_path))
+    sch.setName(name)
+    sch.setColumnNumber(col_num)
+    sch.setRowstoSkipatTop(rows_to_skip)
+    sch.setNumberofHoursofData(num_hours)
+    sch.setMinutesperItem(mins_per_item)
+    sch.setTranslateFileWithRelativePath(true)
+    add_schedule_type_limits(model, schedule: sch, limits: limits)
+    return sch
+  end
+
+  # Adds a OpenStudio::Model::ScheduleTypeLimits object to the OpenStuio model (unless
+  # one has already been added) and assigns the schedule to it.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param schedule [OpenStudio::Model::Schedule] The schedule of interest
+  # @param limits [String] Data type for the values contained in the schedule (EPlus::ScheduleTypeXXX)
+  # @return [OpenStudio::Model::ScheduleTypeLimits] The model object
+  def self.add_schedule_type_limits(model, schedule:, limits:)
+    return if limits.nil?
+
+    stl = model.getScheduleTypeLimitss.find { |stl| stl.name.to_s == limits }
+
+    if stl.nil?
+      stl = OpenStudio::Model::ScheduleTypeLimits.new(model)
+      stl.setName(limits)
+      if limits == EPlus::ScheduleTypeLimitsFraction
+        stl.setLowerLimitValue(0)
+        stl.setUpperLimitValue(1)
+        stl.setNumericType('Continuous')
+      elsif limits == EPlus::ScheduleTypeLimitsOnOff
+        stl.setLowerLimitValue(0)
+        stl.setUpperLimitValue(1)
+        stl.setNumericType('Discrete')
+      elsif limits == EPlus::ScheduleTypeLimitsTemperature
+        stl.setUnitType('Temperature')
+      else
+        fail "Unexpected schedule type limits: #{limits}"
+      end
+    end
+
+    schedule.setScheduleTypeLimits(stl)
+
+    return stl
   end
 
   # Adds an EnergyManagementSystemSensor to the OpenStudio model.

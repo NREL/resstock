@@ -635,27 +635,32 @@ module Airflow
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [TODO] TODO
   def self.create_nv_and_whf_avail_sch(model, obj_name, num_days_per_week, unavailable_periods)
-    avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
     sch_name = "#{obj_name} schedule"
-    avail_sch.setName(sch_name)
-    avail_sch.defaultDaySchedule.setName("#{sch_name} default day")
-    Schedule.set_schedule_type_limits(model, avail_sch, EPlus::ScheduleTypeLimitsOnOff)
-    on_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
-    on_rule.setName("#{sch_name} rule")
-    on_rule_day = on_rule.daySchedule
-    on_rule_day.setName("#{sch_name} avail day")
-    on_rule_day.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
-    method_array = ['setApplyMonday', 'setApplyWednesday', 'setApplyFriday', 'setApplySaturday', 'setApplyTuesday', 'setApplyThursday', 'setApplySunday']
-    for i in 1..7 do
-      if num_days_per_week >= i
-        on_rule.public_send(method_array[i - 1], true)
-      end
-    end
-    on_rule.setStartDate(OpenStudio::Date::fromDayOfYear(1))
-    on_rule.setEndDate(OpenStudio::Date::fromDayOfYear(365))
+    avail_sch = Model.add_schedule_ruleset(
+      model,
+      name: sch_name,
+      limits: EPlus::ScheduleTypeLimitsOnOff
+    )
 
-    year = model.getYearDescription.assumedYear
-    Schedule.set_unavailable_periods(avail_sch, sch_name, unavailable_periods, year)
+    # Apply to days in this order: Mon, Wed, Fri, Sat, Tues, Thurs, Sun
+    apply_to_days = [0] * 7
+    apply_to_days[0] = 1 if num_days_per_week >= 7
+    apply_to_days[1] = 1 if num_days_per_week >= 1
+    apply_to_days[2] = 1 if num_days_per_week >= 5
+    apply_to_days[3] = 1 if num_days_per_week >= 2
+    apply_to_days[4] = 1 if num_days_per_week >= 6
+    apply_to_days[5] = 1 if num_days_per_week >= 3
+    apply_to_days[6] = 1 if num_days_per_week >= 4
+
+    Model.add_schedule_ruleset_rule(
+      avail_sch,
+      start_date: OpenStudio::Date::fromDayOfYear(1),
+      end_date: OpenStudio::Date::fromDayOfYear(365),
+      apply_to_days: apply_to_days,
+      hourly_values: [1] * 24
+    )
+
+    Schedule.set_unavailable_periods(model, avail_sch, sch_name, unavailable_periods)
     return avail_sch
   end
 
