@@ -44,6 +44,15 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Install Python 3.8 and pytest
+        run: |
+          sudo apt install -y python3.8 python3-pip
+          python3.8 -m pip install pytest
+
+      - name: Run Python unit tests
+        run: |
+          python3.8 -m pytest -v
+
       - name: Install gems
         run: |
           rm -f Gemfile.lock && bundle install
