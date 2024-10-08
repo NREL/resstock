@@ -188,3 +188,11 @@ class Testsetpoint:
         print('Setpoint is greater than max setpoint')
         setpoint = self.hvac_setpoints._clip_setpoints(inputs, 90, setpoint_type=setpoint_type)
         assert setpoint == new_args['cooling_max']
+
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1:
+        pytest.main([__file__] + sys.argv[1:])
+    else:
+        pytest.main()

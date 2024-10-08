@@ -5,6 +5,7 @@ from pathlib import Path
 import openstudio
 import os
 import sys
+import pytest
 os.environ['PYTEST_RUNNING'] = 'true'
 # update python path to include parent folder
 CURRENT_DIR_PATH = Path(__file__).parent.absolute()
@@ -131,3 +132,10 @@ class TestLoadFlexibility:
 
     #     # assert that it failed
     #     assert result.value().valueName() == "Success"
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1:
+        pytest.main([__file__] + sys.argv[1:])
+    else:
+        pytest.main()
