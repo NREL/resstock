@@ -11,39 +11,6 @@ Passes in all arguments from the options lookup, processes them, and then regist
 ## Arguments
 
 
-**Schedules: Vacancy Periods**
-
-Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.
-
-- **Name:** ``schedules_vacancy_periods``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**Schedules: Power Outage Periods**
-
-Specifies the power outage periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.
-
-- **Name:** ``schedules_power_outage_periods``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**Schedules: Power Outage Periods Window Natural Ventilation Availability**
-
-The availability of the natural ventilation schedule during the power outage periods. Valid choices are 'regular schedule', 'always available', 'always unavailable'. If multiple periods, use a comma-separated list.
-
-- **Name:** ``schedules_power_outage_periods_window_natvent_availability``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
 **Simulation Control: Daylight Saving Enabled**
 
 Whether to use daylight saving. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-building-site'>HPXML Building Site</a>) is used.
@@ -157,7 +124,7 @@ State code of the home address. If not provided, the OS-HPXML default (see <a hr
 
 **Site: Zip Code**
 
-Zip code of the home address.
+Zip code of the home address. Either this or the Weather Station: EnergyPlus Weather (EPW) Filepath input below must be provided.
 
 - **Name:** ``site_zip_code``
 - **Type:** ``String``
@@ -212,12 +179,12 @@ Longitude of the home address. Must be between -180 and 180. Use negative values
 
 **Weather Station: EnergyPlus Weather (EPW) Filepath**
 
-Path of the EPW file.
+Path of the EPW file. Either this or the Site: Zip Code input above must be provided.
 
 - **Name:** ``weather_station_epw_filepath``
 - **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -327,6 +294,17 @@ Average distance from the floor to the ceiling.
 - **Units:** ``ft``
 
 - **Required:** ``true``
+
+<br/>
+
+**Geometry: Unit Height Above Grade**
+
+Describes the above-grade height of apartment units on upper floors or homes above ambient or belly-and-wing foundations. It is defined as the height of the lowest conditioned floor above grade and is used to calculate the wind speed for the infiltration model. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-building-construction'>HPXML Building Construction</a>) is used.
+
+- **Name:** ``geometry_unit_height_above_grade``
+- **Type:** ``String``
+
+- **Required:** ``false``
 
 <br/>
 
@@ -538,7 +516,7 @@ The distance between the unit and the neighboring building to the right (not inc
 
 **Neighbor: Front Height**
 
-The height of the neighboring building to the front. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site'>HPXML Site</a>) is used.
+The height of the neighboring building to the front. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings'>HPXML Neighbor Building</a>) is used.
 
 - **Name:** ``neighbor_front_height``
 - **Type:** ``String``
@@ -549,7 +527,7 @@ The height of the neighboring building to the front. If not provided, the OS-HPX
 
 **Neighbor: Back Height**
 
-The height of the neighboring building to the back. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site'>HPXML Site</a>) is used.
+The height of the neighboring building to the back. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings'>HPXML Neighbor Building</a>) is used.
 
 - **Name:** ``neighbor_back_height``
 - **Type:** ``String``
@@ -560,7 +538,7 @@ The height of the neighboring building to the back. If not provided, the OS-HPXM
 
 **Neighbor: Left Height**
 
-The height of the neighboring building to the left. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site'>HPXML Site</a>) is used.
+The height of the neighboring building to the left. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings'>HPXML Neighbor Building</a>) is used.
 
 - **Name:** ``neighbor_left_height``
 - **Type:** ``String``
@@ -571,7 +549,7 @@ The height of the neighboring building to the left. If not provided, the OS-HPXM
 
 **Neighbor: Right Height**
 
-The height of the neighboring building to the right. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site'>HPXML Site</a>) is used.
+The height of the neighboring building to the right. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings'>HPXML Neighbor Building</a>) is used.
 
 - **Name:** ``neighbor_right_height``
 - **Type:** ``String``
@@ -736,6 +714,39 @@ Depth from grade to bottom of vertical slab perimeter insulation. Applies to sla
 - **Units:** ``ft``
 
 - **Required:** ``true``
+
+<br/>
+
+**Slab: Exterior Horizontal Insulation Nominal R-value**
+
+Nominal R-value of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+
+- **Name:** ``slab_exterior_horizontal_insulation_r``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Slab: Exterior Horizontal Insulation Width**
+
+Width of the slab exterior horizontal insulation measured from the exterior surface of the vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+
+- **Name:** ``slab_exterior_horizontal_insulation_width``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Slab: Exterior Horizontal Insulation Depth Below Grade**
+
+Depth of the slab exterior horizontal insulation measured from the top surface of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
+
+- **Name:** ``slab_exterior_horizontal_insulation_depth_below_grade``
+- **Type:** ``String``
+
+- **Required:** ``false``
 
 <br/>
 
@@ -930,7 +941,7 @@ Assembly R-value of the walls.
 
 **Windows: Front Window-to-Wall Ratio**
 
-The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.
+The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead. If the front wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_front_wwr``
 - **Type:** ``Double``
@@ -943,7 +954,7 @@ The ratio of window area to wall area for the unit's front facade. Enter 0 if sp
 
 **Windows: Back Window-to-Wall Ratio**
 
-The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.
+The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead. If the back wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_back_wwr``
 - **Type:** ``Double``
@@ -956,7 +967,7 @@ The ratio of window area to wall area for the unit's back facade. Enter 0 if spe
 
 **Windows: Left Window-to-Wall Ratio**
 
-The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.
+The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead. If the left wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_left_wwr``
 - **Type:** ``Double``
@@ -969,7 +980,7 @@ The ratio of window area to wall area for the unit's left facade (when viewed fr
 
 **Windows: Right Window-to-Wall Ratio**
 
-The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.
+The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead. If the right wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_right_wwr``
 - **Type:** ``Double``
@@ -982,7 +993,7 @@ The ratio of window area to wall area for the unit's right facade (when viewed f
 
 **Windows: Front Window Area**
 
-The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.
+The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead. If the front wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_front``
 - **Type:** ``Double``
@@ -995,7 +1006,7 @@ The amount of window area on the unit's front facade. Enter 0 if specifying Fron
 
 **Windows: Back Window Area**
 
-The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.
+The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead. If the back wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_back``
 - **Type:** ``Double``
@@ -1008,7 +1019,7 @@ The amount of window area on the unit's back facade. Enter 0 if specifying Back 
 
 **Windows: Left Window Area**
 
-The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead.
+The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead. If the left wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_left``
 - **Type:** ``Double``
@@ -1021,7 +1032,7 @@ The amount of window area on the unit's left facade (when viewed from the front)
 
 **Windows: Right Window Area**
 
-The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead.
+The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead. If the right wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_right``
 - **Type:** ``Double``
@@ -1091,9 +1102,22 @@ Full-assembly NFRC solar heat gain coefficient.
 
 <br/>
 
-**Windows: Winter Interior Shading**
+**Windows: Interior Shading Type**
 
-Interior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Type of window interior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'>HPXML Interior Shading</a>) is used.
+
+- **Name:** ``window_interior_shading_type``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `auto`, `light curtains`, `light shades`, `light blinds`, `medium curtains`, `medium shades`, `medium blinds`, `dark curtains`, `dark shades`, `dark blinds`, `none`
+
+<br/>
+
+**Windows: Winter Interior Shading Coefficient**
+
+Interior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'>HPXML Interior Shading</a>) is used.
 
 - **Name:** ``window_interior_shading_winter``
 - **Type:** ``String``
@@ -1102,9 +1126,9 @@ Interior shading coefficient for the winter season. 1.0 indicates no reduction i
 
 <br/>
 
-**Windows: Summer Interior Shading**
+**Windows: Summer Interior Shading Coefficient**
 
-Interior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Interior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'>HPXML Interior Shading</a>) is used.
 
 - **Name:** ``window_interior_shading_summer``
 - **Type:** ``String``
@@ -1113,9 +1137,22 @@ Interior shading coefficient for the summer season. 1.0 indicates no reduction i
 
 <br/>
 
-**Windows: Winter Exterior Shading**
+**Windows: Exterior Shading Type**
 
-Exterior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Type of window exterior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'>HPXML Exterior Shading</a>) is used.
+
+- **Name:** ``window_exterior_shading_type``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `auto`, `solar film`, `solar screens`, `none`
+
+<br/>
+
+**Windows: Winter Exterior Shading Coefficient**
+
+Exterior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'>HPXML Exterior Shading</a>) is used.
 
 - **Name:** ``window_exterior_shading_winter``
 - **Type:** ``String``
@@ -1124,9 +1161,9 @@ Exterior shading coefficient for the winter season. 1.0 indicates no reduction i
 
 <br/>
 
-**Windows: Summer Exterior Shading**
+**Windows: Summer Exterior Shading Coefficient**
 
-Exterior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Exterior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'>HPXML Exterior Shading</a>) is used.
 
 - **Name:** ``window_exterior_shading_summer``
 - **Type:** ``String``
@@ -1137,12 +1174,25 @@ Exterior shading coefficient for the summer season. 1.0 indicates no reduction i
 
 **Windows: Shading Summer Season**
 
-Enter a date like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+Enter a date range like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
 
 - **Name:** ``window_shading_summer_season``
 - **Type:** ``String``
 
 - **Required:** ``false``
+
+<br/>
+
+**Windows: Insect Screens**
+
+The type of insect screens, if present. If not provided, assumes there are no insect screens.
+
+- **Name:** ``window_insect_screens``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `auto`, `none`, `exterior`, `interior`
 
 <br/>
 
@@ -2350,7 +2400,7 @@ Pipe diameter of the geothermal loop. Only applies to ground-to-air heat pump ty
 
 **Heating System 2: Type**
 
-The type of the second heating system.
+The type of the second heating system. If a heat pump is specified and the backup type is 'separate', this heating system represents 'separate' backup heating. For ducted heat pumps where the backup heating system is a 'Furnace', the backup would typically be characterized as 'integrated' in that the furnace and heat pump share the same distribution system and blower fan; a 'Furnace' as 'separate' backup to a ducted heat pump is not supported.
 
 - **Name:** ``heating_system_2_type``
 - **Type:** ``Choice``
@@ -2435,7 +2485,7 @@ The heat load served fraction of the second heating system. Ignored if this heat
 
 **HVAC Control: Heating Season Period**
 
-Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control'>HPXML HVAC Control</a>) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
+Enter a date range like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control'>HPXML HVAC Control</a>) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
 
 - **Name:** ``hvac_control_heating_season_period``
 - **Type:** ``String``
@@ -2446,7 +2496,7 @@ Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see <
 
 **HVAC Control: Cooling Season Period**
 
-Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control'>HPXML HVAC Control</a>) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
+Enter a date range like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control'>HPXML HVAC Control</a>) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.
 
 - **Name:** ``hvac_control_cooling_season_period``
 - **Type:** ``String``
@@ -3980,7 +4030,7 @@ The daily energy consumption for holiday lighting (exterior). If not provided, t
 
 **Holiday Lighting: Period**
 
-Enter a date like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-lighting'>HPXML Lighting</a>) is used.
+Enter a date range like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-lighting'>HPXML Lighting</a>) is used.
 
 - **Name:** ``holiday_lighting_period``
 - **Type:** ``String``
@@ -5112,6 +5162,72 @@ Multiplier on the permanent spa heater energy usage that can reflect, e.g., high
 
 - **Name:** ``permanent_spa_heater_usage_multiplier``
 - **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Building Unit ID**
+
+The building unit number (between 1 and the number of samples).
+
+- **Name:** ``building_id``
+- **Type:** ``Integer``
+
+- **Required:** ``false``
+
+<br/>
+
+**Schedules: Vacancy Periods**
+
+Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.
+
+- **Name:** ``schedules_vacancy_periods``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Schedules: Power Outage Periods**
+
+Specifies the power outage periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.
+
+- **Name:** ``schedules_power_outage_periods``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Schedules: Power Outage Periods Window Natural Ventilation Availability**
+
+The availability of the natural ventilation schedule during the power outage periods. Valid choices are 'regular schedule', 'always available', 'always unavailable'. If multiple periods, use a comma-separated list.
+
+- **Name:** ``schedules_power_outage_periods_window_natvent_availability``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Schedules: Space Heating Unavailability**
+
+Number of days space heating equipment is unavailable.
+
+- **Name:** ``schedules_space_heating_unavailable_days``
+- **Type:** ``Integer``
+
+- **Required:** ``false``
+
+<br/>
+
+**Schedules: Space Cooling Unavailability**
+
+Number of days space cooling equipment is unavailable.
+
+- **Name:** ``schedules_space_cooling_unavailable_days``
+- **Type:** ``Integer``
 
 - **Required:** ``false``
 

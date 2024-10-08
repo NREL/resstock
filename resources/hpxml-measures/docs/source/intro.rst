@@ -10,7 +10,7 @@ Capabilities
 
 OpenStudio-HPXML capabilities include:
 
-- Modeling individual dwelling units or whole multifamily buildings; see :ref:`hpxmlbuilding` for more information
+- Modeling individual dwelling units or whole multifamily buildings; see :ref:`hpxml_building` for more information
 - Modeling a wide range of building technologies
 - HVAC design load calculations and equipment autosizing
 - Occupancy schedules (smooth or stochastic)
@@ -58,7 +58,7 @@ Geometry
 HPXML files currently do not include detailed 3D geometry (e.g., surface vertices or positions of surfaces relative to each other).
 Rather, surfaces are defined by area and orientation.
 However, HPXML can still handle the most important aspect of geometry -- shading of solar radiation.
-Geometry inputs that affect solar shading include :ref:`overhangs` and :ref:`neighbor_buildings`.
+Geometry inputs that affect solar shading include :ref:`window_overhangs` and :ref:`neighbor_buildings`.
 
 For example, the image below shows the result of translating a single-family detached HPXML file to an OpenStudio model.
 

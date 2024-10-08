@@ -67,6 +67,7 @@ def create_hpxmls
         measures['BuildResidentialHPXML'][0]['schedules_filepaths'] = "../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic#{suffix}.csv"
         measures['BuildResidentialHPXML'][0]['geometry_foundation_type'] = (i <= 2 ? 'UnconditionedBasement' : 'AboveApartment')
         measures['BuildResidentialHPXML'][0]['geometry_attic_type'] = (i >= 5 ? 'VentedAttic' : 'BelowApartment')
+        measures['BuildResidentialHPXML'][0]['geometry_unit_height_above_grade'] = { 1 => 0.0, 2 => 0.0, 3 => 10.0, 4 => 10.0, 5 => 20.0, 6 => 20.0 }[i]
       end
 
       # Re-generate stochastic schedule CSV?
@@ -284,6 +285,8 @@ def apply_hpxml_modification_hers_hot_water(hpxml)
 end
 
 def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
+  default_schedules_csv_data = HPXMLDefaults.get_default_schedules_csv_data()
+
   # Set detailed HPXML values for sample files
   hpxml_file = File.basename(hpxml_path)
   hpxml_bldg = hpxml.buildings[0]
@@ -505,6 +508,9 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
           if bg_surface.is_a? HPXML::Slab
             new_bg_surface.perimeter_insulation_id = "#{bg_surface.perimeter_insulation_id}#{bg_space.id}"
             new_bg_surface.under_slab_insulation_id = "#{bg_surface.under_slab_insulation_id}#{bg_space.id}"
+            if not new_bg_surface.exterior_horizontal_insulation_id.nil?
+              new_bg_surface.exterior_horizontal_insulation_id = "#{bg_surface.exterior_horizontal_insulation_id}#{bg_space.id}"
+            end
           else
             new_bg_surface.insulation_id = "#{bg_space.id}#{bg_surface.insulation_id}"
           end
@@ -906,7 +912,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
       hpxml_bldg.windows[3].ufactor = nil
       hpxml_bldg.windows[3].shgc = nil
       hpxml_bldg.windows[3].glass_layers = HPXML::WindowLayersGlassBlock
-    elsif ['base-enclosure-windows-shading.xml'].include? hpxml_file
+    elsif ['base-enclosure-windows-shading-factors.xml'].include? hpxml_file
       hpxml_bldg.windows[1].exterior_shading_factor_summer = 0.5
       hpxml_bldg.windows[1].exterior_shading_factor_winter = 0.5
       hpxml_bldg.windows[1].interior_shading_factor_summer = 0.5
@@ -919,6 +925,44 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
       hpxml_bldg.windows[3].exterior_shading_factor_winter = 1.0
       hpxml_bldg.windows[3].interior_shading_factor_summer = 0.0
       hpxml_bldg.windows[3].interior_shading_factor_winter = 1.0
+    elsif ['base-enclosure-windows-shading-types-detailed.xml'].include? hpxml_file
+      hpxml_bldg.windows.each do |window|
+        window.interior_shading_factor_summer = nil
+        window.interior_shading_factor_winter = nil
+        window.exterior_shading_factor_summer = nil
+        window.exterior_shading_factor_winter = nil
+      end
+      # Interior shading
+      hpxml_bldg.windows[0].interior_shading_type = HPXML::InteriorShadingTypeNone
+      hpxml_bldg.windows[1].interior_shading_type = HPXML::InteriorShadingTypeOther
+      hpxml_bldg.windows[2].interior_shading_type = HPXML::InteriorShadingTypeMediumCurtains
+      hpxml_bldg.windows[2].interior_shading_coverage_summer = 0.5
+      hpxml_bldg.windows[2].interior_shading_coverage_winter = 0.0
+      hpxml_bldg.windows[3].interior_shading_type = HPXML::InteriorShadingTypeLightBlinds
+      hpxml_bldg.windows[3].interior_shading_blinds_summer_closed_or_open = HPXML::BlindsClosed
+      hpxml_bldg.windows[3].interior_shading_blinds_winter_closed_or_open = HPXML::BlindsHalfOpen
+      hpxml_bldg.windows[3].interior_shading_coverage_summer = 0.5
+      hpxml_bldg.windows[3].interior_shading_coverage_winter = 1.0
+      # Exterior shading
+      hpxml_bldg.windows[0].exterior_shading_type = HPXML::ExteriorShadingTypeDeciduousTree
+      hpxml_bldg.windows[1].exterior_shading_type = HPXML::ExteriorShadingTypeSolarScreens
+      hpxml_bldg.windows[2].exterior_shading_type = HPXML::ExteriorShadingTypeExternalOverhangs
+      hpxml_bldg.windows[2].overhangs_depth = 2.0
+      hpxml_bldg.windows[2].overhangs_distance_to_top_of_window = 1.0
+      hpxml_bldg.windows[2].overhangs_distance_to_bottom_of_window = 4.0
+      hpxml_bldg.windows[3].exterior_shading_type = HPXML::ExteriorShadingTypeBuilding
+      # Insect screens
+      hpxml_bldg.windows[0].insect_screen_present = true
+      hpxml_bldg.windows[0].insect_screen_location = HPXML::LocationInterior
+      hpxml_bldg.windows[0].insect_screen_coverage_summer = 1.0
+      hpxml_bldg.windows[0].insect_screen_coverage_winter = 0.0
+      hpxml_bldg.windows[1].insect_screen_present = true
+      hpxml_bldg.windows[1].insect_screen_location = HPXML::LocationExterior
+      hpxml_bldg.windows[1].insect_screen_coverage_summer = 1.0
+      hpxml_bldg.windows[1].insect_screen_coverage_winter = 1.0
+      hpxml_bldg.windows[2].insect_screen_present = true
+      hpxml_bldg.windows[2].insect_screen_location = HPXML::LocationExterior
+      hpxml_bldg.windows[3].insect_screen_present = true
     elsif ['base-enclosure-thermal-mass.xml'].include? hpxml_file
       hpxml_bldg.partition_wall_mass.area_fraction = 0.8
       hpxml_bldg.partition_wall_mass.interior_finish_type = HPXML::InteriorFinishGypsumBoard
@@ -1421,7 +1465,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
       wall = hpxml_bldg.walls.select { |w| w.azimuth == hpxml_bldg.neighbor_buildings[0].azimuth }[0]
       wall.exterior_adjacent_to = HPXML::LocationOtherHeatedSpace
     end
-    if ['base-foundation-vented-crawlspace-above-grade.xml'].include? hpxml_file
+    if ['base-foundation-vented-crawlspace-above-grade2.xml'].include? hpxml_file
       # Convert FoundationWall to Wall to test a foundation with only Wall elements
       fwall = hpxml_bldg.foundation_walls[0]
       hpxml_bldg.walls.add(id: "Wall#{hpxml_bldg.walls.size + 1}",
@@ -2050,13 +2094,13 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
         'base-schedules-simple.xml',
         'base-schedules-simple-vacancy.xml',
         'base-schedules-simple-power-outage.xml'].include? hpxml_file
-      hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekday_fractions = Schedule.RecirculationPumpDemandControlledWeekdayFractions
-      hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekend_fractions = Schedule.RecirculationPumpDemandControlledWeekendFractions
-      hpxml_bldg.hot_water_distributions[0].recirculation_pump_monthly_multipliers = Schedule.RecirculationPumpMonthlyMultipliers
+      hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekday_fractions = default_schedules_csv_data["#{SchedulesFile::Columns[:HotWaterRecirculationPump].name}_demand_control"]['RecirculationPumpWeekdayScheduleFractions']
+      hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekend_fractions = default_schedules_csv_data["#{SchedulesFile::Columns[:HotWaterRecirculationPump].name}_demand_control"]['RecirculationPumpWeekendScheduleFractions']
+      hpxml_bldg.hot_water_distributions[0].recirculation_pump_monthly_multipliers = default_schedules_csv_data[SchedulesFile::Columns[:HotWaterRecirculationPump].name]['RecirculationPumpMonthlyScheduleMultipliers']
     elsif ['base-bldgtype-mf-unit-shared-water-heater-recirc-scheduled.xml'].include? hpxml_file
-      hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekday_fractions = Schedule.RecirculationPumpWithoutControlWeekdayFractions
-      hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekend_fractions = Schedule.RecirculationPumpWithoutControlWeekendFractions
-      hpxml_bldg.hot_water_distributions[0].recirculation_pump_monthly_multipliers = Schedule.RecirculationPumpMonthlyMultipliers
+      hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekday_fractions = default_schedules_csv_data["#{SchedulesFile::Columns[:HotWaterRecirculationPump].name}_no_control"]['RecirculationPumpWeekdayScheduleFractions']
+      hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekend_fractions = default_schedules_csv_data["#{SchedulesFile::Columns[:HotWaterRecirculationPump].name}_no_control"]['RecirculationPumpWeekendScheduleFractions']
+      hpxml_bldg.hot_water_distributions[0].recirculation_pump_monthly_multipliers = default_schedules_csv_data[SchedulesFile::Columns[:HotWaterRecirculationPump].name]['RecirculationPumpMonthlyScheduleMultipliers']
     end
 
     # -------------------- #

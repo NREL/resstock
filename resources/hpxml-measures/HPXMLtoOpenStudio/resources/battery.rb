@@ -1,18 +1,41 @@
 # frozen_string_literal: true
 
-# TODO
+# Collection of methods related to batteries.
 module Battery
-  # TODO
+  # Adds any HPXML Batteries to the OpenStudio model.
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
-  # @param pv_systems [TODO] TODO
-  # @param battery [TODO] TODO
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param unit_multiplier [Integer] Number of similar dwelling units
-  # @return [TODO] TODO
-  def self.apply(runner, model, nbeds, pv_systems, battery, schedules_file, unit_multiplier)
+  # @return [nil]
+  def self.apply(runner, model, spaces, hpxml_bldg, schedules_file)
+    hpxml_bldg.batteries.each do |battery|
+      apply_battery(runner, model, spaces, hpxml_bldg, battery, schedules_file)
+    end
+  end
+
+  # Add the HPXML Battery to the OpenStudio model.
+  #
+  # Apply a home battery to the model using OpenStudio ElectricLoadCenterStorageLiIonNMCBattery, ElectricLoadCenterDistribution, ElectricLoadCenterStorageConverter, OtherEquipment, and EMS objects.
+  # Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.
+  # The system may be shared, in which case nominal/usable capacity (kWh) and usable fraction are apportioned to the dwelling unit by total number of bedrooms served.
+  # A battery may share an ElectricLoadCenterDistribution object with PV; electric buss type and storage operation scheme are therefore changed.
+  # Round trip efficiency is (temporarily) applied as an EMS program b/c E+ input is not hooked up.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param battery [HPXML::Battery] Object that defines a single home battery
+  # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
+  # @return [nil] for unscheduled battery w/out PV; in this case battery is not modeled
+  def self.apply_battery(runner, model, spaces, hpxml_bldg, battery, schedules_file)
+    nbeds = hpxml_bldg.building_construction.number_of_bedrooms
+    unit_multiplier = hpxml_bldg.building_construction.number_of_units
+    pv_systems = hpxml_bldg.pv_systems
+
     charging_schedule = nil
     discharging_schedule = nil
     if not schedules_file.nil?
@@ -26,6 +49,8 @@ module Battery
     end
 
     obj_name = battery.id
+
+    space = Geometry.get_space_from_location(battery.location, spaces)
 
     rated_power_output = battery.rated_power_output # W
     if not battery.nominal_capacity_kwh.nil?
@@ -90,7 +115,7 @@ module Battery
     elcs = OpenStudio::Model::ElectricLoadCenterStorageLiIonNMCBattery.new(model, number_of_cells_in_series, number_of_strings_in_parallel, battery_mass, battery_surface_area)
     elcs.setName("#{obj_name} li ion")
     if not is_outside
-      elcs.setThermalZone(battery.additional_properties.space.thermalZone.get)
+      elcs.setThermalZone(space.thermalZone.get)
     end
     elcs.setRadiativeFraction(0.9 * frac_sens)
     # elcs.setLifetimeModel(battery.lifetime_model)
@@ -144,7 +169,6 @@ module Battery
     end
 
     frac_lost = 0.0
-    space = battery.additional_properties.space
     if space.nil?
       space = model.getSpaces[0]
       frac_lost = 1.0
@@ -162,7 +186,7 @@ module Battery
 
     loss_adj_object_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
     loss_adj_object = OpenStudio::Model::OtherEquipment.new(loss_adj_object_def)
-    obj_name = Constants.ObjectNameBatteryLossesAdjustment
+    obj_name = Constants::ObjectTypeBatteryLossesAdjustment
     loss_adj_object.setName(obj_name)
     loss_adj_object.setEndUseSubcategory(obj_name)
     loss_adj_object.setFuelType(EPlus.fuel_type(HPXML::FuelTypeElectricity))
@@ -173,7 +197,7 @@ module Battery
     loss_adj_object_def.setFractionLatent(0)
     loss_adj_object_def.setFractionLost(frac_lost)
     loss_adj_object.setSchedule(model.alwaysOnDiscreteSchedule)
-    loss_adj_object.additionalProperties.setFeature('ObjectType', Constants.ObjectNameBatteryLossesAdjustment)
+    loss_adj_object.additionalProperties.setFeature('ObjectType', Constants::ObjectTypeBatteryLossesAdjustment)
 
     battery_adj_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(loss_adj_object, *EPlus::EMSActuatorOtherEquipmentPower, loss_adj_object.space.get)
     battery_adj_actuator.setName('battery loss_adj_act')
@@ -195,10 +219,10 @@ module Battery
     elcs.additionalProperties.setFeature('UsableCapacity_kWh', Float(usable_capacity_kwh))
   end
 
-  # TODO
+  # Get default location, lifetime model, nominal capacity/voltage, round trip efficiency, and usable fraction for a battery.
   #
-  # @param has_garage [TODO] TODO
-  # @return [TODO] TODO
+  # @param has_garage [Boolean] whether the HPXML Building object has a garage
+  # @return [Hash] map of battery properties to default values
   def self.get_battery_default_values(has_garage = false)
     if has_garage
       location = HPXML::LocationGarage
@@ -213,33 +237,21 @@ module Battery
              usable_fraction: 0.9 } # Fraction of usable capacity to nominal capacity
   end
 
-  # TODO
+  # Get nominal capacity (amp-hours) from nominal capacity (kWh) and voltage (V).
   #
-  # @param nominal_capacity_kwh [TODO] TODO
-  # @param nominal_voltage [TODO] TODO
-  # @return [TODO] TODO
+  # @param nominal_capacity_kwh [Double] nominal (total) capacity (kWh)
+  # @param nominal_voltage [Double] nominal voltage (V)
+  # @return [Double] nominal (total) capacity (Ah)
   def self.get_Ah_from_kWh(nominal_capacity_kwh, nominal_voltage)
     return nominal_capacity_kwh * 1000.0 / nominal_voltage
   end
 
-  # TODO
+  # Get nominal capacity (kWh) from nominal capacity (amp-hours) and voltage (V).
   #
-  # @param nominal_capacity_ah [TODO] TODO
-  # @param nominal_voltage [TODO] TODO
-  # @return [TODO] TODO
+  # @param nominal_capacity_ah [Double] nominal (total) capacity (Ah)
+  # @param nominal_voltage [Double] nominal voltage (V)
+  # @return [Double] nominal (total) capacity (kWh)
   def self.get_kWh_from_Ah(nominal_capacity_ah, nominal_voltage)
     return nominal_capacity_ah * nominal_voltage / 1000.0
-  end
-
-  # TODO
-  #
-  # @param battery [TODO] TODO
-  # @return [TODO] TODO
-  def self.get_usable_capacity_kWh(battery)
-    usable_capacity_kwh = battery.usable_capacity_kwh
-    if usable_capacity_kwh.nil?
-      usable_capacity_kwh = get_kWh_from_Ah(battery.usable_capacity_ah, battery.nominal_voltage) # kWh
-    end
-    return usable_capacity_kwh
   end
 end

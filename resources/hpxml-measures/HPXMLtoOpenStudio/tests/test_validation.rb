@@ -22,12 +22,16 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
     @tmp_csv_path = File.join(@sample_files_path, 'tmp.csv')
     @tmp_output_path = File.join(@sample_files_path, 'tmp_output')
     FileUtils.mkdir_p(@tmp_output_path)
+
+    @default_schedules_csv_data = HPXMLDefaults.get_default_schedules_csv_data()
   end
 
   def teardown
     File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
     File.delete(@tmp_csv_path) if File.exist? @tmp_csv_path
     FileUtils.rm_rf(@tmp_output_path)
+    File.delete(File.join(File.dirname(__FILE__), 'results_annual.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_annual.csv')
+    File.delete(File.join(File.dirname(__FILE__), 'results_design_load_details.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_design_load_details.csv')
   end
 
   def test_validation_of_schematron_doc
@@ -37,8 +41,8 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
     _test_schema_validation(@schematron_path, schematron_schema_validator)
   end
 
+  # Test for consistent use of errors/warnings
   def test_role_attributes_in_schematron_doc
-    # Test for consistent use of errors/warnings
     puts
     puts 'Checking for correct role attributes...'
 
@@ -67,8 +71,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
     end
   end
 
+  # Test errors are correctly triggered during the XSD schema or Schematron validation
   def test_schema_schematron_error_messages
-    # Test case => Error message
+    # Test case => Error message(s)
     all_expected_errors = { 'boiler-invalid-afue' => ['Expected AnnualHeatingEfficiency[Units="AFUE"]/Value to be less than or equal to 1'],
                             'clothes-dryer-location' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
                             'clothes-washer-location' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
@@ -174,7 +179,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'invalid-id2' => ["Element 'SystemIdentifier': The attribute 'id' is required but missing."],
                             'invalid-input-parameters' => ["Element 'Transaction': [facet 'enumeration'] The value 'modify' is not an element of the set {'create', 'update'}.",
                                                            "Element 'SiteType': [facet 'enumeration'] The value 'mountain' is not an element of the set {'rural', 'suburban', 'urban'}.",
-                                                           "Element 'Year': [facet 'enumeration'] The value '2020' is not an element of the set {'2021', '2018', '2015', '2012', '2009', '2006', '2003'}.",
+                                                           "Element 'Year': [facet 'enumeration'] The value '2020' is not an element of the set {'2024', '2021', '2018', '2015', '2012', '2009', '2006', '2003'}.",
                                                            "Element 'Azimuth': [facet 'maxExclusive'] The value '365' must be less than '360'.",
                                                            "Element 'RadiantBarrierGrade': [facet 'maxInclusive'] The value '4' is greater than the maximum value allowed ('3').",
                                                            "Element 'EnergyFactor': [facet 'maxInclusive'] The value '5.1' is greater than the maximum value allowed ('5')."],
@@ -235,6 +240,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'missing-duct-location' => ['Expected 0 element(s) for xpath: FractionDuctArea | DuctSurfaceArea [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[not(DuctLocation)], id: "Ducts2"]'],
                             'missing-elements' => ['Expected 1 element(s) for xpath: NumberofConditionedFloors [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction, id: "MyBuilding"]',
                                                    'Expected 1 element(s) for xpath: ConditionedFloorArea [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction, id: "MyBuilding"]'],
+                            'missing-epw-filepath-and-zipcode' => ['Expected 1 or more element(s) for xpath: Address/ZipCode | ../BuildingDetails/ClimateandRiskZones/WeatherStation/extension/EPWFilePath'],
                             'missing-skylight-floor' => ['Expected 1 element(s) for xpath: ../../AttachedToFloor'],
                             'multifamily-reference-appliance' => ['There are references to "other housing unit" but ResidentialFacilityType is not "single-family attached" or "apartment unit".'],
                             'multifamily-reference-duct' => ['There are references to "other multifamily buffer space" but ResidentialFacilityType is not "single-family attached" or "apartment unit".'],
@@ -705,6 +711,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.building_construction.number_of_conditioned_floors = nil
         hpxml_bldg.building_construction.conditioned_floor_area = nil
+      elsif ['missing-epw-filepath-and-zipcode'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base.xml')
+        hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = nil
       elsif ['missing-skylight-floor'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-enclosure-skylights.xml')
         hpxml_bldg.skylights[0].attached_to_floor_idref = nil
@@ -782,8 +791,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
     end
   end
 
+  # Test warnings are correctly triggered during the XSD schema or Schematron validation
   def test_schema_schematron_warning_messages
-    # Test case => Warning message
+    # Test case => Warning message(s)
     all_expected_warnings = { 'battery-pv-output-power-low' => ['Max power output should typically be greater than or equal to 500 W.',
                                                                 'Max power output should typically be greater than or equal to 500 W.',
                                                                 'Rated power output should typically be greater than or equal to 1000 W.'],
@@ -856,9 +866,12 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                               'plug-load-type-tv-crt' => ["Plug load type 'TV CRT' is not currently handled, the plug load will not be modeled."],
                               'plug-load-type-tv-plasma' => ["Plug load type 'TV plasma' is not currently handled, the plug load will not be modeled."],
                               'portable-spa' => ['Portable spa is not currently handled, the portable spa will not be modeled.'],
-                              'slab-zero-exposed-perimeter' => ['Slab has zero exposed perimeter, this may indicate an input error.'],
+                              'slab-ext-horiz-insul-without-perim-insul' => ['There is ExteriorHorizontalInsulation but no PerimeterInsulation, this may indicate an input error.'],
                               'slab-large-exposed-perimeter' => ['Slab exposed perimeter is more than twice the slab area, this may indicate an input error.'],
+                              'slab-zero-exposed-perimeter' => ['Slab has zero exposed perimeter, this may indicate an input error.'],
                               'unit-multiplier' => ['NumberofUnits is greater than 1, indicating that the HPXML Building represents multiple dwelling units; simulation outputs will reflect this unit multiplier.'],
+                              'window-exterior-shading-types' => ["Exterior shading type is 'external overhangs', but overhangs are explicitly defined; exterior shading type will be ignored.",
+                                                                  "Exterior shading type is 'building', but neighbor buildings are explicitly defined; exterior shading type will be ignored."],
                               'wrong-units' => ['Thickness is greater than 12 inches; this may indicate incorrect units.',
                                                 'Thickness is less than 1 inch; this may indicate incorrect units.',
                                                 'Depth is greater than 72 feet; this may indicate incorrect units.',
@@ -1005,12 +1018,17 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['slab-zero-exposed-perimeter'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.slabs[0].exposed_perimeter = 0
+      elsif ['slab-ext-horiz-insul-without-perim-insul'].include? warning_case
+        hpxml, hpxml_bldg = _create_hpxml('base-foundation-slab-exterior-horizontal-insulation.xml')
+        hpxml_bldg.slabs[0].perimeter_insulation_r_value = 0
       elsif ['slab-large-exposed-perimeter'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.slabs[0].exposed_perimeter = hpxml_bldg.slabs[0].area * 2 + 1
       elsif ['unit-multiplier'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.building_construction.number_of_units = 5
+      elsif ['window-exterior-shading-types'].include? warning_case
+        hpxml, _hpxml_bldg = _create_hpxml('base-enclosure-windows-shading-types-detailed.xml')
       elsif ['wrong-units'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-enclosure-overhangs.xml')
         hpxml_bldg.slabs[0].thickness = 0.5
@@ -1030,8 +1048,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
     end
   end
 
+  # Test errors are correctly triggered in the HPXMLtoOpenStudio ruby code
   def test_ruby_error_messages
-    # Test case => Error message
+    # Test case => Error message(s)
     all_expected_errors = { 'battery-bad-values-max-greater-than-one' => ["Schedule value for column 'battery' must be less than or equal to 1."],
                             'battery-bad-values-min-less-than-neg-one' => ["Schedule value for column 'battery' must be greater than or equal to -1."],
                             'cfis-with-hydronic-distribution' => ["Attached HVAC distribution system 'HVACDistribution1' cannot be hydronic for ventilation fan 'VentilationFan1'."],
@@ -1068,7 +1087,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'hvac-invalid-distribution-system-type' => ["Incorrect HVAC distribution system type for HVAC type: 'Furnace'. Should be one of: ["],
                             'hvac-shared-boiler-multiple' => ['More than one shared heating system found.'],
                             'hvac-shared-chiller-multiple' => ['More than one shared cooling system found.'],
-                            'hvac-shared-chiller-negative-seer-eq' => ["Negative SEER equivalent calculated for cooling system 'CoolingSystem1', double check inputs."],
+                            'hvac-shared-chiller-negative-seer-eq' => ["Negative SEER equivalent calculated for cooling system 'CoolingSystem1', double-check inputs."],
                             'inconsistent-belly-wing-skirt-present' => ['All belly-and-wing foundations must have the same SkirtPresent.'],
                             'inconsistent-cond-zone-assignment' => ["Surface 'Floor1' is not adjacent to conditioned space but was assigned to conditioned Zone 'ConditionedZone'."],
                             'inconsistent-uncond-basement-within-infiltration-volume' => ['All unconditioned basements must have the same WithinInfiltrationVolume.'],
@@ -1678,12 +1697,16 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
     end
   end
 
+  # Test warnings are correctly triggered in the HPXMLtoOpenStudio ruby code
   def test_ruby_warning_messages
-    # Test case => Error message
+    # Test case => Error message(s)
     all_expected_warnings = { 'cfis-undersized-supplemental-fan' => ["CFIS supplemental fan 'VentilationFan2' is undersized (90.0 cfm) compared to the target hourly ventilation rate (110.0 cfm)."],
-                              'duct-lto-cfm25' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
-                              'duct-lto-cfm50' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
-                              'duct-lto-percent' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
+                              'duct-lto-cfm25-cond-space' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
+                              'duct-lto-cfm25-uncond-space' => ['Very high sum of supply + return duct leakage to the outside; double-check inputs.'],
+                              'duct-lto-cfm50-cond-space' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
+                              'duct-lto-cfm50-uncond-space' => ['Very high sum of supply + return duct leakage to the outside; double-check inputs.'],
+                              'duct-lto-percent-cond-space' => ['Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.'],
+                              'duct-lto-percent-uncond-space' => ['Very high sum of supply + return duct leakage to the outside; double-check inputs.'],
                               'floor-or-ceiling1' => ["Floor 'Floor1' has FloorOrCeiling=floor but it should be ceiling. The input will be overridden."],
                               'floor-or-ceiling2' => ["Floor 'Floor1' has FloorOrCeiling=ceiling but it should be floor. The input will be overridden."],
                               'hvac-gshp-bore-depth-autosized-high' => ['Reached a maximum of 10 boreholes; setting bore depth to the maximum (500 ft).'],
@@ -1693,7 +1716,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                               'hvac-setpoint-adjustments-daily-schedules' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
                               'multistage-backup-more-than-4-stages' => ['EnergyPlus only supports 4 stages for multi-stage electric backup coil. Combined the remaining capacities in the last stage.',
                                                                          'Calculated multi-stage backup coil capacity increment for last stage is not equal to user input, actual capacity increment is'],
-                              'manualj-sum-space-num-occupants' => ['ManualJInputs/NumberofOccupants (4) does not match sum of conditioned spaces (5).'],
+                              'manualj-sum-space-num-occupants' => ['ManualJInputs/NumberofOccupants (4.8) does not match sum of conditioned spaces (5.0).'],
                               'manualj-sum-space-internal-loads-sensible' => ['ManualJInputs/InternalLoadsSensible (1000.0) does not match sum of conditioned spaces (1200.0).'],
                               'manualj-sum-space-internal-loads-latent' => ['ManualJInputs/InternalLoadsLatent (200.0) does not match sum of conditioned spaces (100.0).'],
                               'multiple-conditioned-zone' => ['While multiple conditioned zones are specified, the EnergyPlus model will only include a single conditioned thermal zone.'],
@@ -1793,7 +1816,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml, hpxml_bldg = _create_hpxml('base-mechvent-cfis-supplemental-fan-exhaust.xml')
         suppl_fan = hpxml_bldg.ventilation_fans.find { |f| f.is_cfis_supplemental_fan }
         suppl_fan.tested_flow_rate = 90.0
-      elsif ['duct-lto-cfm25'].include? warning_case
+      elsif ['duct-lto-cfm25-cond-space'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-atticroof-conditioned.xml')
         hpxml_bldg.hvac_distributions[0].conditioned_floor_area_served = hpxml_bldg.building_construction.conditioned_floor_area
         hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.each do |dlm|
@@ -1804,7 +1827,12 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
           duct.duct_surface_area = nil
           duct.duct_location = nil
         end
-      elsif ['duct-lto-cfm50'].include? warning_case
+      elsif ['duct-lto-cfm25-uncond-space'].include? warning_case
+        hpxml, hpxml_bldg = _create_hpxml('base.xml')
+        hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.each do |dlm|
+          dlm.duct_leakage_value = 800.0
+        end
+      elsif ['duct-lto-cfm50-cond-space'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-atticroof-conditioned.xml')
         hpxml_bldg.hvac_distributions[0].conditioned_floor_area_served = hpxml_bldg.building_construction.conditioned_floor_area
         hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.each do |dlm|
@@ -1815,16 +1843,26 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
           duct.duct_surface_area = nil
           duct.duct_location = nil
         end
-      elsif ['duct-lto-percent'].include? warning_case
+      elsif ['duct-lto-cfm50-uncond-space'].include? warning_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-ducts-leakage-cfm50.xml')
+        hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.each do |dlm|
+          dlm.duct_leakage_value = 1600.0
+        end
+      elsif ['duct-lto-percent-cond-space'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-atticroof-conditioned.xml')
         hpxml_bldg.hvac_distributions[0].conditioned_floor_area_served = hpxml_bldg.building_construction.conditioned_floor_area
         hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.each do |dlm|
           dlm.duct_leakage_units = HPXML::UnitsPercent
-          dlm.duct_leakage_value = 0.2
+          dlm.duct_leakage_value = 0.035
         end
         hpxml_bldg.hvac_distributions[0].ducts.each do |duct|
           duct.duct_surface_area = nil
           duct.duct_location = nil
+        end
+      elsif ['duct-lto-percent-uncond-space'].include? warning_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-ducts-leakage-percent.xml')
+        hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.each do |dlm|
+          dlm.duct_leakage_value = 0.25
         end
       elsif ['floor-or-ceiling1'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
@@ -1850,9 +1888,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml_bldg.hvac_controls[0].weekday_heating_setpoints = '64, 64, 64, 64, 64, 64, 64, 76, 70, 66, 66, 66, 66, 66, 66, 66, 66, 68, 68, 68, 68, 68, 64, 64'
       elsif ['manualj-sum-space-num-occupants'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-zones-spaces.xml')
-        hpxml_bldg.header.manualj_num_occupants = 4
+        hpxml_bldg.header.manualj_num_occupants = 4.8
         hpxml_bldg.conditioned_spaces.each_with_index do |space, i|
-          space.manualj_num_occupants = (i == 0 ? hpxml_bldg.header.manualj_num_occupants + 1 : 0)
+          space.manualj_num_occupants = (i == 0 ? hpxml_bldg.header.manualj_num_occupants.round : 0)
         end
       elsif ['manualj-sum-space-internal-loads-sensible'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base-zones-spaces.xml')
@@ -1880,9 +1918,9 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
         hpxml_bldg.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/occupancy-non-stochastic.csv')
         hpxml_bldg.hot_water_distributions[0].system_type = HPXML::DHWDistTypeRecirc
         hpxml_bldg.hot_water_distributions[0].recirculation_control_type = HPXML::DHWRecircControlTypeNone
-        hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekday_fractions = Schedule.RecirculationPumpWithoutControlWeekdayFractions
-        hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekend_fractions = Schedule.RecirculationPumpWithoutControlWeekendFractions
-        hpxml_bldg.hot_water_distributions[0].recirculation_pump_monthly_multipliers = Schedule.RecirculationPumpMonthlyMultipliers
+        hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekday_fractions = @default_schedules_csv_data["#{SchedulesFile::Columns[:HotWaterRecirculationPump].name}_no_control"]['RecirculationPumpWeekdayScheduleFractions']
+        hpxml_bldg.hot_water_distributions[0].recirculation_pump_weekend_fractions = @default_schedules_csv_data["#{SchedulesFile::Columns[:HotWaterRecirculationPump].name}_no_control"]['RecirculationPumpWeekendScheduleFractions']
+        hpxml_bldg.hot_water_distributions[0].recirculation_pump_monthly_multipliers = @default_schedules_csv_data[SchedulesFile::Columns[:HotWaterRecirculationPump].name]['RecirculationPumpMonthlyScheduleMultipliers']
       elsif ['schedule-file-and-refrigerators-freezer-coefficients'].include? warning_case
         hpxml, hpxml_bldg = _create_hpxml('base.xml')
         hpxml_bldg.header.schedules_filepaths << File.join(File.dirname(__FILE__), '../resources/schedule_files/occupancy-stochastic.csv')

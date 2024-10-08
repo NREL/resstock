@@ -229,7 +229,7 @@
 			<xs:group ref="SystemInfo"/>
 			<xs:element minOccurs="0" name="InsulationGrade" type="InsulationGrade"/>
 			<xs:element minOccurs="0" name="InsulationCondition" type="InsulationCondition"/>
-			<xs:element minOccurs="0" name="AssemblyEffectiveRValue" type="AssemblyRValue">
+			<xs:element minOccurs="0" name="AssemblyEffectiveRValue" type="RValueGreaterThanZero">
 				<xs:annotation>
 					<xs:documentation>This should indicate the effective R-value of the complete assembly including any air films or other treatments. For below-grade surfaces adjacent to ground, it should not include the insulating effect of the ground.</xs:documentation>
 				</xs:annotation>
@@ -273,6 +273,16 @@
 			<xs:extension base="InsulationInfoBase">
 				<xs:sequence>
 					<xs:element maxOccurs="unbounded" minOccurs="0" name="Layer" type="UnderSlabInsulationLayerInfo"> </xs:element>
+					<xs:element ref="extension" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SlabExteriorHorizontalInsulationInfo">
+		<xs:complexContent>
+			<xs:extension base="InsulationInfoBase">
+				<xs:sequence>
+					<xs:element maxOccurs="unbounded" minOccurs="0" name="Layer" type="SlabExteriorHorizontalInsulationLayerInfo"> </xs:element>
 					<xs:element ref="extension" minOccurs="0"/>
 				</xs:sequence>
 			</xs:extension>
@@ -347,6 +357,21 @@
 							<xs:documentation/>
 						</xs:annotation>
 					</xs:element>
+					<xs:element ref="extension" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SlabExteriorHorizontalInsulationLayerInfo">
+		<xs:complexContent>
+			<xs:extension base="InsulationLayerInfoBase">
+				<xs:sequence>
+					<xs:element name="InsulationWidth" type="LengthMeasurement" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>[ft] Width from stem wall outward of horizontal insulation</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element minOccurs="0" name="InsulationDepthBelowGrade" type="LengthMeasurement"/>
 					<xs:element ref="extension" minOccurs="0"/>
 				</xs:sequence>
 			</xs:extension>
@@ -1244,8 +1269,21 @@
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="FloorCovering" type="FloorCovering"/>
-									<xs:element maxOccurs="1" minOccurs="0" name="PerimeterInsulation" type="SlabPerimeterInsulationInfo"/>
-									<xs:element minOccurs="0" name="UnderSlabInsulation" type="UnderSlabInsulationInfo"/>
+									<xs:element maxOccurs="1" minOccurs="0" name="PerimeterInsulation" type="SlabPerimeterInsulationInfo">
+										<xs:annotation>
+											<xs:documentation>Vertical slab perimeter insulation along stem wall</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="ExteriorHorizontalInsulation" type="SlabExteriorHorizontalInsulationInfo">
+										<xs:annotation>
+											<xs:documentation>Horizontal insulation extending outward from stem wall</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="UnderSlabInsulation" type="UnderSlabInsulationInfo">
+										<xs:annotation>
+											<xs:documentation>Horizontal insulation under slab</xs:documentation>
+										</xs:annotation>
+									</xs:element>
 									<xs:element minOccurs="0" ref="extension"/>
 								</xs:sequence>
 								<xs:attribute name="dataSource" type="DataSource"/>
@@ -1350,7 +1388,7 @@
 									<xs:element name="DoorMaterial" type="DoorMaterial" minOccurs="0"/>
 									<xs:element minOccurs="0" name="WeatherStripping" type="HPXMLBoolean"/>
 									<xs:element name="StormDoor" type="HPXMLBoolean" minOccurs="0"/>
-									<xs:element name="RValue" type="RValue" minOccurs="0"/>
+									<xs:element name="RValue" type="RValueGreaterThanZero" minOccurs="0"/>
 									<xs:element minOccurs="0" name="LeakinessDescription" type="BuildingLeakiness"/>
 									<xs:element minOccurs="0" name="PerformanceClass" type="PerformanceClass"/>
 									<xs:element maxOccurs="unbounded" minOccurs="0" name="ThirdPartyCertification" type="DoorThirdPartyCertifications"/>
@@ -1801,7 +1839,7 @@
 										</xs:annotation>
 									</xs:element>
 									<xs:element name="MeetsACCA5QIHVACSpecification" type="HPXMLBoolean" minOccurs="0"/>
-									<xs:element name="HotWaterTemperature" type="Temperature" minOccurs="0">
+									<xs:element name="HotWaterTemperature" type="TemperatureGreaterThanZero" minOccurs="0">
 										<xs:annotation>
 											<xs:documentation>[deg F]</xs:documentation>
 										</xs:annotation>
@@ -2140,6 +2178,14 @@
 								</xs:sequence>
 							</xs:complexType>
 						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="dataSource" type="DataSource"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element minOccurs="0" name="ElectricPanels">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element maxOccurs="unbounded" name="ElectricPanel" type="ElectricPanelType"> </xs:element>
 					</xs:sequence>
 					<xs:attribute name="dataSource" type="DataSource"/>
 				</xs:complexType>
@@ -3967,7 +4013,7 @@
 								<xs:documentation>Describes ducts buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts. See https://basc.pnnl.gov/resource-guides/ducts-buried-attic-insulation for more information.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
-						<xs:element minOccurs="0" name="DuctEffectiveRValue" type="RValue">
+						<xs:element minOccurs="0" name="DuctEffectiveRValue" type="RValueGreaterThanZero">
 							<xs:annotation>
 								<xs:documentation>The overall effective R-value. Includes the exterior air film as well as other effects such as adjustments for insulation wrapped around round ducts, or ducts buried in attic insulation.</xs:documentation>
 							</xs:annotation>
@@ -4169,6 +4215,11 @@
 									<xs:element minOccurs="0" name="BuildingHeight" type="LengthMeasurement">
 										<xs:annotation>
 											<xs:documentation>[ft] height of building</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="UnitHeightAboveGrade" type="HPXMLDouble">
+										<xs:annotation>
+											<xs:documentation>[ft] Height of the unit's lowest conditioned floor above grade. Useful to characterize the height of apartment units above ground level or homes on pier and beam foundations. Can be negative for, e.g., a garden-level apartment unit.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="NumberofUnits" type="IntegerGreaterThanZero">
@@ -5118,6 +5169,16 @@
 					<xs:sequence>
 						<xs:group ref="SystemInfo"/>
 						<xs:element minOccurs="0" name="Type" type="ExteriorShading"/>
+						<xs:element minOccurs="0" name="SummerFractionCovered" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>Use, e.g., 0.5 for a shade that is drawn halfway and 1.0 for a fully drawn shade during the summer.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="WinterFractionCovered" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>Use, e.g., 0.5 for a shade that is drawn halfway and 1.0 for a fully drawn shade during the winter.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element minOccurs="0" name="SummerShadingCoefficient" type="Fraction">
 							<xs:annotation>
 								<xs:documentation>The shading coefficient to apply during the summer months. Shading coefficients are defined as a multiplier on transmittance: 1 is transparent, 0 is
@@ -5143,6 +5204,26 @@
 					<xs:sequence>
 						<xs:group ref="SystemInfo"/>
 						<xs:element minOccurs="0" name="Type" type="InteriorShading"/>
+						<xs:element minOccurs="0" name="BlindsSummerClosedOrOpen" type="BlindsClosedOrOpen">
+							<xs:annotation>
+								<xs:documentation>Specifies if the blinds are open or closed during the summer.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="BlindsWinterClosedOrOpen" type="BlindsClosedOrOpen">
+							<xs:annotation>
+								<xs:documentation>Specifies if the blinds are open or closed during the winter.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="SummerFractionCovered" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>Use, e.g., 0.5 for a shade that is drawn halfway and 1.0 for a fully drawn shade during the summer.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="WinterFractionCovered" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>Use, e.g., 0.5 for a shade that is drawn halfway and 1.0 for a fully drawn shade during the winter.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element minOccurs="0" name="SummerShadingCoefficient" type="Fraction">
 							<xs:annotation>
 								<xs:documentation>The shading coefficient to apply during the summer months. Shading coefficients are defined as a multiplier on transmittance: 1 is transparent, 0 is
@@ -5155,6 +5236,40 @@
 									opaque. </xs:documentation>
 							</xs:annotation>
 						</xs:element>
+						<xs:element minOccurs="0" ref="extension"/>
+					</xs:sequence>
+					<xs:attribute name="dataSource" type="DataSource"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element minOccurs="0" name="InsectScreen">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:group ref="SystemInfo"/>
+						<xs:element minOccurs="0" name="Location" type="StormLocation"/>
+						<xs:element minOccurs="0" name="ScreenMaterial" type="ScreenMaterial"/>
+						<xs:element minOccurs="0" name="SummerFractionCovered" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>The fraction of the window area covered by the insect screen during the summer.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="WinterFractionCovered" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>The fraction of the window area covered by the insect screen during the winter.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="SummerShadingCoefficient" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>The shading coefficient to apply during the summer months. Shading coefficients are defined as a multiplier on transmittance: 1 is transparent, 0 is
+									opaque. </xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="WinterShadingCoefficient" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>The shading coefficient to apply during the winter months. Shading coefficients are defined as a multiplier on transmittance: 1 is transparent, 0 is
+									opaque. </xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="Condition" type="WindowCondition"/>
 						<xs:element minOccurs="0" ref="extension"/>
 					</xs:sequence>
 					<xs:attribute name="dataSource" type="DataSource"/>
@@ -5690,12 +5805,12 @@
 			<xs:element minOccurs="0" ref="ConnectedDevice"/>
 			<xs:element minOccurs="0" ref="AttachedToZone"/>
 			<xs:element name="ControlType" type="ThermostatType" minOccurs="0"/>
-			<xs:element name="SetpointTempHeatingSeason" type="Temperature" minOccurs="0">
+			<xs:element name="SetpointTempHeatingSeason" type="TemperatureGreaterThanZero" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>[deg F]</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="SetbackTempHeatingSeason" type="Temperature" minOccurs="0">
+			<xs:element name="SetbackTempHeatingSeason" type="TemperatureGreaterThanZero" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>[deg F]</xs:documentation>
 				</xs:annotation>
@@ -5705,12 +5820,12 @@
 					<xs:documentation>[hours]</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="SetupTempCoolingSeason" type="Temperature" minOccurs="0">
+			<xs:element name="SetupTempCoolingSeason" type="TemperatureGreaterThanZero" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>[deg F]</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="SetpointTempCoolingSeason" type="Temperature" minOccurs="0">
+			<xs:element name="SetpointTempCoolingSeason" type="TemperatureGreaterThanZero" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>[deg F]</xs:documentation>
 				</xs:annotation>
@@ -6276,6 +6391,22 @@
 		</xs:sequence>
 		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>
+	<xs:complexType name="ElectricPanelType">
+		<xs:sequence>
+			<xs:group ref="SystemInfo"/>
+			<xs:element minOccurs="0" name="Manufacturer" type="Manufacturer"/>
+			<xs:element minOccurs="0" name="Model" type="Model"/>
+			<xs:element minOccurs="0" name="Location" type="BatteryLocation"/>
+			<xs:element minOccurs="0" name="Voltage" type="ElectricPanelVoltage"/>
+			<xs:element minOccurs="0" name="MaxCurrentRating" type="Current">
+				<xs:annotation>
+					<xs:documentation>[A]</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" ref="extension"/>
+		</xs:sequence>
+		<xs:attribute name="dataSource" type="DataSource"/>
+	</xs:complexType>
 <xs:simpleType name="DataSource">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="user"/>
@@ -6738,6 +6869,7 @@
 	</xs:complexType>
 	<xs:simpleType name="IECCYear_simple">
 		<xs:restriction base="xs:integer">
+			<xs:enumeration value="2024"/>
 			<xs:enumeration value="2021"/>
 			<xs:enumeration value="2018"/>
 			<xs:enumeration value="2015"/>
@@ -7564,14 +7696,14 @@
 		</xs:simpleContent>
 	</xs:complexType>
 	<!--Insulation Below-->
-	<xs:simpleType name="AssemblyRValue_simple">
+	<xs:simpleType name="RValueGreaterThanZero_simple">
 		<xs:restriction base="xs:double">
 			<xs:minExclusive value="0"/>
 		</xs:restriction>
 	</xs:simpleType>
-	<xs:complexType name="AssemblyRValue">
+	<xs:complexType name="RValueGreaterThanZero">
 		<xs:simpleContent>
-			<xs:extension base="AssemblyRValue_simple">
+			<xs:extension base="RValueGreaterThanZero_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -7863,6 +7995,7 @@
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="Energy Star"/>
 			<xs:enumeration value="Energy Star Most Efficient"/>
+			<xs:enumeration value="Energy Star Cold Climate Heat Pump"/>
 			<xs:enumeration value="CEE Tier 1"/>
 			<xs:enumeration value="CEE Tier 2"/>
 			<xs:enumeration value="CEE Tier 3"/>
@@ -7967,11 +8100,15 @@
 	<xs:simpleType name="InteriorShading_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="light blinds"/>
+			<xs:enumeration value="medium blinds"/>
 			<xs:enumeration value="dark blinds"/>
 			<xs:enumeration value="light shades"/>
+			<xs:enumeration value="medium shades"/>
 			<xs:enumeration value="dark shades"/>
 			<xs:enumeration value="light curtains"/>
+			<xs:enumeration value="medium curtains"/>
 			<xs:enumeration value="dark curtains"/>
+			<xs:enumeration value="other"/>
 			<xs:enumeration value="none"/>
 		</xs:restriction>
 	</xs:simpleType>
@@ -8568,6 +8705,18 @@
 	<xs:complexType name="Temperature">
 		<xs:simpleContent>
 			<xs:extension base="Temperature_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="TemperatureGreaterThanZero_simple">
+		<xs:restriction base="xs:double">
+			<xs:minExclusive value="0"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="TemperatureGreaterThanZero">
+		<xs:simpleContent>
+			<xs:extension base="TemperatureGreaterThanZero_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -11082,6 +11231,20 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="BlindsClosedOrOpen_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="closed"/>
+			<xs:enumeration value="open"/>
+			<xs:enumeration value="half open"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="BlindsClosedOrOpen">
+		<xs:simpleContent>
+			<xs:extension base="BlindsClosedOrOpen_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="PerformanceClass_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="residential"/>
@@ -11325,6 +11488,49 @@
 	<xs:complexType name="MoisureType">
 		<xs:simpleContent>
 			<xs:extension base="MoistureType_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="ElectricPanelMainOrSub_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="main"/>
+			<xs:enumeration value="sub"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="ElectricPanelMainOrSub">
+		<xs:simpleContent>
+			<xs:extension base="ElectricPanelMainOrSub_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="ElectricPanelVoltage_simple">
+		<xs:restriction base="xs:integer">
+			<xs:enumeration value="120"/>
+			<xs:enumeration value="240"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="ElectricPanelVoltage">
+		<xs:simpleContent>
+			<xs:extension base="ElectricPanelVoltage_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="ScreenMaterial_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="fiberglass"/>
+			<xs:enumeration value="aluminum"/>
+			<xs:enumeration value="polyester"/>
+			<xs:enumeration value="stainless steel"/>
+			<xs:enumeration value="bronze copper"/>
+			<xs:enumeration value="other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="ScreenMaterial">
+		<xs:simpleContent>
+			<xs:extension base="ScreenMaterial_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
