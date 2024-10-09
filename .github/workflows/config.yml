@@ -44,16 +44,9 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Install Python 3.8 and pytest
+      - name: Run all unit tests
         run: |
-          sudo apt update
-          sudo apt install -y python3.8 python3-pip
-          python3.8 -m pip install --upgrade pip
-          python3.8 -m pip install openstudio==3.8.0 pandas==2.0.3 pytest==8.1.1 coverage==7.4.4 pytest-cov==5.0.0
-
-      - name: Run Python unit tests
-        run: |
-          python3.8 -m pytest -v
+          openstudio measure -r .
 
       - name: Install gems
         run: |
