@@ -1,6 +1,11 @@
 ## Pull Request Description
-
 [description here]
+
+### Related Pull Requests
+[related PRs from different repositories]
+
+### Related Issues
+[What issue(s) is the PR addressing]
 
 ## Checklist
 
@@ -9,7 +14,7 @@ Not all may apply:
 - [ ] Tests (and test files) have been updated
 - [ ] Documentation has been updated
   - [ ] If related to resstock-estimation, checklist includes [data dictionary](https://github.com/NREL/resstock/tree/develop/resources/data/dictionary), [source report](https://github.com/NREL/resstock/tree/develop/project_national/resources/source_report.csv), [options saturation](https://github.com/NREL/resstock/tree/develop/project_national/resources/options_saturations.csv), [options_lookup](https://github.com/NREL/resstock/blob/develop/resources/options_lookup.tsv).
-  - [ ] Technical reference documentation ( this box must be checked for the PR to get merged).
+  - [ ] Technical reference documentation (this box must be checked for the PR to get merged).
 - [ ] Add to the [changelog_dev.rst file](https://github.com/NREL/resstock/tree/develop/docs/read_the_docs/source/changelog/changelog_dev.rst)
 - [ ] `openstudio tasks.rb update_measures` has been run
 - [ ] No unexpected regression test changes on CI (checked comparison artifacts)
