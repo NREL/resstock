@@ -3,15 +3,15 @@ os_version: 3.8.0
 os_sha: f953b6fcaf
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-sys_image_dir: /projects/hescore/images
-output_directory: /Users/nmerket/projects/hescore/bins2024/national_baseline_100_20240516
+sys_image_dir: /projects/hescore/apptainer_images
+output_directory: /projects/hescore/runs/national_baseline_1k_20241010
 # weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
-weather_files_path: /Users/nmerket/projects/resstock/weather/Buildstock_TMY3_FIPS-1678817889.zip
+weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 10
+    n_datapoints: 1000
 
 workflow_generator:
   type: residential_hpxml
@@ -24,7 +24,7 @@ workflow_generator:
       simulation_control_run_period_end_month: 12
       simulation_control_run_period_end_day_of_month: 31
       simulation_control_run_period_calendar_year: 2007
-      os_hescore_directory: /Users/nmerket/projects/hescore/OpenStudio-HEScore
+      os_hescore_directory: /opt/OpenStudio-HEScore  # Always use this on Eagle/Kestrel
 
     emissions:
       - scenario_name: LRMER_MidCase_15
@@ -60,15 +60,15 @@ workflow_generator:
 baseline:
   n_buildings_represented: 139647020 # American Community Survey 2021 5-year, B25001, does not include territories ( 138765649 without AK and HI )
 
-eagle:
-  n_jobs: 500
-  minutes_per_sim: 1
+kestrel:
+  n_jobs: 2
+  minutes_per_sim: 0.3
   account: hescore
   postprocessing:
-    time: 30
-    n_workers: 4
+    time: 15
+    n_workers: 1
   sampling:
-    time: 30
+    time: 15
 
 # aws:
 #   job_identifier: noeltest01
