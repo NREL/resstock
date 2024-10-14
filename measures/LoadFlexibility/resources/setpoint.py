@@ -129,9 +129,11 @@ class HVACSetpoints:
 
         if setpoint_type == 'heating':
             pre_peak_offset = inputs.relative_offset.heating_pre_peak_offset.val
-            on_peak_offset = inputs.relative_offset.heating_on_peak_offset.val
+            assert inputs.relative_offset.heating_on_peak_offset.val is not None
+            on_peak_offset = -1 * inputs.relative_offset.heating_on_peak_offset.val
         elif setpoint_type == 'cooling':
-            pre_peak_offset = inputs.relative_offset.cooling_pre_peak_offset.val
+            assert inputs.relative_offset.cooling_pre_peak_offset.val is not None
+            pre_peak_offset = -1 * inputs.relative_offset.cooling_pre_peak_offset.val
             on_peak_offset = inputs.relative_offset.cooling_on_peak_offset.val
         else:
             raise ValueError(f"setpoint type {setpoint_type} is not supported")

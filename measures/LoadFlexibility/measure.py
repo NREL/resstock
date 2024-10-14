@@ -127,8 +127,11 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
         result = subprocess.run(["openstudio", f"{RESOURCES_DIR}/create_setpoint_schedules.rb",
                                  hpxml_path, osw_path],
                                 capture_output=True)
+        if result.returncode != 0:
+            runner.registerError(f"Failed to run create_setpoint_schedules.rb : {result.stderr}")
+            return False
+        runner.registerInfo(f"Got this from the create_setpoint_schedule: {result.stdout}.")
         building_info = BuildingInfo()
-
         setpoints = [HVACSetpoints(os_runner=runner,
                                    building_info=building_info,
                                    inputs=inputs,
@@ -136,10 +139,6 @@ class LoadFlexibility(openstudio.measure.ModelMeasure):
                                    cooling_setpoints=setpoint['cooling_setpoints'])
                      for setpoint in json.loads(result.stdout)
                      ]  # [{"heating_setpoint": [], "cooling_setpoint": []}]
-        if result.returncode != 0:
-            runner.registerError(f"Failed to run create_setpoint_schedules.rb : {result.stderr}")
-            return False
-
         new_setpoints: List[Dict[str, List[int]]] = []
         for setpoint in setpoints:
             new_setpoints.append(setpoint._get_modified_setpoints(inputs=inputs))

@@ -524,7 +524,7 @@ end
 module Version
   ResStock_Version = '3.3.0' # Version of ResStock
   BuildStockBatch_Version = '2023.10.0' # Minimum required version of BuildStockBatch
-  WorkflowGenerator_Version = '2024.07.20' # Version of buildstockbatch workflow generator
+  WorkflowGenerator_Version = '2024.10.09' # Version of buildstockbatch workflow generator
 
   def self.check_buildstockbatch_version
     if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed

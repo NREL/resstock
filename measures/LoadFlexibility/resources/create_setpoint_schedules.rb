@@ -25,7 +25,7 @@ class SetpointScheduleGenerator
     @runner = OpenStudio::Measure::OSRunner.new(@workflow_json)
     @weather = WeatherFile.new(epw_path: @epw_path, runner: @runner, hpxml: @hpxml)
     @sim_year = Location.get_sim_calendar_year(@hpxml.header.sim_calendar_year, @weather)
-    @total_days_in_year = Constants.NumDaysInYear(@sim_year)
+    @total_days_in_year = Calendar.num_days_in_year(@sim_year)
     @sim_start_day = DateTime.new(@sim_year, 1, 1)
     @minutes_per_step = @hpxml.header.timestep
     @steps_in_day = 24 * 60 / @minutes_per_step
@@ -65,13 +65,13 @@ class SetpointScheduleGenerator
   def get_heating_cooling_weekday_weekend_setpoints
     hvac_control = @hpxml_bldg.hvac_controls[0]
     has_ceiling_fan = (@hpxml_bldg.ceiling_fans.size > 0)
-    cooling_days, heating_days = get_heating_cooling_days(hvac_control)
+    hvac_season_days = get_heating_cooling_days(hvac_control)
     hvac_control = @hpxml_bldg.hvac_controls[0]
     onoff_thermostat_ddb = @hpxml.header.hvac_onoff_thermostat_deadband.to_f
     htg_weekday_setpoints, htg_weekend_setpoints = HVAC.get_heating_setpoints(hvac_control, @sim_year, onoff_thermostat_ddb)
     clg_weekday_setpoints, clg_weekend_setpoints = HVAC.get_cooling_setpoints(hvac_control, has_ceiling_fan, @sim_year, @weather, onoff_thermostat_ddb)
 
-    htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints = HVAC.create_setpoint_schedules(@runner, heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, @sim_year)
+    htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints = HVAC.create_setpoint_schedules(@runner, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, @sim_year, hvac_season_days)
     return c2f(clg_weekday_setpoints), c2f(clg_weekend_setpoints), c2f(htg_weekday_setpoints), c2f(htg_weekend_setpoints)
   end
 
@@ -84,9 +84,9 @@ class SetpointScheduleGenerator
     clg_start_day = hvac_control.seasons_cooling_begin_day || 1
     clg_end_month = hvac_control.seasons_cooling_end_month || 12
     clg_end_day = hvac_control.seasons_cooling_end_day || 31
-    heating_days = Schedule.get_daily_season(@sim_year, htg_start_month, htg_start_day, htg_end_month, htg_end_day)
-    cooling_days = Schedule.get_daily_season(@sim_year, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
-    return cooling_days, heating_days
+    heating_days = Calendar.get_daily_season(@sim_year, htg_start_month, htg_start_day, htg_end_month, htg_end_day)
+    cooling_days = Calendar.get_daily_season(@sim_year, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
+    return {:clg=>cooling_days, :htg=>heating_days}
   end
 
   def main(hpxml_path)
