@@ -43,6 +43,8 @@ __Bugfixes__
 - BuildResidentialScheduleFile measure: Fixes possible divide by zero error during generation of stochastic clothes washer and dishwasher schedules.
 - Allows negative values for `Building/Site/Elevation`.
 - Fixes lower element height for a water heater using the advanced `WaterHeatingSystem/extension/TankModelType=stratified`.
+- Fixes possible error for a combi boiler system.
+- Fixes error if modeling a ground-to-air heat pump with a separate backup heating system.
 
 ## OpenStudio-HPXML v1.8.1
 

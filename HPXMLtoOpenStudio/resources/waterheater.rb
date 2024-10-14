@@ -1662,7 +1662,7 @@ module Waterheater
     end
 
     # Add an other equipment object for water heating that will get actuated, has a small initial load but gets overwritten by EMS
-    cnt = model.getOtherEquipments.select { |e| e.endUseSubcategory.start_with? Constants::ObjectTypeWaterHeaterAdjustment }.size # Ensure unique meter for each water heater
+    cnt = model.getOtherEquipments.count { |e| e.endUseSubcategory.start_with? Constants::ObjectTypeWaterHeaterAdjustment } # Ensure unique meter for each water heater
     ec_adj_object = Model.add_other_equipment(
       model,
       name: "#{Constants::ObjectTypeWaterHeaterAdjustment}#{cnt + 1}",

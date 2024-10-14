@@ -36,12 +36,12 @@ module MiscLoads
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param plug_load [TODO] TODO
+  # @param plug_load [HPXML::PlugLoad] The HPXML plug load of interest
   # @param obj_name [String] Name for the OpenStudio object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
-  # @param apply_ashrae140_assumptions [TODO] TODO
+  # @param apply_ashrae140_assumptions [Boolean] True if an ASHRAE 140 test case where we want to override our normal assumptions
   # @return [nil]
   def self.apply_plug_load(runner, model, plug_load, obj_name, spaces, schedules_file, unavailable_periods, apply_ashrae140_assumptions)
     kwh = 0
@@ -132,7 +132,7 @@ module MiscLoads
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param fuel_load [TODO] TODO
+  # @param fuel_load [HPXML::FuelLoad] The HPXML fuel load of interest
   # @param obj_name [String] Name for the OpenStudio object
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
@@ -213,7 +213,7 @@ module MiscLoads
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param pool_or_spa [TODO] TODO
+  # @param pool_or_spa [HPXML::Pool or HPXML::PermanentSpa] The HPXML pool or permanent space of interest
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
@@ -303,7 +303,7 @@ module MiscLoads
   #
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param pool_or_spa [TODO] TODO
+  # @param pool_or_spa [HPXML::Pool or HPXML::PermanentSpa] The HPXML pool or permanent space of interest
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies

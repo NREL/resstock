@@ -355,7 +355,7 @@ class WeatherFile
     if !hpxml.nil?
       has_gshp = false
       hpxml.buildings.each do |hpxml_bldg|
-        has_gshp = true if hpxml_bldg.heat_pumps.select { |h| h.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
+        has_gshp = true if hpxml_bldg.heat_pumps.count { |h| h.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir } > 0
       end
       return if !has_gshp
     end

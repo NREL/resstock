@@ -2214,14 +2214,20 @@
   <sch:pattern>
     <sch:title>[WaterHeatingSystemType=CombiIndirect]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:WaterHeating/h:WaterHeatingSystem[h:WaterHeaterType="space-heating boiler with storage tank"]'>
+      <sch:assert role='ERROR' test='count(h:FuelType) = 0'>Expected 0 element(s) for xpath: FuelType</sch:assert>
       <sch:assert role='ERROR' test='count(h:Location) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Location</sch:assert>
       <sch:assert role='ERROR' test='h:Location[text()="conditioned space" or text()="basement - unconditioned" or text()="basement - conditioned" or text()="attic - unvented" or text()="attic - vented" or text()="garage" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="crawlspace - conditioned" or text()="other exterior" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"] or not(h:Location)'>Expected Location to be 'conditioned space' or 'basement - unconditioned' or 'basement - conditioned' or 'attic - unvented' or 'attic - vented' or 'garage' or 'crawlspace - unvented' or 'crawlspace - vented' or 'crawlspace - conditioned' or 'other exterior' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space'</sch:assert>
       <sch:assert role='ERROR' test='count(h:IsSharedSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: IsSharedSystem</sch:assert> <!-- See [WaterHeatingSystem=Shared] -->
       <sch:assert role='ERROR' test='count(h:TankVolume) &lt;= 1'>Expected 0 or 1 element(s) for xpath: TankVolume</sch:assert>
       <sch:assert role='ERROR' test='count(h:FractionDHWLoadServed) = 1'>Expected 1 element(s) for xpath: FractionDHWLoadServed</sch:assert>
+      <sch:assert role='ERROR' test='count(h:HeatingCapacity) = 0'>Expected 0 element(s) for xpath: HeatingCapacity</sch:assert>
+      <sch:assert role='ERROR' test='count(h:UniformEnergyFactor) = 0'>Expected 0 element(s) for xpath: UniformEnergyFactor</sch:assert>
+      <sch:assert role='ERROR' test='count(h:EnergyFactor) = 0'>Expected 0 element(s) for xpath: EnergyFactor</sch:assert>
+      <sch:assert role='ERROR' test='count(h:RecoveryEfficiency) = 0'>Expected 0 element(s) for xpath: RecoveryEfficiency</sch:assert>
       <sch:assert role='ERROR' test='count(h:WaterHeaterInsulation/h:Jacket/h:JacketRValue) &lt;= 1'>Expected 0 or 1 element(s) for xpath: WaterHeaterInsulation/Jacket/JacketRValue</sch:assert>
       <sch:assert role='ERROR' test='count(h:StandbyLoss[h:Units="F/hr"]/h:Value) &lt;= 1'>Expected 0 or 1 element(s) for xpath: StandbyLoss[Units="F/hr"]/Value</sch:assert>
       <sch:assert role='ERROR' test='count(h:HotWaterTemperature) &lt;= 1'>Expected 0 or 1 element(s) for xpath: HotWaterTemperature</sch:assert>
+      <sch:assert role='ERROR' test='count(h:UsesDesuperheater[text()="true"]) = 0'>Expected 0 element(s) for xpath: UsesDesuperheater=true</sch:assert>
       <sch:assert role='ERROR' test='count(h:RelatedHVACSystem) = 1'>Expected 1 element(s) for xpath: RelatedHVACSystem</sch:assert> <!-- See [HeatingSystem] (boiler) -->
       <!-- Warnings -->
       <sch:report role='WARN' test='number(h:HotWaterTemperature) &lt; 110'>Hot water setpoint should typically be greater than or equal to 110 deg-F.</sch:report>
@@ -2231,11 +2237,20 @@
   <sch:pattern>
     <sch:title>[WaterHeatingSystemType=CombiTanklessCoil]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:WaterHeating/h:WaterHeatingSystem[h:WaterHeaterType="space-heating boiler with tankless coil"]'>
+      <sch:assert role='ERROR' test='count(h:FuelType) = 0'>Expected 0 element(s) for xpath: FuelType</sch:assert>
       <sch:assert role='ERROR' test='count(h:Location) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Location</sch:assert>
       <sch:assert role='ERROR' test='h:Location[text()="conditioned space" or text()="basement - unconditioned" or text()="basement - conditioned" or text()="attic - unvented" or text()="attic - vented" or text()="garage" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="crawlspace - conditioned" or text()="other exterior" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"] or not(h:Location)'>Expected Location to be 'conditioned space' or 'basement - unconditioned' or 'basement - conditioned' or 'attic - unvented' or 'attic - vented' or 'garage' or 'crawlspace - unvented' or 'crawlspace - vented' or 'crawlspace - conditioned' or 'other exterior' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space'</sch:assert>
       <sch:assert role='ERROR' test='count(h:IsSharedSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: IsSharedSystem</sch:assert> <!-- See [WaterHeatingSystem=Shared] -->
+      <sch:assert role='ERROR' test='count(h:TankVolume) = 0'>Expected 0 element(s) for xpath: TankVolume</sch:assert>
       <sch:assert role='ERROR' test='count(h:FractionDHWLoadServed) = 1'>Expected 1 element(s) for xpath: FractionDHWLoadServed</sch:assert>
+      <sch:assert role='ERROR' test='count(h:HeatingCapacity) = 0'>Expected 0 element(s) for xpath: HeatingCapacity</sch:assert>
+      <sch:assert role='ERROR' test='count(h:UniformEnergyFactor) = 0'>Expected 0 element(s) for xpath: UniformEnergyFactor</sch:assert>
+      <sch:assert role='ERROR' test='count(h:EnergyFactor) = 0'>Expected 0 element(s) for xpath: EnergyFactor</sch:assert>
+      <sch:assert role='ERROR' test='count(h:RecoveryEfficiency) = 0'>Expected 0 element(s) for xpath: RecoveryEfficiency</sch:assert>
+      <sch:assert role='ERROR' test='count(h:WaterHeaterInsulation/h:Jacket/h:JacketRValue) = 0'>Expected 0 element(s) for xpath: WaterHeaterInsulation/Jacket/JacketRValue</sch:assert>
+      <sch:assert role='ERROR' test='count(h:StandbyLoss[h:Units="F/hr"]/h:Value) = 0'>Expected 0 element(s) for xpath: StandbyLoss[Units="F/hr"]/Value</sch:assert>
       <sch:assert role='ERROR' test='count(h:HotWaterTemperature) &lt;= 1'>Expected 0 or 1 element(s) for xpath: HotWaterTemperature</sch:assert>
+      <sch:assert role='ERROR' test='count(h:UsesDesuperheater[text()="true"]) = 0'>Expected 0 element(s) for xpath: UsesDesuperheater=true</sch:assert>
       <sch:assert role='ERROR' test='count(h:RelatedHVACSystem) = 1'>Expected 1 element(s) for xpath: RelatedHVACSystem</sch:assert> <!-- See [HeatingSystem] (boiler) -->
       <!-- Warnings -->
       <sch:report role='WARN' test='number(h:HotWaterTemperature) &lt; 110'>Hot water setpoint should typically be greater than or equal to 110 deg-F.</sch:report>

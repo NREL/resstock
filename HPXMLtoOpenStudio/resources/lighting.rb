@@ -205,14 +205,14 @@ module Lighting
     end
   end
 
-  # TODO
+  # Calculates the annual interior lighting energy use based on the conditioned floor area and types of lamps.
   #
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
-  # @param f_int_cfl [TODO] TODO
-  # @param f_int_lfl [TODO] TODO
-  # @param f_int_led [TODO] TODO
-  # @return [TODO] TODO
+  # @param f_int_cfl [Double] Fraction of interior lighting that is compact fluorescent (CFL)
+  # @param f_int_lfl [Double] Fraction of interior lighting that is linear fluorescent (LFL)
+  # @param f_int_led [Double] Fraction of interior lighting that is light-emitting diode (LED)
+  # @return [Double or nil] Annual interior lighting energy use (kWh/yr)
   def self.calc_interior_energy(eri_version, cfa, f_int_cfl, f_int_lfl, f_int_led)
     return if f_int_cfl.nil? || f_int_lfl.nil? || f_int_led.nil?
 
@@ -249,14 +249,14 @@ module Lighting
     return int_kwh
   end
 
-  # TODO
+  # Calculates the annual exterior lighting energy use based on the conditioned floor area and types of lamps.
   #
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
-  # @param f_ext_cfl [TODO] TODO
-  # @param f_ext_lfl [TODO] TODO
-  # @param f_ext_led [TODO] TODO
-  # @return [TODO] TODO
+  # @param f_ext_cfl [Double] Fraction of exterior lighting that is compact fluorescent (CFL)
+  # @param f_ext_lfl [Double] Fraction of exterior lighting that is linear fluorescent (LFL)
+  # @param f_ext_led [Double] Fraction of exterior lighting that is light-emitting diode (LED)
+  # @return [Double or nil] Annual exterior lighting energy use (kWh/yr)
   def self.calc_exterior_energy(eri_version, cfa, f_ext_cfl, f_ext_lfl, f_ext_led)
     return if f_ext_cfl.nil? || f_ext_lfl.nil? || f_ext_led.nil?
 
@@ -293,14 +293,14 @@ module Lighting
     return ext_kwh
   end
 
-  # TODO
+  # Calculates the annual garage lighting energy use based on the garage area and types of lamps.
   #
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
-  # @param gfa [TODO] TODO
-  # @param f_grg_cfl [TODO] TODO
-  # @param f_grg_lfl [TODO] TODO
-  # @param f_grg_led [TODO] TODO
-  # @return [TODO] TODO
+  # @param gfa [Double] Garage floor area (ft2)
+  # @param f_grg_cfl [Double] Fraction of garage lighting that is compact fluorescent (CFL)
+  # @param f_grg_lfl [Double] Fraction of garage lighting that is linear fluorescent (LFL)
+  # @param f_grg_led [Double] Fraction of garage lighting that is light-emitting diode (LED)
+  # @return [Double or nil] Annual garage lighting energy use (kWh/yr)
   def self.calc_garage_energy(eri_version, gfa, f_grg_cfl, f_grg_lfl, f_grg_led)
     return if f_grg_cfl.nil? || f_grg_lfl.nil? || f_grg_led.nil?
 

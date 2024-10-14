@@ -1972,7 +1972,7 @@ module HVACSizing
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @return [nil]
   def self.apply_hvac_cfis_loads(mj, hvac_loads, zone_loads, hvac_heating, hvac_cooling, hpxml_bldg)
-    if hpxml_bldg.zones[0].id == 'BobRossResidenceConditioned' && hpxml_bldg.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeERV }.size == 1
+    if hpxml_bldg.zones[0].id == 'BobRossResidenceConditioned' && hpxml_bldg.ventilation_fans.count { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeERV } == 1
       # FUTURE: For now, ACCA is okay with us bypassing our inputs to manually test this.
       # Bob Ross 3-18: ERV to equipment (system load)
       htg_sens_eff = 0.68
@@ -2356,15 +2356,17 @@ module HVACSizing
       heating_delta_t = hvac_heating_ap.supply_air_temp - mj.heat_setpoint
 
       if hvac_heating.is_a?(HPXML::HeatingSystem) && hvac_heating.is_heat_pump_backup_system
-        # Adjust heating load using the HP backup calculation
         hvac_hp = hvac_heating.primary_heat_pump
-        hp_sizing_values = @all_hvac_sizings[{ heating: hvac_hp, cooling: hvac_hp }]
-        if hp_sizing_values.nil?
-          fail 'Primary heat pump should have been sized already.'
-        end
+        if hvac_hp.heat_pump_type != HPXML::HVACTypeHeatPumpGroundToAir
+          # Adjust heating load using the HP backup calculation
+          hp_sizing_values = @all_hvac_sizings[{ heating: hvac_hp, cooling: hvac_hp }]
+          if hp_sizing_values.nil?
+            fail 'Primary heat pump should have been sized already.'
+          end
 
-        hp_heating_speed = get_nominal_speed(hvac_hp.additional_properties, false)
-        hvac_sizings.Heat_Load = calculate_heat_pump_backup_load(mj, hvac_hp, hvac_sizings.Heat_Load, hp_sizing_values.Heat_Capacity, hp_heating_speed, hpxml_bldg)
+          hp_heating_speed = get_nominal_speed(hvac_hp.additional_properties, false)
+          hvac_sizings.Heat_Load = calculate_heat_pump_backup_load(mj, hvac_hp, hvac_sizings.Heat_Load, hp_sizing_values.Heat_Capacity, hp_heating_speed, hpxml_bldg)
+        end
       end
     elsif not hvac_cooling.nil? && hvac_cooling.has_integrated_heating
       heating_delta_t = hvac_cooling_ap.supply_air_temp - mj.heat_setpoint
@@ -3290,11 +3292,11 @@ module HVACSizing
 
     # FUTURE: For now, ACCA is okay with us bypassing our inputs to manually test these.
     if hpxml_bldg.zones[0].id == 'BobRossResidenceConditioned'
-      if hpxml_bldg.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeERV }.size == 1
+      if hpxml_bldg.ventilation_fans.count { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeERV } == 1
         # Bob Ross 3-18: ERV to equipment (system load)
         return { q_imb: 0.0, q_oa: 0.0, q_preheat: 0.0, q_precool: 0.0, q_recirc: 0.0,
                  htg_sens_eff: 0.0, clg_sens_eff: 0.0, clg_lat_eff: 0.0 }
-      elsif hpxml_bldg.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeHRV }.size == 1
+      elsif hpxml_bldg.ventilation_fans.count { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeHRV } == 1
         # Bob Ross 3-21: HRV to space (space load)
         htg_sens_eff = 0.64
         clg_sens_eff = 0.58

@@ -5916,7 +5916,7 @@ module HPXMLFile
   # @param args [Hash] Map of :argument_name => value
   # @return [nil]
   def self.set_geothermal_loop(hpxml_bldg, args)
-    return if hpxml_bldg.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size == 0
+    return if hpxml_bldg.heat_pumps.count { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir } == 0
     return if args[:geothermal_loop_configuration].nil? || args[:geothermal_loop_configuration] == Constants::None
 
     if not args[:geothermal_loop_pipe_diameter].nil?
@@ -6252,7 +6252,7 @@ module HPXMLFile
     end
 
     # If duct surface areas are defaulted, set CFA served
-    if hvac_distribution.ducts.select { |d| d.duct_surface_area.nil? }.size > 0
+    if hvac_distribution.ducts.count { |d| d.duct_surface_area.nil? } > 0
       max_fraction_load_served = 0.0
       hvac_distribution.hvac_systems.each do |hvac_system|
         if hvac_system.respond_to?(:fraction_heat_load_served)

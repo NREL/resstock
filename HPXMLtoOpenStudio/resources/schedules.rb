@@ -928,7 +928,7 @@ module Schedule
   # @return [nil]
   def self.check_emissions_references(hpxml_header, hpxml_path)
     hpxml_header.emissions_scenarios.each do |scenario|
-      if hpxml_header.emissions_scenarios.select { |s| s.emissions_type == scenario.emissions_type && s.name == scenario.name }.size > 1
+      if hpxml_header.emissions_scenarios.count { |s| s.emissions_type == scenario.emissions_type && s.name == scenario.name } > 1
         fail "Found multiple Emissions Scenarios with the Scenario Name=#{scenario.name} and Emissions Type=#{scenario.emissions_type}."
       end
       next if scenario.elec_schedule_filepath.nil?
