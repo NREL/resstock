@@ -320,6 +320,21 @@
               <PrimaryHeatingSystem idref='HeatPump1'/>
               <PrimaryCoolingSystem idref='HeatPump1'/>
             </PrimarySystems>
+            <HeatingSystem>
+              <SystemIdentifier id='HeatingSystem1'/>
+              <HeatingSystemType>
+                <Stove/>
+              </HeatingSystemType>
+              <HeatingSystemFuel>fuel oil</HeatingSystemFuel>
+              <HeatingCapacity>60000.0</HeatingCapacity>
+              <AnnualHeatingEfficiency>
+                <Units>Percent</Units>
+                <Value>0.6</Value>
+              </AnnualHeatingEfficiency>
+              <extension>
+                <FanPowerWatts>40.0</FanPowerWatts>
+              </extension>
+            </HeatingSystem>
             <HeatPump>
               <SystemIdentifier id='HeatPump1'/>
               <DistributionSystem idref='HVACDistribution1'/>
@@ -328,6 +343,8 @@
               <HeatingCapacity>36000.0</HeatingCapacity>
               <CoolingCapacity>36000.0</CoolingCapacity>
               <CoolingSensibleHeatFraction>0.73</CoolingSensibleHeatFraction>
+              <BackupType>separate</BackupType>
+              <BackupSystem idref='HeatingSystem1'/>
               <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
@@ -339,9 +356,6 @@
                 <Value>3.6</Value>
               </AnnualHeatingEfficiency>
               <extension>
-                <AirflowDefectRatio>-0.25</AirflowDefectRatio>
-                <ChargeDefectRatio>-0.25</ChargeDefectRatio>
-                <FanPowerWattsPerCFM>0.365</FanPowerWattsPerCFM>
                 <PumpPowerWattsPerTon>30.0</PumpPowerWattsPerTon>
               </extension>
             </HeatPump>

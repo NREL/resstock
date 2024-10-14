@@ -1967,6 +1967,7 @@ module Defaults
       next if heat_pump.backup_type.nil?
       next unless heat_pump.backup_heating_lockout_temp.nil?
       next unless heat_pump.backup_heating_switchover_temp.nil?
+      next if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir
 
       if heat_pump.backup_type == HPXML::HeatPumpBackupTypeIntegrated
         hp_backup_fuel = heat_pump.backup_heating_fuel
@@ -2276,6 +2277,8 @@ module Defaults
         HVAC.set_heat_curves_central_air_source(heat_pump, use_eer_cop)
 
       elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
+        HVAC.set_heat_pump_temperatures(heat_pump, runner)
+
         if heat_pump.geothermal_loop.nil?
           if not unit_num.nil?
             loop_id = "GeothermalLoop#{hpxml_bldg.geothermal_loops.size + 1}_#{unit_num}"
@@ -2723,7 +2726,7 @@ module Defaults
       end
 
       if vent_fan.flow_rate.nil?
-        if hpxml_bldg.ventilation_fans.select { |vf| vf.used_for_whole_building_ventilation && !vf.is_cfis_supplemental_fan }.size > 1
+        if hpxml_bldg.ventilation_fans.count { |vf| vf.used_for_whole_building_ventilation && !vf.is_cfis_supplemental_fan } > 1
           fail 'Defaulting flow rates for multiple mechanical ventilation systems is currently not supported.'
         end
 
@@ -4095,6 +4098,8 @@ module Defaults
     # Check for atmospheric water heater in conditioned space
     hpxml_bldg.water_heating_systems.each do |water_heating_system|
       next if water_heating_system.fuel_type == HPXML::FuelTypeElectricity
+      next if [HPXML::WaterHeaterTypeCombiStorage,
+               HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type # Boiler checked above
       next unless HPXML::conditioned_locations_this_unit.include? water_heating_system.location
 
       if not water_heating_system.energy_factor.nil?

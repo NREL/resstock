@@ -362,13 +362,13 @@ module HotWaterAndAppliances
         if fixtures.any? { |wf| wf.count.nil? }
           showerheads = fixtures.select { |wf| wf.water_fixture_type == HPXML::WaterFixtureTypeShowerhead }
           if showerheads.size > 0
-            frac_low_flow_showerheads = showerheads.select { |wf| wf.low_flow }.size / Float(showerheads.size)
+            frac_low_flow_showerheads = showerheads.count { |wf| wf.low_flow } / Float(showerheads.size)
           else
             frac_low_flow_showerheads = 0.0
           end
           faucets = fixtures.select { |wf| wf.water_fixture_type == HPXML::WaterFixtureTypeFaucet }
           if faucets.size > 0
-            frac_low_flow_faucets = faucets.select { |wf| wf.low_flow }.size / Float(faucets.size)
+            frac_low_flow_faucets = faucets.count { |wf| wf.low_flow } / Float(faucets.size)
           else
             frac_low_flow_faucets = 0.0
           end
@@ -499,7 +499,7 @@ module HotWaterAndAppliances
             runner.registerWarning("Both '#{recirc_pump_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hot_water_distribution.recirculation_pump_monthly_multipliers.nil?
           end
           if recirc_pump_design_level * gpd_frac != 0
-            cnt = model.getElectricEquipments.select { |e| e.endUseSubcategory.start_with? Constants::ObjectTypeHotWaterRecircPump }.size # Ensure unique meter for each water heater
+            cnt = model.getElectricEquipments.count { |e| e.endUseSubcategory.start_with? Constants::ObjectTypeHotWaterRecircPump } # Ensure unique meter for each water heater
             recirc_pump = Model.add_electric_equipment(
               model,
               name: "#{Constants::ObjectTypeHotWaterRecircPump}#{cnt + 1}",

@@ -2286,7 +2286,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def test_ground_source_heat_pumps
     # Test inputs not overridden by defaults
-    hpxml, hpxml_bldg = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-ground-to-air-heat-pump-backup-integrated.xml')
     hpxml_bldg.heat_pumps[0].pump_watts_per_ton = 9.9
     hpxml_bldg.heat_pumps[0].fan_watts_per_cfm = 0.66
     hpxml_bldg.heat_pumps[0].airflow_defect_ratio = -0.22

@@ -5,7 +5,7 @@ require 'fileutils'
 # Initialize OpenStudio objects (log, model, runner, etc.).
 # Call run methods of OpenStudio Model measures.
 # Report infos/warnings/errors to run.log file.
-# Forward translate the model and call energyPlusOutputRequests methods.
+# Forward translate the model, write IDF, and call energyPlusOutputRequests methods.
 # Again, report any log messages to file.
 # Simulate the IDF using the EnergyPlus CLI.
 # Call run methods of OpenStudio ReportingMeasures.
@@ -15,12 +15,13 @@ require 'fileutils'
 # @param measures [Hash] Map of OpenStudio-HPXML measure directory name => List of measure argument hashes
 # @param measures_dir [String] Parent directory path of all OpenStudio-HPXML measures
 # @param debug [Boolean] If true, reports info statements from the runner results
-# @param run_measures_only [Boolean] True applies only OpenStudio Model measures, skipping forward translation and the simulation
+# @param run_measures_only [Boolean] True applies only OpenStudio Model measures, skipping IDF generation and the simulation
+# @param skip_simulation [Boolean] True applies the OpenStudio Model measures and generates the IDF, but skips the simulation
 # @param ep_input_format [String] EnergyPlus input file format (idf, epjson)
 # @param suppress_print [Boolean] True reduces printed workflow output
 # @return [Hash] Map of 'success' and 'runner' results
-def run_hpxml_workflow(rundir, measures, measures_dir, debug: false,
-                       run_measures_only: false, ep_input_format: 'idf', suppress_print: false)
+def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, run_measures_only: false,
+                       skip_simulation: false, ep_input_format: 'idf', suppress_print: false)
   rm_path(rundir)
   FileUtils.mkdir_p(rundir)
 
@@ -97,6 +98,10 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false,
     File.open(File.join(rundir, ep_input_filename), 'w') { |f| f << json.to_s }
   else
     fail "Unexpected ep_input_format: #{ep_input_format}."
+  end
+
+  if skip_simulation
+    return { success: success, runner: runner }
   end
 
   if not model.getWeatherFile.path.is_initialized
