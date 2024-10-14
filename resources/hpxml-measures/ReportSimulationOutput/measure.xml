@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <measure>
-  <schema_version>3.0</schema_version>
+  <schema_version>3.1</schema_version>
   <name>report_simulation_output</name>
   <uid>df9d170c-c21a-4130-866d-0d46b06073fd</uid>
-  <version_id>0df245a7-4853-4a5a-9e18-0d5a258a8adc</version_id>
-  <version_modified>20221109T215945Z</version_modified>
+  <version_id>29a26cd3-0ea4-4c33-9d29-e80f2f58b8f5</version_id>
+  <version_modified>2024-09-26T04:59:04Z</version_modified>
   <xml_checksum>9BF1E6AC</xml_checksum>
   <class_name>ReportSimulationOutput</class_name>
   <display_name>HPXML Simulation Output Report</display_name>
@@ -35,6 +35,291 @@
         <choice>
           <value>csv_dview</value>
           <display_name>csv_dview</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_total_consumptions</name>
+      <display_name>Generate Annual Output: Total Consumptions</display_name>
+      <description>Generates annual energy consumptions for the total building.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_fuel_consumptions</name>
+      <display_name>Generate Annual Output: Fuel Consumptions</display_name>
+      <description>Generates annual energy consumptions for each fuel type.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_end_use_consumptions</name>
+      <display_name>Generate Annual Output: End Use Consumptions</display_name>
+      <description>Generates annual energy consumptions for each end use.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_system_use_consumptions</name>
+      <display_name>Generate Annual Output: System Use Consumptions</display_name>
+      <description>Generates annual energy consumptions for each end use of each HVAC and water heating system.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_emissions</name>
+      <display_name>Generate Annual Output: Emissions</display_name>
+      <description>Generates annual emissions. Requires the appropriate HPXML inputs to be specified.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_emission_fuels</name>
+      <display_name>Generate Annual Output: Emission Fuel Uses</display_name>
+      <description>Generates annual emissions for each fuel type. Requires the appropriate HPXML inputs to be specified.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_emission_end_uses</name>
+      <display_name>Generate Annual Output: Emission End Uses</display_name>
+      <description>Generates annual emissions for each end use. Requires the appropriate HPXML inputs to be specified.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_total_loads</name>
+      <display_name>Generate Annual Output: Total Loads</display_name>
+      <description>Generates annual heating, cooling, and hot water loads.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_unmet_hours</name>
+      <display_name>Generate Annual Output: Unmet Hours</display_name>
+      <description>Generates annual unmet hours for heating and cooling.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_peak_fuels</name>
+      <display_name>Generate Annual Output: Peak Fuels</display_name>
+      <description>Generates annual electricity peaks for summer/winter.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_peak_loads</name>
+      <display_name>Generate Annual Output: Peak Loads</display_name>
+      <description>Generates annual peak loads for heating/cooling.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_component_loads</name>
+      <display_name>Generate Annual Output: Component Loads</display_name>
+      <description>Generates annual heating and cooling loads disaggregated by component type.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_hot_water_uses</name>
+      <display_name>Generate Annual Output: Hot Water Uses</display_name>
+      <description>Generates annual hot water usages for each end use.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_hvac_summary</name>
+      <display_name>Generate Annual Output: HVAC Summary</display_name>
+      <description>Generates HVAC capacities, design temperatures, and design loads.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_annual_resilience</name>
+      <display_name>Generate Annual Output: Resilience</display_name>
+      <description>Generates annual resilience outputs.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
         </choice>
       </choices>
     </argument>
@@ -72,7 +357,7 @@
     <argument>
       <name>include_timeseries_total_consumptions</name>
       <display_name>Generate Timeseries Output: Total Consumptions</display_name>
-      <description>Generates timeseries energy consumptions for building total.</description>
+      <description>Generates timeseries energy consumptions for the total building.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -127,6 +412,25 @@
       </choices>
     </argument>
     <argument>
+      <name>include_timeseries_system_use_consumptions</name>
+      <display_name>Generate Timeseries Output: System Use Consumptions</display_name>
+      <description>Generates timeseries energy consumptions for each end use of each HVAC and water heating system.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>include_timeseries_emissions</name>
       <display_name>Generate Timeseries Output: Emissions</display_name>
       <description>Generates timeseries emissions. Requires the appropriate HPXML inputs to be specified.</description>
@@ -147,7 +451,7 @@
     </argument>
     <argument>
       <name>include_timeseries_emission_fuels</name>
-      <display_name>Generate Timeseries Output: Emissions</display_name>
+      <display_name>Generate Timeseries Output: Emission Fuel Uses</display_name>
       <description>Generates timeseries emissions for each fuel type. Requires the appropriate HPXML inputs to be specified.</description>
       <type>Boolean</type>
       <required>false</required>
@@ -205,7 +509,7 @@
     <argument>
       <name>include_timeseries_total_loads</name>
       <display_name>Generate Timeseries Output: Total Loads</display_name>
-      <description>Generates timeseries total heating, cooling, and hot water loads.</description>
+      <description>Generates timeseries heating, cooling, and hot water loads.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -317,6 +621,25 @@
       </choices>
     </argument>
     <argument>
+      <name>include_timeseries_resilience</name>
+      <display_name>Generate Timeseries Output: Resilience</display_name>
+      <description>Generates timeseries resilience outputs.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>timeseries_timestamp_convention</name>
       <display_name>Generate Timeseries Output: Timestamp Convention</display_name>
       <description>Determines whether timeseries timestamps use the start-of-period or end-of-period convention. Doesn't apply if the output format is 'csv_dview'.</description>
@@ -334,6 +657,14 @@
           <display_name>end</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>timeseries_num_decimal_places</name>
+      <display_name>Generate Timeseries Output: Number of Decimal Places</display_name>
+      <description>Allows overriding the default number of decimal places for timeseries output.</description>
+      <type>Integer</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>add_timeseries_dst_column</name>
@@ -382,24 +713,6 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>generate_eri_outputs</name>
-      <display_name>Generate ERI Outputs</display_name>
-      <description>Optionally generate additional outputs needed for Energy Rating Index (ERI) calculations.</description>
-      <type>Boolean</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>annual_output_file_name</name>
       <display_name>Annual Output File Name</display_name>
       <description>If not provided, defaults to 'results_annual.csv' (or 'results_annual.json' or 'results_annual.msgpack').</description>
@@ -418,1080 +731,1157 @@
   </arguments>
   <outputs>
     <output>
-      <name>Energy Use: Total MBtu</name>
-      <display_name>Energy Use: Total MBtu</display_name>
-      <short_name>Energy Use: Total MBtu</short_name>
+      <name>energy_use_total_m_btu</name>
+      <display_name>energy_use_total_m_btu</display_name>
+      <short_name>energy_use_total_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Energy Use: Net MBtu</name>
-      <display_name>Energy Use: Net MBtu</display_name>
-      <short_name>Energy Use: Net MBtu</short_name>
+      <name>energy_use_net_m_btu</name>
+      <display_name>energy_use_net_m_btu</display_name>
+      <short_name>energy_use_net_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Fuel Use: Electricity: Total MBtu</name>
-      <display_name>Fuel Use: Electricity: Total MBtu</display_name>
-      <short_name>Fuel Use: Electricity: Total MBtu</short_name>
+      <name>fuel_use_electricity_total_m_btu</name>
+      <display_name>fuel_use_electricity_total_m_btu</display_name>
+      <short_name>fuel_use_electricity_total_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Fuel Use: Natural Gas: Total MBtu</name>
-      <display_name>Fuel Use: Natural Gas: Total MBtu</display_name>
-      <short_name>Fuel Use: Natural Gas: Total MBtu</short_name>
+      <name>fuel_use_natural_gas_total_m_btu</name>
+      <display_name>fuel_use_natural_gas_total_m_btu</display_name>
+      <short_name>fuel_use_natural_gas_total_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Fuel Use: Fuel Oil: Total MBtu</name>
-      <display_name>Fuel Use: Fuel Oil: Total MBtu</display_name>
-      <short_name>Fuel Use: Fuel Oil: Total MBtu</short_name>
+      <name>fuel_use_fuel_oil_total_m_btu</name>
+      <display_name>fuel_use_fuel_oil_total_m_btu</display_name>
+      <short_name>fuel_use_fuel_oil_total_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Fuel Use: Propane: Total MBtu</name>
-      <display_name>Fuel Use: Propane: Total MBtu</display_name>
-      <short_name>Fuel Use: Propane: Total MBtu</short_name>
+      <name>fuel_use_propane_total_m_btu</name>
+      <display_name>fuel_use_propane_total_m_btu</display_name>
+      <short_name>fuel_use_propane_total_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Fuel Use: Wood Cord: Total MBtu</name>
-      <display_name>Fuel Use: Wood Cord: Total MBtu</display_name>
-      <short_name>Fuel Use: Wood Cord: Total MBtu</short_name>
+      <name>fuel_use_wood_cord_total_m_btu</name>
+      <display_name>fuel_use_wood_cord_total_m_btu</display_name>
+      <short_name>fuel_use_wood_cord_total_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Fuel Use: Wood Pellets: Total MBtu</name>
-      <display_name>Fuel Use: Wood Pellets: Total MBtu</display_name>
-      <short_name>Fuel Use: Wood Pellets: Total MBtu</short_name>
+      <name>fuel_use_wood_pellets_total_m_btu</name>
+      <display_name>fuel_use_wood_pellets_total_m_btu</display_name>
+      <short_name>fuel_use_wood_pellets_total_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Fuel Use: Coal: Total MBtu</name>
-      <display_name>Fuel Use: Coal: Total MBtu</display_name>
-      <short_name>Fuel Use: Coal: Total MBtu</short_name>
+      <name>fuel_use_coal_total_m_btu</name>
+      <display_name>fuel_use_coal_total_m_btu</display_name>
+      <short_name>fuel_use_coal_total_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Heating MBtu</name>
-      <display_name>End Use: Electricity: Heating MBtu</display_name>
-      <short_name>End Use: Electricity: Heating MBtu</short_name>
+      <name>end_use_electricity_heating_m_btu</name>
+      <display_name>end_use_electricity_heating_m_btu</display_name>
+      <short_name>end_use_electricity_heating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Heating Heat Pump Backup MBtu</name>
-      <display_name>End Use: Electricity: Heating Heat Pump Backup MBtu</display_name>
-      <short_name>End Use: Electricity: Heating Heat Pump Backup MBtu</short_name>
+      <name>end_use_electricity_heating_fans_pumps_m_btu</name>
+      <display_name>end_use_electricity_heating_fans_pumps_m_btu</display_name>
+      <short_name>end_use_electricity_heating_fans_pumps_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Heating Fans/Pumps MBtu</name>
-      <display_name>End Use: Electricity: Heating Fans/Pumps MBtu</display_name>
-      <short_name>End Use: Electricity: Heating Fans/Pumps MBtu</short_name>
+      <name>end_use_electricity_heating_heat_pump_backup_m_btu</name>
+      <display_name>end_use_electricity_heating_heat_pump_backup_m_btu</display_name>
+      <short_name>end_use_electricity_heating_heat_pump_backup_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Cooling MBtu</name>
-      <display_name>End Use: Electricity: Cooling MBtu</display_name>
-      <short_name>End Use: Electricity: Cooling MBtu</short_name>
+      <name>end_use_electricity_heating_heat_pump_backup_fans_pumps_m_btu</name>
+      <display_name>end_use_electricity_heating_heat_pump_backup_fans_pumps_m_btu</display_name>
+      <short_name>end_use_electricity_heating_heat_pump_backup_fans_pumps_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Cooling Fans/Pumps MBtu</name>
-      <display_name>End Use: Electricity: Cooling Fans/Pumps MBtu</display_name>
-      <short_name>End Use: Electricity: Cooling Fans/Pumps MBtu</short_name>
+      <name>end_use_electricity_cooling_m_btu</name>
+      <display_name>end_use_electricity_cooling_m_btu</display_name>
+      <short_name>end_use_electricity_cooling_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Hot Water MBtu</name>
-      <display_name>End Use: Electricity: Hot Water MBtu</display_name>
-      <short_name>End Use: Electricity: Hot Water MBtu</short_name>
+      <name>end_use_electricity_cooling_fans_pumps_m_btu</name>
+      <display_name>end_use_electricity_cooling_fans_pumps_m_btu</display_name>
+      <short_name>end_use_electricity_cooling_fans_pumps_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Hot Water Recirc Pump MBtu</name>
-      <display_name>End Use: Electricity: Hot Water Recirc Pump MBtu</display_name>
-      <short_name>End Use: Electricity: Hot Water Recirc Pump MBtu</short_name>
+      <name>end_use_electricity_hot_water_m_btu</name>
+      <display_name>end_use_electricity_hot_water_m_btu</display_name>
+      <short_name>end_use_electricity_hot_water_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Hot Water Solar Thermal Pump MBtu</name>
-      <display_name>End Use: Electricity: Hot Water Solar Thermal Pump MBtu</display_name>
-      <short_name>End Use: Electricity: Hot Water Solar Thermal Pump MBtu</short_name>
+      <name>end_use_electricity_hot_water_recirc_pump_m_btu</name>
+      <display_name>end_use_electricity_hot_water_recirc_pump_m_btu</display_name>
+      <short_name>end_use_electricity_hot_water_recirc_pump_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Lighting Interior MBtu</name>
-      <display_name>End Use: Electricity: Lighting Interior MBtu</display_name>
-      <short_name>End Use: Electricity: Lighting Interior MBtu</short_name>
+      <name>end_use_electricity_hot_water_solar_thermal_pump_m_btu</name>
+      <display_name>end_use_electricity_hot_water_solar_thermal_pump_m_btu</display_name>
+      <short_name>end_use_electricity_hot_water_solar_thermal_pump_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Lighting Garage MBtu</name>
-      <display_name>End Use: Electricity: Lighting Garage MBtu</display_name>
-      <short_name>End Use: Electricity: Lighting Garage MBtu</short_name>
+      <name>end_use_electricity_lighting_interior_m_btu</name>
+      <display_name>end_use_electricity_lighting_interior_m_btu</display_name>
+      <short_name>end_use_electricity_lighting_interior_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Lighting Exterior MBtu</name>
-      <display_name>End Use: Electricity: Lighting Exterior MBtu</display_name>
-      <short_name>End Use: Electricity: Lighting Exterior MBtu</short_name>
+      <name>end_use_electricity_lighting_garage_m_btu</name>
+      <display_name>end_use_electricity_lighting_garage_m_btu</display_name>
+      <short_name>end_use_electricity_lighting_garage_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Mech Vent MBtu</name>
-      <display_name>End Use: Electricity: Mech Vent MBtu</display_name>
-      <short_name>End Use: Electricity: Mech Vent MBtu</short_name>
+      <name>end_use_electricity_lighting_exterior_m_btu</name>
+      <display_name>end_use_electricity_lighting_exterior_m_btu</display_name>
+      <short_name>end_use_electricity_lighting_exterior_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Mech Vent Preheating MBtu</name>
-      <display_name>End Use: Electricity: Mech Vent Preheating MBtu</display_name>
-      <short_name>End Use: Electricity: Mech Vent Preheating MBtu</short_name>
+      <name>end_use_electricity_mech_vent_m_btu</name>
+      <display_name>end_use_electricity_mech_vent_m_btu</display_name>
+      <short_name>end_use_electricity_mech_vent_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Mech Vent Precooling MBtu</name>
-      <display_name>End Use: Electricity: Mech Vent Precooling MBtu</display_name>
-      <short_name>End Use: Electricity: Mech Vent Precooling MBtu</short_name>
+      <name>end_use_electricity_mech_vent_preheating_m_btu</name>
+      <display_name>end_use_electricity_mech_vent_preheating_m_btu</display_name>
+      <short_name>end_use_electricity_mech_vent_preheating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Whole House Fan MBtu</name>
-      <display_name>End Use: Electricity: Whole House Fan MBtu</display_name>
-      <short_name>End Use: Electricity: Whole House Fan MBtu</short_name>
+      <name>end_use_electricity_mech_vent_precooling_m_btu</name>
+      <display_name>end_use_electricity_mech_vent_precooling_m_btu</display_name>
+      <short_name>end_use_electricity_mech_vent_precooling_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Refrigerator MBtu</name>
-      <display_name>End Use: Electricity: Refrigerator MBtu</display_name>
-      <short_name>End Use: Electricity: Refrigerator MBtu</short_name>
+      <name>end_use_electricity_whole_house_fan_m_btu</name>
+      <display_name>end_use_electricity_whole_house_fan_m_btu</display_name>
+      <short_name>end_use_electricity_whole_house_fan_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Freezer MBtu</name>
-      <display_name>End Use: Electricity: Freezer MBtu</display_name>
-      <short_name>End Use: Electricity: Freezer MBtu</short_name>
+      <name>end_use_electricity_refrigerator_m_btu</name>
+      <display_name>end_use_electricity_refrigerator_m_btu</display_name>
+      <short_name>end_use_electricity_refrigerator_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Dehumidifier MBtu</name>
-      <display_name>End Use: Electricity: Dehumidifier MBtu</display_name>
-      <short_name>End Use: Electricity: Dehumidifier MBtu</short_name>
+      <name>end_use_electricity_freezer_m_btu</name>
+      <display_name>end_use_electricity_freezer_m_btu</display_name>
+      <short_name>end_use_electricity_freezer_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Dishwasher MBtu</name>
-      <display_name>End Use: Electricity: Dishwasher MBtu</display_name>
-      <short_name>End Use: Electricity: Dishwasher MBtu</short_name>
+      <name>end_use_electricity_dehumidifier_m_btu</name>
+      <display_name>end_use_electricity_dehumidifier_m_btu</display_name>
+      <short_name>end_use_electricity_dehumidifier_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Clothes Washer MBtu</name>
-      <display_name>End Use: Electricity: Clothes Washer MBtu</display_name>
-      <short_name>End Use: Electricity: Clothes Washer MBtu</short_name>
+      <name>end_use_electricity_dishwasher_m_btu</name>
+      <display_name>end_use_electricity_dishwasher_m_btu</display_name>
+      <short_name>end_use_electricity_dishwasher_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Clothes Dryer MBtu</name>
-      <display_name>End Use: Electricity: Clothes Dryer MBtu</display_name>
-      <short_name>End Use: Electricity: Clothes Dryer MBtu</short_name>
+      <name>end_use_electricity_clothes_washer_m_btu</name>
+      <display_name>end_use_electricity_clothes_washer_m_btu</display_name>
+      <short_name>end_use_electricity_clothes_washer_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Range/Oven MBtu</name>
-      <display_name>End Use: Electricity: Range/Oven MBtu</display_name>
-      <short_name>End Use: Electricity: Range/Oven MBtu</short_name>
+      <name>end_use_electricity_clothes_dryer_m_btu</name>
+      <display_name>end_use_electricity_clothes_dryer_m_btu</display_name>
+      <short_name>end_use_electricity_clothes_dryer_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Ceiling Fan MBtu</name>
-      <display_name>End Use: Electricity: Ceiling Fan MBtu</display_name>
-      <short_name>End Use: Electricity: Ceiling Fan MBtu</short_name>
+      <name>end_use_electricity_range_oven_m_btu</name>
+      <display_name>end_use_electricity_range_oven_m_btu</display_name>
+      <short_name>end_use_electricity_range_oven_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Television MBtu</name>
-      <display_name>End Use: Electricity: Television MBtu</display_name>
-      <short_name>End Use: Electricity: Television MBtu</short_name>
+      <name>end_use_electricity_ceiling_fan_m_btu</name>
+      <display_name>end_use_electricity_ceiling_fan_m_btu</display_name>
+      <short_name>end_use_electricity_ceiling_fan_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Plug Loads MBtu</name>
-      <display_name>End Use: Electricity: Plug Loads MBtu</display_name>
-      <short_name>End Use: Electricity: Plug Loads MBtu</short_name>
+      <name>end_use_electricity_television_m_btu</name>
+      <display_name>end_use_electricity_television_m_btu</display_name>
+      <short_name>end_use_electricity_television_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Electric Vehicle Charging MBtu</name>
-      <display_name>End Use: Electricity: Electric Vehicle Charging MBtu</display_name>
-      <short_name>End Use: Electricity: Electric Vehicle Charging MBtu</short_name>
+      <name>end_use_electricity_plug_loads_m_btu</name>
+      <display_name>end_use_electricity_plug_loads_m_btu</display_name>
+      <short_name>end_use_electricity_plug_loads_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Well Pump MBtu</name>
-      <display_name>End Use: Electricity: Well Pump MBtu</display_name>
-      <short_name>End Use: Electricity: Well Pump MBtu</short_name>
+      <name>end_use_electricity_electric_vehicle_charging_m_btu</name>
+      <display_name>end_use_electricity_electric_vehicle_charging_m_btu</display_name>
+      <short_name>end_use_electricity_electric_vehicle_charging_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Pool Heater MBtu</name>
-      <display_name>End Use: Electricity: Pool Heater MBtu</display_name>
-      <short_name>End Use: Electricity: Pool Heater MBtu</short_name>
+      <name>end_use_electricity_well_pump_m_btu</name>
+      <display_name>end_use_electricity_well_pump_m_btu</display_name>
+      <short_name>end_use_electricity_well_pump_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Pool Pump MBtu</name>
-      <display_name>End Use: Electricity: Pool Pump MBtu</display_name>
-      <short_name>End Use: Electricity: Pool Pump MBtu</short_name>
+      <name>end_use_electricity_pool_heater_m_btu</name>
+      <display_name>end_use_electricity_pool_heater_m_btu</display_name>
+      <short_name>end_use_electricity_pool_heater_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Hot Tub Heater MBtu</name>
-      <display_name>End Use: Electricity: Hot Tub Heater MBtu</display_name>
-      <short_name>End Use: Electricity: Hot Tub Heater MBtu</short_name>
+      <name>end_use_electricity_pool_pump_m_btu</name>
+      <display_name>end_use_electricity_pool_pump_m_btu</display_name>
+      <short_name>end_use_electricity_pool_pump_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Hot Tub Pump MBtu</name>
-      <display_name>End Use: Electricity: Hot Tub Pump MBtu</display_name>
-      <short_name>End Use: Electricity: Hot Tub Pump MBtu</short_name>
+      <name>end_use_electricity_permanent_spa_heater_m_btu</name>
+      <display_name>end_use_electricity_permanent_spa_heater_m_btu</display_name>
+      <short_name>end_use_electricity_permanent_spa_heater_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: PV MBtu</name>
-      <display_name>End Use: Electricity: PV MBtu</display_name>
-      <short_name>End Use: Electricity: PV MBtu</short_name>
+      <name>end_use_electricity_permanent_spa_pump_m_btu</name>
+      <display_name>end_use_electricity_permanent_spa_pump_m_btu</display_name>
+      <short_name>end_use_electricity_permanent_spa_pump_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Electricity: Generator MBtu</name>
-      <display_name>End Use: Electricity: Generator MBtu</display_name>
-      <short_name>End Use: Electricity: Generator MBtu</short_name>
+      <name>end_use_electricity_pv_m_btu</name>
+      <display_name>end_use_electricity_pv_m_btu</display_name>
+      <short_name>end_use_electricity_pv_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Natural Gas: Heating MBtu</name>
-      <display_name>End Use: Natural Gas: Heating MBtu</display_name>
-      <short_name>End Use: Natural Gas: Heating MBtu</short_name>
+      <name>end_use_electricity_generator_m_btu</name>
+      <display_name>end_use_electricity_generator_m_btu</display_name>
+      <short_name>end_use_electricity_generator_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Natural Gas: Heating Heat Pump Backup MBtu</name>
-      <display_name>End Use: Natural Gas: Heating Heat Pump Backup MBtu</display_name>
-      <short_name>End Use: Natural Gas: Heating Heat Pump Backup MBtu</short_name>
+      <name>end_use_electricity_battery_m_btu</name>
+      <display_name>end_use_electricity_battery_m_btu</display_name>
+      <short_name>end_use_electricity_battery_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Natural Gas: Hot Water MBtu</name>
-      <display_name>End Use: Natural Gas: Hot Water MBtu</display_name>
-      <short_name>End Use: Natural Gas: Hot Water MBtu</short_name>
+      <name>end_use_natural_gas_heating_m_btu</name>
+      <display_name>end_use_natural_gas_heating_m_btu</display_name>
+      <short_name>end_use_natural_gas_heating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Natural Gas: Clothes Dryer MBtu</name>
-      <display_name>End Use: Natural Gas: Clothes Dryer MBtu</display_name>
-      <short_name>End Use: Natural Gas: Clothes Dryer MBtu</short_name>
+      <name>end_use_natural_gas_heating_heat_pump_backup_m_btu</name>
+      <display_name>end_use_natural_gas_heating_heat_pump_backup_m_btu</display_name>
+      <short_name>end_use_natural_gas_heating_heat_pump_backup_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Natural Gas: Range/Oven MBtu</name>
-      <display_name>End Use: Natural Gas: Range/Oven MBtu</display_name>
-      <short_name>End Use: Natural Gas: Range/Oven MBtu</short_name>
+      <name>end_use_natural_gas_hot_water_m_btu</name>
+      <display_name>end_use_natural_gas_hot_water_m_btu</display_name>
+      <short_name>end_use_natural_gas_hot_water_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Natural Gas: Mech Vent Preheating MBtu</name>
-      <display_name>End Use: Natural Gas: Mech Vent Preheating MBtu</display_name>
-      <short_name>End Use: Natural Gas: Mech Vent Preheating MBtu</short_name>
+      <name>end_use_natural_gas_clothes_dryer_m_btu</name>
+      <display_name>end_use_natural_gas_clothes_dryer_m_btu</display_name>
+      <short_name>end_use_natural_gas_clothes_dryer_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Natural Gas: Pool Heater MBtu</name>
-      <display_name>End Use: Natural Gas: Pool Heater MBtu</display_name>
-      <short_name>End Use: Natural Gas: Pool Heater MBtu</short_name>
+      <name>end_use_natural_gas_range_oven_m_btu</name>
+      <display_name>end_use_natural_gas_range_oven_m_btu</display_name>
+      <short_name>end_use_natural_gas_range_oven_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Natural Gas: Hot Tub Heater MBtu</name>
-      <display_name>End Use: Natural Gas: Hot Tub Heater MBtu</display_name>
-      <short_name>End Use: Natural Gas: Hot Tub Heater MBtu</short_name>
+      <name>end_use_natural_gas_mech_vent_preheating_m_btu</name>
+      <display_name>end_use_natural_gas_mech_vent_preheating_m_btu</display_name>
+      <short_name>end_use_natural_gas_mech_vent_preheating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Natural Gas: Grill MBtu</name>
-      <display_name>End Use: Natural Gas: Grill MBtu</display_name>
-      <short_name>End Use: Natural Gas: Grill MBtu</short_name>
+      <name>end_use_natural_gas_pool_heater_m_btu</name>
+      <display_name>end_use_natural_gas_pool_heater_m_btu</display_name>
+      <short_name>end_use_natural_gas_pool_heater_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Natural Gas: Lighting MBtu</name>
-      <display_name>End Use: Natural Gas: Lighting MBtu</display_name>
-      <short_name>End Use: Natural Gas: Lighting MBtu</short_name>
+      <name>end_use_natural_gas_permanent_spa_heater_m_btu</name>
+      <display_name>end_use_natural_gas_permanent_spa_heater_m_btu</display_name>
+      <short_name>end_use_natural_gas_permanent_spa_heater_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Natural Gas: Fireplace MBtu</name>
-      <display_name>End Use: Natural Gas: Fireplace MBtu</display_name>
-      <short_name>End Use: Natural Gas: Fireplace MBtu</short_name>
+      <name>end_use_natural_gas_grill_m_btu</name>
+      <display_name>end_use_natural_gas_grill_m_btu</display_name>
+      <short_name>end_use_natural_gas_grill_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Natural Gas: Generator MBtu</name>
-      <display_name>End Use: Natural Gas: Generator MBtu</display_name>
-      <short_name>End Use: Natural Gas: Generator MBtu</short_name>
+      <name>end_use_natural_gas_lighting_m_btu</name>
+      <display_name>end_use_natural_gas_lighting_m_btu</display_name>
+      <short_name>end_use_natural_gas_lighting_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Fuel Oil: Heating MBtu</name>
-      <display_name>End Use: Fuel Oil: Heating MBtu</display_name>
-      <short_name>End Use: Fuel Oil: Heating MBtu</short_name>
+      <name>end_use_natural_gas_fireplace_m_btu</name>
+      <display_name>end_use_natural_gas_fireplace_m_btu</display_name>
+      <short_name>end_use_natural_gas_fireplace_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Fuel Oil: Heating Heat Pump Backup MBtu</name>
-      <display_name>End Use: Fuel Oil: Heating Heat Pump Backup MBtu</display_name>
-      <short_name>End Use: Fuel Oil: Heating Heat Pump Backup MBtu</short_name>
+      <name>end_use_natural_gas_generator_m_btu</name>
+      <display_name>end_use_natural_gas_generator_m_btu</display_name>
+      <short_name>end_use_natural_gas_generator_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Fuel Oil: Hot Water MBtu</name>
-      <display_name>End Use: Fuel Oil: Hot Water MBtu</display_name>
-      <short_name>End Use: Fuel Oil: Hot Water MBtu</short_name>
+      <name>end_use_fuel_oil_heating_m_btu</name>
+      <display_name>end_use_fuel_oil_heating_m_btu</display_name>
+      <short_name>end_use_fuel_oil_heating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Fuel Oil: Clothes Dryer MBtu</name>
-      <display_name>End Use: Fuel Oil: Clothes Dryer MBtu</display_name>
-      <short_name>End Use: Fuel Oil: Clothes Dryer MBtu</short_name>
+      <name>end_use_fuel_oil_heating_heat_pump_backup_m_btu</name>
+      <display_name>end_use_fuel_oil_heating_heat_pump_backup_m_btu</display_name>
+      <short_name>end_use_fuel_oil_heating_heat_pump_backup_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Fuel Oil: Range/Oven MBtu</name>
-      <display_name>End Use: Fuel Oil: Range/Oven MBtu</display_name>
-      <short_name>End Use: Fuel Oil: Range/Oven MBtu</short_name>
+      <name>end_use_fuel_oil_hot_water_m_btu</name>
+      <display_name>end_use_fuel_oil_hot_water_m_btu</display_name>
+      <short_name>end_use_fuel_oil_hot_water_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Fuel Oil: Mech Vent Preheating MBtu</name>
-      <display_name>End Use: Fuel Oil: Mech Vent Preheating MBtu</display_name>
-      <short_name>End Use: Fuel Oil: Mech Vent Preheating MBtu</short_name>
+      <name>end_use_fuel_oil_clothes_dryer_m_btu</name>
+      <display_name>end_use_fuel_oil_clothes_dryer_m_btu</display_name>
+      <short_name>end_use_fuel_oil_clothes_dryer_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Fuel Oil: Grill MBtu</name>
-      <display_name>End Use: Fuel Oil: Grill MBtu</display_name>
-      <short_name>End Use: Fuel Oil: Grill MBtu</short_name>
+      <name>end_use_fuel_oil_range_oven_m_btu</name>
+      <display_name>end_use_fuel_oil_range_oven_m_btu</display_name>
+      <short_name>end_use_fuel_oil_range_oven_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Fuel Oil: Lighting MBtu</name>
-      <display_name>End Use: Fuel Oil: Lighting MBtu</display_name>
-      <short_name>End Use: Fuel Oil: Lighting MBtu</short_name>
+      <name>end_use_fuel_oil_mech_vent_preheating_m_btu</name>
+      <display_name>end_use_fuel_oil_mech_vent_preheating_m_btu</display_name>
+      <short_name>end_use_fuel_oil_mech_vent_preheating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Fuel Oil: Fireplace MBtu</name>
-      <display_name>End Use: Fuel Oil: Fireplace MBtu</display_name>
-      <short_name>End Use: Fuel Oil: Fireplace MBtu</short_name>
+      <name>end_use_fuel_oil_grill_m_btu</name>
+      <display_name>end_use_fuel_oil_grill_m_btu</display_name>
+      <short_name>end_use_fuel_oil_grill_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Fuel Oil: Generator MBtu</name>
-      <display_name>End Use: Fuel Oil: Generator MBtu</display_name>
-      <short_name>End Use: Fuel Oil: Generator MBtu</short_name>
+      <name>end_use_fuel_oil_lighting_m_btu</name>
+      <display_name>end_use_fuel_oil_lighting_m_btu</display_name>
+      <short_name>end_use_fuel_oil_lighting_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Propane: Heating MBtu</name>
-      <display_name>End Use: Propane: Heating MBtu</display_name>
-      <short_name>End Use: Propane: Heating MBtu</short_name>
+      <name>end_use_fuel_oil_fireplace_m_btu</name>
+      <display_name>end_use_fuel_oil_fireplace_m_btu</display_name>
+      <short_name>end_use_fuel_oil_fireplace_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Propane: Heating Heat Pump Backup MBtu</name>
-      <display_name>End Use: Propane: Heating Heat Pump Backup MBtu</display_name>
-      <short_name>End Use: Propane: Heating Heat Pump Backup MBtu</short_name>
+      <name>end_use_fuel_oil_generator_m_btu</name>
+      <display_name>end_use_fuel_oil_generator_m_btu</display_name>
+      <short_name>end_use_fuel_oil_generator_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Propane: Hot Water MBtu</name>
-      <display_name>End Use: Propane: Hot Water MBtu</display_name>
-      <short_name>End Use: Propane: Hot Water MBtu</short_name>
+      <name>end_use_propane_heating_m_btu</name>
+      <display_name>end_use_propane_heating_m_btu</display_name>
+      <short_name>end_use_propane_heating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Propane: Clothes Dryer MBtu</name>
-      <display_name>End Use: Propane: Clothes Dryer MBtu</display_name>
-      <short_name>End Use: Propane: Clothes Dryer MBtu</short_name>
+      <name>end_use_propane_heating_heat_pump_backup_m_btu</name>
+      <display_name>end_use_propane_heating_heat_pump_backup_m_btu</display_name>
+      <short_name>end_use_propane_heating_heat_pump_backup_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Propane: Range/Oven MBtu</name>
-      <display_name>End Use: Propane: Range/Oven MBtu</display_name>
-      <short_name>End Use: Propane: Range/Oven MBtu</short_name>
+      <name>end_use_propane_hot_water_m_btu</name>
+      <display_name>end_use_propane_hot_water_m_btu</display_name>
+      <short_name>end_use_propane_hot_water_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Propane: Mech Vent Preheating MBtu</name>
-      <display_name>End Use: Propane: Mech Vent Preheating MBtu</display_name>
-      <short_name>End Use: Propane: Mech Vent Preheating MBtu</short_name>
+      <name>end_use_propane_clothes_dryer_m_btu</name>
+      <display_name>end_use_propane_clothes_dryer_m_btu</display_name>
+      <short_name>end_use_propane_clothes_dryer_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Propane: Grill MBtu</name>
-      <display_name>End Use: Propane: Grill MBtu</display_name>
-      <short_name>End Use: Propane: Grill MBtu</short_name>
+      <name>end_use_propane_range_oven_m_btu</name>
+      <display_name>end_use_propane_range_oven_m_btu</display_name>
+      <short_name>end_use_propane_range_oven_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Propane: Lighting MBtu</name>
-      <display_name>End Use: Propane: Lighting MBtu</display_name>
-      <short_name>End Use: Propane: Lighting MBtu</short_name>
+      <name>end_use_propane_mech_vent_preheating_m_btu</name>
+      <display_name>end_use_propane_mech_vent_preheating_m_btu</display_name>
+      <short_name>end_use_propane_mech_vent_preheating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Propane: Fireplace MBtu</name>
-      <display_name>End Use: Propane: Fireplace MBtu</display_name>
-      <short_name>End Use: Propane: Fireplace MBtu</short_name>
+      <name>end_use_propane_grill_m_btu</name>
+      <display_name>end_use_propane_grill_m_btu</display_name>
+      <short_name>end_use_propane_grill_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Propane: Generator MBtu</name>
-      <display_name>End Use: Propane: Generator MBtu</display_name>
-      <short_name>End Use: Propane: Generator MBtu</short_name>
+      <name>end_use_propane_lighting_m_btu</name>
+      <display_name>end_use_propane_lighting_m_btu</display_name>
+      <short_name>end_use_propane_lighting_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Cord: Heating MBtu</name>
-      <display_name>End Use: Wood Cord: Heating MBtu</display_name>
-      <short_name>End Use: Wood Cord: Heating MBtu</short_name>
+      <name>end_use_propane_fireplace_m_btu</name>
+      <display_name>end_use_propane_fireplace_m_btu</display_name>
+      <short_name>end_use_propane_fireplace_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Cord: Heating Heat Pump Backup MBtu</name>
-      <display_name>End Use: Wood Cord: Heating Heat Pump Backup MBtu</display_name>
-      <short_name>End Use: Wood Cord: Heating Heat Pump Backup MBtu</short_name>
+      <name>end_use_propane_generator_m_btu</name>
+      <display_name>end_use_propane_generator_m_btu</display_name>
+      <short_name>end_use_propane_generator_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Cord: Hot Water MBtu</name>
-      <display_name>End Use: Wood Cord: Hot Water MBtu</display_name>
-      <short_name>End Use: Wood Cord: Hot Water MBtu</short_name>
+      <name>end_use_wood_cord_heating_m_btu</name>
+      <display_name>end_use_wood_cord_heating_m_btu</display_name>
+      <short_name>end_use_wood_cord_heating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Cord: Clothes Dryer MBtu</name>
-      <display_name>End Use: Wood Cord: Clothes Dryer MBtu</display_name>
-      <short_name>End Use: Wood Cord: Clothes Dryer MBtu</short_name>
+      <name>end_use_wood_cord_heating_heat_pump_backup_m_btu</name>
+      <display_name>end_use_wood_cord_heating_heat_pump_backup_m_btu</display_name>
+      <short_name>end_use_wood_cord_heating_heat_pump_backup_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Cord: Range/Oven MBtu</name>
-      <display_name>End Use: Wood Cord: Range/Oven MBtu</display_name>
-      <short_name>End Use: Wood Cord: Range/Oven MBtu</short_name>
+      <name>end_use_wood_cord_hot_water_m_btu</name>
+      <display_name>end_use_wood_cord_hot_water_m_btu</display_name>
+      <short_name>end_use_wood_cord_hot_water_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Cord: Mech Vent Preheating MBtu</name>
-      <display_name>End Use: Wood Cord: Mech Vent Preheating MBtu</display_name>
-      <short_name>End Use: Wood Cord: Mech Vent Preheating MBtu</short_name>
+      <name>end_use_wood_cord_clothes_dryer_m_btu</name>
+      <display_name>end_use_wood_cord_clothes_dryer_m_btu</display_name>
+      <short_name>end_use_wood_cord_clothes_dryer_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Cord: Grill MBtu</name>
-      <display_name>End Use: Wood Cord: Grill MBtu</display_name>
-      <short_name>End Use: Wood Cord: Grill MBtu</short_name>
+      <name>end_use_wood_cord_range_oven_m_btu</name>
+      <display_name>end_use_wood_cord_range_oven_m_btu</display_name>
+      <short_name>end_use_wood_cord_range_oven_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Cord: Lighting MBtu</name>
-      <display_name>End Use: Wood Cord: Lighting MBtu</display_name>
-      <short_name>End Use: Wood Cord: Lighting MBtu</short_name>
+      <name>end_use_wood_cord_mech_vent_preheating_m_btu</name>
+      <display_name>end_use_wood_cord_mech_vent_preheating_m_btu</display_name>
+      <short_name>end_use_wood_cord_mech_vent_preheating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Cord: Fireplace MBtu</name>
-      <display_name>End Use: Wood Cord: Fireplace MBtu</display_name>
-      <short_name>End Use: Wood Cord: Fireplace MBtu</short_name>
+      <name>end_use_wood_cord_grill_m_btu</name>
+      <display_name>end_use_wood_cord_grill_m_btu</display_name>
+      <short_name>end_use_wood_cord_grill_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Cord: Generator MBtu</name>
-      <display_name>End Use: Wood Cord: Generator MBtu</display_name>
-      <short_name>End Use: Wood Cord: Generator MBtu</short_name>
+      <name>end_use_wood_cord_lighting_m_btu</name>
+      <display_name>end_use_wood_cord_lighting_m_btu</display_name>
+      <short_name>end_use_wood_cord_lighting_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Pellets: Heating MBtu</name>
-      <display_name>End Use: Wood Pellets: Heating MBtu</display_name>
-      <short_name>End Use: Wood Pellets: Heating MBtu</short_name>
+      <name>end_use_wood_cord_fireplace_m_btu</name>
+      <display_name>end_use_wood_cord_fireplace_m_btu</display_name>
+      <short_name>end_use_wood_cord_fireplace_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Pellets: Heating Heat Pump Backup MBtu</name>
-      <display_name>End Use: Wood Pellets: Heating Heat Pump Backup MBtu</display_name>
-      <short_name>End Use: Wood Pellets: Heating Heat Pump Backup MBtu</short_name>
+      <name>end_use_wood_cord_generator_m_btu</name>
+      <display_name>end_use_wood_cord_generator_m_btu</display_name>
+      <short_name>end_use_wood_cord_generator_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Pellets: Hot Water MBtu</name>
-      <display_name>End Use: Wood Pellets: Hot Water MBtu</display_name>
-      <short_name>End Use: Wood Pellets: Hot Water MBtu</short_name>
+      <name>end_use_wood_pellets_heating_m_btu</name>
+      <display_name>end_use_wood_pellets_heating_m_btu</display_name>
+      <short_name>end_use_wood_pellets_heating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Pellets: Clothes Dryer MBtu</name>
-      <display_name>End Use: Wood Pellets: Clothes Dryer MBtu</display_name>
-      <short_name>End Use: Wood Pellets: Clothes Dryer MBtu</short_name>
+      <name>end_use_wood_pellets_heating_heat_pump_backup_m_btu</name>
+      <display_name>end_use_wood_pellets_heating_heat_pump_backup_m_btu</display_name>
+      <short_name>end_use_wood_pellets_heating_heat_pump_backup_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Pellets: Range/Oven MBtu</name>
-      <display_name>End Use: Wood Pellets: Range/Oven MBtu</display_name>
-      <short_name>End Use: Wood Pellets: Range/Oven MBtu</short_name>
+      <name>end_use_wood_pellets_hot_water_m_btu</name>
+      <display_name>end_use_wood_pellets_hot_water_m_btu</display_name>
+      <short_name>end_use_wood_pellets_hot_water_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Pellets: Mech Vent Preheating MBtu</name>
-      <display_name>End Use: Wood Pellets: Mech Vent Preheating MBtu</display_name>
-      <short_name>End Use: Wood Pellets: Mech Vent Preheating MBtu</short_name>
+      <name>end_use_wood_pellets_clothes_dryer_m_btu</name>
+      <display_name>end_use_wood_pellets_clothes_dryer_m_btu</display_name>
+      <short_name>end_use_wood_pellets_clothes_dryer_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Pellets: Grill MBtu</name>
-      <display_name>End Use: Wood Pellets: Grill MBtu</display_name>
-      <short_name>End Use: Wood Pellets: Grill MBtu</short_name>
+      <name>end_use_wood_pellets_range_oven_m_btu</name>
+      <display_name>end_use_wood_pellets_range_oven_m_btu</display_name>
+      <short_name>end_use_wood_pellets_range_oven_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Pellets: Lighting MBtu</name>
-      <display_name>End Use: Wood Pellets: Lighting MBtu</display_name>
-      <short_name>End Use: Wood Pellets: Lighting MBtu</short_name>
+      <name>end_use_wood_pellets_mech_vent_preheating_m_btu</name>
+      <display_name>end_use_wood_pellets_mech_vent_preheating_m_btu</display_name>
+      <short_name>end_use_wood_pellets_mech_vent_preheating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Pellets: Fireplace MBtu</name>
-      <display_name>End Use: Wood Pellets: Fireplace MBtu</display_name>
-      <short_name>End Use: Wood Pellets: Fireplace MBtu</short_name>
+      <name>end_use_wood_pellets_grill_m_btu</name>
+      <display_name>end_use_wood_pellets_grill_m_btu</display_name>
+      <short_name>end_use_wood_pellets_grill_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Wood Pellets: Generator MBtu</name>
-      <display_name>End Use: Wood Pellets: Generator MBtu</display_name>
-      <short_name>End Use: Wood Pellets: Generator MBtu</short_name>
+      <name>end_use_wood_pellets_lighting_m_btu</name>
+      <display_name>end_use_wood_pellets_lighting_m_btu</display_name>
+      <short_name>end_use_wood_pellets_lighting_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Coal: Heating MBtu</name>
-      <display_name>End Use: Coal: Heating MBtu</display_name>
-      <short_name>End Use: Coal: Heating MBtu</short_name>
+      <name>end_use_wood_pellets_fireplace_m_btu</name>
+      <display_name>end_use_wood_pellets_fireplace_m_btu</display_name>
+      <short_name>end_use_wood_pellets_fireplace_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Coal: Heating Heat Pump Backup MBtu</name>
-      <display_name>End Use: Coal: Heating Heat Pump Backup MBtu</display_name>
-      <short_name>End Use: Coal: Heating Heat Pump Backup MBtu</short_name>
+      <name>end_use_wood_pellets_generator_m_btu</name>
+      <display_name>end_use_wood_pellets_generator_m_btu</display_name>
+      <short_name>end_use_wood_pellets_generator_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Coal: Hot Water MBtu</name>
-      <display_name>End Use: Coal: Hot Water MBtu</display_name>
-      <short_name>End Use: Coal: Hot Water MBtu</short_name>
+      <name>end_use_coal_heating_m_btu</name>
+      <display_name>end_use_coal_heating_m_btu</display_name>
+      <short_name>end_use_coal_heating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Coal: Clothes Dryer MBtu</name>
-      <display_name>End Use: Coal: Clothes Dryer MBtu</display_name>
-      <short_name>End Use: Coal: Clothes Dryer MBtu</short_name>
+      <name>end_use_coal_heating_heat_pump_backup_m_btu</name>
+      <display_name>end_use_coal_heating_heat_pump_backup_m_btu</display_name>
+      <short_name>end_use_coal_heating_heat_pump_backup_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Coal: Range/Oven MBtu</name>
-      <display_name>End Use: Coal: Range/Oven MBtu</display_name>
-      <short_name>End Use: Coal: Range/Oven MBtu</short_name>
+      <name>end_use_coal_hot_water_m_btu</name>
+      <display_name>end_use_coal_hot_water_m_btu</display_name>
+      <short_name>end_use_coal_hot_water_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Coal: Mech Vent Preheating MBtu</name>
-      <display_name>End Use: Coal: Mech Vent Preheating MBtu</display_name>
-      <short_name>End Use: Coal: Mech Vent Preheating MBtu</short_name>
+      <name>end_use_coal_clothes_dryer_m_btu</name>
+      <display_name>end_use_coal_clothes_dryer_m_btu</display_name>
+      <short_name>end_use_coal_clothes_dryer_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Coal: Grill MBtu</name>
-      <display_name>End Use: Coal: Grill MBtu</display_name>
-      <short_name>End Use: Coal: Grill MBtu</short_name>
+      <name>end_use_coal_range_oven_m_btu</name>
+      <display_name>end_use_coal_range_oven_m_btu</display_name>
+      <short_name>end_use_coal_range_oven_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Coal: Lighting MBtu</name>
-      <display_name>End Use: Coal: Lighting MBtu</display_name>
-      <short_name>End Use: Coal: Lighting MBtu</short_name>
+      <name>end_use_coal_mech_vent_preheating_m_btu</name>
+      <display_name>end_use_coal_mech_vent_preheating_m_btu</display_name>
+      <short_name>end_use_coal_mech_vent_preheating_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Coal: Fireplace MBtu</name>
-      <display_name>End Use: Coal: Fireplace MBtu</display_name>
-      <short_name>End Use: Coal: Fireplace MBtu</short_name>
+      <name>end_use_coal_grill_m_btu</name>
+      <display_name>end_use_coal_grill_m_btu</display_name>
+      <short_name>end_use_coal_grill_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>End Use: Coal: Generator MBtu</name>
-      <display_name>End Use: Coal: Generator MBtu</display_name>
-      <short_name>End Use: Coal: Generator MBtu</short_name>
+      <name>end_use_coal_lighting_m_btu</name>
+      <display_name>end_use_coal_lighting_m_btu</display_name>
+      <short_name>end_use_coal_lighting_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Load: Heating: Delivered MBtu</name>
-      <display_name>Load: Heating: Delivered MBtu</display_name>
-      <short_name>Load: Heating: Delivered MBtu</short_name>
+      <name>end_use_coal_fireplace_m_btu</name>
+      <display_name>end_use_coal_fireplace_m_btu</display_name>
+      <short_name>end_use_coal_fireplace_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Load: Cooling: Delivered MBtu</name>
-      <display_name>Load: Cooling: Delivered MBtu</display_name>
-      <short_name>Load: Cooling: Delivered MBtu</short_name>
+      <name>end_use_coal_generator_m_btu</name>
+      <display_name>end_use_coal_generator_m_btu</display_name>
+      <short_name>end_use_coal_generator_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Load: Hot Water: Delivered MBtu</name>
-      <display_name>Load: Hot Water: Delivered MBtu</display_name>
-      <short_name>Load: Hot Water: Delivered MBtu</short_name>
+      <name>load_heating_delivered_m_btu</name>
+      <display_name>load_heating_delivered_m_btu</display_name>
+      <short_name>load_heating_delivered_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Load: Hot Water: Tank Losses MBtu</name>
-      <display_name>Load: Hot Water: Tank Losses MBtu</display_name>
-      <short_name>Load: Hot Water: Tank Losses MBtu</short_name>
+      <name>load_heating_heat_pump_backup_m_btu</name>
+      <display_name>load_heating_heat_pump_backup_m_btu</display_name>
+      <short_name>load_heating_heat_pump_backup_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Load: Hot Water: Desuperheater MBtu</name>
-      <display_name>Load: Hot Water: Desuperheater MBtu</display_name>
-      <short_name>Load: Hot Water: Desuperheater MBtu</short_name>
+      <name>load_cooling_delivered_m_btu</name>
+      <display_name>load_cooling_delivered_m_btu</display_name>
+      <short_name>load_cooling_delivered_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Load: Hot Water: Solar Thermal MBtu</name>
-      <display_name>Load: Hot Water: Solar Thermal MBtu</display_name>
-      <short_name>Load: Hot Water: Solar Thermal MBtu</short_name>
+      <name>load_hot_water_delivered_m_btu</name>
+      <display_name>load_hot_water_delivered_m_btu</display_name>
+      <short_name>load_hot_water_delivered_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Unmet Hours: Heating hr</name>
-      <display_name>Unmet Hours: Heating hr</display_name>
-      <short_name>Unmet Hours: Heating hr</short_name>
+      <name>load_hot_water_tank_losses_m_btu</name>
+      <display_name>load_hot_water_tank_losses_m_btu</display_name>
+      <short_name>load_hot_water_tank_losses_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Unmet Hours: Cooling hr</name>
-      <display_name>Unmet Hours: Cooling hr</display_name>
-      <short_name>Unmet Hours: Cooling hr</short_name>
+      <name>load_hot_water_desuperheater_m_btu</name>
+      <display_name>load_hot_water_desuperheater_m_btu</display_name>
+      <short_name>load_hot_water_desuperheater_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Peak Electricity: Winter Total W</name>
-      <display_name>Peak Electricity: Winter Total W</display_name>
-      <short_name>Peak Electricity: Winter Total W</short_name>
+      <name>load_hot_water_solar_thermal_m_btu</name>
+      <display_name>load_hot_water_solar_thermal_m_btu</display_name>
+      <short_name>load_hot_water_solar_thermal_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Peak Electricity: Summer Total W</name>
-      <display_name>Peak Electricity: Summer Total W</display_name>
-      <short_name>Peak Electricity: Summer Total W</short_name>
+      <name>unmet_hours_heating_hr</name>
+      <display_name>unmet_hours_heating_hr</display_name>
+      <short_name>unmet_hours_heating_hr</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Peak Load: Heating: Delivered kBtu/hr</name>
-      <display_name>Peak Load: Heating: Delivered kBtu/hr</display_name>
-      <short_name>Peak Load: Heating: Delivered kBtu/hr</short_name>
+      <name>unmet_hours_cooling_hr</name>
+      <display_name>unmet_hours_cooling_hr</display_name>
+      <short_name>unmet_hours_cooling_hr</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Peak Load: Cooling: Delivered kBtu/hr</name>
-      <display_name>Peak Load: Cooling: Delivered kBtu/hr</display_name>
-      <short_name>Peak Load: Cooling: Delivered kBtu/hr</short_name>
+      <name>peak_electricity_winter_total_w</name>
+      <display_name>peak_electricity_winter_total_w</display_name>
+      <short_name>peak_electricity_winter_total_w</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Roofs MBtu</name>
-      <display_name>Component Load: Heating: Roofs MBtu</display_name>
-      <short_name>Component Load: Heating: Roofs MBtu</short_name>
+      <name>peak_electricity_summer_total_w</name>
+      <display_name>peak_electricity_summer_total_w</display_name>
+      <short_name>peak_electricity_summer_total_w</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Ceilings MBtu</name>
-      <display_name>Component Load: Heating: Ceilings MBtu</display_name>
-      <short_name>Component Load: Heating: Ceilings MBtu</short_name>
+      <name>peak_electricity_annual_total_w</name>
+      <display_name>peak_electricity_annual_total_w</display_name>
+      <short_name>peak_electricity_annual_total_w</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Walls MBtu</name>
-      <display_name>Component Load: Heating: Walls MBtu</display_name>
-      <short_name>Component Load: Heating: Walls MBtu</short_name>
+      <name>peak_load_heating_delivered_k_btu_hr</name>
+      <display_name>peak_load_heating_delivered_k_btu_hr</display_name>
+      <short_name>peak_load_heating_delivered_k_btu_hr</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Rim Joists MBtu</name>
-      <display_name>Component Load: Heating: Rim Joists MBtu</display_name>
-      <short_name>Component Load: Heating: Rim Joists MBtu</short_name>
+      <name>peak_load_cooling_delivered_k_btu_hr</name>
+      <display_name>peak_load_cooling_delivered_k_btu_hr</display_name>
+      <short_name>peak_load_cooling_delivered_k_btu_hr</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Foundation Walls MBtu</name>
-      <display_name>Component Load: Heating: Foundation Walls MBtu</display_name>
-      <short_name>Component Load: Heating: Foundation Walls MBtu</short_name>
+      <name>component_load_heating_roofs_m_btu</name>
+      <display_name>component_load_heating_roofs_m_btu</display_name>
+      <short_name>component_load_heating_roofs_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Doors MBtu</name>
-      <display_name>Component Load: Heating: Doors MBtu</display_name>
-      <short_name>Component Load: Heating: Doors MBtu</short_name>
+      <name>component_load_heating_ceilings_m_btu</name>
+      <display_name>component_load_heating_ceilings_m_btu</display_name>
+      <short_name>component_load_heating_ceilings_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Windows MBtu</name>
-      <display_name>Component Load: Heating: Windows MBtu</display_name>
-      <short_name>Component Load: Heating: Windows MBtu</short_name>
+      <name>component_load_heating_walls_m_btu</name>
+      <display_name>component_load_heating_walls_m_btu</display_name>
+      <short_name>component_load_heating_walls_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Skylights MBtu</name>
-      <display_name>Component Load: Heating: Skylights MBtu</display_name>
-      <short_name>Component Load: Heating: Skylights MBtu</short_name>
+      <name>component_load_heating_rim_joists_m_btu</name>
+      <display_name>component_load_heating_rim_joists_m_btu</display_name>
+      <short_name>component_load_heating_rim_joists_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Floors MBtu</name>
-      <display_name>Component Load: Heating: Floors MBtu</display_name>
-      <short_name>Component Load: Heating: Floors MBtu</short_name>
+      <name>component_load_heating_foundation_walls_m_btu</name>
+      <display_name>component_load_heating_foundation_walls_m_btu</display_name>
+      <short_name>component_load_heating_foundation_walls_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Slabs MBtu</name>
-      <display_name>Component Load: Heating: Slabs MBtu</display_name>
-      <short_name>Component Load: Heating: Slabs MBtu</short_name>
+      <name>component_load_heating_doors_m_btu</name>
+      <display_name>component_load_heating_doors_m_btu</display_name>
+      <short_name>component_load_heating_doors_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Internal Mass MBtu</name>
-      <display_name>Component Load: Heating: Internal Mass MBtu</display_name>
-      <short_name>Component Load: Heating: Internal Mass MBtu</short_name>
+      <name>component_load_heating_windows_conduction_m_btu</name>
+      <display_name>component_load_heating_windows_conduction_m_btu</display_name>
+      <short_name>component_load_heating_windows_conduction_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Infiltration MBtu</name>
-      <display_name>Component Load: Heating: Infiltration MBtu</display_name>
-      <short_name>Component Load: Heating: Infiltration MBtu</short_name>
+      <name>component_load_heating_windows_solar_m_btu</name>
+      <display_name>component_load_heating_windows_solar_m_btu</display_name>
+      <short_name>component_load_heating_windows_solar_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Natural Ventilation MBtu</name>
-      <display_name>Component Load: Heating: Natural Ventilation MBtu</display_name>
-      <short_name>Component Load: Heating: Natural Ventilation MBtu</short_name>
+      <name>component_load_heating_skylights_conduction_m_btu</name>
+      <display_name>component_load_heating_skylights_conduction_m_btu</display_name>
+      <short_name>component_load_heating_skylights_conduction_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Mechanical Ventilation MBtu</name>
-      <display_name>Component Load: Heating: Mechanical Ventilation MBtu</display_name>
-      <short_name>Component Load: Heating: Mechanical Ventilation MBtu</short_name>
+      <name>component_load_heating_skylights_solar_m_btu</name>
+      <display_name>component_load_heating_skylights_solar_m_btu</display_name>
+      <short_name>component_load_heating_skylights_solar_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Whole House Fan MBtu</name>
-      <display_name>Component Load: Heating: Whole House Fan MBtu</display_name>
-      <short_name>Component Load: Heating: Whole House Fan MBtu</short_name>
+      <name>component_load_heating_floors_m_btu</name>
+      <display_name>component_load_heating_floors_m_btu</display_name>
+      <short_name>component_load_heating_floors_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Ducts MBtu</name>
-      <display_name>Component Load: Heating: Ducts MBtu</display_name>
-      <short_name>Component Load: Heating: Ducts MBtu</short_name>
+      <name>component_load_heating_slabs_m_btu</name>
+      <display_name>component_load_heating_slabs_m_btu</display_name>
+      <short_name>component_load_heating_slabs_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Heating: Internal Gains MBtu</name>
-      <display_name>Component Load: Heating: Internal Gains MBtu</display_name>
-      <short_name>Component Load: Heating: Internal Gains MBtu</short_name>
+      <name>component_load_heating_internal_mass_m_btu</name>
+      <display_name>component_load_heating_internal_mass_m_btu</display_name>
+      <short_name>component_load_heating_internal_mass_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Roofs MBtu</name>
-      <display_name>Component Load: Cooling: Roofs MBtu</display_name>
-      <short_name>Component Load: Cooling: Roofs MBtu</short_name>
+      <name>component_load_heating_infiltration_m_btu</name>
+      <display_name>component_load_heating_infiltration_m_btu</display_name>
+      <short_name>component_load_heating_infiltration_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Ceilings MBtu</name>
-      <display_name>Component Load: Cooling: Ceilings MBtu</display_name>
-      <short_name>Component Load: Cooling: Ceilings MBtu</short_name>
+      <name>component_load_heating_natural_ventilation_m_btu</name>
+      <display_name>component_load_heating_natural_ventilation_m_btu</display_name>
+      <short_name>component_load_heating_natural_ventilation_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Walls MBtu</name>
-      <display_name>Component Load: Cooling: Walls MBtu</display_name>
-      <short_name>Component Load: Cooling: Walls MBtu</short_name>
+      <name>component_load_heating_mechanical_ventilation_m_btu</name>
+      <display_name>component_load_heating_mechanical_ventilation_m_btu</display_name>
+      <short_name>component_load_heating_mechanical_ventilation_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Rim Joists MBtu</name>
-      <display_name>Component Load: Cooling: Rim Joists MBtu</display_name>
-      <short_name>Component Load: Cooling: Rim Joists MBtu</short_name>
+      <name>component_load_heating_whole_house_fan_m_btu</name>
+      <display_name>component_load_heating_whole_house_fan_m_btu</display_name>
+      <short_name>component_load_heating_whole_house_fan_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Foundation Walls MBtu</name>
-      <display_name>Component Load: Cooling: Foundation Walls MBtu</display_name>
-      <short_name>Component Load: Cooling: Foundation Walls MBtu</short_name>
+      <name>component_load_heating_ducts_m_btu</name>
+      <display_name>component_load_heating_ducts_m_btu</display_name>
+      <short_name>component_load_heating_ducts_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Doors MBtu</name>
-      <display_name>Component Load: Cooling: Doors MBtu</display_name>
-      <short_name>Component Load: Cooling: Doors MBtu</short_name>
+      <name>component_load_heating_internal_gains_m_btu</name>
+      <display_name>component_load_heating_internal_gains_m_btu</display_name>
+      <short_name>component_load_heating_internal_gains_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Windows MBtu</name>
-      <display_name>Component Load: Cooling: Windows MBtu</display_name>
-      <short_name>Component Load: Cooling: Windows MBtu</short_name>
+      <name>component_load_heating_lighting_m_btu</name>
+      <display_name>component_load_heating_lighting_m_btu</display_name>
+      <short_name>component_load_heating_lighting_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Skylights MBtu</name>
-      <display_name>Component Load: Cooling: Skylights MBtu</display_name>
-      <short_name>Component Load: Cooling: Skylights MBtu</short_name>
+      <name>component_load_cooling_roofs_m_btu</name>
+      <display_name>component_load_cooling_roofs_m_btu</display_name>
+      <short_name>component_load_cooling_roofs_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Floors MBtu</name>
-      <display_name>Component Load: Cooling: Floors MBtu</display_name>
-      <short_name>Component Load: Cooling: Floors MBtu</short_name>
+      <name>component_load_cooling_ceilings_m_btu</name>
+      <display_name>component_load_cooling_ceilings_m_btu</display_name>
+      <short_name>component_load_cooling_ceilings_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Slabs MBtu</name>
-      <display_name>Component Load: Cooling: Slabs MBtu</display_name>
-      <short_name>Component Load: Cooling: Slabs MBtu</short_name>
+      <name>component_load_cooling_walls_m_btu</name>
+      <display_name>component_load_cooling_walls_m_btu</display_name>
+      <short_name>component_load_cooling_walls_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Internal Mass MBtu</name>
-      <display_name>Component Load: Cooling: Internal Mass MBtu</display_name>
-      <short_name>Component Load: Cooling: Internal Mass MBtu</short_name>
+      <name>component_load_cooling_rim_joists_m_btu</name>
+      <display_name>component_load_cooling_rim_joists_m_btu</display_name>
+      <short_name>component_load_cooling_rim_joists_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Infiltration MBtu</name>
-      <display_name>Component Load: Cooling: Infiltration MBtu</display_name>
-      <short_name>Component Load: Cooling: Infiltration MBtu</short_name>
+      <name>component_load_cooling_foundation_walls_m_btu</name>
+      <display_name>component_load_cooling_foundation_walls_m_btu</display_name>
+      <short_name>component_load_cooling_foundation_walls_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Natural Ventilation MBtu</name>
-      <display_name>Component Load: Cooling: Natural Ventilation MBtu</display_name>
-      <short_name>Component Load: Cooling: Natural Ventilation MBtu</short_name>
+      <name>component_load_cooling_doors_m_btu</name>
+      <display_name>component_load_cooling_doors_m_btu</display_name>
+      <short_name>component_load_cooling_doors_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Mechanical Ventilation MBtu</name>
-      <display_name>Component Load: Cooling: Mechanical Ventilation MBtu</display_name>
-      <short_name>Component Load: Cooling: Mechanical Ventilation MBtu</short_name>
+      <name>component_load_cooling_windows_conduction_m_btu</name>
+      <display_name>component_load_cooling_windows_conduction_m_btu</display_name>
+      <short_name>component_load_cooling_windows_conduction_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Whole House Fan MBtu</name>
-      <display_name>Component Load: Cooling: Whole House Fan MBtu</display_name>
-      <short_name>Component Load: Cooling: Whole House Fan MBtu</short_name>
+      <name>component_load_cooling_windows_solar_m_btu</name>
+      <display_name>component_load_cooling_windows_solar_m_btu</display_name>
+      <short_name>component_load_cooling_windows_solar_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Ducts MBtu</name>
-      <display_name>Component Load: Cooling: Ducts MBtu</display_name>
-      <short_name>Component Load: Cooling: Ducts MBtu</short_name>
+      <name>component_load_cooling_skylights_conduction_m_btu</name>
+      <display_name>component_load_cooling_skylights_conduction_m_btu</display_name>
+      <short_name>component_load_cooling_skylights_conduction_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Component Load: Cooling: Internal Gains MBtu</name>
-      <display_name>Component Load: Cooling: Internal Gains MBtu</display_name>
-      <short_name>Component Load: Cooling: Internal Gains MBtu</short_name>
+      <name>component_load_cooling_skylights_solar_m_btu</name>
+      <display_name>component_load_cooling_skylights_solar_m_btu</display_name>
+      <short_name>component_load_cooling_skylights_solar_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Hot Water: Clothes Washer gal</name>
-      <display_name>Hot Water: Clothes Washer gal</display_name>
-      <short_name>Hot Water: Clothes Washer gal</short_name>
+      <name>component_load_cooling_floors_m_btu</name>
+      <display_name>component_load_cooling_floors_m_btu</display_name>
+      <short_name>component_load_cooling_floors_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Hot Water: Dishwasher gal</name>
-      <display_name>Hot Water: Dishwasher gal</display_name>
-      <short_name>Hot Water: Dishwasher gal</short_name>
+      <name>component_load_cooling_slabs_m_btu</name>
+      <display_name>component_load_cooling_slabs_m_btu</display_name>
+      <short_name>component_load_cooling_slabs_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Hot Water: Fixtures gal</name>
-      <display_name>Hot Water: Fixtures gal</display_name>
-      <short_name>Hot Water: Fixtures gal</short_name>
+      <name>component_load_cooling_internal_mass_m_btu</name>
+      <display_name>component_load_cooling_internal_mass_m_btu</display_name>
+      <short_name>component_load_cooling_internal_mass_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>Hot Water: Distribution Waste gal</name>
-      <display_name>Hot Water: Distribution Waste gal</display_name>
-      <short_name>Hot Water: Distribution Waste gal</short_name>
+      <name>component_load_cooling_infiltration_m_btu</name>
+      <display_name>component_load_cooling_infiltration_m_btu</display_name>
+      <short_name>component_load_cooling_infiltration_m_btu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>component_load_cooling_natural_ventilation_m_btu</name>
+      <display_name>component_load_cooling_natural_ventilation_m_btu</display_name>
+      <short_name>component_load_cooling_natural_ventilation_m_btu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>component_load_cooling_mechanical_ventilation_m_btu</name>
+      <display_name>component_load_cooling_mechanical_ventilation_m_btu</display_name>
+      <short_name>component_load_cooling_mechanical_ventilation_m_btu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>component_load_cooling_whole_house_fan_m_btu</name>
+      <display_name>component_load_cooling_whole_house_fan_m_btu</display_name>
+      <short_name>component_load_cooling_whole_house_fan_m_btu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>component_load_cooling_ducts_m_btu</name>
+      <display_name>component_load_cooling_ducts_m_btu</display_name>
+      <short_name>component_load_cooling_ducts_m_btu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>component_load_cooling_internal_gains_m_btu</name>
+      <display_name>component_load_cooling_internal_gains_m_btu</display_name>
+      <short_name>component_load_cooling_internal_gains_m_btu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>component_load_cooling_lighting_m_btu</name>
+      <display_name>component_load_cooling_lighting_m_btu</display_name>
+      <short_name>component_load_cooling_lighting_m_btu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>hot_water_clothes_washer_gal</name>
+      <display_name>hot_water_clothes_washer_gal</display_name>
+      <short_name>hot_water_clothes_washer_gal</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>hot_water_dishwasher_gal</name>
+      <display_name>hot_water_dishwasher_gal</display_name>
+      <short_name>hot_water_dishwasher_gal</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>hot_water_fixtures_gal</name>
+      <display_name>hot_water_fixtures_gal</display_name>
+      <short_name>hot_water_fixtures_gal</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>hot_water_distribution_waste_gal</name>
+      <display_name>hot_water_distribution_waste_gal</display_name>
+      <short_name>hot_water_distribution_waste_gal</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>resilience_battery_hr</name>
+      <display_name>resilience_battery_hr</display_name>
+      <short_name>resilience_battery_hr</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
@@ -1519,10 +1909,16 @@
   </attributes>
   <files>
     <file>
-      <filename>output_report_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>3D8EBBC3</checksum>
+      <filename>README.md</filename>
+      <filetype>md</filetype>
+      <usage_type>readme</usage_type>
+      <checksum>CDB2D617</checksum>
+    </file>
+    <file>
+      <filename>README.md.erb</filename>
+      <filetype>erb</filetype>
+      <usage_type>readmeerb</usage_type>
+      <checksum>513F28E9</checksum>
     </file>
     <file>
       <version>
@@ -1533,7 +1929,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>DD9C14D3</checksum>
+      <checksum>877A9DB3</checksum>
+    </file>
+    <file>
+      <filename>test_report_sim_output.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>ACF6CED9</checksum>
     </file>
   </files>
 </measure>

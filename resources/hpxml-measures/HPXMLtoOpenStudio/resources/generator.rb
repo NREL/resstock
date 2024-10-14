@@ -1,18 +1,43 @@
 # frozen_string_literal: true
 
-class Generator
-  def self.apply(model, nbeds, generator)
+# Collection of methods related to generators.
+module Generator
+  # Adds any HPXML Generators to the OpenStudio model.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [nil]
+  def self.apply(model, hpxml_bldg)
+    hpxml_bldg.generators.each do |generator|
+      apply_generator(model, hpxml_bldg, generator)
+    end
+  end
+
+  # Adds the HPXML Generator to the OpenStudio model.
+  #
+  # Apply a on-site power generator to the model using OpenStudio GeneratorMicroTurbine and ElectricLoadCenterDistribution objects.
+  # The system may be shared, in which case annual consumption (kBtu) and output (kWh) are apportioned to the dwelling unit by total number of bedrooms served.
+  # A new ElectricLoadCenterDistribution object is created for each generator.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param generator [HPXML::Generator] Object that defines a single generator that provides on-site power
+  # @return [nil]
+  def self.apply_generator(model, hpxml_bldg, generator)
+    nbeds = hpxml_bldg.building_construction.number_of_bedrooms
+    unit_multiplier = hpxml_bldg.building_construction.number_of_units
     obj_name = generator.id
 
-    if not generator.is_shared_system
-      annual_consumption_kbtu = generator.annual_consumption_kbtu
-      annual_output_kwh = generator.annual_output_kwh
-    else
+    # Apply unit multiplier
+    annual_consumption_kbtu = generator.annual_consumption_kbtu * unit_multiplier
+    annual_output_kwh = generator.annual_output_kwh * unit_multiplier
+
+    if generator.is_shared_system
       # Apportion to single dwelling unit by # bedrooms
       fail if generator.number_of_bedrooms_served.to_f <= nbeds.to_f # EPvalidator.xml should prevent this
 
-      annual_consumption_kbtu = generator.annual_consumption_kbtu * nbeds.to_f / generator.number_of_bedrooms_served.to_f
-      annual_output_kwh = generator.annual_output_kwh * nbeds.to_f / generator.number_of_bedrooms_served.to_f
+      annual_consumption_kbtu = annual_consumption_kbtu * nbeds.to_f / generator.number_of_bedrooms_served.to_f
+      annual_output_kwh = annual_output_kwh * nbeds.to_f / generator.number_of_bedrooms_served.to_f
     end
 
     input_w = UnitConversions.convert(annual_consumption_kbtu, 'kBtu', 'Wh') / 8760.0
@@ -48,6 +73,10 @@ class Generator
     elcd.setElectricalBussType('AlternatingCurrent')
   end
 
+  # Create a cubic constant curve for electrical efficiency function of temperature and part load ratio.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @return [OpenStudio::Model::CurveCubic] OpenStudio CurveCubic object
   def self.create_curve_cubic_constant(model)
     constant_cubic = OpenStudio::Model::CurveCubic.new(model)
     constant_cubic.setName('ConstantCubic')
@@ -60,6 +89,10 @@ class Generator
     return constant_cubic
   end
 
+  # Create a biquadratic constant curve for electrical power function of temperature and elevation.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @return [OpenStudio::Model::CurveBiquadratic] OpenStudio CurveBiquadratic object
   def self.create_curve_biquadratic_constant(model)
     const_biquadratic = OpenStudio::Model::CurveBiquadratic.new(model)
     const_biquadratic.setName('ConstantBiquadratic')

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<HPXML xmlns='http://hpxmlonline.com/2019/10' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://hpxmlonline.com/2019/10' schemaVersion='4.0'>
+<HPXML xmlns='http://hpxmlonline.com/2023/09' schemaVersion='4.0'>
   <XMLTransactionHeaderInformation>
     <XMLType>HPXML</XMLType>
     <XMLGeneratedBy>tasks.rb</XMLGeneratedBy>
@@ -11,9 +11,6 @@
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
-      <AdditionalProperties>
-        <ParentHPXMLFile>base-enclosure-garage.xml</ParentHPXMLFile>
-      </AdditionalProperties>
       <UtilityBillScenarios>
         <UtilityBillScenario>
           <Name>Bills</Name>
@@ -44,9 +41,6 @@
             <Fuel>natural gas</Fuel>
           </FuelTypesAvailable>
         </Site>
-        <BuildingOccupancy>
-          <NumberofResidents>3.0</NumberofResidents>
-        </BuildingOccupancy>
         <BuildingConstruction>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
           <NumberofConditionedFloors>2.0</NumberofConditionedFloors>
@@ -120,7 +114,6 @@
             <SolarAbsorptance>0.7</SolarAbsorptance>
             <Emittance>0.92</Emittance>
             <Pitch>6.0</Pitch>
-            <RadiantBarrier>false</RadiantBarrier>
             <Insulation>
               <SystemIdentifier id='Roof1Insulation'/>
               <AssemblyEffectiveRValue>2.3</AssemblyEffectiveRValue>
@@ -162,7 +155,7 @@
           <Wall>
             <SystemIdentifier id='Wall2'/>
             <ExteriorAdjacentTo>outside</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
             <WallType>
               <WoodStud/>
             </WallType>
@@ -181,7 +174,7 @@
           <Wall>
             <SystemIdentifier id='Wall3'/>
             <ExteriorAdjacentTo>garage</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
             <WallType>
               <WoodStud/>
             </WallType>
@@ -259,7 +252,7 @@
           <Floor>
             <SystemIdentifier id='Floor2'/>
             <ExteriorAdjacentTo>attic - unvented</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
+            <InteriorAdjacentTo>conditioned space</InteriorAdjacentTo>
             <FloorOrCeiling>ceiling</FloorOrCeiling>
             <FloorType>
               <WoodFrame/>
@@ -281,7 +274,6 @@
             <Area>600.0</Area>
             <Thickness>4.0</Thickness>
             <ExposedPerimeter>70.0</ExposedPerimeter>
-            <DepthBelowGrade>0.0</DepthBelowGrade>
             <PerimeterInsulation>
               <SystemIdentifier id='Slab1PerimeterInsulation'/>
               <Layer>
@@ -518,8 +510,8 @@
             <ArrayAzimuth>180</ArrayAzimuth>
             <ArrayTilt>20.0</ArrayTilt>
             <MaxPowerOutput>4000.0</MaxPowerOutput>
-            <InverterEfficiency>0.96</InverterEfficiency>
             <SystemLossesFraction>0.14</SystemLossesFraction>
+            <AttachedToInverter idref='Inverter1'/>
           </PVSystem>
           <PVSystem>
             <SystemIdentifier id='PVSystem2'/>
@@ -529,9 +521,13 @@
             <ArrayAzimuth>90</ArrayAzimuth>
             <ArrayTilt>20.0</ArrayTilt>
             <MaxPowerOutput>1500.0</MaxPowerOutput>
-            <InverterEfficiency>0.96</InverterEfficiency>
             <SystemLossesFraction>0.14</SystemLossesFraction>
+            <AttachedToInverter idref='Inverter1'/>
           </PVSystem>
+          <Inverter>
+            <SystemIdentifier id='Inverter1'/>
+            <InverterEfficiency>0.96</InverterEfficiency>
+          </Inverter>
         </Photovoltaics>
         <Batteries>
           <Battery>
@@ -546,7 +542,7 @@
               <Units>kWh</Units>
               <Value>18.0</Value>
             </UsableCapacity>
-            <RatedPowerOutput>15000.0</RatedPowerOutput>
+            <RatedPowerOutput>6000.0</RatedPowerOutput>
           </Battery>
         </Batteries>
       </Systems>
@@ -584,7 +580,6 @@
           <SystemIdentifier id='Refrigerator1'/>
           <Location>garage</Location>
           <RatedAnnualkWh>650.0</RatedAnnualkWh>
-          <PrimaryIndicator>true</PrimaryIndicator>
         </Refrigerator>
         <CookingRange>
           <SystemIdentifier id='CookingRange1'/>
@@ -608,26 +603,26 @@
         </LightingGroup>
         <LightingGroup>
           <SystemIdentifier id='LightingGroup2'/>
-          <Location>exterior</Location>
-          <FractionofUnitsInLocation>0.4</FractionofUnitsInLocation>
-          <LightingType>
-            <CompactFluorescent/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup3'/>
-          <Location>garage</Location>
-          <FractionofUnitsInLocation>0.4</FractionofUnitsInLocation>
-          <LightingType>
-            <CompactFluorescent/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup4'/>
           <Location>interior</Location>
           <FractionofUnitsInLocation>0.1</FractionofUnitsInLocation>
           <LightingType>
             <FluorescentTube/>
+          </LightingType>
+        </LightingGroup>
+        <LightingGroup>
+          <SystemIdentifier id='LightingGroup3'/>
+          <Location>interior</Location>
+          <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
+          <LightingType>
+            <LightEmittingDiode/>
+          </LightingType>
+        </LightingGroup>
+        <LightingGroup>
+          <SystemIdentifier id='LightingGroup4'/>
+          <Location>exterior</Location>
+          <FractionofUnitsInLocation>0.4</FractionofUnitsInLocation>
+          <LightingType>
+            <CompactFluorescent/>
           </LightingType>
         </LightingGroup>
         <LightingGroup>
@@ -640,26 +635,26 @@
         </LightingGroup>
         <LightingGroup>
           <SystemIdentifier id='LightingGroup6'/>
-          <Location>garage</Location>
-          <FractionofUnitsInLocation>0.1</FractionofUnitsInLocation>
-          <LightingType>
-            <FluorescentTube/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup7'/>
-          <Location>interior</Location>
-          <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
-          <LightingType>
-            <LightEmittingDiode/>
-          </LightingType>
-        </LightingGroup>
-        <LightingGroup>
-          <SystemIdentifier id='LightingGroup8'/>
           <Location>exterior</Location>
           <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
           <LightingType>
             <LightEmittingDiode/>
+          </LightingType>
+        </LightingGroup>
+        <LightingGroup>
+          <SystemIdentifier id='LightingGroup7'/>
+          <Location>garage</Location>
+          <FractionofUnitsInLocation>0.4</FractionofUnitsInLocation>
+          <LightingType>
+            <CompactFluorescent/>
+          </LightingType>
+        </LightingGroup>
+        <LightingGroup>
+          <SystemIdentifier id='LightingGroup8'/>
+          <Location>garage</Location>
+          <FractionofUnitsInLocation>0.1</FractionofUnitsInLocation>
+          <LightingType>
+            <FluorescentTube/>
           </LightingType>
         </LightingGroup>
         <LightingGroup>

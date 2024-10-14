@@ -62,8 +62,7 @@ def expected_baseline_contents(testing)
     'existing.osw',
     'existing.xml',
     'in.osm',
-    'in.idf',
-    'schedules.csv'
+    'in.idf'
   ] if testing
   return contents
 end
@@ -87,7 +86,7 @@ def expected_timeseries_columns(testing)
   ]
   contents += [
     'Energy Use: Net',
-    'Zone People Occupant Count: Living Space'
+    'Zone People Occupant Count: Conditioned Space'
   ] if testing
   return contents
 end
@@ -155,28 +154,34 @@ def _test_nonzero_columns(results, upgrade = false)
   return result
 end
 
-def _test_baseline_contents(contents, testing = false)
+def _test_baseline_contents(actual_contents, testing = false)
   expected_contents = expected_baseline_contents(testing)
 
-  return true if (expected_contents - contents).empty?
+  expected_extras = expected_contents - actual_contents
+  return true if expected_extras.empty?
 
+  puts "Baseline Contents, expected - actual: #{expected_extras}"
   return false
 end
 
-def _test_upgrade_contents(contents, testing = false)
+def _test_upgrade_contents(actual_contents, testing = false)
   expected_contents = expected_baseline_contents(testing)
   expected_contents += expected_upgrade_contents if testing
 
-  return true if (expected_contents - contents).empty?
+  expected_extras = expected_contents - actual_contents
+  return true if expected_extras.empty?
 
+  puts "Upgrade Contents, expected - actual: #{expected_extras}"
   return false
 end
 
-def _test_timeseries_columns(timeseries, testing = false)
+def _test_timeseries_columns(actual_columns, testing = false)
   expected_columns = expected_timeseries_columns(testing)
 
-  return true if (expected_columns - timeseries).empty?
+  expected_extras = expected_columns - actual_columns
+  return true if expected_extras.empty?
 
+  puts "Timeseries Name, expected - actual: #{expected_extras}"
   return false
 end
 

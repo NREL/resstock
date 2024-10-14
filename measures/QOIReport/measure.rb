@@ -40,82 +40,10 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
   def seasons
     return {
-      Constants.SeasonHeating => [-1e9, 55],
-      Constants.SeasonCooling => [70, 1e9],
-      Constants.SeasonOverlap => [55, 70]
+      Constants::SeasonHeating => [-1e9, 55],
+      Constants::SeasonCooling => [70, 1e9],
+      Constants::SeasonOverlap => [55, 70]
     }
-  end
-
-  def peak_magnitude_use
-    output_names = ['peak_magnitude_use_kw']
-    return output_names
-  end
-
-  def peak_magnitude_timing
-    output_names = ['peak_magnitude_timing_hour']
-    return output_names
-  end
-
-  def average_daily_base_magnitude_by_season
-    output_names = []
-    seasons.keys.each do |season|
-      output_names << "average_minimum_daily_use_#{season.downcase}_kw"
-    end
-    return output_names
-  end
-
-  def average_daily_peak_magnitude_by_season
-    output_names = []
-    seasons.keys.each do |season|
-      output_names << "average_maximum_daily_use_#{season.downcase}_kw"
-    end
-    return output_names
-  end
-
-  def average_daily_peak_timing_by_season
-    output_names = []
-    seasons.keys.each do |season|
-      output_names << "average_maximum_daily_timing_#{season.downcase}_hour"
-    end
-    return output_names
-  end
-
-  def top_ten_daily_seasonal_peak_magnitude_by_season
-    output_names = []
-    seasons.keys.each do |season|
-      next if season == Constants.SeasonOverlap
-
-      output_names << "average_of_top_ten_highest_peaks_use_#{season.downcase}_kw"
-    end
-    return output_names
-  end
-
-  def top_ten_seasonal_timing_of_peak_by_season
-    output_names = []
-    seasons.keys.each do |season|
-      next if season == Constants.SeasonOverlap
-
-      output_names << "average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour"
-    end
-    return output_names
-  end
-
-  def outputs
-    output_names = []
-    output_names += peak_magnitude_use
-    output_names += peak_magnitude_timing
-    output_names += average_daily_base_magnitude_by_season
-    output_names += average_daily_peak_magnitude_by_season
-    output_names += average_daily_peak_timing_by_season
-    output_names += top_ten_daily_seasonal_peak_magnitude_by_season
-    output_names += top_ten_seasonal_timing_of_peak_by_season
-
-    result = OpenStudio::Measure::OSOutputVector.new
-    output_names.each do |output|
-      result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
-    end
-
-    return result
   end
 
   # define what happens when the measure is run
@@ -134,7 +62,8 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)
+    hpxml_defaults_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
+    output_dir = File.dirname(hpxml_defaults_path)
 
     # Initialize timeseries hash
     timeseries = { 'Temperature' => [],
@@ -164,10 +93,10 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Peak magnitude (1)
-    report_sim_output(runner, 'qoi_peak_magnitude_use_kw', use(timeseries, [-1e9, 1e9], 'max'), '', '')
+    report_sim_output(runner, 'qoi_hourly_peak_magnitude_use_kw', use(timeseries, [-1e9, 1e9], 'max'), '', '')
 
     # Timing of peak magnitude (1)
-    report_sim_output(runner, 'qoi_peak_magnitude_timing_hour', timing(timeseries, [-1e9, 1e9], 'max'), '', '')
+    report_sim_output(runner, 'qoi_hourly_peak_magnitude_timing_hour', timing(timeseries, [-1e9, 1e9], 'max'), '', '')
 
     # Average daily base magnitude (by season) (3)
     seasons.each do |season, temperature_range|
@@ -186,14 +115,14 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
     # Top 10 daily seasonal peak magnitude (2)
     seasons.each do |season, temperature_range|
-      next if season == Constants.SeasonOverlap
+      next if season == Constants::SeasonOverlap
 
       report_sim_output(runner, "qoi_average_of_top_ten_highest_peaks_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'max', 10), '', '')
     end
 
     # Top 10 seasonal timing of peak (2)
     seasons.each do |season, temperature_range|
-      next if season == Constants.SeasonOverlap
+      next if season == Constants::SeasonOverlap
 
       report_sim_output(runner, "qoi_average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max', 10), '', '')
     end

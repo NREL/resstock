@@ -3,14 +3,16 @@
 def download_epws
   require_relative 'resources/hpxml-measures/HPXMLtoOpenStudio/resources/util'
 
+  weather_dir = File.join(File.dirname(__FILE__), 'weather')
+  FileUtils.mkdir(weather_dir) if !File.exist?(weather_dir)
+
   require 'tempfile'
   tmpfile = Tempfile.new('epw')
 
-  UrlResolver.fetch('https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip', tmpfile)
+  UrlResolver.fetch('https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip', tmpfile)
 
   puts 'Extracting weather files...'
   require 'zip'
-  weather_dir = File.join(File.dirname(__FILE__), 'weather')
   Zip.on_exists_proc = true
   Zip::File.open(tmpfile.path.to_s) do |zip_file|
     zip_file.each do |f|
@@ -24,7 +26,7 @@ def download_epws
   exit!
 end
 
-command_list = [:update_measures, :integrity_check_national, :integrity_check_testing, :download_weather]
+command_list = [:update_measures, :update_resources, :integrity_check_national, :integrity_check_testing, :download_weather]
 
 def display_usage(command_list)
   puts "Usage: openstudio #{File.basename(__FILE__)} [COMMAND]\nCommands:\n  " + command_list.join("\n  ")
@@ -65,7 +67,6 @@ if ARGV[0].to_sym == :update_measures
           'Lint/UselessAssignment',
           'Style/AndOr',
           'Style/FrozenStringLiteralComment',
-          'Style/HashSyntax',
           'Style/Next',
           'Style/NilComparison',
           'Style/RedundantParentheses',
@@ -74,19 +75,32 @@ if ARGV[0].to_sym == :update_measures
           'Style/SelfAssignment',
           'Style/StringLiterals',
           'Style/StringLiteralsInInterpolation']
-  commands = ["\"require 'rubocop/rake_task'\"",
-              "\"RuboCop::RakeTask.new(:rubocop) do |t| t.options = ['--auto-correct', '--format', 'simple', '--only', '#{cops.join(',')}'] end\"",
+  commands = ["\"require 'rubocop/rake_task' \"",
+              "\"require 'stringio' \"",
+              "\"RuboCop::RakeTask.new(:rubocop) do |t| t.options = ['--autocorrect', '--format', 'simple', '--only', '#{cops.join(',')}'] end\"",
               '"Rake.application[:rubocop].invoke"']
   command = "#{OpenStudio.getOpenStudioCLI} -e #{commands.join(' -e ')}"
   puts 'Applying rubocop auto-correct to measures...'
   system(command)
 
   # Update measures XMLs
-  command = "#{OpenStudio.getOpenStudioCLI} measure -t '#{File.join(File.dirname(__FILE__), 'measures')}'"
   puts 'Updating measure.xmls...'
-  system(command, [:out, :err] => File::NULL)
+  Dir['measures/**/measure.xml'].each do |measure_xml|
+    measure_dir = File.dirname(measure_xml)
+    # Using classic to work around https://github.com/NREL/OpenStudio/issues/5045
+    command = "#{OpenStudio.getOpenStudioCLI} classic measure -u '#{measure_dir}'"
+    system(command, [:out, :err] => File::NULL)
+  end
 
   puts 'Done.'
+end
+
+if ARGV[0].to_sym == :update_resources
+  prefix = 'resources/hpxml-measures'
+  repository = 'https://github.com/NREL/OpenStudio-HPXML.git'
+  branch_or_tag = 'master'
+
+  system("git subtree pull --prefix #{prefix} #{repository} #{branch_or_tag} --squash")
 end
 
 if ARGV[0].to_sym == :integrity_check_national

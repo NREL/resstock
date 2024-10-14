@@ -20,7 +20,22 @@ ResStock Documentation
    :maxdepth: 2
    :caption: Contents:
    
-   tutorial/index
+   basic_tutorial/index
    advanced_tutorial/index
-   upgrade_scenario_config
-   outputs/index
+   workflow_inputs/index
+   workflow_outputs/index   
+
+Updates & Changelog
+===================
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Changes:
+
+   changelog/index
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`search`

@@ -5,7 +5,8 @@
 [![Documentation Status](https://readthedocs.org/projects/openstudio-hpxml/badge/?version=latest)](https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest)
 
 OpenStudio-HPXML allows running residential EnergyPlus simulations using an [HPXML file](https://hpxml.nrel.gov/) for the building description.
-A Schematron document (`HPXMLtoOpenStudio/resources/hpxml_schematron/EPvalidator.xml`) for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
+It is intended to be used by user interfaces or other automated software workflows that automatically produce the HPXML file.
+A [Schematron](http://schematron.com/) document for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
 
 OpenStudio-HPXML can accommodate a wide range of different building technologies and geometries.
 End-to-end simulations typically run in 3-10 seconds, depending on complexity, computer platform and speed, etc.
@@ -14,10 +15,23 @@ For more information on running simulations, generating HPXML files, etc., pleas
 
 ## Workflows
 
-A simple [run_simulation.rb script](https://github.com/NREL/OpenStudio-HPXML/blob/master/workflow/run_simulation.rb) is provided to run a residential EnergyPlus simulation from an HPXML file.
+A simple `run_simulation.rb` script is provided to run a residential EnergyPlus simulation from an HPXML file.
 See the [Usage Instructions](https://openstudio-hpxml.readthedocs.io/en/latest/usage_instructions.html) for documentation on running the workflow.
 
 Since [OpenStudio measures](http://nrel.github.io/OpenStudio-user-documentation/getting_started/about_measures/) are used for model generation, additional OpenStudio-based workflows and interfaces can instead be used if desired.
+
+## Capabilities
+
+OpenStudio-HPXML capabilities include:
+- Modeling individual dwelling units or whole multifamily buildings
+- Modeling a wide range of building technologies
+- HVAC design load calculations and equipment autosizing
+- Occupancy schedules (smooth or stochastic)
+- Utility bill calculations (flat, tiered, time-of-use, real-time pricing, etc.)
+- Emissions calculations (CO2e, etc.)
+- Annual and timeseries outputs (energy, loads, temperatures, etc.)
+- Optional HPXML inputs with transparent defaults
+- Schematron and XSD Schema input validation
 
 ## Measures
 
@@ -31,12 +45,14 @@ This repository contains several OpenStudio measures:
 ## Projects
 
 The OpenStudio-HPXML workflow is used by a number of other residential projects, including:
+- [BEopt](https://beopt.nrel.gov)
 - [Energy Rating Index (ERI)](https://github.com/NREL/OpenStudio-ERI)
 - [Home Energy Score](https://betterbuildingssolutioncenter.energy.gov/home-energy-score)
 - [ResStock](https://resstock.nrel.gov/)
 - [URBANopt](https://www.nrel.gov/buildings/urbanopt.html)
-- [BEopt](https://beopt.nrel.gov) (pending)
 - [Weatherization Assistant](https://weatherization.ornl.gov/softwaredescription/) (pending)
+
+It is also used by several private-sector software tools.
 
 ## License
 

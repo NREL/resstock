@@ -6,7 +6,12 @@ require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
 require_relative '../measure.rb'
 
-class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
+class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
+  def teardown
+    File.delete(File.join(File.dirname(__FILE__), 'results_annual.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_annual.csv')
+    File.delete(File.join(File.dirname(__FILE__), 'results_design_load_details.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_design_load_details.csv')
+  end
+
   def sample_files_dir
     return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
   end
@@ -14,10 +19,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_gas
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-gas.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -46,10 +51,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     ['base-dhw-tank-gas-uef.xml', 'base-dhw-tank-gas-uef-fhr.xml'].each do |hpxml_name|
       args_hash = {}
       args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, hpxml_name))
-      model, hpxml = _test_measure(args_hash)
+      model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
       # Get HPXML values
-      water_heating_system = hpxml.water_heating_systems[0]
+      water_heating_system = hpxml_bldg.water_heating_systems[0]
 
       # Expected value
       tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -78,10 +83,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_oil
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-oil.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -109,10 +114,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_wood
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-wood.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -140,10 +145,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_coal
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-coal.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -171,10 +176,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_electric
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -202,10 +207,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_electric_uef
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-elec-uef.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -233,10 +238,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tankless_electric
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tankless-electric.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(1.0, 'gal', 'm^3') # convert to actual volume
@@ -264,10 +269,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tankless_electric_uef
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tankless-electric-uef.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(1.0, 'gal', 'm^3') # convert to actual volume
@@ -295,10 +300,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tankless_gas_uef
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tankless-gas-uef.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(1.0, 'gal', 'm^3') # convert to actual volume
@@ -326,10 +331,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_outside
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-gas-outside.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -355,10 +360,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_dsh_1_speed
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-desuperheater.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -371,7 +376,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
 
     # Check water heater
     assert_equal(2, model.getWaterHeaterMixeds.size) # preheat tank + water heater
-    wh = model.getWaterHeaterMixeds.select { |wh| (not wh.name.get.include? 'storage tank') }[0]
+    wh = model.getWaterHeaterMixeds.find { |wh| (not wh.name.get.include? 'storage tank') }
     assert_equal(fuel, wh.heaterFuelType)
     assert_equal(loc, wh.ambientTemperatureThermalZone.get.name.get)
     assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
@@ -384,7 +389,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
 
     # Check desuperheater
     assert_equal(1, model.getCoilWaterHeatingDesuperheaters.size)
-    preheat_tank = model.getWaterHeaterMixeds.select { |wh| wh.name.get.include? 'storage tank' }[0]
+    preheat_tank = model.getWaterHeaterMixeds.find { |wh| wh.name.get.include? 'storage tank' }
     dsh_coil = model.getCoilWaterHeatingDesuperheaters[0]
     assert_equal(true, dsh_coil.heatingSource.get.to_CoilCoolingDXSingleSpeed.is_initialized)
     assert_equal(preheat_tank, dsh_coil.heatRejectionTarget.get.to_WaterHeaterMixed.get)
@@ -393,10 +398,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_dsh_var_speed
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-desuperheater-var-speed.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -409,7 +414,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
 
     # Check water heater
     assert_equal(2, model.getWaterHeaterMixeds.size) # preheat tank + water heater
-    wh = model.getWaterHeaterMixeds.select { |wh| (not wh.name.get.include? 'storage tank') }[0]
+    wh = model.getWaterHeaterMixeds.find { |wh| (not wh.name.get.include? 'storage tank') }
     assert_equal(fuel, wh.heaterFuelType)
     assert_equal(loc, wh.ambientTemperatureThermalZone.get.name.get)
     assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
@@ -422,7 +427,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
 
     # Check desuperheater
     assert_equal(1, model.getCoilWaterHeatingDesuperheaters.size)
-    preheat_tank = model.getWaterHeaterMixeds.select { |wh| wh.name.get.include? 'storage tank' }[0]
+    preheat_tank = model.getWaterHeaterMixeds.find { |wh| wh.name.get.include? 'storage tank' }
     dsh_coil = model.getCoilWaterHeatingDesuperheaters[0]
     assert_equal(true, dsh_coil.heatingSource.get.to_CoilCoolingDXMultiSpeed.is_initialized)
     assert_equal(preheat_tank, dsh_coil.heatRejectionTarget.get.to_WaterHeaterMixed.get)
@@ -431,10 +436,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_dsh_gshp
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-desuperheater-gshp.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -447,7 +452,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
 
     # Check water heater
     assert_equal(2, model.getWaterHeaterMixeds.size) # preheat tank + water heater
-    wh = model.getWaterHeaterMixeds.select { |wh| (not wh.name.get.include? 'storage tank') }[0]
+    wh = model.getWaterHeaterMixeds.find { |wh| (not wh.name.get.include? 'storage tank') }
     assert_equal(fuel, wh.heaterFuelType)
     assert_equal(loc, wh.ambientTemperatureThermalZone.get.name.get)
     assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
@@ -460,7 +465,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
 
     # Check desuperheater
     assert_equal(1, model.getCoilWaterHeatingDesuperheaters.size)
-    preheat_tank = model.getWaterHeaterMixeds.select { |wh| wh.name.get.include? 'storage tank' }[0]
+    preheat_tank = model.getWaterHeaterMixeds.find { |wh| wh.name.get.include? 'storage tank' }
     dsh_coil = model.getCoilWaterHeatingDesuperheaters[0]
     assert_equal(true, dsh_coil.heatingSource.get.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized)
     assert_equal(preheat_tank, dsh_coil.heatRejectionTarget.get.to_WaterHeaterMixed.get)
@@ -469,11 +474,11 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_solar_direct_evacuated_tube
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-solar-direct-evacuated-tube.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-    solar_thermal_system = hpxml.solar_thermal_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+    solar_thermal_system = hpxml_bldg.solar_thermal_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -488,9 +493,9 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     ther_eff = 1.0
     iam_coeff2 = 0.3023
     iam_coeff3 = -0.3057
-    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
+    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_rated_thermal_losses, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = 0.2271
-    storage_tank_height = 1.3755
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
     pump_power = 0.8 * solar_thermal_system.collector_area
 
@@ -519,7 +524,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     collector = model.getSolarCollectorFlatPlateWaters[0]
     collector_performance = collector.solarCollectorPerformance
     assert_in_epsilon(collector_area, collector_performance.grossArea, 0.001)
-    assert_in_epsilon(solar_thermal_system.collector_frta, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
+    assert_in_epsilon(solar_thermal_system.collector_rated_optical_efficiency, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
     assert_in_epsilon(collector_coeff_2, collector_performance.coefficient2ofEfficiencyEquation, 0.001)
     assert_in_epsilon(-iam_coeff2, collector_performance.coefficient2ofIncidentAngleModifier.get, 0.001)
     assert_in_epsilon(iam_coeff3, collector_performance.coefficient3ofIncidentAngleModifier.get, 0.001)
@@ -531,10 +536,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'Water')
+      assert_equal(plant_loop.fluidType, EPlus::FluidWater)
       loop = plant_loop
     end
-    pump = loop.supplyComponents.select { |comp| comp.to_PumpConstantSpeed.is_initialized }[0]
+    pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
     assert_equal(pump_power, pump.to_PumpConstantSpeed.get.ratedPowerConsumption.get)
     assert_equal(collector_attached_to_tank, true)
   end
@@ -542,11 +547,11 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_solar_direct_flat_plate
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-solar-direct-flat-plate.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-    solar_thermal_system = hpxml.solar_thermal_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+    solar_thermal_system = hpxml_bldg.solar_thermal_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -561,9 +566,9 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     ther_eff = 1.0
     iam_coeff2 = 0.1
     iam_coeff3 = 0
-    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
+    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_rated_thermal_losses, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = 0.2271
-    storage_tank_height = 1.3755
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
     pump_power = 0.8 * solar_thermal_system.collector_area
 
@@ -592,7 +597,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     collector = model.getSolarCollectorFlatPlateWaters[0]
     collector_performance = collector.solarCollectorPerformance
     assert_in_epsilon(collector_area, collector_performance.grossArea, 0.001)
-    assert_in_epsilon(solar_thermal_system.collector_frta, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
+    assert_in_epsilon(solar_thermal_system.collector_rated_optical_efficiency, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
     assert_in_epsilon(collector_coeff_2, collector_performance.coefficient2ofEfficiencyEquation, 0.001)
     assert_in_epsilon(-iam_coeff2, collector_performance.coefficient2ofIncidentAngleModifier.get, 0.001)
     assert_in_epsilon(iam_coeff3, collector_performance.coefficient3ofIncidentAngleModifier.get, 0.001)
@@ -604,10 +609,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'Water')
+      assert_equal(plant_loop.fluidType, EPlus::FluidWater)
       loop = plant_loop
     end
-    pump = loop.supplyComponents.select { |comp| comp.to_PumpConstantSpeed.is_initialized }[0]
+    pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
     assert_equal(pump_power, pump.to_PumpConstantSpeed.get.ratedPowerConsumption.get)
     assert_equal(collector_attached_to_tank, true)
   end
@@ -615,11 +620,11 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_solar_indirect_flat_plate
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-solar-indirect-flat-plate.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-    solar_thermal_system = hpxml.solar_thermal_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+    solar_thermal_system = hpxml_bldg.solar_thermal_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -634,9 +639,9 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     ther_eff = 1.0
     iam_coeff2 = 0.1
     iam_coeff3 = 0
-    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
+    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_rated_thermal_losses, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = UnitConversions.convert(solar_thermal_system.storage_volume, 'gal', 'm^3')
-    storage_tank_height = UnitConversions.convert(4.513, 'ft', 'm')
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = UnitConversions.convert(0.1, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     pump_power = 0.8 * solar_thermal_system.collector_area
 
@@ -665,7 +670,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     collector = model.getSolarCollectorFlatPlateWaters[0]
     collector_performance = collector.solarCollectorPerformance
     assert_in_epsilon(collector_area, collector_performance.grossArea, 0.001)
-    assert_in_epsilon(solar_thermal_system.collector_frta, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
+    assert_in_epsilon(solar_thermal_system.collector_rated_optical_efficiency, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
     assert_in_epsilon(collector_coeff_2, collector_performance.coefficient2ofEfficiencyEquation, 0.001)
     assert_in_epsilon(-iam_coeff2, collector_performance.coefficient2ofIncidentAngleModifier.get, 0.001)
     assert_in_epsilon(iam_coeff3, collector_performance.coefficient3ofIncidentAngleModifier.get, 0.001)
@@ -677,10 +682,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'PropyleneGlycol')
+      assert_equal(plant_loop.fluidType, EPlus::FluidPropyleneGlycol)
       loop = plant_loop
     end
-    pump = loop.supplyComponents.select { |comp| comp.to_PumpConstantSpeed.is_initialized }[0]
+    pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
     assert_equal(pump_power, pump.to_PumpConstantSpeed.get.ratedPowerConsumption.get)
     assert_equal(collector_attached_to_tank, true)
   end
@@ -688,11 +693,11 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_solar_thermosyphon_flat_plate
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-solar-thermosyphon-flat-plate.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-    solar_thermal_system = hpxml.solar_thermal_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+    solar_thermal_system = hpxml_bldg.solar_thermal_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -707,9 +712,9 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     ther_eff = 1.0
     iam_coeff2 = 0.1
     iam_coeff3 = 0
-    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
+    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_rated_thermal_losses, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = 0.2271
-    storage_tank_height = 1.3755
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
     pump_power = 0.0
 
@@ -738,7 +743,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     collector = model.getSolarCollectorFlatPlateWaters[0]
     collector_performance = collector.solarCollectorPerformance
     assert_in_epsilon(collector_area, collector_performance.grossArea, 0.001)
-    assert_in_epsilon(solar_thermal_system.collector_frta, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
+    assert_in_epsilon(solar_thermal_system.collector_rated_optical_efficiency, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
     assert_in_epsilon(collector_coeff_2, collector_performance.coefficient2ofEfficiencyEquation, 0.001)
     assert_in_epsilon(-iam_coeff2, collector_performance.coefficient2ofIncidentAngleModifier.get, 0.001)
     assert_in_epsilon(iam_coeff3, collector_performance.coefficient3ofIncidentAngleModifier.get, 0.001)
@@ -750,10 +755,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'Water')
+      assert_equal(plant_loop.fluidType, EPlus::FluidWater)
       loop = plant_loop
     end
-    pump = loop.supplyComponents.select { |comp| comp.to_PumpConstantSpeed.is_initialized }[0]
+    pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
     assert_equal(pump_power, pump.to_PumpConstantSpeed.get.ratedPowerConsumption.get)
     assert_equal(collector_attached_to_tank, true)
   end
@@ -761,11 +766,11 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_solar_direct_ics
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-solar-direct-ics.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-    solar_thermal_system = hpxml.solar_thermal_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+    solar_thermal_system = hpxml_bldg.solar_thermal_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -780,7 +785,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     collector_storage_volume = UnitConversions.convert(solar_thermal_system.storage_volume, 'gal', 'm^3')
     ther_eff = 1.0
     storage_tank_volume = 0.2271
-    storage_tank_height = 1.3755
+    storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
     pump_power = 0.8 * solar_thermal_system.collector_area
 
@@ -818,10 +823,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'Water')
+      assert_equal(plant_loop.fluidType, EPlus::FluidWater)
       loop = plant_loop
     end
-    pump = loop.supplyComponents.select { |comp| comp.to_PumpConstantSpeed.is_initialized }[0]
+    pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
     assert_equal(pump_power, pump.to_PumpConstantSpeed.get.ratedPowerConsumption.get)
     assert_equal(collector_attached_to_tank, true)
   end
@@ -829,10 +834,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_solar_fraction
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-solar-fraction.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -860,10 +865,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_indirect
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-indirect.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
@@ -896,10 +901,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_combi_tankless
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-combi-tankless.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(1, 'gal', 'm^3') # convert to actual volume
@@ -933,16 +938,15 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_heat_pump
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-heat-pump.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     u =  0.925
-    t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') - 9
     ther_eff = 1.0
     cop = 2.820
     tank_height = 1.598
@@ -960,7 +964,6 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     assert_in_epsilon(4500.0, wh.heater1Capacity.get, 0.001)
     assert_in_epsilon(4500.0, wh.heater2Capacity, 0.001)
     assert_in_epsilon(u, wh.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, 0.001)
-    assert_in_epsilon(t_set, wh.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get.value, 0.001)
     assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency, 0.001)
 
     # Check heat pump cooling coil cop
@@ -970,16 +973,15 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_heat_pump_uef
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-heat-pump-uef.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     u =  1.045
-    t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') - 9
     ther_eff = 1.0
     cop = 4.004
     tank_height = 1.0335
@@ -997,7 +999,6 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     assert_in_epsilon(4500.0, wh.heater1Capacity.get, 0.001)
     assert_in_epsilon(4500.0, wh.heater2Capacity, 0.001)
     assert_in_epsilon(u, wh.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, 0.001)
-    assert_in_epsilon(t_set, wh.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get.value, 0.001)
     assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency, 0.001)
 
     # Check heat pump cooling coil cop
@@ -1007,10 +1008,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_jacket
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-jacket-electric.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -1037,17 +1038,17 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
 
   def test_shared_water_heater
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-water-heater.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-mf-unit-shared-water-heater.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
     cap = UnitConversions.convert(water_heating_system.heating_capacity / 1000.0, 'kBtu/hr', 'W')
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
-    ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K') / water_heating_system.number_of_units_served
+    ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K') * hpxml_bldg.building_construction.number_of_bedrooms.to_f / water_heating_system.number_of_bedrooms_served
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
     ther_eff = 0.773
     loc = water_heating_system.location
@@ -1063,21 +1064,73 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     assert_in_epsilon(ua, wh.offCycleLossCoefficienttoAmbientTemperature.get, 0.001)
     assert_in_epsilon(t_set, wh.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value, 0.001)
     assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency.get, 0.001)
+
+    # zero bedroom
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-mf-unit-shared-water-heater-recirc-beds-0.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+
+    # Get HPXML values
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+
+    # Expected value
+    ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K') * 1.0 / water_heating_system.number_of_bedrooms_served
+
+    # Check water heater
+    assert_equal(1, model.getWaterHeaterMixeds.size)
+    wh = model.getWaterHeaterMixeds[0]
+    assert_in_epsilon(ua, wh.onCycleLossCoefficienttoAmbientTemperature.get, 0.001)
+    assert_in_epsilon(ua, wh.offCycleLossCoefficienttoAmbientTemperature.get, 0.001)
+  end
+
+  def test_shared_water_heater_heat_pump
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-mf-unit-shared-water-heater-heat-pump.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+
+    # Get HPXML values
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+
+    # Expected value
+    tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
+    fuel = EPlus.fuel_type(water_heating_system.fuel_type)
+    u =  0.1081
+    ther_eff = 1.0
+    cop = 2.820
+    tank_height = 2.3495
+
+    # Check water heater
+    assert_equal(1, model.getWaterHeaterHeatPumpWrappedCondensers.size)
+    assert_equal(1, model.getWaterHeaterStratifieds.size)
+    hpwh = model.getWaterHeaterHeatPumpWrappedCondensers[0]
+    wh = hpwh.tank.to_WaterHeaterStratified.get
+    coil = hpwh.dXCoil.to_CoilWaterHeatingAirToWaterHeatPumpWrapped.get
+    assert_equal(fuel, wh.heaterFuelType)
+    assert_equal('Schedule', wh.ambientTemperatureIndicator)
+    assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
+    assert_in_epsilon(tank_height, wh.tankHeight.get, 0.001)
+    assert_in_epsilon(4500.0, wh.heater1Capacity.get, 0.001)
+    assert_in_epsilon(4500.0, wh.heater2Capacity, 0.001)
+    assert_in_epsilon(u, wh.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, 0.001)
+    assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency, 0.001)
+
+    # Check heat pump cooling coil cop
+    assert_in_epsilon(cop, coil.ratedCOP, 0.001)
   end
 
   def test_shared_laundry_room
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
-    model, hpxml = _test_measure(args_hash)
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-mf-unit-shared-laundry-room.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
     cap = UnitConversions.convert(water_heating_system.heating_capacity / 1000.0, 'kBtu/hr', 'W')
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
-    ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K') / water_heating_system.number_of_units_served
+    ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K') * hpxml_bldg.building_construction.number_of_bedrooms.to_f / water_heating_system.number_of_bedrooms_served
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
     ther_eff = 0.773
     loc = water_heating_system.location
@@ -1098,16 +1151,15 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_heat_pump_operating_mode_heat_pump_only
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-heat-pump-operating-mode-heat-pump-only.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
     fuel = EPlus.fuel_type(water_heating_system.fuel_type)
     u =  1.045
-    t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') - 9
     ther_eff = 1.0
     cop = 4.004
     tank_height = 1.0335
@@ -1125,7 +1177,6 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     assert_in_epsilon(4500.0, wh.heater1Capacity.get, 0.001)
     assert_in_epsilon(4500.0, wh.heater2Capacity, 0.001)
     assert_in_epsilon(u, wh.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, 0.001)
-    assert_in_epsilon(t_set, wh.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get.value, 0.001)
     assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency, 0.001)
 
     # Check heat pump cooling coil cop
@@ -1135,10 +1186,10 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
   def test_tank_stratified
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-model-type-stratified.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
 
     # Expected value
     tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
@@ -1200,6 +1251,6 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
 
     File.delete(File.join(File.dirname(__FILE__), 'in.xml'))
 
-    return model, hpxml
+    return model, hpxml, hpxml.buildings[0]
   end
 end

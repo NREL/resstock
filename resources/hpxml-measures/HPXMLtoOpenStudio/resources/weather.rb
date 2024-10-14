@@ -1,191 +1,76 @@
 # frozen_string_literal: true
 
-class WeatherHeader
-  def initialize
-  end
-  ATTRS ||= [:City, :State, :Country, :DataSource, :Station, :Latitude, :Longitude, :Timezone, :Altitude, :LocalPressure, :RecordsPerHour]
-  attr_accessor(*ATTRS)
-end
-
-class WeatherData
-  def initialize
-  end
-  ATTRS ||= [:AnnualAvgDrybulb, :AnnualMinDrybulb, :AnnualMaxDrybulb, :CDD50F, :CDD65F, :HDD50F, :HDD65F, :AnnualAvgWindspeed, :MonthlyAvgDrybulbs, :GroundMonthlyTemps, :WSF, :MonthlyAvgDailyHighDrybulbs, :MonthlyAvgDailyLowDrybulbs]
-  attr_accessor(*ATTRS)
-end
-
-class WeatherDesign
-  def initialize
-  end
-  ATTRS ||= [:HeatingDrybulb, :HeatingWindspeed, :CoolingDrybulb, :CoolingWetbulb, :CoolingHumidityRatio, :CoolingWindspeed, :DailyTemperatureRange, :DehumidDrybulb, :DehumidHumidityRatio, :CoolingDirectNormal, :CoolingDiffuseHorizontal]
-  attr_accessor(*ATTRS)
-end
-
-class WeatherProcess
-  def initialize(model, runner, csv_path = nil)
+# Object that stores EnergyPlus weather information (either directly sourced from the EPW or
+# calculated based on the EPW data).
+class WeatherFile
+  # @param epw_path [String] Path to the EPW weather file
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param hpxml [HPXML] HPXML object
+  def initialize(epw_path:, runner:, hpxml: nil)
     @header = WeatherHeader.new
     @data = WeatherData.new
     @design = WeatherDesign.new
-
-    if not csv_path.nil?
-      load_from_csv(csv_path)
-      return
-    end
-
-    epw_path = get_epw_path(model)
 
     if not File.exist?(epw_path)
       fail "Cannot find weather file at #{epw_path}."
     end
 
-    epw_file = OpenStudio::EpwFile.new(epw_path, true)
-
-    process_epw(runner, epw_file)
-  end
-
-  def dump_to_csv(csv_path)
-    require 'csv'
-
-    def to_columns(data)
-      if not data.is_a? Array
-        return [data.class, data]
-      end
-
-      return [data.class] + data
-    end
-
-    results_out = []
-    WeatherHeader::ATTRS.each do |k|
-      results_out << ["WeatherHeader.#{k}"] + to_columns(@header.send(k))
-    end
-    WeatherData::ATTRS.each do |k|
-      results_out << ["WeatherData.#{k}"] + to_columns(@data.send(k))
-    end
-    WeatherDesign::ATTRS.each do |k|
-      results_out << ["WeatherDesign.#{k}"] + to_columns(@design.send(k))
-    end
-
-    CSV.open(csv_path, 'wb') { |csv| results_out.to_a.each { |elem| csv << elem } }
-  end
-
-  def load_from_csv(csv_path)
-    require 'csv'
-    csv_data = CSV.read(csv_path, headers: false)
-
-    def to_datatype(data, dataclass)
-      if dataclass == 'String'
-        return data[0].to_s
-      elsif dataclass == 'Float'
-        return data[0].to_f
-      elsif dataclass == 'Fixnum'
-        return data[0].to_i
-      elsif dataclass == 'Array'
-        return data.map(&:to_f)
-      end
-    end
-
-    csv_data.each do |data|
-      dataname = data[0].split('.')[1]
-      if data[0].start_with? 'WeatherHeader'
-        @header.send(dataname + '=', to_datatype(data[2..-1], data[1]))
-      elsif data[0].start_with? 'WeatherData'
-        @data.send(dataname + '=', to_datatype(data[2..-1], data[1]))
-      elsif data[0].start_with? 'WeatherDesign'
-        @design.send(dataname + '=', to_datatype(data[2..-1], data[1]))
-      end
-    end
+    process_epw(runner, epw_path, hpxml)
   end
 
   attr_accessor(:header, :data, :design)
 
   private
 
-  def get_epw_path(model)
-    if model.weatherFile.is_initialized
+  # Main method that processes the EPW file to extract any information we need.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param epw_path [String] Path to the EPW weather file
+  # @param hpxml [HPXML] HPXML object
+  # @return [nil]
+  def process_epw(runner, epw_path, hpxml)
+    epw_file = OpenStudio::EpwFile.new(epw_path, true)
 
-      wf = model.weatherFile.get
-      # Sometimes path is available, sometimes just url. Should be improved in OS 2.0.
-      if wf.path.is_initialized
-        epw_path = wf.path.get.to_s
-      else
-        epw_path = wf.url.to_s.sub('file:///', '').sub('file://', '').sub('file:', '')
-      end
-      if not File.exist? epw_path
-        epw_path = File.absolute_path(File.join(File.dirname(__FILE__), epw_path))
-      end
-      return epw_path
-    end
-
-    fail 'Model has not been assigned a weather file.'
-  end
-
-  def process_epw(runner, epw_file)
-    # Header info:
-    @header.City = epw_file.city
-    @header.State = epw_file.stateProvinceRegion
-    @header.Country = epw_file.country
-    @header.DataSource = epw_file.dataSource
-    @header.Station = epw_file.wmoNumber
-    @header.Latitude = epw_file.latitude
-    @header.Longitude = epw_file.longitude
-    @header.Timezone = epw_file.timeZone
-    @header.Altitude = UnitConversions.convert(epw_file.elevation, 'm', 'ft')
-    @header.LocalPressure = Math::exp(-0.0000368 * @header.Altitude) # atm
-    @header.RecordsPerHour = epw_file.recordsPerHour
-
-    epw_file_data = epw_file.data
-
-    epwHasDesignData = get_design_info_from_epw(epw_file)
+    get_header_info_from_epw(epw_file)
+    epw_has_design_data = get_design_info_from_epw(runner, epw_file)
 
     # Timeseries data:
     rowdata = []
     dailydbs = []
     dailyhighdbs = []
     dailylowdbs = []
-    epw_file_data.each_with_index do |epwdata, rownum|
+    monthdbs = []
+    epw_file.data.each_with_index do |epwdata, rownum|
       rowdict = {}
       rowdict['month'] = epwdata.month
       rowdict['day'] = epwdata.day
       rowdict['hour'] = epwdata.hour
-      if epwdata.dryBulbTemperature.is_initialized
+      begin
         rowdict['db'] = epwdata.dryBulbTemperature.get
-      else
+      rescue
         fail "Cannot retrieve dryBulbTemperature from the EPW for hour #{rownum + 1}."
       end
-      if epwdata.dewPointTemperature.is_initialized
-        rowdict['dp'] = epwdata.dewPointTemperature.get
-      else
-        fail "Cannot retrieve dewPointTemperature from the EPW for hour #{rownum + 1}."
-      end
-      if epwdata.relativeHumidity.is_initialized
+      begin
         rowdict['rh'] = epwdata.relativeHumidity.get / 100.0
-      else
+      rescue
         fail "Cannot retrieve relativeHumidity from the EPW for hour #{rownum + 1}."
       end
-      if epwdata.directNormalRadiation.is_initialized
-        rowdict['dirnormal'] = epwdata.directNormalRadiation.get # W/m^2
-      else
-        fail "Cannot retrieve directNormalRadiation from the EPW for hour #{rownum + 1}."
-      end
-      if epwdata.diffuseHorizontalRadiation.is_initialized
-        rowdict['diffhoriz'] = epwdata.diffuseHorizontalRadiation.get # W/m^2
-      else
-        fail "Cannot retrieve diffuseHorizontalRadiation from the EPW for hour #{rownum + 1}."
-      end
-      if epwdata.windSpeed.is_initialized
+      begin
         rowdict['ws'] = epwdata.windSpeed.get
-      else
+      rescue
         fail "Cannot retrieve windSpeed from the EPW for hour #{rownum + 1}."
       end
+      monthdbs << [] if rowdict['day'] == 1
+      monthdbs[rowdict['month'] - 1] << rowdict['db']
 
       rowdata << rowdict
 
-      next unless (rownum + 1) % (24 * @header.RecordsPerHour) == 0
+      next unless (rownum + 1) % (24 * header.RecordsPerHour) == 0
 
       db = []
-      maxdb = rowdata[rowdata.length - (24 * @header.RecordsPerHour)]['db']
-      mindb = rowdata[rowdata.length - (24 * @header.RecordsPerHour)]['db']
-      rowdata[rowdata.length - (24 * @header.RecordsPerHour)..-1].each do |x|
+      maxdb = rowdata[rowdata.length - (24 * header.RecordsPerHour)]['db']
+      mindb = rowdata[rowdata.length - (24 * header.RecordsPerHour)]['db']
+      rowdata[rowdata.length - (24 * header.RecordsPerHour)..-1].each do |x|
         if x['db'] > maxdb
           maxdb = x['db']
         end
@@ -195,86 +80,49 @@ class WeatherProcess
         db << x['db']
       end
 
-      dailydbs << db.sum(0.0) / (24.0 * @header.RecordsPerHour)
+      dailydbs << db.sum(0.0) / (24.0 * header.RecordsPerHour)
       dailyhighdbs << maxdb
       dailylowdbs << mindb
     end
 
-    calc_annual_drybulbs(rowdata)
-    calc_monthly_drybulbs(rowdata)
+    data.AnnualAvgDrybulb = UnitConversions.convert(rowdata.map { |x| x['db'] }.sum(0.0) / rowdata.length, 'C', 'F')
+    data.AnnualMinDrybulb = UnitConversions.convert(rowdata.map { |x| x['db'] }.min, 'C', 'F')
+    data.AnnualMaxDrybulb = UnitConversions.convert(rowdata.map { |x| x['db'] }.max, 'C', 'F')
+    data.MonthlyAvgDrybulbs = []
+    for i in 1..12
+      data.MonthlyAvgDrybulbs << UnitConversions.convert(monthdbs[i - 1].sum / monthdbs[i - 1].length, 'C', 'F')
+    end
+
     calc_heat_cool_degree_days(dailydbs)
     calc_avg_monthly_highs_lows(dailyhighdbs, dailylowdbs)
-    calc_avg_windspeed(rowdata)
-    calc_ground_temperatures
-    @data.WSF = calc_ashrae_622_wsf(rowdata)
+    calc_shallow_ground_temperatures()
+    calc_deep_ground_temperatures(hpxml)
+    calc_mains_temperatures(dailydbs.size)
+    data.WSF = calc_ashrae_622_wsf(rowdata)
 
-    if not epwHasDesignData
-      runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
-      calc_design_info(rowdata)
-      @design.DailyTemperatureRange = @data.MonthlyAvgDailyHighDrybulbs[7] - @data.MonthlyAvgDailyLowDrybulbs[7]
-    end
-
-    calc_design_solar_radiation(rowdata)
-  end
-
-  def calc_annual_drybulbs(hd)
-    # Calculates and stores annual average, minimum, and maximum drybulbs
-    db = []
-    mindict = hd[0]
-    maxdict = hd[0]
-    hd.each do |x|
-      if x['db'] > maxdict['db']
-        maxdict = x
-      end
-      if x['db'] < mindict['db']
-        mindict = x
-      end
-      db << x['db']
-    end
-
-    @data.AnnualAvgDrybulb = UnitConversions.convert(db.sum(0.0) / db.length, 'C', 'F')
-
-    # Peak temperatures:
-    @data.AnnualMinDrybulb = UnitConversions.convert(mindict['db'], 'C', 'F')
-    @data.AnnualMaxDrybulb = UnitConversions.convert(maxdict['db'], 'C', 'F')
-  end
-
-  def calc_monthly_drybulbs(hd)
-    # Calculates and stores monthly average drybulbs
-    @data.MonthlyAvgDrybulbs = []
-    for month in 1..12
-      y = []
-      hd.each do |x|
-        if x['month'] == month
-          y << x['db']
-        end
-      end
-      month_dbtotal = y.sum(0.0)
-      month_hours = y.length
-      @data.MonthlyAvgDrybulbs << UnitConversions.convert(month_dbtotal / month_hours, 'C', 'F')
+    if not epw_has_design_data
+      calc_design_info(runner, rowdata)
     end
   end
 
-  def calc_avg_windspeed(hd)
-    # Calculates and stores annual average windspeed
-    ws = []
-    hd.each do |x|
-      ws << x['ws']
-    end
-    avgws = ws.sum(0.0) / ws.length
-    @data.AnnualAvgWindspeed = avgws
-  end
-
+  # Calculates and stores heating/cooling degree days for different base temperatures.
+  #
+  # @param dailydbs [Array<Double>] Daily average drybulb temperatures (C)
+  # @return [nil]
   def calc_heat_cool_degree_days(dailydbs)
-    # Calculates and stores heating/cooling degree days
-    @data.HDD65F = calc_degree_days(dailydbs, 65, true)
-    @data.HDD50F = calc_degree_days(dailydbs, 50, true)
-    @data.CDD65F = calc_degree_days(dailydbs, 65, false)
-    @data.CDD50F = calc_degree_days(dailydbs, 50, false)
+    data.HDD65F = calc_degree_days(dailydbs, 65, true)
+    data.HDD50F = calc_degree_days(dailydbs, 50, true)
+    data.CDD65F = calc_degree_days(dailydbs, 65, false)
+    data.CDD50F = calc_degree_days(dailydbs, 50, false)
   end
 
+  # Calculates and returns degree days from a base temperature for either heating or cooling.
+  #
+  # @param dailydbs [Array<Double>] Daily average drybulb temperatures (C)
+  # @param base_temp_f [Double] Base drybulb temperature for the calculation (F)
+  # @param is_heating [Boolean] True if heating, false if cooling
+  # @return [Double] Degree days (deltaF)
   def calc_degree_days(daily_dbs, base_temp_f, is_heating)
-    # Calculates and returns degree days from a base temperature for either heating or cooling
     base_temp_c = UnitConversions.convert(base_temp_f, 'F', 'C')
 
     deg_days = []
@@ -296,20 +144,24 @@ class WeatherProcess
     end
 
     deg_days = deg_days.sum(0.0)
-    return 1.8 * deg_days
+    return UnitConversions.convert(deg_days, 'deltac', 'deltaf')
   end
 
+  # Calculates and stores avg daily highs and lows for each month.
+  #
+  # @param daily_high_dbs [Array<Double>] Daily maximum drybulb temperatures (C)
+  # @param daily_low_dbs [Array<Double>] Daily minimum drybulb temperatures (C)
+  # @return [nil]
   def calc_avg_monthly_highs_lows(daily_high_dbs, daily_low_dbs)
-    # Calculates and stores avg daily highs and lows for each month
-    @data.MonthlyAvgDailyHighDrybulbs = []
-    @data.MonthlyAvgDailyLowDrybulbs = []
+    data.MonthlyAvgDailyHighDrybulbs = []
+    data.MonthlyAvgDailyLowDrybulbs = []
 
     if daily_high_dbs.size == 365 # standard year
-      month_num_days = Constants.NumDaysInMonths(1999)
+      month_num_days = Calendar.num_days_in_months(1999)
     elsif daily_high_dbs.size == 366 # leap year
-      month_num_days = Constants.NumDaysInMonths(2000)
+      month_num_days = Calendar.num_days_in_months(2000)
     else
-      fail 'Unexpected number of days.'
+      fail "Unexpected number of days: #{daily_high_dbs.size}."
     end
 
     first_day = 0
@@ -320,64 +172,37 @@ class WeatherProcess
       end
       avg_high = daily_high_dbs[first_day, ndays].sum(0.0) / ndays.to_f
       avg_low = daily_low_dbs[first_day, ndays].sum(0.0) / ndays.to_f
-      @data.MonthlyAvgDailyHighDrybulbs << UnitConversions.convert(avg_high, 'C', 'F')
-      @data.MonthlyAvgDailyLowDrybulbs << UnitConversions.convert(avg_low, 'C', 'F')
+      data.MonthlyAvgDailyHighDrybulbs << UnitConversions.convert(avg_high, 'C', 'F')
+      data.MonthlyAvgDailyLowDrybulbs << UnitConversions.convert(avg_low, 'C', 'F')
     end
   end
 
-  def calc_design_solar_radiation(rowdata)
-    # Calculate cooling design day info, for roof surface sol air temperature, which is used for attic temperature calculation for Manual J/ASHRAE Std 152:
-    # Max summer direct normal solar radiation
-    # Diffuse horizontal solar radiation during hour with max direct normal
-    summer_rowdata = []
-    months = [6, 7, 8, 9]
-    for hr in 0..(rowdata.size - 1)
-      next if not months.include?(rowdata[hr]['month'])
-
-      summer_rowdata << rowdata[hr]
-    end
-
-    r_d = (1 + Math::cos(26.565052 * Math::PI / 180)) / 2 # Correct diffuse horizontal for tilt. Assume 6:12 roof pitch for this calculation.
-    max_solar_radiation_hour = summer_rowdata[0]
-    for hr in 1..(summer_rowdata.size - 1)
-      next if summer_rowdata[hr]['dirnormal'] + summer_rowdata[hr]['diffhoriz'] * r_d < max_solar_radiation_hour['dirnormal'] + max_solar_radiation_hour['diffhoriz'] * r_d
-
-      max_solar_radiation_hour = summer_rowdata[hr]
-    end
-
-    @design.CoolingDirectNormal = max_solar_radiation_hour['dirnormal']
-    @design.CoolingDiffuseHorizontal = max_solar_radiation_hour['diffhoriz']
-  end
-
+  # Calculates the ASHRAE 62.2 Weather and Shielding Factor (WSF) value per report
+  # LBNL-5795E "Infiltration as Ventilation: Weather-Induced Dilution" if the value is
+  # not available in the zipcode_weather_stations.csv resource file.
+  #
+  # @param rowdata [Array<Hash>] Weather data for each EPW record
+  # @return [Double] WSF value
   def calc_ashrae_622_wsf(rowdata)
-    require 'csv'
-    ashrae_csv = File.join(File.dirname(__FILE__), 'data', 'ashrae_622_wsf.csv')
-
-    wsf = nil
-    CSV.read(ashrae_csv, headers: false).each do |data|
-      next unless data[0] == @header.Station
-
-      wsf = Float(data[1]).round(2)
+    weather_data = HPXMLDefaults.lookup_weather_data_from_wmo(header.WMONumber)
+    if not weather_data.nil?
+      return Float(weather_data[:station_ashrae_622_wsf])
     end
-    return wsf unless wsf.nil?
-
-    # If not available in ashrae_622_wsf.csv...
-    # Calculates the wSF value per report LBNL-5795E "Infiltration as Ventilation: Weather-Induced Dilution"
 
     # Constants
-    c_d = 1.0       # unitless, discharge coefficient for ELA (at 4 Pa)
-    t_indoor = 22.0 # C, indoor setpoint year-round
-    n = 0.67        # unitless, pressure exponent
-    s = 0.7         # unitless, shelter class 4 for 1-story with flue, enhanced model
-    delta_p = 4.0   # Pa, pressure difference indoor-outdoor
-    u_min = 1.0     # m/s, minimum windspeed per hour
-    ela = 0.074     # m^2, effective leakage area (assumed)
-    cfa = 185.0     # m^2, conditioned floor area
-    h = 2.5         # m, single story height
-    g = 0.48        # unitless, wind speed multiplier for 1-story, enhanced model
-    c_s = 0.069     # (Pa/K)^n, stack coefficient, 1-story with flue, enhanced model
-    c_w = 0.142     # (Pa*s^2/m^2)^n, wind coefficient, bsmt slab 1-story with flue, enhanced model
-    roe = 1.2       # kg/m^3, air density (assumed at sea level)
+    c_d = 1.0       # discharge coefficient for ELA (at 4 Pa) (unitless)
+    t_indoor = 22.0 # indoor setpoint year-round (C)
+    n = 0.67        # pressure exponent (unitless)
+    s = 0.7         # shelter class 4 for 1-story with flue, enhanced model (unitless)
+    delta_p = 4.0   # pressure difference indoor-outdoor (Pa)
+    u_min = 1.0     # minimum windspeed per hour (m/s)
+    ela = 0.074     # effective leakage area (assumed) (m2)
+    cfa = 185.0     # conditioned floor area (m2)
+    h = 2.5         # single story height (m)
+    g = 0.48        # wind speed multiplier for 1-story, enhanced model (unitless)
+    c_s = 0.069     # stack coefficient, 1-story with flue, enhanced model ((Pa/K)^n)
+    c_w = 0.142     # wind coefficient, bsmt slab 1-story with flue, enhanced model ((Pa*s^2/m^2)^n)
+    roe = 1.2       # air density (assumed at sea level) (kg/m^3)
 
     c = c_d * ela * (2 / roe)**0.5 * delta_p**(0.5 - n) # m^3/(s*Pa^n), flow coefficient
 
@@ -398,89 +223,100 @@ class WeatherProcess
     return wsf.round(2)
   end
 
-  def get_design_info_from_epw(epw_file)
-    epw_design_conditions = epw_file.designConditions
-    epwHasDesignData = false
-    if epw_design_conditions.length > 0
-      epwHasDesignData = true
-      epw_design_conditions = epw_design_conditions[0]
-      @design.HeatingDrybulb = UnitConversions.convert(epw_design_conditions.heatingDryBulb99, 'C', 'F')
-      @design.HeatingWindspeed = epw_design_conditions.heatingColdestMonthWindSpeed1
-      @design.CoolingDrybulb = UnitConversions.convert(epw_design_conditions.coolingDryBulb1, 'C', 'F')
-      @design.CoolingWetbulb = UnitConversions.convert(epw_design_conditions.coolingMeanCoincidentWetBulb1, 'C', 'F')
-      @design.CoolingWindspeed = epw_design_conditions.coolingMeanCoincidentWindSpeed0pt4
-      @design.DailyTemperatureRange = UnitConversions.convert(epw_design_conditions.coolingDryBulbRange, 'K', 'R')
-      @design.DehumidDrybulb = UnitConversions.convert(epw_design_conditions.coolingDehumidificationMeanCoincidentDryBulb2, 'C', 'F')
-      dehum02per_dp = UnitConversions.convert(epw_design_conditions.coolingDehumidificationDewPoint2, 'C', 'F')
-      std_press = Psychrometrics.Pstd_fZ(@header.Altitude)
-      @design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, design.CoolingWetbulb, std_press)
-      @design.DehumidHumidityRatio = Psychrometrics.w_fT_Twb_P(dehum02per_dp, dehum02per_dp, std_press)
+  # Gets and stores various EPW header data.
+  #
+  # @param epw_file [OpenStudio::EpwFile] OpenStudio EpwFile object
+  # @return [nil]
+  def get_header_info_from_epw(epw_file)
+    header.City = epw_file.city
+    header.StateProvinceRegion = epw_file.stateProvinceRegion
+    header.Latitude = epw_file.latitude
+    header.Longitude = epw_file.longitude
+    header.Elevation = UnitConversions.convert(epw_file.elevation, 'm', 'ft')
+    header.TimeZone = epw_file.timeZone
+    header.WMONumber = epw_file.wmoNumber
+    if epw_file.daylightSavingStartDate.is_initialized
+      header.DSTStartDate = epw_file.daylightSavingStartDate.get
     end
-    return epwHasDesignData
+    if epw_file.daylightSavingEndDate.is_initialized
+      header.DSTEndDate = epw_file.daylightSavingEndDate.get
+    end
+    if epw_file.startDateActualYear.is_initialized
+      header.ActualYear = epw_file.startDateActualYear.get
+    end
+    header.RecordsPerHour = epw_file.recordsPerHour
+    header.NumRecords = epw_file.data.size
+
+    if header.RecordsPerHour != 1
+      fail "Unexpected records per hour: #{header.RecordsPerHour}."
+    end
   end
 
-  def calc_design_info(rowdata)
-    # Calculate design day info:
-    # - Heating 99% drybulb
-    # - Heating mean coincident windspeed
-    # - Cooling 99% drybulb
-    # - Cooling mean coincident windspeed
-    # - Cooling mean coincident wetbulb
-    # - Cooling mean coincident humidity ratio
+  # Stores design conditions from the EPW header if available. If there are multiple
+  # design conditions, retrieves the first one and issues a warning.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param epw_file [OpenStudio::EpwFile] OpenStudio EpwFile object
+  # @return [Boolean] True if the EPW file has design conditions in the header
+  def get_design_info_from_epw(runner, epw_file)
+    epw_design_conditions = epw_file.designConditions
+    if epw_design_conditions.length > 0
+      epw_design_condition = epw_design_conditions[0]
+      if epw_design_conditions.length > 1
+        runner.registerWarning("Multiple EPW design conditions found; the first one (#{epw_design_condition.titleOfDesignCondition}) will be used.")
+      end
+      design.HeatingDrybulb = UnitConversions.convert(epw_design_condition.heatingDryBulb99, 'C', 'F')
+      design.CoolingDrybulb = UnitConversions.convert(epw_design_condition.coolingDryBulb1, 'C', 'F')
+      design.DailyTemperatureRange = UnitConversions.convert(epw_design_condition.coolingDryBulbRange, 'deltaC', 'deltaF')
+      press_psi = Psychrometrics.Pstd_fZ(header.Elevation)
+      design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, UnitConversions.convert(epw_design_condition.coolingMeanCoincidentWetBulb1, 'C', 'F'), press_psi)
+      return true
+    end
+    return false
+  end
 
-    std_press = Psychrometrics.Pstd_fZ(@header.Altitude)
+  # Calculates and stores design conditions from the EPW data. This is a fallback for
+  # when the EPW header does not have design conditions.
+  #
+  # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
+  # @param rowdata [Array<Hash>] Weather data for each EPW record
+  # @return [nil]
+  def calc_design_info(runner, rowdata)
+    if not runner.nil?
+      runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
+    end
+
+    press_psi = Psychrometrics.Pstd_fZ(header.Elevation)
     annual_hd_sorted_by_db = rowdata.sort_by { |x| x['db'] }
-    annual_hd_sorted_by_dp = rowdata.sort_by { |x| x['dp'] }
 
-    # 1%/99%/2% values
-    heat99per_db = annual_hd_sorted_by_db[88 * @header.RecordsPerHour]['db']
-    cool01per_db = annual_hd_sorted_by_db[8673 * @header.RecordsPerHour]['db']
-    dehum02per_dp = annual_hd_sorted_by_dp[8584 * @header.RecordsPerHour]['dp']
+    # 1%/99% values
+    heat99per_db = annual_hd_sorted_by_db[88 * header.RecordsPerHour]['db']
+    cool01per_db = annual_hd_sorted_by_db[8673 * header.RecordsPerHour]['db']
 
     # Mean coincident values for cooling
-    cool_windspeed = []
     cool_wetbulb = []
     for i in 0..(annual_hd_sorted_by_db.size - 1)
       next unless (annual_hd_sorted_by_db[i]['db'] > cool01per_db - 0.5) && (annual_hd_sorted_by_db[i]['db'] < cool01per_db + 0.5)
 
-      cool_windspeed << annual_hd_sorted_by_db[i]['ws']
-      wb = Psychrometrics.Twb_fT_R_P(UnitConversions.convert(annual_hd_sorted_by_db[i]['db'], 'C', 'F'), annual_hd_sorted_by_db[i]['rh'], std_press)
+      wb = Psychrometrics.Twb_fT_R_P(runner, UnitConversions.convert(annual_hd_sorted_by_db[i]['db'], 'C', 'F'), annual_hd_sorted_by_db[i]['rh'], press_psi)
       cool_wetbulb << wb
     end
     cool_design_wb = cool_wetbulb.sum(0.0) / cool_wetbulb.size
 
-    # Mean coincident values for heating
-    heat_windspeed = []
-    for i in 0..(annual_hd_sorted_by_db.size - 1)
-      if (annual_hd_sorted_by_db[i]['db'] > heat99per_db - 0.5) && (annual_hd_sorted_by_db[i]['db'] < heat99per_db + 0.5)
-        heat_windspeed << annual_hd_sorted_by_db[i]['ws']
-      end
-    end
+    design.CoolingDrybulb = UnitConversions.convert(cool01per_db, 'C', 'F')
+    design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, cool_design_wb, press_psi)
 
-    # Mean coincident values for dehumidification
-    dehum_drybulb = []
-    for i in 0..(annual_hd_sorted_by_dp.size - 1)
-      if (annual_hd_sorted_by_dp[i]['dp'] > dehum02per_dp - 0.5) && (annual_hd_sorted_by_dp[i]['dp'] < dehum02per_dp + 0.5)
-        dehum_drybulb << annual_hd_sorted_by_dp[i]['db']
-      end
-    end
-    dehum_design_db = dehum_drybulb.sum(0.0) / dehum_drybulb.size
+    hottest_month_index = data.MonthlyAvgDrybulbs.each_with_index.max[1]
+    design.DailyTemperatureRange = data.MonthlyAvgDailyHighDrybulbs[hottest_month_index] - data.MonthlyAvgDailyLowDrybulbs[hottest_month_index]
 
-    @design.CoolingDrybulb = UnitConversions.convert(cool01per_db, 'C', 'F')
-    @design.CoolingWetbulb = cool_design_wb
-    @design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, design.CoolingWetbulb, std_press)
-    @design.CoolingWindspeed = cool_windspeed.sum(0.0) / cool_windspeed.size
-
-    @design.HeatingDrybulb = UnitConversions.convert(heat99per_db, 'C', 'F')
-    @design.HeatingWindspeed = heat_windspeed.sum(0.0) / heat_windspeed.size
-
-    @design.DehumidDrybulb = UnitConversions.convert(dehum_design_db, 'C', 'F')
-    @design.DehumidHumidityRatio = Psychrometrics.w_fT_Twb_P(UnitConversions.convert(dehum02per_dp, 'C', 'F'), UnitConversions.convert(dehum02per_dp, 'C', 'F'), std_press)
+    design.HeatingDrybulb = UnitConversions.convert(heat99per_db, 'C', 'F')
   end
 
-  def calc_ground_temperatures
-    # Return monthly ground temperatures.
-
+  # Calculates and stores shallow monthly/annual ground temperatures.
+  # This correlation is the same that is used in DOE-2's src\WTH.f file, subroutine GTEMP.
+  #
+  # @return [nil]
+  def calc_shallow_ground_temperatures()
     amon = [15.0, 46.0, 74.0, 95.0, 135.0, 166.0, 196.0, 227.0, 258.0, 288.0, 319.0, 349.0]
     po = 0.6
     dif = 0.025
@@ -488,46 +324,151 @@ class WeatherProcess
 
     beta = Math::sqrt(Math::PI / (p * dif)) * 10.0
     x = Math::exp(-beta)
-    x2 = x * x
     s = Math::sin(beta)
     c = Math::cos(beta)
-    y = (x2 - 2.0 * x * c + 1.0) / (2.0 * beta**2.0)
+    y = (x**2 - 2.0 * x * c + 1.0) / (2.0 * beta**2.0)
     gm = Math::sqrt(y)
     z = (1.0 - x * (c + s)) / (1.0 - x * (c - s))
     phi = Math::atan(z)
     bo = (data.MonthlyAvgDrybulbs.max - data.MonthlyAvgDrybulbs.min) * 0.5
 
-    @data.GroundMonthlyTemps = []
+    data.ShallowGroundMonthlyTemps = []
     for i in 0..11
       theta = amon[i] * 24.0
-      @data.GroundMonthlyTemps << UnitConversions.convert(data.AnnualAvgDrybulb - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0, 'R', 'F')
+      data.ShallowGroundMonthlyTemps << UnitConversions.convert(data.AnnualAvgDrybulb - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0, 'R', 'F')
+    end
+    data.ShallowGroundAnnualTemp = data.AnnualAvgDrybulb
+
+    if header.Latitude < 0
+      # Southern hemisphere
+      data.ShallowGroundMonthlyTemps.rotate!(6)
     end
   end
 
-  def self.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, latitude)
-    pi = Math::PI
-    deg_rad = pi / 180
-    mainsDailyTemps = Array.new(365, 0)
-    mainsMonthlyTemps = Array.new(12, 0)
-    mainsAvgTemp = 0
+  # Stores deep ground temperature data for Xing's model if there is a ground
+  # source heat pump in the building.
+  #
+  # @param hpxml [HPXML] HPXML object
+  # @return [nil]
+  def calc_deep_ground_temperatures(hpxml)
+    # Avoid this lookup/calculation if there's no GSHP since there is a (small) runtime penalty.
+    if !hpxml.nil?
+      has_gshp = false
+      hpxml.buildings.each do |hpxml_bldg|
+        has_gshp = true if hpxml_bldg.heat_pumps.select { |h| h.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
+      end
+      return if !has_gshp
+    end
 
-    tmains_ratio = 0.4 + 0.01 * (avgOAT - 44)
-    tmains_lag = 35 - (avgOAT - 44)
-    if latitude < 0
+    deep_ground_temperatures = File.join(File.dirname(__FILE__), 'data', 'Xing_okstate_0664D_13659_Table_A-3.csv')
+    if not File.exist?(deep_ground_temperatures)
+      fail 'Could not find Xing_okstate_0664D_13659_Table_A-3.csv'
+    end
+
+    require 'csv'
+    require 'matrix'
+
+    # Minimize distance to Station
+    v1 = Vector[header.Latitude, header.Longitude]
+    dist = 1 / Constants::Small
+    temperatures_amplitudes = nil
+    CSV.foreach(deep_ground_temperatures) do |row|
+      v2 = Vector[row[3].to_f, row[4].to_f]
+      new_dist = (v1 - v2).magnitude
+      if new_dist < dist
+        temperatures_amplitudes = row[5..9].map(&:to_f)
+        dist = new_dist
+      end
+    end
+
+    data.DeepGroundAnnualTemp = UnitConversions.convert(temperatures_amplitudes[0], 'C', 'F')
+    data.DeepGroundSurfTempAmp1 = UnitConversions.convert(temperatures_amplitudes[1], 'deltac', 'deltaf')
+    data.DeepGroundSurfTempAmp2 = UnitConversions.convert(temperatures_amplitudes[2], 'deltac', 'deltaf')
+    data.DeepGroundPhaseShiftTempAmp1 = temperatures_amplitudes[3] # days
+    data.DeepGroundPhaseShiftTempAmp2 = temperatures_amplitudes[4] # days
+  end
+
+  # Calculates and stores the mains water temperature using Burch & Christensen algorithm from
+  # "Towards Development of an Algorithm for Mains Water Temperature".
+  #
+  # @param n_days [Integer] Number of days (typically 365 or 366 if a leap year) in the EPW file
+  # @return [nil]
+  def calc_mains_temperatures(n_days)
+    deg_rad = Math::PI / 180
+
+    tmains_ratio = 0.4 + 0.01 * (data.AnnualAvgDrybulb - 44)
+    tmains_lag = 35 - (data.AnnualAvgDrybulb - 44)
+    if header.Latitude < 0
       sign = 1 # southern hemisphere
     else
       sign = -1
     end
 
+    maxDiffMonthlyAvgOAT = data.MonthlyAvgDrybulbs.max - data.MonthlyAvgDrybulbs.min
+
     # Calculate daily and annual
-    for d in 1..365
-      mainsDailyTemps[d - 1] = avgOAT + 6 + tmains_ratio * maxDiffMonthlyAvgOAT / 2 * Math.sin(deg_rad * (0.986 * (d - 15 - tmains_lag) + sign * 90))
-      mainsAvgTemp += mainsDailyTemps[d - 1] / 365.0
+    data.MainsDailyTemps = []
+    for d in 1..n_days
+      data.MainsDailyTemps << data.AnnualAvgDrybulb + 6 + tmains_ratio * maxDiffMonthlyAvgOAT / 2 * Math.sin(deg_rad * (0.986 * (d - 15 - tmains_lag) + sign * 90))
     end
+    data.MainsDailyTemps.map! { |temp| [32.0, temp].max } # ensure mains never gets below freezing. Algorithm will never provide water over boiling without a check
+    data.MainsAnnualTemp = data.MainsDailyTemps.sum / n_days
+
     # Calculate monthly
+    data.MainsMonthlyTemps = []
     for m in 1..12
-      mainsMonthlyTemps[m - 1] = avgOAT + 6 + tmains_ratio * maxDiffMonthlyAvgOAT / 2 * Math.sin(deg_rad * (0.986 * ((m * 30 - 15) - 15 - tmains_lag) + sign * 90))
+      data.MainsMonthlyTemps << data.AnnualAvgDrybulb + 6 + tmains_ratio * maxDiffMonthlyAvgOAT / 2 * Math.sin(deg_rad * (0.986 * ((m * 30 - 15) - 15 - tmains_lag) + sign * 90))
     end
-    return mainsAvgTemp, mainsMonthlyTemps, mainsDailyTemps
+    data.MainsMonthlyTemps.map! { |temp| [32.0, temp].max } # ensure mains never gets below freezing. Algorithm will never provide water over boiling without a check
   end
+end
+
+# WeatherFile child object with EPW header data
+class WeatherHeader
+  attr_accessor(:City,                # [String] Weather station name of city
+                :StateProvinceRegion, # [String] Weather station state or province
+                :Latitude,            # [Double] Weather station latitude (+/- degrees.minutes)
+                :Longitude,           # [Double] Weather station longitude (+/- degrees.minutes)
+                :Elevation,           # [Double] Weather station elevation (ft)
+                :TimeZone,            # [Double] Weather station time zone (GTM +/-)
+                :WMONumber,           # [String] Weather station World Meteorological Organization (WMO) number
+                :DSTStartDate,        # [OpenStudio::Date] Daylight Saving start date
+                :DSTEndDate,          # [OpenStudio::Date] Daylight Saving end date
+                :ActualYear,          # [Integer] Calendar year if an AMY (Actual Meteorological Year) weather file
+                :RecordsPerHour,      # [Integer] Number of EPW datapoints per hour (typically 1)
+                :NumRecords)          # [Integer] Number of EPW datapoints (typically 8760 or 8784 if a leap year)
+end
+
+# WeatherFile child object with data calculated based on 8760 hourly EPW data or other sources
+class WeatherData
+  attr_accessor(:AnnualAvgDrybulb,             # [Double] Annual average drybulb temperature (F)
+                :AnnualMinDrybulb,             # [Double] Annual minimum drybulb temperature (F)
+                :AnnualMaxDrybulb,             # [Double] Annual maximum drybulb temperature (F)
+                :CDD50F,                       # [Double] Cooling degree days using 50 F base temperature (F-days)
+                :CDD65F,                       # [Double] Cooling degree days using 65 F base temperature (F-days)
+                :HDD50F,                       # [Double] Heating degree days using 50 F base temperature (F-days)
+                :HDD65F,                       # [Double] Heating degree days using 65 F base temperature (F-days)
+                :MonthlyAvgDrybulbs,           # [Array<Double>] Monthly average drybulb temperatures (F)
+                :ShallowGroundAnnualTemp,      # [Double] Shallow ground annual average drybulb temperature (F)
+                :ShallowGroundMonthlyTemps,    # [Array<Double>] Shallow ground monthly average drybulb temperatures (F)
+                :DeepGroundAnnualTemp,         # [Double] Deep ground annual average drybulb temperature (F)
+                :DeepGroundSurfTempAmp1,       # [Double] First ground temperature amplitude parameter for Xing model (deltaF)
+                :DeepGroundSurfTempAmp2,       # [Double] Second ground temperature amplitude parameter for Xing model (deltaF)
+                :DeepGroundPhaseShiftTempAmp1, # [Double] First phase shift of surface temperature amplitude for Xing model (days)
+                :DeepGroundPhaseShiftTempAmp2, # [Double] Second phase shift of surface temperature amplitude for Xing model (days)
+                :WSF,                          # [Double] Weather and Shielding Factor (WSF) from ASHRAE 62.2
+                :MonthlyAvgDailyHighDrybulbs,  # [Array<Double>] Average daily high drybulb temperatures for each month (F)
+                :MonthlyAvgDailyLowDrybulbs,   # [Array<Double>] Average daily low drybulb temperatures for each month (F)
+                :MainsAnnualTemp,              # [Double] Annual average mains water temperature (F)
+                :MainsDailyTemps,              # [Array<Double>] Daily average mains water temperatures (F)
+                :MainsMonthlyTemps)            # [Array<Double>] Monthly average mains water temperatures (F)
+end
+
+# WeatherFile child object with EPW data related to design load calculations
+# Either taken directly directly from the EPW header or calculated based on the 8760 hourly data
+class WeatherDesign
+  attr_accessor(:HeatingDrybulb,        # [Double] 99% heating design drybulb temperature (F)
+                :CoolingDrybulb,        # [Double] 1% cooling design drybulb temperature (F)
+                :CoolingHumidityRatio,  # [Double] Humidity ratio corresponding to cooling mean coincident wetbulb temperature (lbm/lbm)
+                :DailyTemperatureRange) # [Double] Difference between daily high/low outdoor drybulb temperatures during the hottest month (deltaF)
 end

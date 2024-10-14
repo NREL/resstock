@@ -2,8 +2,9 @@
 
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative 'integrity_checks'
+require_relative '../resources/buildstock'
 
-class TestResStockErrors < MiniTest::Test
+class TestResStockErrors < Minitest::Test
   def before_setup
     @project_dir_name = File.basename(File.dirname(__FILE__))
     @lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
@@ -176,8 +177,63 @@ class TestResStockErrors < MiniTest::Test
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
-      puts e.message
       assert(e.message.include? "ERROR: Could not find parameter 'Location' and option 'MissingOption' in")
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
+
+  def test_housing_characteristics_bad_option_spelling
+    begin
+      housing_characteristics_dir = 'tests_housing_characteristics/housing_characteristics_bad_option_spelling'
+      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
+    rescue Exception => e
+      assert(e.message.include? "ERROR: Could not find parameter 'Location' and option 'AL_birmingham.Muni.AP.722280'")
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
+
+  def test_buildstock_csv_valid
+    outfile = File.join(File.dirname(__FILE__), '..', 'test/tests_buildstock_csvs/buildstock_csv_valid/buildstock.csv')
+    lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
+
+    # Method 1: call the method
+    check_buildstock(outfile, lookup_file)
+
+    # Method 2: call from command line
+    cli_path = OpenStudio.getOpenStudioCLI
+    command = "\"#{cli_path}\" test/check_buildstock.rb"
+    command += " -o #{outfile}"
+    command += " -l #{lookup_file}"
+    cli_output = `#{command}`
+    assert(cli_output.include?('Checking took:'))
+  end
+
+  def test_buildstock_csv_bad_parameters
+    begin
+      outfile = File.join(File.dirname(__FILE__), '..', 'test/tests_buildstock_csvs/buildstock_csv_bad_parameter/buildstock.csv')
+      lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
+      check_buildstock(outfile, lookup_file)
+    rescue Exception => e
+      assert(e.message.include? "ERROR: Could not find parameter 'Location2' and option 'AL_Birmingham.Muni.AP.722280' in")
+      assert(e.message.include? "ERROR: Could not find parameter 'Location3' and option 'AL_Birmingham.Muni.AP.722280' in")
+      assert(e.message.include? "ERROR: Could not find parameter 'Location4' and option 'AL_Birmingham.Muni.AP.722280' in")
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
+
+  def test_buildstock_csv_bad_options
+    begin
+      outfile = File.join(File.dirname(__FILE__), '..', 'test/tests_buildstock_csvs/buildstock_csv_bad_option/buildstock.csv')
+      lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
+      check_buildstock(outfile, lookup_file)
+    rescue Exception => e
+      assert(e.message.include? "ERROR: Could not find parameter 'Vintage' and option '<1940s' in")
+      assert(e.message.include? "ERROR: Could not find parameter 'Vintage' and option '1940ss' in")
+      assert(e.message.include? "ERROR: Could not find parameter 'Vintage' and option '<1950s' in")
     else
       flunk "Should have caused an error but didn't."
     end
