@@ -48,10 +48,9 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
-    args = get_argument_values(runner, arguments(model), user_arguments)
-    args = Hash[args.collect { |k, v| [k.to_sym, v] }]
+    args = runner.getArgumentValues(arguments(model), user_arguments)
 
-    hpxml_path = args[:hpxml_path].get
+    hpxml_path = args[:hpxml_path]
     unless (Pathname.new hpxml_path).absolute?
       hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
     end
