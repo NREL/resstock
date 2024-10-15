@@ -96,21 +96,21 @@ class SetpointScheduleGenerator
                              output_path: @tmp_schedule_file_path)
 
   end
+
+
 end
 
-if ARGV.empty?
-   raise "Usage: ruby create_setpoint_schedules.rb <hpxml_path> <workflow_path>"
-   exit
+def generate_setpoint_schedules(hpxml_path, workflow_path)
+  if hpxml_path.nil? || workflow_path.nil?
+    raise "Usage: ruby create_setpoint_schedules.rb <hpxml_path> <workflow_path>"
+  end
+  hpxml = HPXML.new(hpxml_path: hpxml_path)
+  num_buildings = hpxml.buildings.size
+  setpoint_array = []
+  num_buildings.times do |building_index|
+    generator = SetpointScheduleGenerator.new(hpxml, hpxml_path, workflow_path, building_index)
+    setpoints = generator.get_heating_cooling_setpoint_schedule
+    setpoint_array << setpoints
+  end
+  return setpoint_array.to_json
 end
-
-hpxml_path = ARGV[0]
-workflow_path = ARGV[1]
-hpxml = HPXML.new(hpxml_path: hpxml_path)
-num_buildings = hpxml.buildings.size
-setpoint_array = []
-num_buildings.times do |building_index|
-  generator = SetpointScheduleGenerator.new(hpxml, hpxml_path, workflow_path, building_index)
-  setpoints = generator.get_heating_cooling_setpoint_schedule
-  setpoint_array << setpoints
-end
-puts(setpoint_array.to_json)
