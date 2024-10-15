@@ -519,7 +519,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     measures['ResStockArgumentsPostHPXML'] = [{ 'hpxml_path' => hpxml_path,
-                                                'output_csv_path' =>File.expand_path('../schedules.csv')}]
+                                                'output_csv_path' => File.expand_path('../schedules.csv') }]
     measures_hash = { 'ResStockArgumentsPostHPXML' => measures['ResStockArgumentsPostHPXML'] }
     if not apply_measures(measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
       register_logs(runner, new_runner)
