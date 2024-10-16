@@ -102,7 +102,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
     # Require full annual simulation if PV
     if !(@hpxml_header.sim_begin_month == 1 && @hpxml_header.sim_begin_day == 1 && @hpxml_header.sim_end_month == 12 && @hpxml_header.sim_end_day == 31)
-      if @hpxml_buildings.select { |hpxml_bldg| !hpxml_bldg.pv_systems.empty? }.size > 0
+      if @hpxml_buildings.count { |hpxml_bldg| !hpxml_bldg.pv_systems.empty? } > 0
         warnings << 'A full annual simulation is required for calculating utility bills for homes with PV.'
       end
     end
@@ -179,7 +179,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     @hpxml_header = hpxml.header
     @hpxml_buildings = hpxml.buildings
     if @hpxml_header.utility_bill_scenarios.has_detailed_electric_rates
-      uses_unit_multipliers = @hpxml_buildings.select { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units > 1 }.size > 0
+      uses_unit_multipliers = @hpxml_buildings.count { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units > 1 } > 0
       if uses_unit_multipliers || (@hpxml_buildings.size > 1 && hpxml.header.whole_sfa_or_mf_building_sim)
         return result
       end
@@ -203,9 +203,9 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     has_fuel[HPXML::FuelTypeElectricity] = true
 
     # Has production
-    has_pv = @hpxml_buildings.select { |hpxml_bldg| !hpxml_bldg.pv_systems.empty? }.size > 0
+    has_pv = @hpxml_buildings.count { |hpxml_bldg| !hpxml_bldg.pv_systems.empty? } > 0
     has_battery = @model.getElectricLoadCenterStorageLiIonNMCBatterys.size > 0 # has modeled battery
-    has_generator = @hpxml_buildings.select { |hpxml_bldg| !hpxml_bldg.generators.empty? }.size > 0
+    has_generator = @hpxml_buildings.count { |hpxml_bldg| !hpxml_bldg.generators.empty? } > 0
 
     # Fuel outputs
     fuels.each do |(fuel_type, is_production), fuel|
@@ -270,7 +270,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     @hpxml_header = hpxml.header
     @hpxml_buildings = hpxml.buildings
     if @hpxml_header.utility_bill_scenarios.has_detailed_electric_rates
-      uses_unit_multipliers = @hpxml_buildings.select { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units > 1 }.size > 0
+      uses_unit_multipliers = @hpxml_buildings.count { |hpxml_bldg| hpxml_bldg.building_construction.number_of_units > 1 } > 0
       if uses_unit_multipliers
         runner.registerWarning('Cannot currently calculate utility bills based on detailed electric rates for an HPXML with unit multipliers.')
         return false

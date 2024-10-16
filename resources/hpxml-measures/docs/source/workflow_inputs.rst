@@ -1619,6 +1619,7 @@ HPXML Exterior Shading
 ~~~~~~~~~~~~~~~~~~~~~~
 
 If exterior shading is specified, additional information is entered in ``ExteriorShading``.
+Either winter/summer shading coefficients can be directly provided, or they can be defaulted from the other inputs.
 
   ============================  ======  =====  ===========  ========  =========  =============================================================
   Element                       Type    Units  Constraints  Required  Default    Notes
@@ -1663,6 +1664,7 @@ HPXML Interior Shading
 ~~~~~~~~~~~~~~~~~~~~~~
 
 If interior shading is specified, additional information is entered in ``InteriorShading``.
+Either winter/summer shading coefficients can be directly provided, or they can be defaulted from the other inputs.
 
   ============================  ======  =====  ===========  ========  =========  =============================================================
   Element                       Type    Units  Constraints  Required  Default    Notes
@@ -1733,6 +1735,7 @@ HPXML Insect Screen
 ~~~~~~~~~~~~~~~~~~~
 
 If an insect screen is specified, additional information is entered in ``InsectScreen``.
+Either winter/summer shading coefficients can be directly provided, or they can be defaulted from the other inputs.
 
   ============================  ========  ======  ===========  ========  ========  ========================================================
   Element                       Type      Units   Constraints  Required  Default   Notes
@@ -2439,7 +2442,7 @@ Each central air conditioner is entered as a ``/HPXML/Building/BuildingDetails/S
   ``CoolingCapacity``                                               double   Btu/hr       >= 0                     No        autosized [#]_  Cooling output capacity
   ``CompressorType``                                                string                See [#]_                 No        See [#]_        Type of compressor
   ``FractionCoolLoadServed``                                        double   frac         >= 0, <= 1 [#]_          Yes                       Fraction of cooling load served
-  ``AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value``  double   Btu/Wh or #  > 0                      Yes                       Rated efficiency [#]_
+  ``AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value``  double   Btu/Wh       > 0                      Yes                       Rated efficiency [#]_
   ``SensibleHeatFraction``                                          double   frac         > 0.5, <= 1              No        See [#]_        Sensible heat fraction
   ``CoolingDetailedPerformanceData``                                element                                        No        <none>          Cooling detailed performance data [#]_
   ``extension/FanPowerWattsPerCFM``                                 double   W/cfm        >= 0                     No        See [#]_        Blower fan efficiency at maximum fan speed [#]_
@@ -3974,9 +3977,7 @@ Each conventional storage water heater is entered as a ``/HPXML/Building/Buildin
          If neither UsageBin nor FirstHourRating provided, UsageBin defaults to "medium".
          If FirstHourRating provided and UsageBin not provided, UsageBin is determined based on the FirstHourRating value.
   .. [#] RecoveryEfficiency must also be greater than the EnergyFactor (or UniformEnergyFactor).
-  .. [#] If RecoveryEfficiency not provided, defaults as follows based on a regression analysis of `AHRI certified water heaters <https://www.ahridirectory.org/NewSearch?programId=24&searchTypeId=3>`_:
-         
-         \- **Electric**: 0.98
+  .. [#] If RecoveryEfficiency not provided, defaults to 0.98 if the fuel type is electric, otherwise based on a regression analysis of `AHRI certified water heaters <https://www.ahridirectory.org/NewSearch?programId=24&searchTypeId=3>`_:
          
          \- **Non-electric, EnergyFactor < 0.75**: 0.252 * EnergyFactor + 0.608
          
@@ -4045,7 +4046,7 @@ Each heat pump water heater is entered as a ``/HPXML/Building/BuildingDetails/Sy
   ``WaterHeaterType``                            string                           heat pump water heater  Yes                    Type of water heater
   ``Location``                                   string                           See [#]_                No        See [#]_     Water heater location
   ``IsSharedSystem``                             boolean                                                  No        false        Whether it serves multiple dwelling units or shared laundry room
-  ``TankVolume``                                 double            gal            > 0                     Yes                    Nominal tank volume
+  ``TankVolume``                                 double            gal            > 0                     No        See [#]_     Nominal tank volume
   ``FractionDHWLoadServed``                      double            frac           >= 0, <= 1 [#]_         Yes                    Fraction of hot water load served [#]_
   ``UniformEnergyFactor`` or ``EnergyFactor``    double            frac           > 1, <= 5               Yes                    EnergyGuide label rated efficiency
   ``HPWHOperatingMode``                          string                           See [#]_                No        hybrid/auto  Operating mode [#]_
@@ -4064,6 +4065,7 @@ Each heat pump water heater is entered as a ``/HPXML/Building/BuildingDetails/Sy
          
          \- **IECC zones 3-8, unknown**: "basement - unconditioned", "basement - conditioned", "conditioned space"
 
+  .. [#] If TankVolume not provided, defaults based on Table 8 in the `2014 BAHSP <https://www.energy.gov/sites/prod/files/2014/03/f13/house_simulation_protocols_2014.pdf>`_.
   .. [#] The sum of all ``FractionDHWLoadServed`` (across all WaterHeatingSystems) must equal to 1.
   .. [#] FractionDHWLoadServed represents only the fraction of the hot water load associated with the hot water **fixtures**.
          Additional hot water load from clothes washers/dishwashers will be automatically assigned to the appropriate water heater(s).
@@ -4093,7 +4095,7 @@ Each combination boiler w/ storage tank (sometimes referred to as an indirect wa
   ``WaterHeaterType``                            string                 space-heating boiler with storage tank  Yes                     Type of water heater
   ``Location``                                   string                 See [#]_                                No            See [#]_  Water heater location
   ``IsSharedSystem``                             boolean                                                        No            false     Whether it serves multiple dwelling units or shared laundry room
-  ``TankVolume``                                 double   gal           > 0                                     Yes                     Nominal volume of the storage tank
+  ``TankVolume``                                 double   gal           > 0                                     No            See [#]_  Nominal volume of the storage tank
   ``FractionDHWLoadServed``                      double   frac          >= 0, <= 1 [#]_                         Yes                     Fraction of hot water load served [#]_
   ``WaterHeaterInsulation/Jacket/JacketRValue``  double   F-ft2-hr/Btu  >= 0                                    No            0         R-value of additional storage tank insulation wrap
   ``StandbyLoss[Units="F/hr"]/Value``            double   F/hr          > 0                                     No            See [#]_  Storage tank standby losses
@@ -4110,6 +4112,7 @@ Each combination boiler w/ storage tank (sometimes referred to as an indirect wa
          
          \- **IECC zones 3-8, unknown**: "basement - unconditioned", "basement - conditioned", "conditioned space"
          
+  .. [#] If TankVolume not provided, defaults based on Table 8 in the `2014 BAHSP <https://www.energy.gov/sites/prod/files/2014/03/f13/house_simulation_protocols_2014.pdf>`_.
   .. [#] The sum of all ``FractionDHWLoadServed`` (across all WaterHeatingSystems) must equal to 1.
   .. [#] FractionDHWLoadServed represents only the fraction of the hot water load associated with the hot water **fixtures**.
          Additional hot water load from clothes washers/dishwashers will be automatically assigned to the appropriate water heater(s).
@@ -5220,7 +5223,7 @@ If not entered, the simulation will not include that type of plug load.
   ``PlugLoadType``                          string           See [#]_     Yes                 Type of plug load
   ``Load[Units="kWh/year"]/Value``          double   kWh/yr  >= 0         No        See [#]_  Annual electricity consumption
   ``extension/FracSensible``                double           >= 0, <= 1   No        See [#]_  Fraction that is sensible heat gain to conditioned space [#]_
-  ``extension/FracLatent``                  double           >= 0, <= 1   No        See [#]_  Fraction that is latent heat gain to conditioned space
+  ``extension/FracLatent``                  double           >= 0, <= 1   See [#]_  See [#]_  Fraction that is latent heat gain to conditioned space
   ``extension/UsageMultiplier``             double           >= 0         No        1.0       Multiplier on electricity use
   ``extension/WeekdayScheduleFractions``    array                         No        See [#]_  24 comma-separated weekday fractions
   ``extension/WeekendScheduleFractions``    array                         No                  24 comma-separated weekend fractions
@@ -5271,6 +5274,7 @@ If not entered, the simulation will not include that type of plug load.
          \- **electric vehicle charging**: 0.0
          
   .. [#] The remaining fraction (i.e., 1.0 - FracSensible - FracLatent) must be > 0 and is assumed to be heat gain outside conditioned space and thus lost.
+  .. [#] FracLatent only required if FracSensible is provided.
   .. [#] If FracLatent not provided, defaults as:
          
          \- **other**: 0.045
@@ -5302,7 +5306,7 @@ If not entered, the simulation will not include that type of fuel load.
   ``Load[Units="therm/year"]/Value``        double   therm/yr  >= 0         No        See [#]_  Annual fuel consumption
   ``FuelType``                              string             See [#]_     Yes                 Fuel type
   ``extension/FracSensible``                double             >= 0, <= 1   No        See [#]_  Fraction that is sensible heat gain to conditioned space [#]_
-  ``extension/FracLatent``                  double             >= 0, <= 1   No        See [#]_  Fraction that is latent heat gain to conditioned space
+  ``extension/FracLatent``                  double             >= 0, <= 1   See [#]_  See [#]_  Fraction that is latent heat gain to conditioned space
   ``extension/UsageMultiplier``             double             >= 0         No        1.0       Multiplier on fuel use
   ``extension/WeekdayScheduleFractions``    array                           No        See [#]_  24 comma-separated weekday fractions
   ``extension/WeekendScheduleFractions``    array                           No                  24 comma-separated weekend fractions
@@ -5323,6 +5327,7 @@ If not entered, the simulation will not include that type of fuel load.
   .. [#] FuelType choices are "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "anthracite coal", "wood", or "wood pellets".
   .. [#] If FracSensible not provided, defaults to 0.5 for fireplace and 0.0 for all other types.
   .. [#] The remaining fraction (i.e., 1.0 - FracSensible - FracLatent) must be > 0 and is assumed to be heat gain outside conditioned space and thus lost.
+  .. [#] FracLatent only required if FracSensible is provided.
   .. [#] If FracLatent not provided, defaults to 0.1 for fireplace and 0.0 for all other types.
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`schedules_detailed` not used), then :ref:`schedules_default` are used.
   .. [#] If MonthlyScheduleMultipliers not provided (and :ref:`schedules_detailed` not used), then :ref:`schedules_default` are used.

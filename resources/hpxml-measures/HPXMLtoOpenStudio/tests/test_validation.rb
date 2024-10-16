@@ -23,7 +23,7 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
     @tmp_output_path = File.join(@sample_files_path, 'tmp_output')
     FileUtils.mkdir_p(@tmp_output_path)
 
-    @default_schedules_csv_data = HPXMLDefaults.get_default_schedules_csv_data()
+    @default_schedules_csv_data = Defaults.get_schedules_csv_data()
   end
 
   def teardown
@@ -105,8 +105,12 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                                                                              'There must be at least one floor adjacent to "attic - unvented". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="attic - unvented" or ExteriorAdjacentTo="attic - unvented"]], id: "MyBuilding"]'],
                             'enclosure-conditioned-missing-exterior-wall' => ['There must be at least one exterior wall adjacent to conditioned space. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="conditioned space"]], id: "MyBuilding"]'],
                             'enclosure-conditioned-missing-floor-slab' => ['There must be at least one floor or slab adjacent to conditioned space. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="conditioned space"]], id: "MyBuilding"]'],
-                            'frac-sensible-fuel-load' => ['Expected extension/FracSensible to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/MiscLoads/FuelLoad[FuelLoadType="grill" or FuelLoadType="lighting" or FuelLoadType="fireplace"], id: "FuelLoad1"]'],
-                            'frac-sensible-plug-load' => ['Expected extension/FracSensible to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/MiscLoads/PlugLoad[PlugLoadType="other" or PlugLoadType="TV other" or PlugLoadType="electric vehicle charging" or PlugLoadType="well pump"], id: "PlugLoad1"]'],
+                            'frac-sensible-latent-fuel-load-values' => ['Expected extension/FracSensible to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/MiscLoads/FuelLoad[FuelLoadType="grill" or FuelLoadType="lighting" or FuelLoadType="fireplace"], id: "FuelLoad1"]',
+                                                                        'Expected extension/FracLatent to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/MiscLoads/FuelLoad[FuelLoadType="grill" or FuelLoadType="lighting" or FuelLoadType="fireplace"], id: "FuelLoad1"]'],
+                            'frac-sensible-latent-fuel-load-presence' => ['Expected 0 or 2 element(s) for xpath: extension/FracSensible | extension/FracLatent'],
+                            'frac-sensible-latent-plug-load-values' => ['Expected extension/FracSensible to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/MiscLoads/PlugLoad[PlugLoadType="other" or PlugLoadType="TV other" or PlugLoadType="electric vehicle charging" or PlugLoadType="well pump"], id: "PlugLoad1"]',
+                                                                        'Expected extension/FracLatent to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/MiscLoads/PlugLoad[PlugLoadType="other" or PlugLoadType="TV other" or PlugLoadType="electric vehicle charging" or PlugLoadType="well pump"], id: "PlugLoad1"]'],
+                            'frac-sensible-latent-plug-load-presence' => ['Expected 0 or 2 element(s) for xpath: extension/FracSensible | extension/FracLatent'],
                             'frac-total-fuel-load' => ['Expected sum of extension/FracSensible and extension/FracLatent to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails/MiscLoads/FuelLoad[FuelLoadType="grill" or FuelLoadType="lighting" or FuelLoadType="fireplace"], id: "FuelLoad1"]'],
                             'frac-total-plug-load' => ['Expected sum of extension/FracSensible and extension/FracLatent to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails/MiscLoads/PlugLoad[PlugLoadType="other" or PlugLoadType="TV other" or PlugLoadType="electric vehicle charging" or PlugLoadType="well pump"], id: "PlugLoad2"]'],
                             'furnace-invalid-afue' => ['Expected AnnualHeatingEfficiency[Units="AFUE"]/Value to be less than or equal to 1'],
@@ -371,12 +375,22 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['enclosure-conditioned-missing-floor-slab'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-foundation-slab.xml')
         hpxml_bldg.slabs[0].delete
-      elsif ['frac-sensible-fuel-load'].include? error_case
+      elsif ['frac-sensible-latent-fuel-load-values'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-misc-loads-large-uncommon.xml')
         hpxml_bldg.fuel_loads[0].frac_sensible = -0.1
-      elsif ['frac-sensible-plug-load'].include? error_case
+        hpxml_bldg.fuel_loads[0].frac_latent = -0.1
+      elsif ['frac-sensible-latent-fuel-load-presence'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-misc-loads-large-uncommon.xml')
+        hpxml_bldg.fuel_loads[0].frac_sensible = 1.0
+        hpxml_bldg.fuel_loads[0].frac_latent = nil
+      elsif ['frac-sensible-latent-plug-load-values'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-misc-loads-large-uncommon.xml')
         hpxml_bldg.plug_loads[0].frac_sensible = -0.1
+        hpxml_bldg.plug_loads[0].frac_latent = -0.1
+      elsif ['frac-sensible-latent-plug-load-presence'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-misc-loads-large-uncommon.xml')
+        hpxml_bldg.plug_loads[0].frac_latent = 1.0
+        hpxml_bldg.plug_loads[0].frac_sensible = nil
       elsif ['frac-total-fuel-load'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-misc-loads-large-uncommon.xml')
         hpxml_bldg.fuel_loads[0].frac_sensible = 0.8
