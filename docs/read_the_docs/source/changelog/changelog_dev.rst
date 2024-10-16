@@ -100,3 +100,19 @@ Development Changelog
         Specifically, this PR modifies HVAC heating/cooling seasons using number of unavailable days and BAHSP definition for heating/cooling months.
 
         Assignees: Joe Robertson
+
+    .. change::
+        :tags: workflow, feature
+        :pullreq: 929
+
+        **Date**: 2024-10-14
+
+        Title:
+        New ResStockArgumentsPostHPXML measure
+
+        Description:
+        This measure is added to the workflow to post-process the output of the BuildResidentialHPXML and BuildResidentialScheduleFile measures.
+
+        Assignees: Joe Robertson, Rajendra Adhikari
+
+        GitHub: `pull request 929 <https://github.com/NREL/resstock/pull/929>`_   

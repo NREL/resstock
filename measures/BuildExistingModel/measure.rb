@@ -752,6 +752,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    measures['ResStockArgumentsPostHPXML'] = [{ 'hpxml_path' => hpxml_path,
+                                                'output_csv_path' => File.expand_path('../schedules.csv') }]
+    measures_hash = { 'ResStockArgumentsPostHPXML' => measures['ResStockArgumentsPostHPXML'] }
+    if not apply_measures(measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+      register_logs(runner, new_runner)
+      return false
+    end
+
     # Copy existing.xml to home.xml for downstream HPXMLtoOpenStudio
     # We need existing.xml (and not just home.xml) for UpgradeCosts
     in_path = File.expand_path('../home.xml')
