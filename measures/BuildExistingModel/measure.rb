@@ -772,7 +772,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # Report some additional location and model characteristics
+    # Report additional characteristics
     if File.exist?(hpxml_path)
       hpxml = HPXML.new(hpxml_path: hpxml_path)
     else
@@ -781,6 +781,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     hpxml_bldg = hpxml.buildings[0]
+
+    # height above grade
+    unit_height_above_grade = hpxml_bldg.building_construction.unit_height_above_grade
+    register_value(runner, 'unit_height_above_grade', unit_height_above_grade)
 
     # infiltration
     air_infiltration_measurement = hpxml_bldg.air_infiltration_measurements[0]
