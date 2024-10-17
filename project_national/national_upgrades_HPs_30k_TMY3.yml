@@ -146,6 +146,75 @@ upgrades:
       - &heat_pump_backup_use_existing_system
         option: Heat Pump Backup|Use Existing System
 
+  - upgrade_name: Case 4a - Baseline Upgrade - EnergyStar Heat Pump, Existing System Backup, Compressor Lockout @ 20F
+
+    package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+    options:
+      - &hvac_heating_efficiency_ashp_case_4a
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 15.2, 7.8 HSPF2, Case 4a, 20F
+        apply_logic: *ducted_ASHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_ducted_heat_pump
+      - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve
+
+      - &hvac_heating_efficiency_mshp_case_4a
+        option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER2 15.2, 7.8 HSPF2, Case 4a, 20F
+        apply_logic: *nonducted_MSHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_non_ducted_heat_pump
+
+      - &heat_pump_backup_use_existing_system
+        option: Heat Pump Backup|Use Existing System
+
+  - upgrade_name: Case 4b - Baseline Upgrade - EnergyStar Heat Pump, Existing System Backup, Compressor Lockout @ 30F
+
+    package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+    options:
+      - &hvac_heating_efficiency_ashp_case_4b
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 15.2, 7.8 HSPF2, Case 4b, 30F
+        apply_logic: *ducted_ASHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_ducted_heat_pump
+      - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve
+
+      - &hvac_heating_efficiency_mshp_case_4b
+        option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER2 15.2, 7.8 HSPF2, Case 4b, 30F
+        apply_logic: *nonducted_MSHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_non_ducted_heat_pump
+
+      - &heat_pump_backup_use_existing_system
+        option: Heat Pump Backup|Use Existing System
+
+  - upgrade_name: Case 4c - Baseline Upgrade - EnergyStar Heat Pump, Existing System Backup, Compressor Lockout @ 40F
+
+    package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+    options:
+      - &hvac_heating_efficiency_ashp_case_4c
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 15.2, 7.8 HSPF2, Case 4c, 40F
+        apply_logic: *ducted_ASHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_ducted_heat_pump
+      - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve
+
+      - &hvac_heating_efficiency_mshp_case_4c
+        option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER2 15.2, 7.8 HSPF2, Case 4c, 40F
+        apply_logic: *nonducted_MSHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_non_ducted_heat_pump
+
+      - &heat_pump_backup_use_existing_system
+        option: Heat Pump Backup|Use Existing System
+
   - upgrade_name: Case 7 - Heat Pump Selection - EnergyStar Mid Efficiency, Electric Backup
 
     package_apply_logic: *remove_non_fossil_non_elec_fuels
