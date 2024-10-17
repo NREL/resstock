@@ -62885,7 +62885,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - UniformEnergyFactor
      - 3.45
      - auto
-     - 0
+     - auto
      - auto
      - 0
      - 0
@@ -62903,7 +62903,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - UniformEnergyFactor
      - 3.35
      - auto
-     - 0
+     - auto
      - auto
      - 0
      - 0
@@ -62921,7 +62921,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - UniformEnergyFactor
      - 3.45
      - auto
-     - 0
+     - auto
      - auto
      - 0
      - 0
@@ -62939,7 +62939,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - EnergyFactor
      - 0.95
      - auto
-     - 0
+     - 0.98
      - auto
      - 0
      - 0
@@ -62957,7 +62957,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - EnergyFactor
      - 0.92
      - auto
-     - 0
+     - 0.98
      - auto
      - 0
      - 0
@@ -62975,7 +62975,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - EnergyFactor
      - 0.99
      - auto
-     - 0
+     - auto
      - auto
      - 0
      - 0
@@ -63083,7 +63083,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - EnergyFactor
      - 0.82
      - auto
-     - 0
+     - auto
      - auto
      - 0
      - 0
@@ -63155,7 +63155,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - EnergyFactor
      - 0.82
      - auto
-     - 0
+     - auto
      - auto
      - 0
      - 0
