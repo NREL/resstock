@@ -1,6 +1,7 @@
 import polars as pl
 import pathlib
 import re
+from common import *
 
 
 def to_underscore_case(s):
@@ -49,9 +50,11 @@ all_dfs = [rest_of_the_df]
 for emissions_scenario in emissions_scenario_names:
     all_dfs.append(
         emissions_df.with_columns(
-            pl.col('Timeseries ResStock Name').str.replace("<emissions_scenario_name>", emissions_scenario)
+            pl.col(str_res_ts_name).str.replace("<emissions_scenario_name>", emissions_scenario),
+            pl.col(str_res_annual_name).str.replace("<emissions_scenario_name>", to_underscore_case(emissions_scenario))
         ).with_columns(
-            pl.col(pl.String).str.replace("<emissions_scenario_name>", to_underscore_case(emissions_scenario))
+            pl.col(str_pub_ts_name).str.replace("<emissions_scenario_name>", emissions_scenario.lower()),
+            pl.col(str_pub_annual_name).str.replace("<emissions_scenario_name>", to_underscore_case(emissions_scenario))
         )
     )
 

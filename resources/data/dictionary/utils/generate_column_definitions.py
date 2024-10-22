@@ -6,34 +6,7 @@ This script only needs to be run when the outputs.csv file is updated.
 import polars as pl
 import pathlib
 import re
-
-all_fuels = ['Electricity', 'Natural Gas', 'Fuel Oil', 'Propane', 'Wood Cord', 'Wood Pellets', 'Coal']
-fuels_to_hide = {'Wood Cord', 'Wood Pellets', 'Coal'}
-fuel_pattern = '|'.join([fuel for fuel in all_fuels if fuel not in fuels_to_hide])
-fuel_pattern_annual = '|'.join([fuel.lower().replace(' ', '_') for fuel in all_fuels if fuel not in fuels_to_hide])
-
-
-str_res_annual_name = 'Annual Name'
-str_res_annual_unit = 'Annual Units'
-str_pub_annual_name = 'Published Annual Name'
-str_pub_annual_unit = 'Published Annual Unit'
-str_annual_unit_conv_factor = 'ResStock To Published Annual Unit Conversion Factor'
-str_res_ts_name = 'Timeseries ResStock Name'
-str_res_ts_unit = 'Timeseries Units'
-str_pub_ts_name = 'Published Timeseries Name'
-str_pub_ts_unit = 'Published Timeseries Unit'
-str_ts_unit_conv_factor = 'ResStock To Published Timeseries Unit Conversion Factor'
-str_notes = 'Notes'
-
-
-energy_unit_conv_to_kwh = {
-    "mbtu": 293.0710701722222,
-    "m_btu": 293.0710701722222,
-    "therm": 29.307107017222222,
-    "kbtu": 0.2930710701722222,
-    "kwh": 1.0,
-}
-LB_TO_KG = 0.45359237
+from common import *
 
 
 endues_energy_col_re = re.compile(
@@ -41,6 +14,9 @@ endues_energy_col_re = re.compile(
 )
 emissions_re = re.compile(
     rf"^report_simulation_output\.emissions_co_2_e_(\w+|<emissions_scenario_name>)_({fuel_pattern_annual})_(total)_lb$"
+)
+emissions_all_fuel_re = re.compile(
+    rf"^report_simulation_output\.emissions_co_2_e_(\w+|<emissions_scenario_name>)_(total)_lb$"
 )
 energy_use_re = re.compile(
     r"^report_simulation_output\.energy_use_(net|total)_(m_btu)$"
@@ -64,17 +40,20 @@ upgrade_costs_re = re.compile(
     r"^upgrade_costs\.(?!.*(_name|_yrs|_usd|applicable|debug)$).*$"
 )
 bills_re = re.compile(
-    rf"^report_utility_bills\.(.*)_({fuel_pattern_annual})_total_usd$"
+    rf"^report_utility_bills\.(\w+|<utility_bills_scenario_name>)_({fuel_pattern_annual})_total_usd$"
 )
-all_outcols_re = [endues_energy_col_re, emissions_re, energy_use_re, hot_water_re, load_delivered_re,
-                  peak_electricity_re, peak_load_re, unmet_hours_re, upgrade_costs_re, bills_re]
+all_bills_re = re.compile(
+    rf"^report_utility_bills\.(\w+|<utility_bills_scenario_name>)_total_usd$"
+)
+all_outcols_re = [endues_energy_col_re, emissions_re, emissions_all_fuel_re, energy_use_re, hot_water_re, load_delivered_re,
+                  peak_electricity_re, peak_load_re, unmet_hours_re, upgrade_costs_re, bills_re, all_bills_re]
 ts_enduse_re = re.compile(fr"^(End|Fuel) Use: ({fuel_pattern}): (.*)$")
 ts_energy_use_re = re.compile(r"^Energy Use: (Net|Total)$")
 ts_fuel_emissions_re = re.compile(fr"^Emissions: CO2e: ([\w _<>]+): ({fuel_pattern}): Total$")
 ts_emissions_re = re.compile(r"^Emissions: CO2e: ([\w _<>]+): Total$")
 ts_load_re = re.compile(r"^Load: (Cooling|Heating|Hot Water): Delivered$")
 ts_zone_temp_re = re.compile(r"^Zone Mean Air Temperature: ([\w -]+)$")
-ts_outdoor_temp_re = re.compile(r"^Site Outdoor Air Drybulb Temperature: Environmen}}t$")
+ts_outdoor_temp_re = re.compile(r"^Site Outdoor Air Drybulb Temperature: Environment$")
 
 
 def shrink_colname(col):
@@ -141,6 +120,11 @@ def convert_annual_col(col):
         newcol = f"out.{fueltype}.{enduse}.{emissions_scenario}.co2e_kg"
         new_unit = "kg"
         return newcol, new_unit, LB_TO_KG
+    elif m21 := emissions_all_fuel_re.match(col):
+        emissions_scenario, enduse = m21.groups()
+        newcol = f"out.all_fuels.{enduse}.{emissions_scenario}.co2e_kg"
+        new_unit = "kg"
+        return newcol, new_unit, LB_TO_KG
     elif m3 := energy_use_re.match(col):
         net_or_total, fuelunits = m3.groups()
         newcol = f"out.site_energy.{net_or_total}.energy_consumption"
@@ -169,6 +153,9 @@ def convert_annual_col(col):
         scenario_name = m9.groups()[0]
         fuel_type = m9.groups()[1]
         new_col = f"out.bills.{fuel_type}.usd"
+        return new_col, "usd", 1.0
+    elif m91 := all_bills_re.match(col):
+        new_col = f"out.bills.all_fuels.usd"
         return new_col, "usd", 1.0
     elif m10 := upgrade_costs_re.match(col):
         if col == 'upgrade_costs.floor_area_conditioned_ft_2':
@@ -206,7 +193,7 @@ def convert_ts_col(col):
         emissions_scenario, fuel_type, = m15.groups()
         emissions_scenario = emissions_scenario.lower().replace(' ', '_')
         fuel_type = fuel_type.lower().replace(' ', '_')
-        new_col = shrink_colname(f"out.total.{emissions_scenario}_{fuel_type}.co2e_kg")
+        new_col = shrink_colname(f"out.total.{emissions_scenario}__{fuel_type}.co2e_kg")
         return new_col, 'kg', LB_TO_KG
     elif m2 := ts_emissions_re.match(col):
         emissions_scenario = m2.group(1)
@@ -226,7 +213,7 @@ def convert_ts_col(col):
         return new_col, "kBtu", 1.0
     elif m5 := ts_zone_temp_re.match(col):
         zone_name = m5.groups()[0]
-        cleaned_up_name = zone_name.replace("-", "_").lower().replace(' ', '_')
+        cleaned_up_name = zone_name.replace(" - ", "_").lower().replace(' ', '_')
         new_col =f"out.zone_mean_air_temp.{cleaned_up_name}.c"
         return new_col, "C", 1.0
     elif m6 := ts_outdoor_temp_re.match(col):
@@ -237,16 +224,22 @@ def convert_ts_col(col):
 
 here = pathlib.Path(__file__).parent.parent
 inputs_df = pl.read_csv(here / 'inputs.csv')
-inputs_df = inputs_df.select(pl.col('Input Name').alias(str_res_annual_name),
-                              pl.col('Input Description').alias(str_notes))
+inputs_df = inputs_df.select(
+    pl.lit('Input').alias(str_column_type),
+    pl.col('Input Name').alias(str_res_annual_name),
+    pl.col('Input Description').alias(str_notes)
+)
 outputs_df = pl.read_csv(here / 'outputs.csv')
-outputs_df = pl.concat([outputs_df, inputs_df], how='diagonal')
+outputs_df = outputs_df.select(pl.lit('Output').alias(str_column_type),
+                               pl.col('*'))
+outputs_df = pl.concat(items=[outputs_df, inputs_df], how='diagonal')
 
 
 converted_annual_col = {col: convert_annual_col(col) for col in outputs_df['Annual Name'].to_list()}
-converted_ts_col = {col: convert_ts_col(col) for col in outputs_df['Timeseries ResStock Name'].to_list()}
+converted_ts_col = {col: convert_ts_col(col) for col in outputs_df[str_res_ts_name].to_list()}
 
 outputs_df2 = outputs_df.select(
+    pl.col(str_column_type),
     pl.col(str_res_annual_name),
     pl.col(str_res_annual_unit),
     pl.col(str_res_annual_name).map_elements(lambda x: converted_annual_col[x][0], skip_nulls=False, return_dtype=pl.String).alias(str_pub_annual_name),
@@ -259,5 +252,31 @@ outputs_df2 = outputs_df.select(
     pl.col(str_res_ts_name).map_elements(lambda x: converted_ts_col[x][2], skip_nulls=False, return_dtype=pl.Float64).alias(str_ts_unit_conv_factor),
     pl.col(str_notes)
 )
+
+# Add intensity columns to the definition
+intensity_cols = [f"{col}_intensity" for col in outputs_df2[str_pub_annual_name].to_list() if col and 'energy_consumption' in col]
+notes = 'Calculated from annual energy consumption by dividing by conditioned floor area'
+# add to outputs_df2 with 'Calculated' column type and str_pub_annual_name with intensity_cols
+new_df = pl.DataFrame({
+    str_column_type: ['Calculated'] * len(intensity_cols),
+    str_pub_annual_name: intensity_cols,
+    str_pub_annual_unit: ['kwh/sqft'] * len(intensity_cols),
+    str_pub_ts_name: intensity_cols,
+    str_pub_ts_unit: ['kwh/sqft'] * len(intensity_cols),
+    str_notes: [notes] * len(intensity_cols)
+})
+outputs_df2 = pl.concat(items=[outputs_df2, new_df], how='diagonal')
+
+# Add other miscelleneus columns
+#  'in.representative_income', 'in.county_name', 'out.energy_burden.percentage'
+misc_df = pl.DataFrame({
+    str_column_type: ['Calculated'] * 3,
+    str_pub_annual_name: ['in.representative_income', 'in.county_name', 'out.energy_burden.percentage'],
+    str_pub_annual_unit: ['usd', '', 'percentage'],
+    str_notes: ['Average representative income of the country',
+                'County name',
+                'Percentage of income spent on energy']
+})
+outputs_df2 = pl.concat(items=[outputs_df2, misc_df], how='diagonal')
 
 outputs_df2.write_csv(here / 'column_definitions.csv')
