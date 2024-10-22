@@ -842,6 +842,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       register_value(runner, arg_name.to_s, arg_value)
     end
 
+    # Electric Panel
+    # collect inputs, execute resources/electric_panel.rb methods, output service rating and available breaker spaces
+    # args[:electric_panel_service_breaker_spaces_remaining] = y
+    capacity_sampler = RatedCapacityGenerator.new(runner: runner)
+    cap_bin, cap_val = capacity_sampler.assign_rated_capacity(args: args)
+    args[:electric_panel_service_rating_bin],  args[:electric_panel_service_rating] = cap_bin, cap_val
     return true
   end
 
