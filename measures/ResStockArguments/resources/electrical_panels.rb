@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'csv'
-require 'matrix'
 
 # Example args: https://github.com/NREL/resstock/blob/develop/resources/hpxml-measures/workflow/hpxml_inputs.json
 class RatedCapacityGenerator
