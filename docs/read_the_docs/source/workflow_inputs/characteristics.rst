@@ -1139,9 +1139,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 28%
      - false
      - 0
+     - auto
      - 0
-     - 0
-     - 0
+     - auto
    * - Standard Efficiency
      - 63%
      - true
@@ -1153,9 +1153,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 8.7%
      - false
      - auto
-     - 0
-     - 0
-     - 0
+     - auto
+     - auto
+     - auto
 
 .. _census_division:
 
@@ -5110,10 +5110,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 16%
      - auto
      - IntegratedModifiedEnergyFactor
+     - auto
      - 0
-     - 0
-     - 0
-     - 0
+     - auto
+     - auto
      - 0
      - 0
      - 0
@@ -34543,8 +34543,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 100%
      - none
      - EnergyFactor
-     - 0
-     - 40
+     - none
+     - none
      - 0.5
      - 1
 
@@ -34712,12 +34712,12 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - false
      - auto
      - RatedAnnualkWh
+     - auto
+     - auto
+     - auto
      - 0
      - 0
-     - 0
-     - 0
-     - 0
-     - 0
+     - auto
    * - Void
      - 0%
      - 
@@ -38018,7 +38018,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 15%
      - none
      - SEER
-     - 0
+     - none
      - auto
      - auto
      - auto
@@ -38033,7 +38033,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0.97%
      - none
      - SEER
-     - 0
+     - none
      - auto
      - auto
      - auto
@@ -38048,7 +38048,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 11%
      - none
      - SEER
-     - 0
+     - none
      - auto
      - auto
      - auto
@@ -38952,7 +38952,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - ASHP, SEER 10, 6.2 HSPF
      - 0.72%
      - none
-     - 0
+     - none
      - auto
      - auto
      - 1
@@ -38997,7 +38997,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - ASHP, SEER 13, 7.7 HSPF
      - 7.4%
      - none
-     - 0
+     - none
      - auto
      - auto
      - 1
@@ -39042,7 +39042,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - ASHP, SEER 15, 8.5 HSPF
      - 7.2%
      - none
-     - 0
+     - none
      - auto
      - auto
      - 1
@@ -39094,9 +39094,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39139,9 +39139,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39184,9 +39184,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39229,9 +39229,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39274,9 +39274,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39319,9 +39319,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39364,9 +39364,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39409,9 +39409,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39454,9 +39454,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39499,9 +39499,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39544,9 +39544,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39589,9 +39589,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39634,9 +39634,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - 
      - 
      - auto
@@ -39672,7 +39672,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - MSHP, SEER 14.5, 8.2 HSPF
      - 0.96%
      - none
-     - 0
+     - none
      - auto
      - auto
      - 1
@@ -39717,7 +39717,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - MSHP, SEER 29.3, 14 HSPF
      - 0.015%
      - none
-     - 0
+     - none
      - auto
      - auto
      - 1
@@ -39762,7 +39762,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 1.1%
      - none
-     - 0
+     - none
      - auto
      - auto
      - 1
@@ -40186,14 +40186,14 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 1e+02%
      - none
-     - 0
+     - none
      - auto
      - auto
      - auto
    * - Shared Heating
      - 0.0017%
      - none
-     - 0
+     - none
      - auto
      - auto
      - auto
@@ -40779,9 +40779,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - auto
      - auto
      - auto
@@ -40821,9 +40821,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - auto
      - auto
      - auto
@@ -40905,9 +40905,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - false
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - auto
      - auto
      - auto
@@ -40947,9 +40947,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - false
      - none
      - HSPF
-     - 0
+     - none
      - SEER
-     - 0
+     - none
      - auto
      - auto
      - auto
@@ -42461,7 +42461,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - none
      - true
-     - 0.0
+     - auto
 
 .. _hot_water_fixtures:
 
@@ -44706,8 +44706,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 0
      - Unadjusted
-     - 0
-     - 0
+     - none
+     - none
      - 0
      - 0
      - auto
@@ -44721,8 +44721,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 0
      - Unadjusted
-     - 0
-     - 0
+     - none
+     - none
      - 0
      - false
      - 0
@@ -62115,13 +62115,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 100%
      - none
-     - 40
+     - 0
      - liquid indirect
      - single glazing black
      - 180
      - roofpitch
-     - 0.77
-     - 0.793
+     - none
+     - none
      - auto
      - 0
 
