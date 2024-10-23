@@ -58,7 +58,17 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         new_arg.setUnits(arg.units.to_s)
         args << new_arg
       else
-        args << arg
+        if ['double', 'integer'].include?(arg.type.valueName.downcase)
+          new_arg = OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, true)
+          new_arg.setDisplayName(arg.displayName.to_s)
+          new_arg.setDescription(arg.description.to_s)
+          new_arg.setUnits(arg.units.to_s)
+          new_arg.setDefaultValue(arg.defaultValueAsDouble.to_s) if arg.type.valueName.downcase == 'double'
+          new_arg.setDefaultValue(arg.defaultValueAsInteger.to_s) if arg.type.valueName.downcase == 'integer'
+          args << new_arg
+        else
+          args << arg
+        end
       end
     end
 
@@ -896,11 +906,20 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       value = args[arg_name]
       next if value.nil? || (value == Constants::Auto)
 
-      case arg.type.valueName.downcase
-      when 'double'
-        args[arg_name] = Float(value)
-      when 'integer'
-        args[arg_name] = Integer(value)
+      if value != Constants::None
+        case arg.type.valueName.downcase
+        when 'double'
+          args[arg_name] = Float(value)
+        when 'integer'
+          args[arg_name] = Integer(value)
+        end
+      elsif arg.required
+        case arg.type.valueName.downcase
+        when 'double'
+          args[arg_name] = 99999
+        when 'integer'
+          args[arg_name] = 99999
+        end
       end
     end
     return args

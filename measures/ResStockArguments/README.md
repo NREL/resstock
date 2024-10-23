@@ -217,9 +217,7 @@ The type of dwelling unit. Use single-family attached for a dwelling unit with 1
 The ratio of front/back wall length to left/right wall length for the unit, excluding any protruding garage wall area.
 
 - **Name:** ``geometry_unit_aspect_ratio``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -230,9 +228,7 @@ The ratio of front/back wall length to left/right wall length for the unit, excl
 The unit's orientation is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).
 
 - **Name:** ``geometry_unit_orientation``
-- **Type:** ``Double``
-
-- **Units:** ``degrees``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -243,9 +239,7 @@ The unit's orientation is measured clockwise from north (e.g., North=0, East=90,
 The number of bedrooms in the unit.
 
 - **Name:** ``geometry_unit_num_bedrooms``
-- **Type:** ``Integer``
-
-- **Units:** ``#``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -289,9 +283,7 @@ The number of units in the building. Required for single-family attached and apa
 Average distance from the floor to the ceiling.
 
 - **Name:** ``geometry_average_ceiling_height``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -313,9 +305,7 @@ Describes the above-grade height of apartment units on upper floors or homes abo
 The width of the garage. Enter zero for no garage. Only applies to single-family detached units.
 
 - **Name:** ``geometry_garage_width``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -326,9 +316,7 @@ The width of the garage. Enter zero for no garage. Only applies to single-family
 The depth of the garage. Only applies to single-family detached units.
 
 - **Name:** ``geometry_garage_depth``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -339,9 +327,7 @@ The depth of the garage. Only applies to single-family detached units.
 The fraction of the garage that is protruding from the conditioned space. Only applies to single-family detached units.
 
 - **Name:** ``geometry_garage_protrusion``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -378,9 +364,7 @@ The foundation type of the building. Foundation types ConditionedBasement and Co
 The height of the foundation (e.g., 3ft for crawlspace, 8ft for basement). Only applies to basements/crawlspaces.
 
 - **Name:** ``geometry_foundation_height``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -391,9 +375,7 @@ The height of the foundation (e.g., 3ft for crawlspace, 8ft for basement). Only 
 The depth above grade of the foundation wall. Only applies to basements/crawlspaces.
 
 - **Name:** ``geometry_foundation_height_above_grade``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -454,9 +436,7 @@ The roof pitch of the attic. Ignored if the building has a flat roof.
 The eaves depth of the roof.
 
 - **Name:** ``geometry_eaves_depth``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -467,9 +447,7 @@ The eaves depth of the roof.
 The distance between the unit and the neighboring building to the front (not including eaves). A value of zero indicates no neighbors. Used for shading.
 
 - **Name:** ``neighbor_front_distance``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -480,9 +458,7 @@ The distance between the unit and the neighboring building to the front (not inc
 The distance between the unit and the neighboring building to the back (not including eaves). A value of zero indicates no neighbors. Used for shading.
 
 - **Name:** ``neighbor_back_distance``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -493,9 +469,7 @@ The distance between the unit and the neighboring building to the back (not incl
 The distance between the unit and the neighboring building to the left (not including eaves). A value of zero indicates no neighbors. Used for shading.
 
 - **Name:** ``neighbor_left_distance``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -506,9 +480,7 @@ The distance between the unit and the neighboring building to the left (not incl
 The distance between the unit and the neighboring building to the right (not including eaves). A value of zero indicates no neighbors. Used for shading.
 
 - **Name:** ``neighbor_right_distance``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -563,9 +535,7 @@ The height of the neighboring building to the right. If not provided, the OS-HPX
 Assembly R-value for the floor over the foundation. Ignored if the building has a slab-on-grade foundation.
 
 - **Name:** ``floor_over_foundation_assembly_r``
-- **Type:** ``Double``
-
-- **Units:** ``h-ft^2-R/Btu``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -576,9 +546,7 @@ Assembly R-value for the floor over the foundation. Ignored if the building has 
 Assembly R-value for the floor over the garage. Ignored unless the building has a garage under conditioned space.
 
 - **Name:** ``floor_over_garage_assembly_r``
-- **Type:** ``Double``
-
-- **Units:** ``h-ft^2-R/Btu``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -626,9 +594,7 @@ The thickness of the foundation wall. If not provided, the OS-HPXML default (see
 Nominal R-value for the foundation wall insulation. Only applies to basements/crawlspaces.
 
 - **Name:** ``foundation_wall_insulation_r``
-- **Type:** ``Double``
-
-- **Units:** ``h-ft^2-R/Btu``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -696,9 +662,7 @@ Assembly R-value for the rim joists. Only applies to basements/crawlspaces. Requ
 Nominal R-value of the vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
 
 - **Name:** ``slab_perimeter_insulation_r``
-- **Type:** ``Double``
-
-- **Units:** ``h-ft^2-R/Btu``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -709,9 +673,7 @@ Nominal R-value of the vertical slab perimeter insulation. Applies to slab-on-gr
 Depth from grade to bottom of vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
 
 - **Name:** ``slab_perimeter_insulation_depth``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -755,9 +717,7 @@ Depth of the slab exterior horizontal insulation measured from the top surface o
 Nominal R-value of the horizontal under slab insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
 
 - **Name:** ``slab_under_insulation_r``
-- **Type:** ``Double``
-
-- **Units:** ``h-ft^2-R/Btu``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -768,9 +728,7 @@ Nominal R-value of the horizontal under slab insulation. Applies to slab-on-grad
 Width from slab edge inward of horizontal under-slab insulation. Enter 999 to specify that the under slab insulation spans the entire slab. Applies to slab-on-grade foundations and basement/crawlspace floors.
 
 - **Name:** ``slab_under_insulation_width``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -814,9 +772,7 @@ R-value of the slab carpet. If not provided, the OS-HPXML default (see <a href='
 Assembly R-value for the ceiling (attic floor).
 
 - **Name:** ``ceiling_assembly_r``
-- **Type:** ``Double``
-
-- **Units:** ``h-ft^2-R/Btu``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -853,9 +809,7 @@ The color of the roof. If not provided, the OS-HPXML default (see <a href='https
 Assembly R-value of the roof.
 
 - **Name:** ``roof_assembly_r``
-- **Type:** ``Double``
-
-- **Units:** ``h-ft^2-R/Btu``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -931,9 +885,7 @@ The color of the walls. Also applies to rim joists. If not provided, the OS-HPXM
 Assembly R-value of the walls.
 
 - **Name:** ``wall_assembly_r``
-- **Type:** ``Double``
-
-- **Units:** ``h-ft^2-R/Btu``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -944,9 +896,7 @@ Assembly R-value of the walls.
 The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead. If the front wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_front_wwr``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -957,9 +907,7 @@ The ratio of window area to wall area for the unit's front facade. Enter 0 if sp
 The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead. If the back wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_back_wwr``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -970,9 +918,7 @@ The ratio of window area to wall area for the unit's back facade. Enter 0 if spe
 The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead. If the left wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_left_wwr``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -983,9 +929,7 @@ The ratio of window area to wall area for the unit's left facade (when viewed fr
 The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead. If the right wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_right_wwr``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -996,9 +940,7 @@ The ratio of window area to wall area for the unit's right facade (when viewed f
 The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead. If the front wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_front``
-- **Type:** ``Double``
-
-- **Units:** ``ft^2``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1009,9 +951,7 @@ The amount of window area on the unit's front facade. Enter 0 if specifying Fron
 The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead. If the back wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_back``
-- **Type:** ``Double``
-
-- **Units:** ``ft^2``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1022,9 +962,7 @@ The amount of window area on the unit's back facade. Enter 0 if specifying Back 
 The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead. If the left wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_left``
-- **Type:** ``Double``
-
-- **Units:** ``ft^2``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1035,9 +973,7 @@ The amount of window area on the unit's left facade (when viewed from the front)
 The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead. If the right wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_right``
-- **Type:** ``Double``
-
-- **Units:** ``ft^2``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1048,9 +984,7 @@ The amount of window area on the unit's right facade (when viewed from the front
 Ratio of window height to width.
 
 - **Name:** ``window_aspect_ratio``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1083,9 +1017,7 @@ For operable windows, the number of days/week that windows can be opened by occu
 Full-assembly NFRC U-factor.
 
 - **Name:** ``window_ufactor``
-- **Type:** ``Double``
-
-- **Units:** ``Btu/hr-ft^2-R``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1096,7 +1028,7 @@ Full-assembly NFRC U-factor.
 Full-assembly NFRC solar heat gain coefficient.
 
 - **Name:** ``window_shgc``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1214,9 +1146,7 @@ The type of storm, if present. If not provided, assumes there is no storm.
 The depth of overhangs for windows for the front facade.
 
 - **Name:** ``overhangs_front_depth``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1227,9 +1157,7 @@ The depth of overhangs for windows for the front facade.
 The overhangs distance to the top of window for the front facade.
 
 - **Name:** ``overhangs_front_distance_to_top_of_window``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1240,9 +1168,7 @@ The overhangs distance to the top of window for the front facade.
 The overhangs distance to the bottom of window for the front facade.
 
 - **Name:** ``overhangs_front_distance_to_bottom_of_window``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1253,9 +1179,7 @@ The overhangs distance to the bottom of window for the front facade.
 The depth of overhangs for windows for the back facade.
 
 - **Name:** ``overhangs_back_depth``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1266,9 +1190,7 @@ The depth of overhangs for windows for the back facade.
 The overhangs distance to the top of window for the back facade.
 
 - **Name:** ``overhangs_back_distance_to_top_of_window``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1279,9 +1201,7 @@ The overhangs distance to the top of window for the back facade.
 The overhangs distance to the bottom of window for the back facade.
 
 - **Name:** ``overhangs_back_distance_to_bottom_of_window``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1292,9 +1212,7 @@ The overhangs distance to the bottom of window for the back facade.
 The depth of overhangs for windows for the left facade.
 
 - **Name:** ``overhangs_left_depth``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1305,9 +1223,7 @@ The depth of overhangs for windows for the left facade.
 The overhangs distance to the top of window for the left facade.
 
 - **Name:** ``overhangs_left_distance_to_top_of_window``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1318,9 +1234,7 @@ The overhangs distance to the top of window for the left facade.
 The overhangs distance to the bottom of window for the left facade.
 
 - **Name:** ``overhangs_left_distance_to_bottom_of_window``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1331,9 +1245,7 @@ The overhangs distance to the bottom of window for the left facade.
 The depth of overhangs for windows for the right facade.
 
 - **Name:** ``overhangs_right_depth``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1344,9 +1256,7 @@ The depth of overhangs for windows for the right facade.
 The overhangs distance to the top of window for the right facade.
 
 - **Name:** ``overhangs_right_distance_to_top_of_window``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1357,9 +1267,7 @@ The overhangs distance to the top of window for the right facade.
 The overhangs distance to the bottom of window for the right facade.
 
 - **Name:** ``overhangs_right_distance_to_bottom_of_window``
-- **Type:** ``Double``
-
-- **Units:** ``ft``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1370,9 +1278,7 @@ The overhangs distance to the bottom of window for the right facade.
 The amount of skylight area on the unit's front conditioned roof facade.
 
 - **Name:** ``skylight_area_front``
-- **Type:** ``Double``
-
-- **Units:** ``ft^2``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1383,9 +1289,7 @@ The amount of skylight area on the unit's front conditioned roof facade.
 The amount of skylight area on the unit's back conditioned roof facade.
 
 - **Name:** ``skylight_area_back``
-- **Type:** ``Double``
-
-- **Units:** ``ft^2``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1396,9 +1300,7 @@ The amount of skylight area on the unit's back conditioned roof facade.
 The amount of skylight area on the unit's left conditioned roof facade (when viewed from the front).
 
 - **Name:** ``skylight_area_left``
-- **Type:** ``Double``
-
-- **Units:** ``ft^2``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1409,9 +1311,7 @@ The amount of skylight area on the unit's left conditioned roof facade (when vie
 The amount of skylight area on the unit's right conditioned roof facade (when viewed from the front).
 
 - **Name:** ``skylight_area_right``
-- **Type:** ``Double``
-
-- **Units:** ``ft^2``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1422,9 +1322,7 @@ The amount of skylight area on the unit's right conditioned roof facade (when vi
 Full-assembly NFRC U-factor.
 
 - **Name:** ``skylight_ufactor``
-- **Type:** ``Double``
-
-- **Units:** ``Btu/hr-ft^2-R``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1435,7 +1333,7 @@ Full-assembly NFRC U-factor.
 Full-assembly NFRC solar heat gain coefficient.
 
 - **Name:** ``skylight_shgc``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1459,9 +1357,7 @@ The type of storm, if present. If not provided, assumes there is no storm.
 The area of the opaque door(s).
 
 - **Name:** ``door_area``
-- **Type:** ``Double``
-
-- **Units:** ``ft^2``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1472,9 +1368,7 @@ The area of the opaque door(s).
 R-value of the opaque door(s).
 
 - **Name:** ``door_rvalue``
-- **Type:** ``Double``
-
-- **Units:** ``h-ft^2-R/Btu``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1572,9 +1466,7 @@ The fuel type of the heating system. Ignored for ElectricResistance.
 The rated heating efficiency value of the heating system.
 
 - **Name:** ``heating_system_heating_efficiency``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1618,9 +1510,7 @@ The maximum capacity limit applied to the auto-sizing methodology. If not provid
 The heating load served by the heating system.
 
 - **Name:** ``heating_system_fraction_heat_load_served``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1668,7 +1558,7 @@ The efficiency type of the cooling system. System types central air conditioner 
 The rated efficiency value of the cooling system. Ignored for evaporative cooler.
 
 - **Name:** ``cooling_system_cooling_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1736,9 +1626,7 @@ The maximum capacity limit applied to the auto-sizing methodology. If not provid
 The cooling load served by the cooling system.
 
 - **Name:** ``cooling_system_fraction_cool_load_served``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1845,7 +1733,7 @@ The heating efficiency type of heat pump. System types air-to-air and mini-split
 The rated heating efficiency value of the heat pump.
 
 - **Name:** ``heat_pump_heating_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1869,7 +1757,7 @@ The cooling efficiency type of heat pump. System types air-to-air and mini-split
 The rated cooling efficiency value of the heat pump.
 
 - **Name:** ``heat_pump_cooling_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -1992,9 +1880,7 @@ The maximum capacity limit applied to the auto-sizing methodology. If not provid
 The heating load served by the heat pump.
 
 - **Name:** ``heat_pump_fraction_heat_load_served``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2005,9 +1891,7 @@ The heating load served by the heat pump.
 The cooling load served by the heat pump.
 
 - **Name:** ``heat_pump_fraction_cool_load_served``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2077,7 +1961,7 @@ The backup fuel type of the heat pump. Only applies if Backup Type is 'integrate
 The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise. Only applies if Backup Type is 'integrated'.
 
 - **Name:** ``heat_pump_backup_heating_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2429,9 +2313,7 @@ The fuel type of the second heating system. Ignored for ElectricResistance.
 The rated heating efficiency value of the second heating system.
 
 - **Name:** ``heating_system_2_heating_efficiency``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2475,9 +2357,7 @@ The maximum capacity limit applied to the auto-sizing methodology. If not provid
 The heat load served fraction of the second heating system. Ignored if this heating system serves as a backup system for a heat pump.
 
 - **Name:** ``heating_system_2_fraction_heat_load_served``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2534,7 +2414,7 @@ The leakage units of the ducts.
 The leakage value to outside for the supply ducts.
 
 - **Name:** ``ducts_supply_leakage_to_outside_value``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2558,9 +2438,7 @@ The location of the supply ducts. If not provided, the OS-HPXML default (see <a 
 The nominal insulation r-value of the supply ducts excluding air films. Use 0 for uninsulated ducts.
 
 - **Name:** ``ducts_supply_insulation_r``
-- **Type:** ``Double``
-
-- **Units:** ``h-ft^2-R/Btu``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2617,7 +2495,7 @@ The fraction of supply ducts that are rectangular (as opposed to round); this af
 The leakage value to outside for the return ducts.
 
 - **Name:** ``ducts_return_leakage_to_outside_value``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2641,9 +2519,7 @@ The location of the return ducts. If not provided, the OS-HPXML default (see <a 
 The nominal insulation r-value of the return ducts excluding air films. Use 0 for uninsulated ducts.
 
 - **Name:** ``ducts_return_insulation_r``
-- **Type:** ``Double``
-
-- **Units:** ``h-ft^2-R/Btu``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2759,9 +2635,7 @@ The total recovery efficiency type of the mechanical ventilation.
 The Unadjusted or Adjusted total recovery efficiency of the mechanical ventilation. Applies to energy recovery ventilator.
 
 - **Name:** ``mech_vent_total_recovery_efficiency``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2772,9 +2646,7 @@ The Unadjusted or Adjusted total recovery efficiency of the mechanical ventilati
 The Unadjusted or Adjusted sensible recovery efficiency of the mechanical ventilation. Applies to energy recovery ventilator and heat recovery ventilator.
 
 - **Name:** ``mech_vent_sensible_recovery_efficiency``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2796,9 +2668,7 @@ The fan power of the mechanical ventilation. If not provided, the OS-HPXML defau
 Number of dwelling units served by the mechanical ventilation system. Must be 1 if single-family detached. Used to apportion flow rate and fan power to the unit.
 
 - **Name:** ``mech_vent_num_units_served``
-- **Type:** ``Integer``
-
-- **Units:** ``#``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2903,9 +2773,7 @@ The type of the second mechanical ventilation. Use 'none' if there is no second 
 The flow rate of the second mechanical ventilation.
 
 - **Name:** ``mech_vent_2_flow_rate``
-- **Type:** ``Double``
-
-- **Units:** ``CFM``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2916,9 +2784,7 @@ The flow rate of the second mechanical ventilation.
 The hours in operation of the second mechanical ventilation.
 
 - **Name:** ``mech_vent_2_hours_in_operation``
-- **Type:** ``Double``
-
-- **Units:** ``hrs/day``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2942,9 +2808,7 @@ The total recovery efficiency type of the second mechanical ventilation.
 The Unadjusted or Adjusted total recovery efficiency of the second mechanical ventilation. Applies to energy recovery ventilator.
 
 - **Name:** ``mech_vent_2_total_recovery_efficiency``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2955,9 +2819,7 @@ The Unadjusted or Adjusted total recovery efficiency of the second mechanical ve
 The Unadjusted or Adjusted sensible recovery efficiency of the second mechanical ventilation. Applies to energy recovery ventilator and heat recovery ventilator.
 
 - **Name:** ``mech_vent_2_sensible_recovery_efficiency``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -2968,9 +2830,7 @@ The Unadjusted or Adjusted sensible recovery efficiency of the second mechanical
 The fan power of the second mechanical ventilation.
 
 - **Name:** ``mech_vent_2_fan_power``
-- **Type:** ``Double``
-
-- **Units:** ``W``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3187,7 +3047,7 @@ The efficiency type of water heater. Does not apply to space-heating boilers.
 Rated Energy Factor or Uniform Energy Factor. Does not apply to space-heating boilers.
 
 - **Name:** ``water_heater_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3491,9 +3351,7 @@ The type of solar thermal system. Use 'none' if there is no solar thermal system
 The collector area of the solar thermal system.
 
 - **Name:** ``solar_thermal_collector_area``
-- **Type:** ``Double``
-
-- **Units:** ``ft^2``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3530,9 +3388,7 @@ The collector type of the solar thermal system.
 The collector azimuth of the solar thermal system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).
 
 - **Name:** ``solar_thermal_collector_azimuth``
-- **Type:** ``Double``
-
-- **Units:** ``degrees``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3554,9 +3410,7 @@ The collector tilt of the solar thermal system. Can also enter, e.g., RoofPitch,
 The collector rated optical efficiency of the solar thermal system.
 
 - **Name:** ``solar_thermal_collector_rated_optical_efficiency``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3567,9 +3421,7 @@ The collector rated optical efficiency of the solar thermal system.
 The collector rated thermal losses of the solar thermal system.
 
 - **Name:** ``solar_thermal_collector_rated_thermal_losses``
-- **Type:** ``Double``
-
-- **Units:** ``Btu/hr-ft^2-R``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3591,9 +3443,7 @@ The storage volume of the solar thermal system. If not provided, the OS-HPXML de
 The solar fraction of the solar thermal system. If provided, overrides all other solar thermal inputs.
 
 - **Name:** ``solar_thermal_solar_fraction``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3654,9 +3504,7 @@ Type of tracking for the PV system. If not provided, the OS-HPXML default (see <
 Array azimuth of the PV system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).
 
 - **Name:** ``pv_system_array_azimuth``
-- **Type:** ``Double``
-
-- **Units:** ``degrees``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3678,9 +3526,7 @@ Array tilt of the PV system. Can also enter, e.g., RoofPitch, RoofPitch+20, Lati
 Maximum power output of the PV system. For a shared system, this is the total building maximum power output.
 
 - **Name:** ``pv_system_max_power_output``
-- **Type:** ``Double``
-
-- **Units:** ``W``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3763,9 +3609,7 @@ Type of tracking for the second PV system. If not provided, the OS-HPXML default
 Array azimuth of the second PV system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).
 
 - **Name:** ``pv_system_2_array_azimuth``
-- **Type:** ``Double``
-
-- **Units:** ``degrees``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3787,9 +3631,7 @@ Array tilt of the second PV system. Can also enter, e.g., RoofPitch, RoofPitch+2
 Maximum power output of the second PV system. For a shared system, this is the total building maximum power output.
 
 - **Name:** ``pv_system_2_max_power_output``
-- **Type:** ``Double``
-
-- **Units:** ``W``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3879,7 +3721,7 @@ Whether there is lighting energy use.
 Fraction of all lamps (interior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_interior_fraction_cfl``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3890,7 +3732,7 @@ Fraction of all lamps (interior) that are compact fluorescent. Lighting not spec
 Fraction of all lamps (interior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_interior_fraction_lfl``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3901,7 +3743,7 @@ Fraction of all lamps (interior) that are linear fluorescent. Lighting not speci
 Fraction of all lamps (interior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_interior_fraction_led``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3923,7 +3765,7 @@ Multiplier on the lighting energy usage (interior) that can reflect, e.g., high/
 Fraction of all lamps (exterior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_exterior_fraction_cfl``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3934,7 +3776,7 @@ Fraction of all lamps (exterior) that are compact fluorescent. Lighting not spec
 Fraction of all lamps (exterior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_exterior_fraction_lfl``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3945,7 +3787,7 @@ Fraction of all lamps (exterior) that are linear fluorescent. Lighting not speci
 Fraction of all lamps (exterior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_exterior_fraction_led``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3967,7 +3809,7 @@ Multiplier on the lighting energy usage (exterior) that can reflect, e.g., high/
 Fraction of all lamps (garage) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_garage_fraction_cfl``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3978,7 +3820,7 @@ Fraction of all lamps (garage) that are compact fluorescent. Lighting not specif
 Fraction of all lamps (garage) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_garage_fraction_lfl``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -3989,7 +3831,7 @@ Fraction of all lamps (garage) that are linear fluorescent. Lighting not specifi
 Fraction of all lamps (garage) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_garage_fraction_led``
-- **Type:** ``Double``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -4070,9 +3912,7 @@ The efficiency type of dehumidifier.
 The efficiency of the dehumidifier.
 
 - **Name:** ``dehumidifier_efficiency``
-- **Type:** ``Double``
-
-- **Units:** ``liters/kWh``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -4083,9 +3923,7 @@ The efficiency of the dehumidifier.
 The capacity (water removal rate) of the dehumidifier.
 
 - **Name:** ``dehumidifier_capacity``
-- **Type:** ``Double``
-
-- **Units:** ``pint/day``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -4096,9 +3934,7 @@ The capacity (water removal rate) of the dehumidifier.
 The relative humidity setpoint of the dehumidifier.
 
 - **Name:** ``dehumidifier_rh_setpoint``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
@@ -4109,9 +3945,7 @@ The relative humidity setpoint of the dehumidifier.
 The dehumidification load served fraction of the dehumidifier.
 
 - **Name:** ``dehumidifier_fraction_dehumidification_load_served``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
+- **Type:** ``String``
 
 - **Required:** ``true``
 
