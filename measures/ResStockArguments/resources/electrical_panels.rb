@@ -142,7 +142,7 @@ class RatedCapacityGenerator
   end
 
   def read_breaker_space_probs(heating_system_fuel)
-    file = "resources/electrical_breaker_space.csv"
+    file = "resources/electrical_panel_breaker_space.csv"
     probabilities = CSV.table(file) # CSV.read(file, headers:True)
     puts "reading '#{file}'"
     puts probabilities
