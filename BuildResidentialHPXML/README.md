@@ -3795,9 +3795,22 @@ Ratio of energy delivered to water heater to the energy content of the fuel cons
 
 **Water Heater: Heating Capacity**
 
-Heating capacity. Only applies to storage water heater. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage'>Conventional Storage</a>) is used.
+Heating capacity. Only applies to storage water heater and heat pump water heater (compressor). If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage'>Conventional Storage</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump'>Heat Pump</a>) is used.
 
 - **Name:** ``water_heater_heating_capacity``
+- **Type:** ``Double``
+
+- **Units:** ``Btu/hr``
+
+- **Required:** ``false``
+
+<br/>
+
+**Water Heater: Backup Heating Capacity**
+
+Backup heating capacity for a heat pump water heater. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump'>Heat Pump</a>) is used.
+
+- **Name:** ``water_heater_backup_heating_capacity``
 - **Type:** ``Double``
 
 - **Units:** ``Btu/hr``

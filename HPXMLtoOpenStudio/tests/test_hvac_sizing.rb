@@ -1153,6 +1153,7 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
         htg_cap_orig = hpxml_bldg.heat_pumps[0].heating_capacity
         clg_cap_orig = hpxml_bldg.heat_pumps[0].cooling_capacity
         backup_htg_cap_orig = hpxml_bldg.heat_pumps[0].backup_heating_capacity
+
         # apply autosizing factor
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-detailed-performance-autosize.xml')
         hpxml_bldg.heat_pumps[0].backup_heating_capacity = nil
@@ -1343,6 +1344,35 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
         end
       end
     end
+  end
+
+  def test_detailed_performance_autosizing
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+
+    # Test heat pump w/ detailed performance
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-detailed-performance-autosize.xml')
+    hpxml_bldg.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingMaxLoad
+    hpxml_bldg.heat_pumps[0].backup_heating_capacity = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    htg_cap_orig = hpxml_bldg.heat_pumps[0].heating_capacity
+    clg_cap_orig = hpxml_bldg.heat_pumps[0].cooling_capacity
+    backup_htg_cap_orig = hpxml_bldg.heat_pumps[0].backup_heating_capacity
+
+    # Test heat pump w/ detailed performance when maximum fractions are over 1.0 at rated temperature
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-detailed-performance-autosize.xml')
+    hpxml_bldg.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingMaxLoad
+    hpxml_bldg.heat_pumps[0].backup_heating_capacity = nil
+    hpxml_bldg.heat_pumps[0].heating_capacity = nil
+    hpxml_bldg.heat_pumps[0].cooling_capacity = nil
+    hpxml_bldg.heat_pumps[0].heating_detailed_performance_data.find { |dp| dp.outdoor_temperature == HVAC::AirSourceHeatRatedODB && dp.capacity_description == HPXML::CapacityDescriptionMaximum }.capacity_fraction_of_nominal = 1.2
+    hpxml_bldg.heat_pumps[0].cooling_detailed_performance_data.find { |dp| dp.outdoor_temperature == HVAC::AirSourceCoolRatedODB && dp.capacity_description == HPXML::CapacityDescriptionMaximum }.capacity_fraction_of_nominal = 1.1
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    assert_equal(hpxml_bldg.heat_pumps[0].heating_capacity, htg_cap_orig)
+    assert_equal(hpxml_bldg.heat_pumps[0].cooling_capacity, clg_cap_orig)
+    assert_equal(hpxml_bldg.heat_pumps[0].backup_heating_capacity, backup_htg_cap_orig)
   end
 
   def test_manual_j_detailed_sizing_inputs

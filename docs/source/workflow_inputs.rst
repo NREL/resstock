@@ -1214,8 +1214,8 @@ For a multifamily building where the dwelling unit has another dwelling unit abo
   ``Area``                                double             ft2               > 0                       Yes                                        Gross area (including skylights)
   ``Azimuth`` or ``Orientation``          integer or string  deg or direction  >= 0, <= 359 or See [#]_  No         See [#]_                        Direction (clockwise from North)
   ``RoofType``                            string                               See [#]_                  No         asphalt or fiberglass shingles  Roof type
-  ``RoofColor`` or ``SolarAbsorptance``   string or double                     See [#]_ or >= 0, <= 1    No         medium                          Roof color or solar absorptance [#]_
-  ``Emittance``                           double                               >= 0, <= 1                No         0.90                            Emittance
+  ``RoofColor`` or ``SolarAbsorptance``   string or double                     See [#]_ or >= 0, <= 1    No         medium                          Roof color or solar absorptance of outermost material [#]_
+  ``Emittance``                           double                               >= 0, <= 1                No         0.90                            Emittance of outermost material
   ``InteriorFinish/Type``                 string                               See [#]_                  No         See [#]_                        Interior finish material
   ``InteriorFinish/Thickness``            double             in                >= 0                      No         0.5                             Interior finish thickness
   ``Pitch``                               double             ?/12              >= 0                      Yes                                        Pitch [#]_
@@ -1277,8 +1277,8 @@ Each rim joist surface (i.e., the perimeter of floor joists typically found betw
   ``Area``                                double             ft2               > 0                       Yes                    Gross area
   ``Azimuth`` or ``Orientation``          integer or string  deg or direction  >= 0, <= 359 or See [#]_  No        See [#]_     Direction (clockwise from North)
   ``Siding``                              string                               See [#]_                  No        wood siding  Siding material
-  ``Color`` or ``SolarAbsorptance``       string or double                     See [#]_ or >= 0, <= 1    No        medium       Color or solar absorptance [#]_
-  ``Emittance``                           double                               >= 0, <= 1                No        0.90         Emittance
+  ``Color`` or ``SolarAbsorptance``       string or double                     See [#]_ or >= 0, <= 1    No        medium       Color or solar absorptance of outermost material [#]_
+  ``Emittance``                           double                               >= 0, <= 1                No        0.90         Emittance of outermost material
   ``Insulation/SystemIdentifier``         id                                                             Yes                    Unique identifier
   ``Insulation/AssemblyEffectiveRValue``  double             F-ft2-hr/Btu      > 0                       Yes                    Assembly R-value [#]_
   ======================================  =================  ================  ========================  ========  ===========  ==============================
@@ -1325,8 +1325,8 @@ Each wall surface is entered as a ``/HPXML/Building/BuildingDetails/Enclosure/Wa
   ``Area``                                double             ft2               > 0                       Yes                         Gross area (including doors/windows)
   ``Azimuth`` or ``Orientation``          integer or string  deg or direction  >= 0, <= 359 or See [#]_  No             See [#]_     Direction (clockwise from North)
   ``Siding``                              string                               See [#]_                  No             wood siding  Siding material
-  ``Color`` or ``SolarAbsorptance``       string or double                     See [#]_ or >= 0, <= 1    No             medium       Color or solar absorptance [#]_
-  ``Emittance``                           double                               >= 0, <= 1                No             0.90         Emittance
+  ``Color`` or ``SolarAbsorptance``       string or double                     See [#]_ or >= 0, <= 1    No             medium       Color or solar absorptance of outermost material [#]_
+  ``Emittance``                           double                               >= 0, <= 1                No             0.90         Emittance of outermost material
   ``InteriorFinish/Type``                 string                               See [#]_                  No             See [#]_     Interior finish material
   ``InteriorFinish/Thickness``            double             in                >= 0                      No             0.5          Interior finish thickness
   ``RadiantBarrier``                      boolean                                                        No             false        Presence of radiant barrier [#]_
@@ -3770,25 +3770,32 @@ Central Fan Integrated Supply (CFIS)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Each central fan integrated supply (CFIS) system is entered as a ``/HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan``.
+A CFIS system is a supply ventilation system that provides outdoor air to the return duct of a forced-air HVAC system.
 
   =============================================================================================  ========  =======  =============================  ========  ===============  =========================================
   Element                                                                                        Type      Units    Constraints                    Required  Default          Notes
   =============================================================================================  ========  =======  =============================  ========  ===============  =========================================
   ``SystemIdentifier``                                                                           id                                                Yes                        Unique identifier
   ``FanType``                                                                                    string             central fan integrated supply  Yes                        Type of ventilation system
+  ``CFISControls/HasOutdoorAirControl``                                                          boolean                                           No        true             Presence of controls to block outdoor air when not ventilating [#]_
   ``CFISControls/AdditionalRuntimeOperatingMode``                                                string             See [#]_                       No        air handler fan  How additional ventilation is provided (beyond HVAC system operation)
   ``CFISControls/SupplementalFan``                                                               idref              See [#]_                       See [#]_                   The supplemental fan providing additional ventilation
+  ``CFISControls/extension/SupplementalFanRunsWithAirHandlerFan``                                boolean                                           No [#]_   false            Whether the supplemental fan also runs with the air handler fan [#]_
   ``RatedFlowRate`` or ``TestedFlowRate`` or ``CalculatedFlowRate`` or ``DeliveredVentilation``  double    cfm      >= 0                           No        See [#]_         Flow rate [#]_
   ``HoursInOperation``                                                                           double    hrs/day  >= 0, <= 24                    false     8                Hours per day of operation [#]_
   ``UsedForWholeBuildingVentilation``                                                            boolean            true                           Yes                        Ventilation fan use case [#]_
-  ``FanPower``                                                                                   double    W        >= 0                           No        See [#]_         Fan power
+  ``FanPower``                                                                                   double    W        >= 0                           No [#]_   See [#]_         Blower fan power during ventilation only mode
   ``AttachedToHVACDistributionSystem``                                                           idref              See [#]_                       Yes                        ID of attached distribution system
   ``extension/VentilationOnlyModeAirflowFraction``                                               double    frac     >= 0, <= 1                     No        1.0              Blower airflow rate fraction during ventilation only mode [#]_
   =============================================================================================  ========  =======  =============================  ========  ===============  =========================================
 
+  .. [#] For example, an electronically-controlled mechanical damper, or an in-line fan that substantially blocks the flow when not running.
   .. [#] AdditionalRuntimeOperatingMode choices are "air handler fan", "supplemental fan", or "none".
   .. [#] SupplementalFan must reference another ``VentilationFan`` where UsedForWholeBuildingVentilation=true, IsSharedSystem=false, and FanType="exhaust only" or "supply only".
   .. [#] SupplementalFan only required if AdditionalRuntimeOperatingMode is "supplemental fan".
+  .. [#] SupplementalFanRunsWithAirHandlerFan only applies when AdditionalRuntimeOperatingMode="supplemental fan".
+  .. [#] If SupplementalFanRunsWithAirHandlerFan is true, in addition to its normal operation, the supplemental fan will also run simultaneously with the air handler fan when outdoor air is being brought in.
+         This is typically used with a supplemental exhaust fan to provide "balanced" (supply + exhaust) airflow.
   .. [#] If flow rate not provided, defaults to the required mechanical ventilation rate per `ANSI/RESNET/ICC 301-2022 <https://codes.iccsafe.org/content/RESNET3012022P1>`_:
          
          Qfan = required mechanical ventilation rate (cfm) = ((Qtot^2 – 4*Qinf_eff^2 + 2*Qinf_eff*Qtot + Qinf_eff^2)^0.5 + Qtot - Qinf_eff) / 2
@@ -3808,18 +3815,12 @@ Each central fan integrated supply (CFIS) system is entered as a ``/HPXML/Buildi
   .. [#] The flow rate should equal the amount of outdoor air provided to the distribution system, not the total airflow through the distribution system.
   .. [#] HoursInOperation is combined with the flow rate to form the hourly target ventilation rate (e.g., inputs of 90 cfm and 8 hrs/day produce an hourly target ventilation rate of 30 cfm).
   .. [#] All other UsedFor... elements (i.e., ``UsedForLocalVentilation``, ``UsedForSeasonalCoolingLoadReduction``, ``UsedForGarageVentilation``) must be omitted or false.
-  .. [#] If FanPower not provided, defaults to 0.58 W/cfm based on ANSI/RESNET/ICC 301-2022 Addendum C.
+  .. [#] FanPower only applies when AdditionalRuntimeOperatingMode="air handler fan", in which it determines the blower fan power during ventilation only mode.
+  .. [#] If FanPower not provided, defaults to the attached HVAC system's FanPowerWattsPerCFM multiplied by the maximum blower airflow rate and VentilationOnlyModeAirflowFraction.
   .. [#] HVACDistribution type cannot be :ref:`hvac_distribution_hydronic`.
   .. [#] VentilationOnlyModeAirflowFraction only applies when AdditionalRuntimeOperatingMode="air handler fan".
          Defines the blower airflow rate when operating in ventilation only mode (i.e., not heating or cooling mode), as a fraction of the maximum blower airflow rate.
          This value will depend on whether the blower fan can operate at reduced airflow rates during ventilation only operation.
-         It is used to determine how much conditioned air is recirculated through ducts during ventilation only operation, resulting in additional duct losses.
-         A value of zero will result in no conditioned air recirculation, and thus no additional duct losses.
-
-.. note::
-
-  CFIS systems are automated controllers that use the HVAC system's air handler fan to draw in outdoor air to meet an hourly ventilation target.
-  CFIS systems are modeled as assuming they A) maximize the use of normal heating/cooling runtime operation to meet the hourly ventilation target, B) block the flow of outdoor air when the hourly ventilation target has been met, and C) provide additional runtime operation (via air handler fan or supplemental fan) to meet the remainder of the hourly ventilation target when space heating/cooling runtime alone is not sufficient.
 
 .. _vent_fan_shared:
 
@@ -4038,24 +4039,26 @@ Heat Pump
 
 Each heat pump water heater is entered as a ``/HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem``.
 
-  =============================================  ================  =============  ======================  ========  ===========  =============================================
-  Element                                        Type              Units          Constraints             Required  Default      Notes
-  =============================================  ================  =============  ======================  ========  ===========  =============================================
-  ``SystemIdentifier``                           id                                                       Yes                    Unique identifier
-  ``FuelType``                                   string                           electricity             Yes                    Fuel type
-  ``WaterHeaterType``                            string                           heat pump water heater  Yes                    Type of water heater
-  ``Location``                                   string                           See [#]_                No        See [#]_     Water heater location
-  ``IsSharedSystem``                             boolean                                                  No        false        Whether it serves multiple dwelling units or shared laundry room
-  ``TankVolume``                                 double            gal            > 0                     No        See [#]_     Nominal tank volume
-  ``FractionDHWLoadServed``                      double            frac           >= 0, <= 1 [#]_         Yes                    Fraction of hot water load served [#]_
-  ``UniformEnergyFactor`` or ``EnergyFactor``    double            frac           > 1, <= 5               Yes                    EnergyGuide label rated efficiency
-  ``HPWHOperatingMode``                          string                           See [#]_                No        hybrid/auto  Operating mode [#]_
-  ``UsageBin`` or ``FirstHourRating``            string or double  str or gal/hr  See [#]_ or > 0         No        See [#]_     EnergyGuide label usage bin/first hour rating
-  ``WaterHeaterInsulation/Jacket/JacketRValue``  double            F-ft2-hr/Btu   >= 0                    No        0            R-value of additional tank insulation wrap
-  ``HotWaterTemperature``                        double            F              > 0                     No        125          Water heater setpoint [#]_
-  ``UsesDesuperheater``                          boolean                                                  No        false        Presence of desuperheater? [#]_
-  ``extension/NumberofBedroomsServed``           integer                          > NumberofBedrooms      See [#]_               Number of bedrooms served directly or indirectly
-  =============================================  ================  =============  ======================  ========  ===========  =============================================
+  =============================================  ================  =============  ======================  ========  ==============  =============================================
+  Element                                        Type              Units          Constraints             Required  Default         Notes
+  =============================================  ================  =============  ======================  ========  ==============  =============================================
+  ``SystemIdentifier``                           id                                                       Yes                       Unique identifier
+  ``FuelType``                                   string                           electricity             Yes                       Fuel type
+  ``WaterHeaterType``                            string                           heat pump water heater  Yes                       Type of water heater
+  ``Location``                                   string                           See [#]_                No        See [#]_        Water heater location
+  ``IsSharedSystem``                             boolean                                                  No        false           Whether it serves multiple dwelling units or shared laundry room
+  ``TankVolume``                                 double            gal            > 0                     No        See [#]_        Nominal tank volume
+  ``FractionDHWLoadServed``                      double            frac           >= 0, <= 1 [#]_         Yes                       Fraction of hot water load served [#]_
+  ``HeatingCapacity``                            double            Btu/hr         > 0                     No        See [#]_        Heating output capacity
+  ``BackupHeatingCapacity``                      double            Btu/hr         >= 0                    No        15355 (4.5 kW)  Heating capacity of the electric resistance backup
+  ``UniformEnergyFactor`` or ``EnergyFactor``    double            frac           > 1, <= 5               Yes                       EnergyGuide label rated efficiency
+  ``HPWHOperatingMode``                          string                           See [#]_                No        hybrid/auto     Operating mode [#]_
+  ``UsageBin`` or ``FirstHourRating``            string or double  str or gal/hr  See [#]_ or > 0         No        See [#]_        EnergyGuide label usage bin/first hour rating
+  ``WaterHeaterInsulation/Jacket/JacketRValue``  double            F-ft2-hr/Btu   >= 0                    No        0               R-value of additional tank insulation wrap
+  ``HotWaterTemperature``                        double            F              > 0                     No        125             Water heater setpoint [#]_
+  ``UsesDesuperheater``                          boolean                                                  No        false           Presence of desuperheater? [#]_
+  ``extension/NumberofBedroomsServed``           integer                          > NumberofBedrooms      See [#]_                  Number of bedrooms served directly or indirectly
+  =============================================  ================  =============  ======================  ========  ==============  =============================================
 
   .. [#] Location choices are "conditioned space", "basement - unconditioned", "basement - conditioned", "attic - unvented", "attic - vented", "garage", "crawlspace - unvented", "crawlspace - vented", "crawlspace - conditioned", "other exterior", "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space".
          See :ref:`hpxml_locations` for descriptions.
@@ -4069,6 +4072,7 @@ Each heat pump water heater is entered as a ``/HPXML/Building/BuildingDetails/Sy
   .. [#] The sum of all ``FractionDHWLoadServed`` (across all WaterHeatingSystems) must equal to 1.
   .. [#] FractionDHWLoadServed represents only the fraction of the hot water load associated with the hot water **fixtures**.
          Additional hot water load from clothes washers/dishwashers will be automatically assigned to the appropriate water heater(s).
+  .. [#] If HeatingCapacity not provided, defaults to 1706 Btu/hr (0.5 kW) multiplied by the heat pump COP.
   .. [#] HPWHOperatingMode choices are "hybrid/auto" or "heat pump only".
   .. [#] The heat pump water heater operating mode can alternatively be defined using :ref:`schedules_detailed`.
   .. [#] UsageBin choices are "very small", "low", "medium", or "high".

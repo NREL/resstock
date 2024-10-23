@@ -965,7 +965,7 @@ module Waterheater
     )
 
     # Assumptions and values
-    cap = 0.5 * unit_multiplier # kW
+    cap = UnitConversions.convert(water_heating_system.heating_capacity, 'Btu/hr', 'W') * unit_multiplier # kW
     shr = 0.88 # unitless
 
     # Calculate an altitude adjusted rated evaporator wetbulb temperature
@@ -979,6 +979,32 @@ module Waterheater
     w_adj = Psychrometrics.w_fT_Twb_P(dp_rated, dp_rated, p_atm)
     twb_adj = Psychrometrics.Twb_fT_w_P(runner, rated_edb_F, w_adj, p_atm)
 
+    cop = water_heating_system.additional_properties.cop
+
+    coil = OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped.new(model)
+    coil.setName("#{obj_name} coil")
+    coil.setRatedHeatingCapacity(cap)
+    coil.setRatedCOP(cop)
+    coil.setRatedSensibleHeatRatio(shr)
+    coil.setRatedEvaporatorInletAirDryBulbTemperature(rated_edb)
+    coil.setRatedEvaporatorInletAirWetBulbTemperature(UnitConversions.convert(twb_adj, 'F', 'C'))
+    coil.setRatedCondenserWaterTemperature(48.89)
+    coil.setRatedEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate * unit_multiplier, 'ft^3/min', 'm^3/s'))
+    coil.setEvaporatorFanPowerIncludedinRatedCOP(true)
+    coil.setEvaporatorAirTemperatureTypeforCurveObjects('WetBulbTemperature')
+    coil.setHeatingCapacityFunctionofTemperatureCurve(hpwh_cap)
+    coil.setHeatingCOPFunctionofTemperatureCurve(hpwh_cop)
+    coil.setMaximumAmbientTemperatureforCrankcaseHeaterOperation(0)
+    coil.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
+
+    return coil
+  end
+
+  # Calculates the HPWH compressor COP based on UEF regressions.
+  #
+  # @param water_heating_system [HPXML::WaterHeatingSystem] The HPXML water heating system of interest
+  # return [Double] COP of the HPWH compressor
+  def self.set_heat_pump_cop(water_heating_system)
     # Calculate the COP based on EF
     if not water_heating_system.energy_factor.nil?
       uef = (0.60522 + water_heating_system.energy_factor) / 1.2101
@@ -995,24 +1021,7 @@ module Waterheater
         cop = 1.1022 * uef - 0.0877
       end
     end
-
-    coil = OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped.new(model)
-    coil.setName("#{obj_name} coil")
-    coil.setRatedHeatingCapacity(UnitConversions.convert(cap, 'kW', 'W') * cop)
-    coil.setRatedCOP(cop)
-    coil.setRatedSensibleHeatRatio(shr)
-    coil.setRatedEvaporatorInletAirDryBulbTemperature(rated_edb)
-    coil.setRatedEvaporatorInletAirWetBulbTemperature(UnitConversions.convert(twb_adj, 'F', 'C'))
-    coil.setRatedCondenserWaterTemperature(48.89)
-    coil.setRatedEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate * unit_multiplier, 'ft^3/min', 'm^3/s'))
-    coil.setEvaporatorFanPowerIncludedinRatedCOP(true)
-    coil.setEvaporatorAirTemperatureTypeforCurveObjects('WetBulbTemperature')
-    coil.setHeatingCapacityFunctionofTemperatureCurve(hpwh_cap)
-    coil.setHeatingCOPFunctionofTemperatureCurve(hpwh_cop)
-    coil.setMaximumAmbientTemperatureforCrankcaseHeaterOperation(0)
-    coil.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
-
-    return coil
+    water_heating_system.additional_properties.cop = cop
   end
 
   # TODO
@@ -1034,7 +1043,7 @@ module Waterheater
     v_actual = calc_storage_tank_actual_vol(water_heating_system.tank_volume, water_heating_system.fuel_type) # gal
     a_tank, a_side = calc_tank_areas(v_actual, UnitConversions.convert(h_tank, 'm', 'ft')) # sqft
 
-    e_cap = 4.5 # kW
+    e_cap = UnitConversions.convert(water_heating_system.backup_heating_capacity, 'Btu/hr', 'W') # W
     parasitics = 3.0 # W
     # Based on Ecotope lab testing of most recent AO Smith HPWHs (series HPTU)
     if water_heating_system.tank_volume <= 58.0
@@ -1061,12 +1070,12 @@ module Waterheater
     tank.setHeaterPriorityControl('MasterSlave')
     tank.heater1SetpointTemperatureSchedule.remove
     tank.setHeater1SetpointTemperatureSchedule(hpwh_top_element_sp)
-    tank.setHeater1Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
+    tank.setHeater1Capacity(e_cap)
     tank.setHeater1Height((1.0 - (3 - 0.5) / 12.0) * h_tank) # in the 3rd node of a 12-node tank (counting from top)
     tank.setHeater1DeadbandTemperatureDifference(18.5)
     tank.heater2SetpointTemperatureSchedule.remove
     tank.setHeater2SetpointTemperatureSchedule(hpwh_bottom_element_sp)
-    tank.setHeater2Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
+    tank.setHeater2Capacity(e_cap)
     tank.setHeater2Height((1.0 - (10 - 0.5) / 12.0) * h_tank) # in the 10th node of a 12-node tank (counting from top)
     tank.setHeater2DeadbandTemperatureDifference(3.89)
     tank.setHeaterFuelType(EPlus::FuelTypeElectricity)
