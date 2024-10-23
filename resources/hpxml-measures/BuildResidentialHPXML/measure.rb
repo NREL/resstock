@@ -2273,7 +2273,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_heating_capacity', false)
     arg.setDisplayName('Water Heater: Heating Capacity')
-    arg.setDescription("Heating capacity. Only applies to #{HPXML::WaterHeaterTypeStorage}. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#conventional-storage'>Conventional Storage</a>) is used.")
+    arg.setDescription("Heating capacity. Only applies to #{HPXML::WaterHeaterTypeStorage} and #{HPXML::WaterHeaterTypeHeatPump} (compressor). If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#conventional-storage'>Conventional Storage</a>, <a href='#{docs_base_url}#heat-pump'>Heat Pump</a>) is used.")
+    arg.setUnits('Btu/hr')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_backup_heating_capacity', false)
+    arg.setDisplayName('Water Heater: Backup Heating Capacity')
+    arg.setDescription("Backup heating capacity for a #{HPXML::WaterHeaterTypeHeatPump}. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#heat-pump'>Heat Pump</a>) is used.")
     arg.setUnits('Btu/hr')
     args << arg
 
@@ -6609,6 +6615,8 @@ module HPXMLFile
       heating_capacity = args[:water_heater_heating_capacity]
       tank_model_type = args[:water_heater_tank_model_type]
     elsif [HPXML::WaterHeaterTypeHeatPump].include? water_heater_type
+      heating_capacity = args[:water_heater_heating_capacity]
+      backup_heating_capacity = args[:water_heater_backup_heating_capacity]
       operating_mode = args[:water_heater_operating_mode]
     end
 
@@ -6629,6 +6637,7 @@ module HPXMLFile
                                          jacket_r_value: jacket_r_value,
                                          temperature: args[:water_heater_setpoint_temperature],
                                          heating_capacity: heating_capacity,
+                                         backup_heating_capacity: backup_heating_capacity,
                                          is_shared_system: is_shared_system,
                                          number_of_bedrooms_served: number_of_bedrooms_served,
                                          tank_model_type: tank_model_type,
