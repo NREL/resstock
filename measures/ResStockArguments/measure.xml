@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>960364fd-c2b7-4241-af4d-b39343063771</version_id>
-  <version_modified>2024-10-03T20:57:24Z</version_modified>
+  <version_id>91eb4ed2-0841-49e4-beae-41be2fbd2b56</version_id>
+  <version_modified>2024-10-23T19:13:55Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -4556,7 +4556,16 @@
     <argument>
       <name>water_heater_heating_capacity</name>
       <display_name>Water Heater: Heating Capacity</display_name>
-      <description>Heating capacity. Only applies to storage water heater. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage'&gt;Conventional Storage&lt;/a&gt;) is used.</description>
+      <description>Heating capacity. Only applies to storage water heater and heat pump water heater (compressor). If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage'&gt;Conventional Storage&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump'&gt;Heat Pump&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>Btu/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>water_heater_backup_heating_capacity</name>
+      <display_name>Water Heater: Backup Heating Capacity</display_name>
+      <description>Backup heating capacity for a heat pump water heater. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump'&gt;Heat Pump&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Btu/hr</units>
       <required>false</required>
@@ -7684,7 +7693,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>C5B11B55</checksum>
+      <checksum>B8A69924</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
