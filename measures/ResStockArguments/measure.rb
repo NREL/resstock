@@ -913,7 +913,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         when 'integer'
           args[arg_name] = Integer(value)
         end
-      elsif arg.required
+      else
         case arg.type.valueName.downcase
         when 'double'
           args[arg_name] = 99999
