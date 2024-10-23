@@ -1138,10 +1138,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 28%
      - false
+     - 
+     - 
      - 0
-     - auto
-     - 0
-     - auto
+     - none
    * - Standard Efficiency
      - 63%
      - true
@@ -5110,13 +5110,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 16%
      - auto
      - IntegratedModifiedEnergyFactor
-     - auto
+     - none
      - 0
-     - auto
-     - auto
+     - none
+     - none
      - 0
-     - 0
-     - 0
+     - none
+     - none
    * - Standard
      - 50%
      - auto
@@ -34543,8 +34543,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 100%
      - none
      - EnergyFactor
-     - none
-     - none
+     - 
+     - 
      - 0.5
      - 1
 
@@ -34712,12 +34712,12 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - false
      - auto
      - RatedAnnualkWh
-     - auto
-     - auto
-     - auto
+     - none
+     - none
+     - none
      - 0
-     - 0
-     - auto
+     - none
+     - none
    * - Void
      - 0%
      - 
@@ -38021,7 +38021,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - auto
-     - auto
+     - none
      - auto
      - false
      - auto
@@ -38036,7 +38036,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - auto
-     - auto
+     - none
      - auto
      - false
      - auto
@@ -38953,7 +38953,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0.72%
      - none
      - none
-     - auto
+     - none
      - auto
      - 1
      - 
@@ -38998,7 +38998,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 7.4%
      - none
      - none
-     - auto
+     - none
      - auto
      - 1
      - 
@@ -39043,7 +39043,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 7.2%
      - none
      - none
-     - auto
+     - none
      - auto
      - 1
      - 
@@ -39099,11 +39099,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39111,8 +39111,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39144,11 +39144,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39156,8 +39156,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39189,11 +39189,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39201,8 +39201,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39234,11 +39234,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39246,8 +39246,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39279,11 +39279,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39291,8 +39291,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39324,11 +39324,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39336,8 +39336,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39369,11 +39369,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39381,8 +39381,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39414,11 +39414,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39426,8 +39426,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39459,11 +39459,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39471,8 +39471,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39504,11 +39504,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39516,8 +39516,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39549,11 +39549,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39561,8 +39561,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39594,11 +39594,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39606,8 +39606,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39639,11 +39639,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - 
      - 
-     - auto
+     - none
      - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39651,8 +39651,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -39673,7 +39673,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0.96%
      - none
      - none
-     - auto
+     - none
      - auto
      - 1
      - 
@@ -39718,7 +39718,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0.015%
      - none
      - none
-     - auto
+     - none
      - auto
      - 1
      - 
@@ -39763,22 +39763,22 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1.1%
      - none
      - none
-     - auto
+     - none
      - auto
      - 1
      - 
      - none
      - HSPF
-     - 6.2
+     - none
      - SEER
-     - 10
+     - none
      - 
      - 
+     - none
      - auto
-     - auto
      - 
      - 
-     - auto
+     - none
      - auto
      - 1
      - 1
@@ -39786,8 +39786,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - 
      - ACCA
      - auto
@@ -40187,14 +40187,14 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1e+02%
      - none
      - none
-     - auto
+     - none
      - auto
      - auto
    * - Shared Heating
      - 0.0017%
      - none
      - none
-     - auto
+     - none
      - auto
      - auto
    * - Void
@@ -40782,17 +40782,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - SEER
      - none
+     - none
      - auto
-     - auto
-     - auto
+     - none
      - auto
      - 1
      - 1
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - ACCA
      - auto
      - none
@@ -40824,17 +40824,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - SEER
      - none
+     - none
      - auto
-     - auto
-     - auto
+     - none
      - auto
      - 1
      - 1
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - ACCA
      - auto
      - none
@@ -40908,17 +40908,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - SEER
      - none
+     - none
      - auto
-     - auto
-     - auto
+     - none
      - auto
      - 1
      - 1
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - ACCA
      - auto
      - none
@@ -40950,17 +40950,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - none
      - SEER
      - none
+     - none
      - auto
-     - auto
-     - auto
+     - none
      - auto
      - 1
      - 1
      - none
      - auto
      - electricity
-     - 1
-     - auto
+     - none
+     - none
      - ACCA
      - auto
      - none
@@ -42461,7 +42461,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - none
      - true
-     - auto
+     - none
 
 .. _hot_water_fixtures:
 
@@ -62885,7 +62885,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - UniformEnergyFactor
      - 3.45
      - auto
-     - auto
+     - none
      - auto
      - 0
      - 0
@@ -62903,7 +62903,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - UniformEnergyFactor
      - 3.35
      - auto
-     - auto
+     - none
      - auto
      - 0
      - 0
@@ -62921,7 +62921,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - UniformEnergyFactor
      - 3.45
      - auto
-     - auto
+     - none
      - auto
      - 0
      - 0
@@ -62975,7 +62975,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - EnergyFactor
      - 0.99
      - auto
-     - auto
+     - none
      - auto
      - 0
      - 0
@@ -63083,7 +63083,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - EnergyFactor
      - 0.82
      - auto
-     - auto
+     - none
      - auto
      - 0
      - 0
@@ -63155,7 +63155,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - EnergyFactor
      - 0.82
      - auto
-     - auto
+     - none
      - auto
      - 0
      - 0
