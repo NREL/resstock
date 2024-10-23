@@ -2789,14 +2789,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('IntegratedEnergyFactor')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dehumidifier_efficiency', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dehumidifier_efficiency', false)
     arg.setDisplayName('Dehumidifier: Efficiency')
     arg.setUnits('liters/kWh')
     arg.setDescription('The efficiency of the dehumidifier.')
     arg.setDefaultValue(1.5)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dehumidifier_capacity', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dehumidifier_capacity', false)
     arg.setDisplayName('Dehumidifier: Capacity')
     arg.setDescription('The capacity (water removal rate) of the dehumidifier.')
     arg.setUnits('pint/day')
