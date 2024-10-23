@@ -25,6 +25,19 @@ class RatedCapacityGenerator
     return capacity_bin, capacity_value
   end
 
+  def assign_breaker_space(args:)
+    # initialize a random number generator
+    prng = Random.new(args[:building_id])
+
+    # load probability distribution csv
+    breaker_space_prob_map = read_breaker_space_probs()
+
+    # assign breaker spave
+    beaker_space = sample_rated_space(prng, breaker_space_prob_map, args)
+
+    return beaker_space
+  end
+
   def sample_rated_capacity_bin(prng, rated_capacity_map, args)
     # emulate Geometry Building Type RECS
     geometry_building_type_recs = convert_building_type(geometry_unit_type, geometry_building_num_units)
@@ -84,12 +97,52 @@ class RatedCapacityGenerator
     end
   end
 
+  def sample_rated_space(prng, breaker_space_prob_map, args)
+    cap_bin, cap_val = assign_rated_capacity(args: args)
+    # emulate HVAC Cooling Type 
+    hvac_cooling_type = convert_cooling_type(args[:cooling_system_type], args[:heat_pump_type])
+    # emulate HVAC Heating Type 
+    hvac_heating_type = convert_heating_type(args[:heating_system_type], args[:heat_pump_type])
+    # simplify appliance presence and fuel
+    clothes_dryer = convert_fuel_and_presence(args[:clothes_dryer_present], args[:clothes_dryer_fuel_type])
+    cooking_range = convert_fuel_and_presence(args[:cooking_range_oven_present], args[:cooking_range_fuel_type])
+    water_heater_fuel_type = simplify_fuel_type(args[:water_heater_fuel_type])
+    heating_fuel_type = simplify_fuel_type(args[:heating_system_fuel])
+    ev_charger_present = FALSE
+    
+    row_probability = rated_capacity_map[[
+      hvac_cooling_type,
+      hvac_heating_type,
+      heating_fuel_type,
+      water_heater_fuel_type,
+      clothes_dryer,
+      cooking_range,
+      args[:pv_system_present],
+      ev_charger_present,
+      cap_bin
+      ]]
+
+    index = weighted_random(prng, row_probability)
+    breaker_spaces = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31] # TODO return this from CSV.table
+    return breaker_spaces[index]
+  end
+
   def read_rated_capacity_probs(heating_system_fuel)
     if heating_system_fuel == HPXML::FuelTypeElectricity
       file = "resources/electrical_panel_rated_capacity__electric_heating.csv"
     else
       file = "resources/electrical_panel_rated_capacity__nonelectric_heating.csv"
     end
+    probabilities = CSV.table(file) # CSV.read(file, headers:True)
+    puts "reading '#{file}'"
+    puts probabilities
+    # TODO figure out how to format data
+    # probabilities = probabilities.map { |entry| entry[0].to_f }
+    return probabilities
+  end
+
+  def read_breaker_space_probs(heating_system_fuel)
+    file = "resources/electrical_breaker_space.csv"
     probabilities = CSV.table(file) # CSV.read(file, headers:True)
     puts "reading '#{file}'"
     puts probabilities
@@ -138,6 +191,14 @@ class RatedCapacityGenerator
       return 'none'
     else
       runner.registerError("RatedCapacityGenerator cannot determine cooling type based on '#{args[:system_cooling_type]}' and '#{args[:heat_pump_type]}'.")
+    end
+  end
+
+  def convert_heating_type(heat_pump_type)
+    if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type)
+      return 'ASHP or GHP'
+    else
+      return 'not ASHP or GHP'
     end
   end
 
