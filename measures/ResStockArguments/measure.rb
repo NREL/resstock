@@ -848,6 +848,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     capacity_sampler = RatedCapacityGenerator.new(runner: runner, **args)
     cap_bin, cap_val = capacity_sampler.assign_rated_capacity(args: args)
     args[:electric_panel_service_rating_bin],  args[:electric_panel_service_rating] = cap_bin, cap_val
+    breaker_space = capacity_sampler.assign_breaker_space(args: args)
+    args[:electric_panel_breaker_space] = breaker_space
     return true
   end
 
