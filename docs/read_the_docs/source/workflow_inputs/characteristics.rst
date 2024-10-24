@@ -42234,7 +42234,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - 1 day
      - 0.82%
-     - 0
+     - 1
    * - 1 month
      - 0.35%
      - 30
