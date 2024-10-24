@@ -5,6 +5,7 @@
 
 require 'openstudio'
 require_relative 'resources/constants'
+require_relative 'resources/electrical_panel'
 require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 
 # start the measure
@@ -844,10 +845,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Electric Panel
     # collect inputs, execute resources/electric_panel.rb methods, output service rating and available breaker spaces
-    # args[:electric_panel_service_breaker_spaces_remaining] = y
     capacity_sampler = RatedCapacityGenerator.new(runner: runner, **args)
     cap_bin, cap_val = capacity_sampler.assign_rated_capacity(args: args)
     args[:electric_panel_service_rating_bin],  args[:electric_panel_service_rating] = cap_bin, cap_val
+
+    args[:electric_panel_breaker_spaces_type] = 'headroom'
+    # args[:electric_panel_breaker_spaces] = y # Yingli
+
     return true
   end
 

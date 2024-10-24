@@ -27,7 +27,7 @@ class RatedCapacityGenerator
 
   def sample_rated_capacity_bin(prng, rated_capacity_map, args)
     # emulate Geometry Building Type RECS
-    geometry_building_type_recs = convert_building_type(geometry_unit_type, geometry_building_num_units)
+    geometry_building_type_recs = convert_building_type(args[:geometry_unit_type], args[:geometry_building_num_units])
       
     if args[:heating_system_fuel] == HPXML::FuelTypeElectricity
       # emulate HVAC Cooling Type 
@@ -86,9 +86,9 @@ class RatedCapacityGenerator
 
   def read_rated_capacity_probs(heating_system_fuel)
     if heating_system_fuel == HPXML::FuelTypeElectricity
-      file = "resources/electrical_panel_rated_capacity__electric_heating.csv"
+      file = File.absolute_path(File.join(File.dirname(__FILE__), "electrical_panel_resources/electrical_panel_rated_capacity__electric_heating.csv"))
     else
-      file = "resources/electrical_panel_rated_capacity__nonelectric_heating.csv"
+      file = File.absolute_path(File.join(File.dirname(__FILE__), "electrical_panel_resources/electrical_panel_rated_capacity__nonelectric_heating.csv"))
     end
     probabilities = CSV.table(file) # CSV.read(file, headers:True)
     puts "reading '#{file}'"
@@ -112,7 +112,7 @@ class RatedCapacityGenerator
 
   def convert_building_type(geometry_unit_type, geometry_building_num_units)
     if geometry_unit_type == HPXML::ResidentialTypeApartment
-      if geometry_building_num_units < 5:
+      if geometry_building_num_units < 5
         return "apartment unit, 2-4"
       else
         return "apartment unit, 5+"
