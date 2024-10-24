@@ -110,7 +110,7 @@ class RatedCapacityGenerator
     heating_fuel_type = simplify_fuel_type(args[:heating_system_fuel])
     ev_charger_present = FALSE
     
-    row_probability = rated_capacity_map[[
+    row_probability = breaker_space_prob_map[[
       hvac_cooling_type,
       hvac_heating_type,
       heating_fuel_type,
