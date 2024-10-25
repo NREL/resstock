@@ -725,7 +725,7 @@ module Airflow
   # @param unavailable_periods [HPXML::UnavailablePeriods] Object that defines periods for, e.g., power outages or vacancies
   # @return [TODO] TODO
   def self.initialize_cfis(model, vent_fans, airloop_map, unavailable_periods)
-    cfis_data = { airloop: {}, t_sum_open_damper_var: {}, f_vent_only_mode_var: {} }
+    cfis_data = { airloop: {}, sum_oa_cfm_var: {}, f_vent_only_mode_var: {} }
     return cfis_data if vent_fans[:mech].empty?
 
     index = 0
@@ -742,9 +742,9 @@ module Airflow
         cfis_data[:airloop][vent_mech.id] = airloop_map[cfis_id]
       end
 
-      cfis_data[:t_sum_open_damper_var][vent_mech.id] = Model.add_ems_global_var(
+      cfis_data[:sum_oa_cfm_var][vent_mech.id] = Model.add_ems_global_var(
         model,
-        var_name: "#{Constants::ObjectTypeMechanicalVentilation} cfis t sum open damper #{index}"
+        var_name: "#{Constants::ObjectTypeMechanicalVentilation} cfis sum oa cfm #{index}"
       )
       cfis_data[:f_vent_only_mode_var][vent_mech.id] = Model.add_ems_global_var(
         model,
@@ -756,7 +756,7 @@ module Airflow
         model,
         name: "#{Constants::ObjectTypeMechanicalVentilation} cfis init program #{index}"
       )
-      cfis_program.addLine("Set #{cfis_data[:t_sum_open_damper_var][vent_mech.id].name} = 0")
+      cfis_program.addLine("Set #{cfis_data[:sum_oa_cfm_var][vent_mech.id].name} = 0")
       cfis_program.addLine("Set #{cfis_data[:f_vent_only_mode_var][vent_mech.id].name} = 0")
 
       Model.add_ems_program_calling_manager(
@@ -1966,6 +1966,8 @@ module Airflow
   # @param fan_data [TODO] TODO
   # @return [nil]
   def self.apply_cfis(runner, infil_program, vent_mech_fans, cfis_data, cfis_fan_actuator, cfis_suppl_fan_actuator, fan_data)
+    infil_program.addLine("Set #{cfis_fan_actuator.name} = 0.0")
+    infil_program.addLine("Set #{cfis_suppl_fan_actuator.name} = 0.0") unless cfis_suppl_fan_actuator.nil?
     infil_program.addLine('Set QWHV_cfis_sup = 0.0') # CFIS supply outdoor airflow rate
     infil_program.addLine('Set QWHV_cfis_suppl_sup = 0.0') # CFIS supplemental fan supply outdoor airflow rate
     infil_program.addLine('Set QWHV_cfis_suppl_exh = 0.0') # CFIS supplemental fan exhaust outdoor airflow rate
@@ -1977,87 +1979,129 @@ module Airflow
         infil_program.addLine("Set fan_rtf_hvac = fan_rtf_hvac + #{rtf_sensor.name}")
       end
 
-      t_sum_open_damper_var = cfis_data[:t_sum_open_damper_var][vent_mech.id]
+      sum_oa_cfm_var = cfis_data[:sum_oa_cfm_var][vent_mech.id]
       f_vent_only_mode_var = cfis_data[:f_vent_only_mode_var][vent_mech.id]
 
-      infil_program.addLine('If @ABS(Minute - ZoneTimeStep*60) < 0.1')
-      infil_program.addLine("  Set #{t_sum_open_damper_var.name} = 0") # New hour, time on summation re-initializes to 0
-      infil_program.addLine('EndIf')
-
-      infil_program.addLine("Set t_min_hr_open = #{[vent_mech.hours_in_operation / 24.0 * 60.0, 59.999].min}") # Minimum CFIS damper open time in minutes
-      infil_program.addLine("Set Q_duct_oa = #{UnitConversions.convert(vent_mech.oa_unit_flow_rate, 'cfm', 'm^3/s')}")
-      infil_program.addLine('Set f_open_damper = 0')
-      infil_program.addLine("Set #{f_vent_only_mode_var.name} = 0")
-      infil_program.addLine("Set has_additional_runtime = #{vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeNone ? 0 : 1}")
-      infil_program.addLine("Set has_outdoor_air_control = #{vent_mech.cfis_has_outdoor_air_control ? 1 : 0}")
+      infil_program.addLine("Set f_operation = #{[vent_mech.hours_in_operation / 24.0, 0.0001].max}") # Operation, fraction of hour
+      infil_program.addLine("Set oa_cfm_ah = #{UnitConversions.convert(vent_mech.oa_unit_flow_rate, 'cfm', 'm^3/s')}")
       if vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeSupplementalFan
-        infil_program.addLine("Set suppl_fan_w = #{vent_mech.cfis_supplemental_fan.unit_fan_power}") # W
-      end
-
-      infil_program.addLine("If #{t_sum_open_damper_var.name} < t_min_hr_open") # Check whether we've met the minimum hourly runtime
-      infil_program.addLine("  Set t_damper_open = 60 - (t_min_hr_open - #{t_sum_open_damper_var.name})") # Minute of the hour at which the damper must be opened
-      infil_program.addLine('  If ((Minute+0.00001) >= t_damper_open) && (has_additional_runtime == 1)') # Check whether the damper must be opened to achieve target minutes per hour of operation
-      infil_program.addLine('    Set open_damper_runtime = @Max (@ABS(Minute - t_damper_open)) (fan_rtf_hvac * ZoneTimeStep * 60)') # How many minutes this timestep the damper is open
-      infil_program.addLine("    Set open_damper_runtime = @Min open_damper_runtime (t_min_hr_open - #{t_sum_open_damper_var.name})") # Make sure it's not exceeding target ventilation
-      infil_program.addLine("    Set #{t_sum_open_damper_var.name} = #{t_sum_open_damper_var.name} + open_damper_runtime") # How many minutes this hour the damper is open
-      infil_program.addLine('    Set f_open_damper = open_damper_runtime / (60.0 * ZoneTimeStep)') # Fraction of the timestep that the damper is open
-      infil_program.addLine("    Set #{f_vent_only_mode_var.name} = @Max (f_open_damper - fan_rtf_hvac) 0.0") # Fraction of the timestep with ventilation only mode runtime
-      if vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeAirHandler
-        # Air handler meets additional runtime requirement
-        infil_program.addLine("    Set fan_w = #{vent_mech.unit_fan_power}") # W
-        infil_program.addLine("    Set #{cfis_fan_actuator.name} = #{cfis_fan_actuator.name} + fan_w * #{f_vent_only_mode_var.name}")
-      elsif vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeSupplementalFan
-        # Supplemental fan meets additional runtime requirement
         if vent_mech.cfis_supplemental_fan.oa_unit_flow_rate < vent_mech.average_unit_flow_rate
           runner.registerWarning("CFIS supplemental fan '#{vent_mech.cfis_supplemental_fan.id}' is undersized (#{vent_mech.cfis_supplemental_fan.oa_unit_flow_rate} cfm) compared to the target hourly ventilation rate (#{vent_mech.average_unit_flow_rate} cfm).")
         end
-        infil_program.addLine("    Set suppl_Q_oa = #{UnitConversions.convert(vent_mech.cfis_supplemental_fan.oa_unit_flow_rate, 'cfm', 'm^3/s')}")
-        if vent_mech.cfis_supplemental_fan.oa_unit_flow_rate > 0
-          infil_program.addLine("    Set suppl_f = #{f_vent_only_mode_var.name} / (suppl_Q_oa / Q_duct_oa)") # Calculate desired runtime for supplemental fan to provide remaining ventilation requirement
-          infil_program.addLine('    Set suppl_f = @Min suppl_f 1.0') # Ensure desired runtime does not exceed 100% (if the supplemental fan is undersized)
+        infil_program.addLine("Set suppl_fan_w = #{vent_mech.cfis_supplemental_fan.unit_fan_power}") # W, supplemental fan power
+        infil_program.addLine("Set oa_cfm_suppl = #{UnitConversions.convert(vent_mech.cfis_supplemental_fan.oa_unit_flow_rate, 'cfm', 'm^3/s')}")
+      elsif vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeAirHandler
+        infil_program.addLine("Set ah_fan_w = #{vent_mech.unit_fan_power}") # W, air handler fan power
+      end
+      infil_program.addLine("Set has_outdoor_air_control = #{vent_mech.cfis_has_outdoor_air_control ? 1 : 0}")
+
+      if vent_mech.cfis_control_type == HPXML::CFISControlTypeTimer
+        # Ventilation occurs at fixed intervals regardless of HVAC operation
+
+        # Calculate outdoor air ventilation
+        infil_program.addLine('Set QWHV_cfis_sup = QWHV_cfis_sup + (oa_cfm_ah * f_operation)')
+
+        # Calculate fraction of the timestep with ventilation only mode runtime per ANSI 301-2022 Addendum E
+        infil_program.addLine("Set #{f_vent_only_mode_var.name} = f_operation * (1 - fan_rtf_hvac)")
+
+        # Calculate additional fan energy
+        infil_program.addLine("Set #{cfis_fan_actuator.name} = #{cfis_fan_actuator.name} + (ah_fan_w * #{f_vent_only_mode_var.name})")
+
+      elsif vent_mech.cfis_control_type == HPXML::CFISControlTypeOptimized
+        # Ventilation optimized to make use of HVAC operation
+
+        infil_program.addLine("Set #{f_vent_only_mode_var.name} = 0")
+        infil_program.addLine('If @ABS(Minute - ZoneTimeStep*60) < 0.1')
+        infil_program.addLine("  Set #{sum_oa_cfm_var.name} = 0") # New hour, re-initialize to 0
+        infil_program.addLine('EndIf')
+
+        # Calculate hourly-average target outdoor air ventilation
+        infil_program.addLine('Set hr_oa_cfm_target = f_operation * oa_cfm_ah')
+
+        # Calculate hourly-average outdoor air ventilation still needed for the hour
+        infil_program.addLine("Set hr_oa_cfm_needed = hr_oa_cfm_target - #{sum_oa_cfm_var.name}")
+        infil_program.addLine('If (hr_oa_cfm_needed > 0) || (has_outdoor_air_control == 0)')
+
+        # Calculate hourly-average available outdoor air ventilation during HVAC runtime
+        infil_program.addLine('  Set hr_oa_cfm_during_hvac_avail = fan_rtf_hvac * oa_cfm_ah * ZoneTimestep')
+
+        # Calculate hourly-average actual outdoor air ventilation brought in during HVAC runtime
+        if vent_mech.cfis_has_outdoor_air_control
+          infil_program.addLine('  Set hr_oa_cfm_during_hvac = @Min hr_oa_cfm_during_hvac_avail hr_oa_cfm_needed')
         else
-          infil_program.addLine('    Set suppl_f = 0.0')
+          # Outdoor air is introduced for the entire time the HVAC system is running
+          infil_program.addLine('  Set hr_oa_cfm_during_hvac = hr_oa_cfm_during_hvac_avail')
         end
-        infil_program.addLine("    Set #{cfis_suppl_fan_actuator.name} = #{cfis_suppl_fan_actuator.name} + suppl_fan_w * suppl_f")
-        if vent_mech.cfis_supplemental_fan.fan_type == HPXML::MechVentTypeSupply
-          infil_program.addLine('    Set QWHV_cfis_suppl_sup = QWHV_cfis_suppl_sup + (suppl_f * suppl_Q_oa)')
-        elsif vent_mech.cfis_supplemental_fan.fan_type == HPXML::MechVentTypeExhaust
-          infil_program.addLine('    Set QWHV_cfis_suppl_exh = QWHV_cfis_suppl_exh + (suppl_f * suppl_Q_oa)')
+        infil_program.addLine('  Set QWHV_cfis_sup = QWHV_cfis_sup + (hr_oa_cfm_during_hvac / ZoneTimestep)')
+        infil_program.addLine("  Set #{sum_oa_cfm_var.name} = #{sum_oa_cfm_var.name} + hr_oa_cfm_during_hvac")
+
+        # If specified, additionally run supplemental fan when ventilating during HVAC runtime
+        if vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeSupplementalFan && vent_mech.cfis_supplemental_fan_runs_with_air_handler_fan
+          infil_program.addLine('  If hr_oa_cfm_during_hvac > 0')
+          infil_program.addLine('    Set f_open_damper_ah = (hr_oa_cfm_during_hvac / hr_oa_cfm_during_hvac_avail) * fan_rtf_hvac')
+          infil_program.addLine("    Set #{cfis_suppl_fan_actuator.name} = #{cfis_suppl_fan_actuator.name} + (suppl_fan_w * f_open_damper_ah)")
+          if vent_mech.cfis_supplemental_fan.fan_type == HPXML::MechVentTypeSupply
+            infil_program.addLine('    Set QWHV_cfis_suppl_sup = QWHV_cfis_suppl_sup + (f_open_damper_ah * oa_cfm_suppl)')
+          elsif vent_mech.cfis_supplemental_fan.fan_type == HPXML::MechVentTypeExhaust
+            infil_program.addLine('    Set QWHV_cfis_suppl_exh = QWHV_cfis_suppl_exh + (f_open_damper_ah * oa_cfm_suppl)')
+          end
+          infil_program.addLine('  EndIf')
         end
-      end
-      infil_program.addLine('  Else') # No additional ventilation mode runtime
-      infil_program.addLine('    Set open_damper_runtime = fan_rtf_hvac * ZoneTimeStep * 60') # How many minutes this timestep the damper is open
-      infil_program.addLine("    If (#{t_sum_open_damper_var.name} + open_damper_runtime) > t_min_hr_open") # Damper is only open for a portion of this time step to achieve target ventilation
-      infil_program.addLine("      Set open_damper_runtime = t_min_hr_open - #{t_sum_open_damper_var.name}")
-      infil_program.addLine('    EndIf')
-      infil_program.addLine('    Set f_open_damper = open_damper_runtime / (ZoneTimeStep * 60)') # Fraction of the timestep that the damper is open
-      infil_program.addLine("    Set #{t_sum_open_damper_var.name} = #{t_sum_open_damper_var.name} + open_damper_runtime") # How many minutes this hour the damper is open
-      infil_program.addLine('  EndIf')
-      infil_program.addLine('EndIf')
 
-      # Calculate fraction of the timestep that the damper is open and the air handler fan is running
-      if vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeSupplementalFan
-        infil_program.addLine("Set f_open_damper_ah = @Max (f_open_damper - #{f_vent_only_mode_var.name}) 0.0")
-      else
-        infil_program.addLine('Set f_open_damper_ah = f_open_damper')
-      end
+        # Calculate hourly-average additional outdoor air ventilation still needed for the hour after HVAC runtime
+        infil_program.addLine('  Set hr_oa_cfm_addtl_needed = hr_oa_cfm_needed - hr_oa_cfm_during_hvac')
 
-      # If no outdoor air control, then outdoor air is introduced for at least the entire time the HVAC system is running
-      infil_program.addLine('If has_outdoor_air_control == 0')
-      infil_program.addLine('  Set f_open_damper_ah = @Max f_open_damper_ah fan_rtf_hvac')
-      infil_program.addLine('EndIf')
+        # Calculate hourly-average outdoor air ventilation that can be brought in during subsequent timesteps of the hour if needed
+        if vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeAirHandler
+          infil_program.addLine('  Set hr_oa_cfm_addtl_needed = hr_oa_cfm_addtl_needed - (((60 - Minute) / 60) * oa_cfm_ah)')
+        elsif vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeSupplementalFan
+          infil_program.addLine('  Set hr_oa_cfm_addtl_needed = hr_oa_cfm_addtl_needed - (((60 - Minute) / 60) * oa_cfm_suppl)')
+        elsif vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeNone
+          infil_program.addLine('  Set hr_oa_cfm_addtl_needed = 0')
+        end
+        infil_program.addLine('  If hr_oa_cfm_addtl_needed > 0')
 
-      # Airflow brought in through air handler
-      infil_program.addLine('Set QWHV_cfis_sup = QWHV_cfis_sup + (f_open_damper_ah * Q_duct_oa)')
+        if vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeAirHandler
+          # Air handler meets additional runtime requirement
 
-      next unless vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeSupplementalFan && vent_mech.cfis_supplemental_fan_runs_with_air_handler_fan
+          # Calculate hourly-average available outdoor air ventilation during non-HVAC runtime
+          infil_program.addLine('    Set hr_oa_cfm_during_non_hvac_avail = (1.0 - fan_rtf_hvac) * oa_cfm_ah * ZoneTimestep')
 
-      # Also run supplemental fan when damper is open and HVAC system is running
-      infil_program.addLine("Set #{cfis_suppl_fan_actuator.name} = #{cfis_suppl_fan_actuator.name} + (suppl_fan_w * f_open_damper_ah)")
-      if vent_mech.cfis_supplemental_fan.fan_type == HPXML::MechVentTypeSupply
-        infil_program.addLine('Set QWHV_cfis_suppl_sup = QWHV_cfis_suppl_sup + (f_open_damper_ah * suppl_Q_oa)')
-      elsif vent_mech.cfis_supplemental_fan.fan_type == HPXML::MechVentTypeExhaust
-        infil_program.addLine('Set QWHV_cfis_suppl_exh = QWHV_cfis_suppl_exh + (f_open_damper_ah * suppl_Q_oa)')
+          # Calculate hourly-average actual outdoor air ventilation brought in during non-HVAC runtime
+          infil_program.addLine('    Set hr_oa_cfm_during_non_hvac = @Min hr_oa_cfm_during_non_hvac_avail hr_oa_cfm_addtl_needed')
+          infil_program.addLine('    Set QWHV_cfis_sup = QWHV_cfis_sup + (hr_oa_cfm_during_non_hvac / ZoneTimestep)')
+          infil_program.addLine("    Set #{sum_oa_cfm_var.name} = #{sum_oa_cfm_var.name} + hr_oa_cfm_during_non_hvac")
+
+          # Calculate fraction of the timestep with ventilation only mode runtime and additional fan energy
+          infil_program.addLine('    If hr_oa_cfm_during_non_hvac > 0')
+          infil_program.addLine("      Set #{f_vent_only_mode_var.name} = (hr_oa_cfm_during_non_hvac / hr_oa_cfm_during_non_hvac_avail) * (1.0 - fan_rtf_hvac)")
+          infil_program.addLine("      Set #{cfis_fan_actuator.name} = #{cfis_fan_actuator.name} + (ah_fan_w * #{f_vent_only_mode_var.name})")
+          infil_program.addLine('    EndIf')
+
+        elsif vent_mech.cfis_addtl_runtime_operating_mode == HPXML::CFISModeSupplementalFan
+          # Supplemental fan meets additional runtime requirement
+
+          # Calculate hourly-average available outdoor air ventilation during non-HVAC runtime
+          infil_program.addLine('    Set hr_oa_cfm_during_non_hvac_avail = (1.0 - fan_rtf_hvac) * oa_cfm_suppl * ZoneTimestep')
+
+          # Calculate hourly-average actual outdoor air ventilation brought in during non-HVAC runtime
+          infil_program.addLine('    Set hr_oa_cfm_during_non_hvac = @Min hr_oa_cfm_during_non_hvac_avail hr_oa_cfm_addtl_needed')
+          if vent_mech.cfis_supplemental_fan.fan_type == HPXML::MechVentTypeSupply
+            infil_program.addLine('    Set QWHV_cfis_suppl_sup = QWHV_cfis_suppl_sup + (hr_oa_cfm_during_non_hvac / ZoneTimestep)')
+          elsif vent_mech.cfis_supplemental_fan.fan_type == HPXML::MechVentTypeExhaust
+            infil_program.addLine('    Set QWHV_cfis_suppl_exh = QWHV_cfis_suppl_exh + (hr_oa_cfm_during_non_hvac / ZoneTimestep)')
+          end
+          infil_program.addLine("    Set #{sum_oa_cfm_var.name} = #{sum_oa_cfm_var.name} + hr_oa_cfm_during_non_hvac")
+
+          # Calculate fraction of the timestep with ventilation only mode runtime and additional fan energy
+          infil_program.addLine('    If hr_oa_cfm_during_non_hvac > 0')
+          infil_program.addLine("      Set #{f_vent_only_mode_var.name} = (hr_oa_cfm_during_non_hvac / hr_oa_cfm_during_non_hvac_avail) * (1.0 - fan_rtf_hvac)")
+          infil_program.addLine("      Set #{cfis_suppl_fan_actuator.name} = #{cfis_suppl_fan_actuator.name} + (suppl_fan_w * #{f_vent_only_mode_var.name})")
+          infil_program.addLine('    EndIf')
+        end
+
+        infil_program.addLine('  EndIf')
+        infil_program.addLine('EndIf')
       end
     end
   end
@@ -2583,8 +2627,6 @@ module Airflow
     fan_sens_load_actuator, fan_lat_load_actuator = setup_mech_vent_vars_actuators(model, spaces, infil_program, sensors)
 
     # Apply CFIS
-    infil_program.addLine("Set #{cfis_fan_actuator.name} = 0.0")
-    infil_program.addLine("Set #{cfis_suppl_fan_actuator.name} = 0.0") unless cfis_suppl_fan_actuator.nil?
     apply_cfis(runner, infil_program, vent_fans[:mech_cfis], cfis_data, cfis_fan_actuator, cfis_suppl_fan_actuator, fan_data)
 
     # Calculate combined air exchange (infiltration and mechanical ventilation)

@@ -2759,6 +2759,10 @@ module Defaults
         vent_fan.cfis_supplemental_fan_runs_with_air_handler_fan = false
         vent_fan.cfis_supplemental_fan_runs_with_air_handler_fan_isdefaulted = true
       end
+      if vent_fan.cfis_control_type.nil?
+        vent_fan.cfis_control_type = HPXML::CFISControlTypeOptimized
+        vent_fan.cfis_control_type_isdefaulted = true
+      end
     end
 
     # Default kitchen fan
