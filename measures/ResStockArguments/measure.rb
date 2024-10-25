@@ -853,9 +853,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
   def get_heating_and_cooling_seasons(args, weather)
     latitude = args[:site_latitude]
     latitude = nil if latitude == Constants::Auto
-    latitude = HPXMLDefaults.get_default_latitude(latitude, weather)
+    latitude = Defaults.get_latitude(latitude, weather)
 
-    heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather, latitude)
+    heating_months, cooling_months = HVAC.get_building_america_hvac_seasons(weather, latitude)
     sim_calendar_year = Location.get_sim_calendar_year(nil, weather)
 
     return heating_months, cooling_months, sim_calendar_year
