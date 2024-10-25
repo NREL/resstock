@@ -848,6 +848,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     capacity_sampler = RatedCapacityGenerator.new(runner: runner, **args)
     cap_bin, cap_val = capacity_sampler.assign_rated_capacity(args: args)
     args[:electric_panel_service_rating_bin],  args[:electric_panel_service_rating] = cap_bin, cap_val
+    runner.registerWarning("Panel bin for '#{args[:building_id]}': '#{cap_bin}', '#{cap_val}'") # TEMP
 
     args[:electric_panel_breaker_spaces_type] = 'headroom'
     # args[:electric_panel_breaker_spaces] = y # Yingli

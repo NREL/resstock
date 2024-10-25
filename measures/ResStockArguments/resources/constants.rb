@@ -101,7 +101,8 @@ module Constants
   # List of ResStockArguments arguments; reported as build_existing_model.<argument_name>, ...
   ArgumentsToRegister = ['heating_unavailable_period',
                          'cooling_unavailable_period',
-                         'electric_panel_service_rating_bin',]
+                         'electric_panel_service_rating_bin',
+                         'electric_panel_service_rating',]
 
   # List of ResStockArguments arguments; will not be passed into BuildResidentialHPXML
   ArgumentsToExclude = ['heating_unavailable_period',

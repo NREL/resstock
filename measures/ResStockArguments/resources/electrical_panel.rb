@@ -28,6 +28,12 @@ class RatedCapacityGenerator
   def sample_rated_capacity_bin(prng, rated_capacity_map, args)
     # emulate Geometry Building Type RECS
     geometry_building_type_recs = convert_building_type(args[:geometry_unit_type], args[:geometry_building_num_units])
+    # get default vintage if nil (for project_testing)
+    if args[:vintage].nil?
+      vintage = '1960s'
+    else
+      vintage = args[:vintage]
+    end
       
     if args[:heating_system_fuel] == HPXML::FuelTypeElectricity
       # emulate HVAC Cooling Type 
@@ -38,25 +44,26 @@ class RatedCapacityGenerator
       cooking_range = convert_fuel_and_presence(args[:cooking_range_oven_present], args[:cooking_range_fuel_type])
       water_heater_fuel_type = simplify_fuel_type(args[:water_heater_fuel_type])
     
-      row_probability = rated_capacity_map[[
+      lookup_array = [
         clothes_dryer,
         cooking_range,
         geometry_building_type_recs,
         args[:geometry_unit_cfa_bin], 
         hvac_cooling_type,
-        args[:pv_system_present],
-        args[:vintage],
+        args[:pv_system_present].to_s,
+        vintage,
         water_heater_fuel_type,
-        ]]
+      ]
     else
-      row_probability = rated_capacity_map[[
+      lookup_array = [
         geometry_building_type_recs,
         args[:geometry_unit_cfa_bin], 
-        args[:vintage]
-      ]]
+        vintage,
+      ]
     end
+    capacity_bins = get_row_headers(rated_capacity_map, lookup_array)
+    row_probability = get_row_probability(rated_capacity_map, lookup_array)
     index = weighted_random(prng, row_probability)
-    capacity_bins = ['100', '101-124', '125', '126-199', '200', '201+', '<100'] # TODO return this from CSV.table
     return capacity_bins[index]
   end
 
@@ -86,16 +93,33 @@ class RatedCapacityGenerator
 
   def read_rated_capacity_probs(heating_system_fuel)
     if heating_system_fuel == HPXML::FuelTypeElectricity
-      file = File.absolute_path(File.join(File.dirname(__FILE__), "electrical_panel_resources/electrical_panel_rated_capacity__electric_heating.csv"))
+      filename = 'electrical_panel_rated_capacity__electric_heating.csv'
     else
-      file = File.absolute_path(File.join(File.dirname(__FILE__), "electrical_panel_resources/electrical_panel_rated_capacity__nonelectric_heating.csv"))
+      filename = 'electrical_panel_rated_capacity__nonelectric_heating.csv'
     end
-    probabilities = CSV.table(file) # CSV.read(file, headers:True)
-    puts "reading '#{file}'"
-    puts probabilities
-    # TODO figure out how to format data
-    # probabilities = probabilities.map { |entry| entry[0].to_f }
-    return probabilities
+    file = File.absolute_path(File.join(File.dirname(__FILE__), 'electrical_panel_resources', filename))
+    prob_table = CSV.read(file).each.to_a
+    return prob_table
+  end
+
+  def get_row_headers(prob_table, lookup_array)
+    len = lookup_array.length()
+    row_headers = prob_table[0][len..len+7]
+    return row_headers
+  end
+
+  def get_row_probability(prob_table, lookup_array)
+    len = lookup_array.length()
+    row_probability = []
+    prob_table.each do |row|
+      next if row[0..len-1] != lookup_array
+      row_probability = row[len..len+7].map(&:to_f)
+    end
+
+    if row_probability.length() != 7
+      @runner.registerError("RatedCapacityGenerator cannot find row_probability for keys: #{lookup_array}")
+    end
+    return row_probability
   end
 
   def weighted_random(prng, weights)
@@ -120,7 +144,7 @@ class RatedCapacityGenerator
     elsif [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include?(geometry_unit_type)
       return geometry_unit_type
     else
-      runner.registerError("RatedCapacityGenerator does not support geometry_unit_type: '#{geometry_unit_type}'.")
+      @runner.registerError("RatedCapacityGenerator does not support geometry_unit_type: '#{geometry_unit_type}'.")
     end
   end
 
@@ -137,7 +161,7 @@ class RatedCapacityGenerator
       # shared cooling, use none for lookup (note: this is different from tsv assignment)
       return 'none'
     else
-      runner.registerError("RatedCapacityGenerator cannot determine cooling type based on '#{args[:system_cooling_type]}' and '#{args[:heat_pump_type]}'.")
+      @runner.registerError("RatedCapacityGenerator cannot determine cooling type based on '#{args[:system_cooling_type]}' and '#{args[:heat_pump_type]}'.")
     end
   end
 
