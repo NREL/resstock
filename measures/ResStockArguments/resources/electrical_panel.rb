@@ -34,21 +34,21 @@ class RatedCapacityGenerator
     else
       vintage = args[:vintage]
     end
-      
+
     if args[:heating_system_fuel] == HPXML::FuelTypeElectricity
-      # emulate HVAC Cooling Type 
+      # emulate HVAC Cooling Type
       hvac_cooling_type = convert_cooling_type(args[:cooling_system_type], args[:heat_pump_type])
 
       # simplify appliance presence and fuel
       clothes_dryer = convert_fuel_and_presence(args[:clothes_dryer_present], args[:clothes_dryer_fuel_type])
       cooking_range = convert_fuel_and_presence(args[:cooking_range_oven_present], args[:cooking_range_fuel_type])
       water_heater_fuel_type = simplify_fuel_type(args[:water_heater_fuel_type])
-    
+
       lookup_array = [
         clothes_dryer,
         cooking_range,
         geometry_building_type_recs,
-        args[:geometry_unit_cfa_bin], 
+        args[:geometry_unit_cfa_bin],
         hvac_cooling_type,
         args[:pv_system_present].to_s,
         vintage,
@@ -57,7 +57,7 @@ class RatedCapacityGenerator
     else
       lookup_array = [
         geometry_building_type_recs,
-        args[:geometry_unit_cfa_bin], 
+        args[:geometry_unit_cfa_bin],
         vintage,
       ]
     end
@@ -104,7 +104,7 @@ class RatedCapacityGenerator
 
   def get_row_headers(prob_table, lookup_array)
     len = lookup_array.length()
-    row_headers = prob_table[0][len..len+7]
+    row_headers = prob_table[0][len..len + 7]
     return row_headers
   end
 
@@ -112,8 +112,9 @@ class RatedCapacityGenerator
     len = lookup_array.length()
     row_probability = []
     prob_table.each do |row|
-      next if row[0..len-1] != lookup_array
-      row_probability = row[len..len+7].map(&:to_f)
+      next if row[0..len - 1] != lookup_array
+
+      row_probability = row[len..len + 7].map(&:to_f)
     end
 
     if row_probability.length() != 7
@@ -137,9 +138,9 @@ class RatedCapacityGenerator
   def convert_building_type(geometry_unit_type, geometry_building_num_units)
     if geometry_unit_type == HPXML::ResidentialTypeApartment
       if geometry_building_num_units < 5
-        return "apartment unit, 2-4"
+        return 'apartment unit, 2-4'
       else
-        return "apartment unit, 5+"
+        return 'apartment unit, 5+'
       end
     elsif [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include?(geometry_unit_type)
       return geometry_unit_type
@@ -166,19 +167,18 @@ class RatedCapacityGenerator
   end
 
   def convert_fuel_and_presence(equipment_present, fuel_type)
-    if equipment_present == "false"
-      return "none"
+    if equipment_present == 'false'
+      return 'none'
     else
       return simplify_fuel_type(fuel_type)
     end
   end
-  
+
   def simplify_fuel_type(fuel_type)
     if fuel_type == HPXML::FuelTypeElectricity
       return fuel_type
     else
-      return "non-electricity"
+      return 'non-electricity'
     end
   end
-
 end

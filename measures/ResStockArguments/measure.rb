@@ -835,6 +835,21 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
+    # Electric Panel
+    # collect inputs, execute resources/electric_panel.rb methods, output service rating and available breaker spaces
+
+    capacity_sampler = RatedCapacityGenerator.new(runner: runner, **args)
+    cap_bin, cap_val = capacity_sampler.assign_rated_capacity(args: args)
+
+    args[:electric_panel_service_rating_bin] = cap_bin
+    args[:electric_panel_service_rating] = cap_val
+    runner.registerWarning("Panel bin for '#{args[:building_id]}': '#{cap_bin}', '#{cap_val}'") # TEMP
+
+    # FIXME: uncomment these once we pull in OS-HPXML's electric_panel branch
+    # args[:electric_panel_breaker_spaces_type] = 'headroom'
+    # args[:electric_panel_breaker_spaces] = breaker_spaces # Yingli
+
+    # Register values to runner
     args.each do |arg_name, arg_value|
       if args_to_delete.include?(arg_name) || (arg_value == Constants::Auto)
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
@@ -842,16 +857,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       register_value(runner, arg_name.to_s, arg_value)
     end
-
-    # Electric Panel
-    # collect inputs, execute resources/electric_panel.rb methods, output service rating and available breaker spaces
-    capacity_sampler = RatedCapacityGenerator.new(runner: runner, **args)
-    cap_bin, cap_val = capacity_sampler.assign_rated_capacity(args: args)
-    args[:electric_panel_service_rating_bin],  args[:electric_panel_service_rating] = cap_bin, cap_val
-    runner.registerWarning("Panel bin for '#{args[:building_id]}': '#{cap_bin}', '#{cap_val}'") # TEMP
-
-    args[:electric_panel_breaker_spaces_type] = 'headroom'
-    # args[:electric_panel_breaker_spaces] = y # Yingli
 
     return true
   end

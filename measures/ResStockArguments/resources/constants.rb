@@ -102,10 +102,11 @@ module Constants
   ArgumentsToRegister = ['heating_unavailable_period',
                          'cooling_unavailable_period',
                          'electric_panel_service_rating_bin',
-                         'electric_panel_service_rating',]
+                         'electric_panel_service_rating']
 
   # List of ResStockArguments arguments; will not be passed into BuildResidentialHPXML
   ArgumentsToExclude = ['heating_unavailable_period',
                         'cooling_unavailable_period',
-                        'electric_panel_service_rating_bin',]
+                        'electric_panel_service_rating_bin',
+                        'electric_panel_service_rating'] # FIXME: temporarily exclude this last one until we pull in OS-HPXML's electric_panel branch
 end
