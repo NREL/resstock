@@ -310,14 +310,12 @@ Describes the above-grade height of apartment units on upper floors or homes abo
 
 **Geometry: Garage Width**
 
-The width of the garage. Enter zero for no garage. Only applies to single-family detached units.
+The width of the garage. Only applies to single-family detached units. If not provided, defaults to zero (no garage).
 
 - **Name:** ``geometry_garage_width``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -326,11 +324,9 @@ The width of the garage. Enter zero for no garage. Only applies to single-family
 The depth of the garage. Only applies to single-family detached units.
 
 - **Name:** ``geometry_garage_depth``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -339,11 +335,9 @@ The depth of the garage. Only applies to single-family detached units.
 The fraction of the garage that is protruding from the conditioned space. Only applies to single-family detached units.
 
 - **Name:** ``geometry_garage_protrusion``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -354,9 +348,9 @@ The position of the garage. Only applies to single-family detached units.
 - **Name:** ``geometry_garage_position``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `Right`, `Left`
+- **Choices:** `auto`, `Right`, `Left`
 
 <br/>
 
@@ -378,11 +372,9 @@ The foundation type of the building. Foundation types ConditionedBasement and Co
 The height of the foundation (e.g., 3ft for crawlspace, 8ft for basement). Only applies to basements/crawlspaces.
 
 - **Name:** ``geometry_foundation_height``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -391,11 +383,9 @@ The height of the foundation (e.g., 3ft for crawlspace, 8ft for basement). Only 
 The depth above grade of the foundation wall. Only applies to basements/crawlspaces.
 
 - **Name:** ``geometry_foundation_height_above_grade``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -430,9 +420,9 @@ The roof type of the building. Ignored if the building has a flat roof.
 - **Name:** ``geometry_roof_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `gable`, `hip`
+- **Choices:** `auto`, `gable`, `hip`
 
 <br/>
 
@@ -443,9 +433,9 @@ The roof pitch of the attic. Ignored if the building has a flat roof.
 - **Name:** ``geometry_roof_pitch``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `1:12`, `2:12`, `3:12`, `4:12`, `5:12`, `6:12`, `7:12`, `8:12`, `9:12`, `10:12`, `11:12`, `12:12`
+- **Choices:** `auto`, `1:12`, `2:12`, `3:12`, `4:12`, `5:12`, `6:12`, `7:12`, `8:12`, `9:12`, `10:12`, `11:12`, `12:12`
 
 <br/>
 
@@ -454,11 +444,9 @@ The roof pitch of the attic. Ignored if the building has a flat roof.
 The eaves depth of the roof.
 
 - **Name:** ``geometry_eaves_depth``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -467,11 +455,9 @@ The eaves depth of the roof.
 The distance between the unit and the neighboring building to the front (not including eaves). A value of zero indicates no neighbors. Used for shading.
 
 - **Name:** ``neighbor_front_distance``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -480,11 +466,9 @@ The distance between the unit and the neighboring building to the front (not inc
 The distance between the unit and the neighboring building to the back (not including eaves). A value of zero indicates no neighbors. Used for shading.
 
 - **Name:** ``neighbor_back_distance``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -493,11 +477,9 @@ The distance between the unit and the neighboring building to the back (not incl
 The distance between the unit and the neighboring building to the left (not including eaves). A value of zero indicates no neighbors. Used for shading.
 
 - **Name:** ``neighbor_left_distance``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -506,11 +488,9 @@ The distance between the unit and the neighboring building to the left (not incl
 The distance between the unit and the neighboring building to the right (not including eaves). A value of zero indicates no neighbors. Used for shading.
 
 - **Name:** ``neighbor_right_distance``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -563,11 +543,9 @@ The height of the neighboring building to the right. If not provided, the OS-HPX
 Assembly R-value for the floor over the foundation. Ignored if the building has a slab-on-grade foundation.
 
 - **Name:** ``floor_over_foundation_assembly_r``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``h-ft^2-R/Btu``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -576,11 +554,9 @@ Assembly R-value for the floor over the foundation. Ignored if the building has 
 Assembly R-value for the floor over the garage. Ignored unless the building has a garage under conditioned space.
 
 - **Name:** ``floor_over_garage_assembly_r``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``h-ft^2-R/Btu``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -626,11 +602,9 @@ The thickness of the foundation wall. If not provided, the OS-HPXML default (see
 Nominal R-value for the foundation wall insulation. Only applies to basements/crawlspaces.
 
 - **Name:** ``foundation_wall_insulation_r``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``h-ft^2-R/Btu``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -696,11 +670,9 @@ Assembly R-value for the rim joists. Only applies to basements/crawlspaces. Requ
 Nominal R-value of the vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
 
 - **Name:** ``slab_perimeter_insulation_r``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``h-ft^2-R/Btu``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -709,11 +681,9 @@ Nominal R-value of the vertical slab perimeter insulation. Applies to slab-on-gr
 Depth from grade to bottom of vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
 
 - **Name:** ``slab_perimeter_insulation_depth``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -755,11 +725,9 @@ Depth of the slab exterior horizontal insulation measured from the top surface o
 Nominal R-value of the horizontal under slab insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.
 
 - **Name:** ``slab_under_insulation_r``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``h-ft^2-R/Btu``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -768,11 +736,9 @@ Nominal R-value of the horizontal under slab insulation. Applies to slab-on-grad
 Width from slab edge inward of horizontal under-slab insulation. Enter 999 to specify that the under slab insulation spans the entire slab. Applies to slab-on-grade foundations and basement/crawlspace floors.
 
 - **Name:** ``slab_under_insulation_width``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -814,11 +780,9 @@ R-value of the slab carpet. If not provided, the OS-HPXML default (see <a href='
 Assembly R-value for the ceiling (attic floor).
 
 - **Name:** ``ceiling_assembly_r``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``h-ft^2-R/Btu``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -853,11 +817,9 @@ The color of the roof. If not provided, the OS-HPXML default (see <a href='https
 Assembly R-value of the roof.
 
 - **Name:** ``roof_assembly_r``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``h-ft^2-R/Btu``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -939,61 +901,9 @@ Assembly R-value of the walls.
 
 <br/>
 
-**Windows: Front Window-to-Wall Ratio**
-
-The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead. If the front wall is adiabatic, the value will be ignored.
-
-- **Name:** ``window_front_wwr``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
-
-- **Required:** ``true``
-
-<br/>
-
-**Windows: Back Window-to-Wall Ratio**
-
-The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead. If the back wall is adiabatic, the value will be ignored.
-
-- **Name:** ``window_back_wwr``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
-
-- **Required:** ``true``
-
-<br/>
-
-**Windows: Left Window-to-Wall Ratio**
-
-The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead. If the left wall is adiabatic, the value will be ignored.
-
-- **Name:** ``window_left_wwr``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
-
-- **Required:** ``true``
-
-<br/>
-
-**Windows: Right Window-to-Wall Ratio**
-
-The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead. If the right wall is adiabatic, the value will be ignored.
-
-- **Name:** ``window_right_wwr``
-- **Type:** ``Double``
-
-- **Units:** ``Frac``
-
-- **Required:** ``true``
-
-<br/>
-
 **Windows: Front Window Area**
 
-The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead. If the front wall is adiabatic, the value will be ignored.
+The amount of window area on the unit's front facade. A value less than 1 will be treated as a window-to-wall ratio. If the front wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_front``
 - **Type:** ``Double``
@@ -1006,7 +916,7 @@ The amount of window area on the unit's front facade. Enter 0 if specifying Fron
 
 **Windows: Back Window Area**
 
-The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead. If the back wall is adiabatic, the value will be ignored.
+The amount of window area on the unit's back facade. A value less than 1 will be treated as a window-to-wall ratio. If the back wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_back``
 - **Type:** ``Double``
@@ -1019,7 +929,7 @@ The amount of window area on the unit's back facade. Enter 0 if specifying Back 
 
 **Windows: Left Window Area**
 
-The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead. If the left wall is adiabatic, the value will be ignored.
+The amount of window area on the unit's left facade (when viewed from the front). A value less than 1 will be treated as a window-to-wall ratio. If the left wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_left``
 - **Type:** ``Double``
@@ -1032,7 +942,7 @@ The amount of window area on the unit's left facade (when viewed from the front)
 
 **Windows: Right Window Area**
 
-The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead. If the right wall is adiabatic, the value will be ignored.
+The amount of window area on the unit's right facade (when viewed from the front). A value less than 1 will be treated as a window-to-wall ratio. If the right wall is adiabatic, the value will be ignored.
 
 - **Name:** ``window_area_right``
 - **Type:** ``Double``
@@ -1053,28 +963,6 @@ Ratio of window height to width.
 - **Units:** ``Frac``
 
 - **Required:** ``true``
-
-<br/>
-
-**Windows: Fraction Operable**
-
-Fraction of windows that are operable. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
-
-- **Name:** ``window_fraction_operable``
-- **Type:** ``String``
-
-- **Required:** ``false``
-
-<br/>
-
-**Windows: Natural Ventilation Availability**
-
-For operable windows, the number of days/week that windows can be opened by occupants for natural ventilation. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
-
-- **Name:** ``window_natvent_availability``
-- **Type:** ``String``
-
-- **Required:** ``false``
 
 <br/>
 
@@ -1099,6 +987,28 @@ Full-assembly NFRC solar heat gain coefficient.
 - **Type:** ``Double``
 
 - **Required:** ``true``
+
+<br/>
+
+**Windows: Fraction Operable**
+
+Fraction of windows that are operable. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+
+- **Name:** ``window_fraction_operable``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
+**Windows: Natural Ventilation Availability**
+
+For operable windows, the number of days/week that windows can be opened by occupants for natural ventilation. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'>HPXML Windows</a>) is used.
+
+- **Name:** ``window_natvent_availability``
+- **Type:** ``String``
+
+- **Required:** ``false``
 
 <br/>
 
@@ -1214,11 +1124,9 @@ The type of storm, if present. If not provided, assumes there is no storm.
 The depth of overhangs for windows for the front facade.
 
 - **Name:** ``overhangs_front_depth``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1227,11 +1135,9 @@ The depth of overhangs for windows for the front facade.
 The overhangs distance to the top of window for the front facade.
 
 - **Name:** ``overhangs_front_distance_to_top_of_window``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1240,11 +1146,9 @@ The overhangs distance to the top of window for the front facade.
 The overhangs distance to the bottom of window for the front facade.
 
 - **Name:** ``overhangs_front_distance_to_bottom_of_window``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1253,11 +1157,9 @@ The overhangs distance to the bottom of window for the front facade.
 The depth of overhangs for windows for the back facade.
 
 - **Name:** ``overhangs_back_depth``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1266,11 +1168,9 @@ The depth of overhangs for windows for the back facade.
 The overhangs distance to the top of window for the back facade.
 
 - **Name:** ``overhangs_back_distance_to_top_of_window``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1279,11 +1179,9 @@ The overhangs distance to the top of window for the back facade.
 The overhangs distance to the bottom of window for the back facade.
 
 - **Name:** ``overhangs_back_distance_to_bottom_of_window``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1292,11 +1190,9 @@ The overhangs distance to the bottom of window for the back facade.
 The depth of overhangs for windows for the left facade.
 
 - **Name:** ``overhangs_left_depth``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1305,11 +1201,9 @@ The depth of overhangs for windows for the left facade.
 The overhangs distance to the top of window for the left facade.
 
 - **Name:** ``overhangs_left_distance_to_top_of_window``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1318,11 +1212,9 @@ The overhangs distance to the top of window for the left facade.
 The overhangs distance to the bottom of window for the left facade.
 
 - **Name:** ``overhangs_left_distance_to_bottom_of_window``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1331,11 +1223,9 @@ The overhangs distance to the bottom of window for the left facade.
 The depth of overhangs for windows for the right facade.
 
 - **Name:** ``overhangs_right_depth``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1344,11 +1234,9 @@ The depth of overhangs for windows for the right facade.
 The overhangs distance to the top of window for the right facade.
 
 - **Name:** ``overhangs_right_distance_to_top_of_window``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1357,11 +1245,9 @@ The overhangs distance to the top of window for the right facade.
 The overhangs distance to the bottom of window for the right facade.
 
 - **Name:** ``overhangs_right_distance_to_bottom_of_window``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1370,11 +1256,9 @@ The overhangs distance to the bottom of window for the right facade.
 The amount of skylight area on the unit's front conditioned roof facade.
 
 - **Name:** ``skylight_area_front``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft^2``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1383,11 +1267,9 @@ The amount of skylight area on the unit's front conditioned roof facade.
 The amount of skylight area on the unit's back conditioned roof facade.
 
 - **Name:** ``skylight_area_back``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft^2``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1396,11 +1278,9 @@ The amount of skylight area on the unit's back conditioned roof facade.
 The amount of skylight area on the unit's left conditioned roof facade (when viewed from the front).
 
 - **Name:** ``skylight_area_left``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft^2``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1409,11 +1289,9 @@ The amount of skylight area on the unit's left conditioned roof facade (when vie
 The amount of skylight area on the unit's right conditioned roof facade (when viewed from the front).
 
 - **Name:** ``skylight_area_right``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft^2``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1422,11 +1300,9 @@ The amount of skylight area on the unit's right conditioned roof facade (when vi
 Full-assembly NFRC U-factor.
 
 - **Name:** ``skylight_ufactor``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Btu/hr-ft^2-R``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1435,9 +1311,9 @@ Full-assembly NFRC U-factor.
 Full-assembly NFRC solar heat gain coefficient.
 
 - **Name:** ``skylight_shgc``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1561,9 +1437,9 @@ The fuel type of the heating system. Ignored for ElectricResistance.
 - **Name:** ``heating_system_fuel``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
+- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
 
 <br/>
 
@@ -1572,11 +1448,9 @@ The fuel type of the heating system. Ignored for ElectricResistance.
 The rated heating efficiency value of the heating system.
 
 - **Name:** ``heating_system_heating_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1618,11 +1492,9 @@ The maximum capacity limit applied to the auto-sizing methodology. If not provid
 The heating load served by the heating system.
 
 - **Name:** ``heating_system_fraction_heat_load_served``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1657,9 +1529,9 @@ The efficiency type of the cooling system. System types central air conditioner 
 - **Name:** ``cooling_system_cooling_efficiency_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `SEER`, `SEER2`, `EER`, `CEER`
+- **Choices:** `auto`, `SEER`, `SEER2`, `EER`, `CEER`
 
 <br/>
 
@@ -1668,9 +1540,9 @@ The efficiency type of the cooling system. System types central air conditioner 
 The rated efficiency value of the cooling system. Ignored for evaporative cooler.
 
 - **Name:** ``cooling_system_cooling_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1736,11 +1608,9 @@ The maximum capacity limit applied to the auto-sizing methodology. If not provid
 The cooling load served by the cooling system.
 
 - **Name:** ``cooling_system_fraction_cool_load_served``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1834,9 +1704,9 @@ The heating efficiency type of heat pump. System types air-to-air and mini-split
 - **Name:** ``heat_pump_heating_efficiency_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `HSPF`, `HSPF2`, `COP`
+- **Choices:** `auto`, `HSPF`, `HSPF2`, `COP`
 
 <br/>
 
@@ -1845,9 +1715,9 @@ The heating efficiency type of heat pump. System types air-to-air and mini-split
 The rated heating efficiency value of the heat pump.
 
 - **Name:** ``heat_pump_heating_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1858,9 +1728,9 @@ The cooling efficiency type of heat pump. System types air-to-air and mini-split
 - **Name:** ``heat_pump_cooling_efficiency_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `SEER`, `SEER2`, `EER`, `CEER`
+- **Choices:** `auto`, `SEER`, `SEER2`, `EER`, `CEER`
 
 <br/>
 
@@ -1869,9 +1739,9 @@ The cooling efficiency type of heat pump. System types air-to-air and mini-split
 The rated cooling efficiency value of the heat pump.
 
 - **Name:** ``heat_pump_cooling_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -1992,11 +1862,9 @@ The maximum capacity limit applied to the auto-sizing methodology. If not provid
 The heating load served by the heat pump.
 
 - **Name:** ``heat_pump_fraction_heat_load_served``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2005,11 +1873,9 @@ The heating load served by the heat pump.
 The cooling load served by the heat pump.
 
 - **Name:** ``heat_pump_fraction_cool_load_served``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2031,9 +1897,9 @@ The backup type of the heat pump. If 'integrated', represents e.g. built-in elec
 - **Name:** ``heat_pump_backup_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `none`, `integrated`, `separate`
+- **Choices:** `auto`, `none`, `integrated`, `separate`
 
 <br/>
 
@@ -2066,9 +1932,9 @@ The backup fuel type of the heat pump. Only applies if Backup Type is 'integrate
 - **Name:** ``heat_pump_backup_fuel``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`
+- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`
 
 <br/>
 
@@ -2077,9 +1943,9 @@ The backup fuel type of the heat pump. Only applies if Backup Type is 'integrate
 The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise. Only applies if Backup Type is 'integrated'.
 
 - **Name:** ``heat_pump_backup_heating_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2400,14 +2266,14 @@ Pipe diameter of the geothermal loop. Only applies to ground-to-air heat pump ty
 
 **Heating System 2: Type**
 
-The type of the second heating system. If a heat pump is specified and the backup type is 'separate', this heating system represents 'separate' backup heating. For ducted heat pumps where the backup heating system is a 'Furnace', the backup would typically be characterized as 'integrated' in that the furnace and heat pump share the same distribution system and blower fan; a 'Furnace' as 'separate' backup to a ducted heat pump is not supported.
+The type of the second heating system. If a heat pump is specified and the backup type is 'separate', this heating system represents 'separate' backup heating. For ducted heat pumps where the backup heating system is a 'Furnace', the backup would typically be characterized as 'integrated' in that the furnace and heat pump share the same distribution system and blower fan; a 'Furnace' as 'separate' backup to a ducted heat pump is not supported. If not provided, defaults to none.
 
 - **Name:** ``heating_system_2_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `none`, `Furnace`, `WallFurnace`, `FloorFurnace`, `Boiler`, `ElectricResistance`, `Stove`, `SpaceHeater`, `Fireplace`
+- **Choices:** `auto`, `none`, `Furnace`, `WallFurnace`, `FloorFurnace`, `Boiler`, `ElectricResistance`, `Stove`, `SpaceHeater`, `Fireplace`
 
 <br/>
 
@@ -2418,9 +2284,9 @@ The fuel type of the second heating system. Ignored for ElectricResistance.
 - **Name:** ``heating_system_2_fuel``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
+- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
 
 <br/>
 
@@ -2429,11 +2295,9 @@ The fuel type of the second heating system. Ignored for ElectricResistance.
 The rated heating efficiency value of the second heating system.
 
 - **Name:** ``heating_system_2_heating_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2475,11 +2339,9 @@ The maximum capacity limit applied to the auto-sizing methodology. If not provid
 The heat load served fraction of the second heating system. Ignored if this heating system serves as a backup system for a heat pump.
 
 - **Name:** ``heating_system_2_fraction_heat_load_served``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2523,9 +2385,9 @@ The leakage units of the ducts.
 - **Name:** ``ducts_leakage_units``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `CFM25`, `CFM50`, `Percent`
+- **Choices:** `auto`, `CFM25`, `CFM50`, `Percent`
 
 <br/>
 
@@ -2534,9 +2396,9 @@ The leakage units of the ducts.
 The leakage value to outside for the supply ducts.
 
 - **Name:** ``ducts_supply_leakage_to_outside_value``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2558,11 +2420,9 @@ The location of the supply ducts. If not provided, the OS-HPXML default (see <a 
 The nominal insulation r-value of the supply ducts excluding air films. Use 0 for uninsulated ducts.
 
 - **Name:** ``ducts_supply_insulation_r``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``h-ft^2-R/Btu``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2617,9 +2477,9 @@ The fraction of supply ducts that are rectangular (as opposed to round); this af
 The leakage value to outside for the return ducts.
 
 - **Name:** ``ducts_return_leakage_to_outside_value``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2641,11 +2501,9 @@ The location of the return ducts. If not provided, the OS-HPXML default (see <a 
 The nominal insulation r-value of the return ducts excluding air films. Use 0 for uninsulated ducts.
 
 - **Name:** ``ducts_return_insulation_r``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``h-ft^2-R/Btu``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2708,14 +2566,14 @@ The fraction of return ducts that are rectangular (as opposed to round); this af
 
 **Mechanical Ventilation: Fan Type**
 
-The type of the mechanical ventilation. Use 'none' if there is no mechanical ventilation system.
+The type of the mechanical ventilation. Use 'none' if there is no mechanical ventilation system. If not provided, defaults to none.
 
 - **Name:** ``mech_vent_fan_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `none`, `exhaust only`, `supply only`, `energy recovery ventilator`, `heat recovery ventilator`, `balanced`, `central fan integrated supply`
+- **Choices:** `auto`, `none`, `exhaust only`, `supply only`, `energy recovery ventilator`, `heat recovery ventilator`, `balanced`, `central fan integrated supply`
 
 <br/>
 
@@ -2748,9 +2606,9 @@ The total recovery efficiency type of the mechanical ventilation.
 - **Name:** ``mech_vent_recovery_efficiency_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `Unadjusted`, `Adjusted`
+- **Choices:** `auto`, `Unadjusted`, `Adjusted`
 
 <br/>
 
@@ -2759,11 +2617,9 @@ The total recovery efficiency type of the mechanical ventilation.
 The Unadjusted or Adjusted total recovery efficiency of the mechanical ventilation. Applies to energy recovery ventilator.
 
 - **Name:** ``mech_vent_total_recovery_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2772,11 +2628,9 @@ The Unadjusted or Adjusted total recovery efficiency of the mechanical ventilati
 The Unadjusted or Adjusted sensible recovery efficiency of the mechanical ventilation. Applies to energy recovery ventilator and heat recovery ventilator.
 
 - **Name:** ``mech_vent_sensible_recovery_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2796,11 +2650,9 @@ The fan power of the mechanical ventilation. If not provided, the OS-HPXML defau
 Number of dwelling units served by the mechanical ventilation system. Must be 1 if single-family detached. Used to apportion flow rate and fan power to the unit.
 
 - **Name:** ``mech_vent_num_units_served``
-- **Type:** ``Integer``
+- **Type:** ``String``
 
-- **Units:** ``#``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2887,14 +2739,14 @@ Fraction of cooling load introduced by the shared ventilation system that is met
 
 **Mechanical Ventilation 2: Fan Type**
 
-The type of the second mechanical ventilation. Use 'none' if there is no second mechanical ventilation system.
+The type of the second mechanical ventilation. Use 'none' if there is no second mechanical ventilation system. If not provided, defaults to none.
 
 - **Name:** ``mech_vent_2_fan_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `none`, `exhaust only`, `supply only`, `energy recovery ventilator`, `heat recovery ventilator`, `balanced`
+- **Choices:** `auto`, `none`, `exhaust only`, `supply only`, `energy recovery ventilator`, `heat recovery ventilator`, `balanced`
 
 <br/>
 
@@ -2903,11 +2755,9 @@ The type of the second mechanical ventilation. Use 'none' if there is no second 
 The flow rate of the second mechanical ventilation.
 
 - **Name:** ``mech_vent_2_flow_rate``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``CFM``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2916,11 +2766,9 @@ The flow rate of the second mechanical ventilation.
 The hours in operation of the second mechanical ventilation.
 
 - **Name:** ``mech_vent_2_hours_in_operation``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``hrs/day``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2931,9 +2779,9 @@ The total recovery efficiency type of the second mechanical ventilation.
 - **Name:** ``mech_vent_2_recovery_efficiency_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `Unadjusted`, `Adjusted`
+- **Choices:** `auto`, `Unadjusted`, `Adjusted`
 
 <br/>
 
@@ -2942,11 +2790,9 @@ The total recovery efficiency type of the second mechanical ventilation.
 The Unadjusted or Adjusted total recovery efficiency of the second mechanical ventilation. Applies to energy recovery ventilator.
 
 - **Name:** ``mech_vent_2_total_recovery_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2955,11 +2801,9 @@ The Unadjusted or Adjusted total recovery efficiency of the second mechanical ve
 The Unadjusted or Adjusted sensible recovery efficiency of the second mechanical ventilation. Applies to energy recovery ventilator and heat recovery ventilator.
 
 - **Name:** ``mech_vent_2_sensible_recovery_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -2968,11 +2812,9 @@ The Unadjusted or Adjusted sensible recovery efficiency of the second mechanical
 The fan power of the second mechanical ventilation.
 
 - **Name:** ``mech_vent_2_fan_power``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``W``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3091,9 +2933,11 @@ The start hour of the bathroom fans. If not provided, the OS-HPXML default (see 
 Whether there is a whole house fan.
 
 - **Name:** ``whole_house_fan_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -3139,9 +2983,9 @@ The fuel type of water heater. Ignored for heat pump water heater.
 - **Name:** ``water_heater_fuel_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `coal`
+- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `coal`
 
 <br/>
 
@@ -3176,9 +3020,9 @@ The efficiency type of water heater. Does not apply to space-heating boilers.
 - **Name:** ``water_heater_efficiency_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `EnergyFactor`, `UniformEnergyFactor`
+- **Choices:** `auto`, `EnergyFactor`, `UniformEnergyFactor`
 
 <br/>
 
@@ -3187,9 +3031,9 @@ The efficiency type of water heater. Does not apply to space-heating boilers.
 Rated Energy Factor or Uniform Energy Factor. Does not apply to space-heating boilers.
 
 - **Name:** ``water_heater_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3410,9 +3254,9 @@ Which facilities are connected for the drain water heat recovery. Use 'none' if 
 - **Name:** ``dwhr_facilities_connected``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `none`, `one`, `all`
+- **Choices:** `auto`, `none`, `one`, `all`
 
 <br/>
 
@@ -3442,23 +3286,27 @@ The efficiency of the drain water heat recovery.
 
 **Hot Water Fixtures: Is Shower Low Flow**
 
-Whether the shower fixture is low flow.
+Whether the shower fixture is low flow. If not provided, defaults to false.
 
 - **Name:** ``water_fixtures_shower_low_flow``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
 **Hot Water Fixtures: Is Sink Low Flow**
 
-Whether the sink fixture is low flow.
+Whether the sink fixture is low flow. If not provided, defaults to false.
 
 - **Name:** ``water_fixtures_sink_low_flow``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -3491,9 +3339,9 @@ The type of solar thermal system. Use 'none' if there is no solar thermal system
 - **Name:** ``solar_thermal_system_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `none`, `hot water`
+- **Choices:** `auto`, `none`, `hot water`
 
 <br/>
 
@@ -3502,11 +3350,9 @@ The type of solar thermal system. Use 'none' if there is no solar thermal system
 The collector area of the solar thermal system.
 
 - **Name:** ``solar_thermal_collector_area``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``ft^2``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3517,9 +3363,9 @@ The collector loop type of the solar thermal system.
 - **Name:** ``solar_thermal_collector_loop_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `liquid direct`, `liquid indirect`, `passive thermosyphon`
+- **Choices:** `auto`, `liquid direct`, `liquid indirect`, `passive thermosyphon`
 
 <br/>
 
@@ -3530,9 +3376,9 @@ The collector type of the solar thermal system.
 - **Name:** ``solar_thermal_collector_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `evacuated tube`, `single glazing black`, `double glazing black`, `integrated collector storage`
+- **Choices:** `auto`, `evacuated tube`, `single glazing black`, `double glazing black`, `integrated collector storage`
 
 <br/>
 
@@ -3541,11 +3387,9 @@ The collector type of the solar thermal system.
 The collector azimuth of the solar thermal system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).
 
 - **Name:** ``solar_thermal_collector_azimuth``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``degrees``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3556,7 +3400,7 @@ The collector tilt of the solar thermal system. Can also enter, e.g., RoofPitch,
 - **Name:** ``solar_thermal_collector_tilt``
 - **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3565,11 +3409,9 @@ The collector tilt of the solar thermal system. Can also enter, e.g., RoofPitch,
 The collector rated optical efficiency of the solar thermal system.
 
 - **Name:** ``solar_thermal_collector_rated_optical_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3578,11 +3420,9 @@ The collector rated optical efficiency of the solar thermal system.
 The collector rated thermal losses of the solar thermal system.
 
 - **Name:** ``solar_thermal_collector_rated_thermal_losses``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Btu/hr-ft^2-R``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3602,22 +3442,22 @@ The storage volume of the solar thermal system. If not provided, the OS-HPXML de
 The solar fraction of the solar thermal system. If provided, overrides all other solar thermal inputs.
 
 - **Name:** ``solar_thermal_solar_fraction``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
 **PV System: Present**
 
-Whether there is a PV system present.
+Whether there is a PV system present. If not provided, defaults to false.
 
 - **Name:** ``pv_system_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -3665,11 +3505,9 @@ Type of tracking for the PV system. If not provided, the OS-HPXML default (see <
 Array azimuth of the PV system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).
 
 - **Name:** ``pv_system_array_azimuth``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``degrees``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3680,7 +3518,7 @@ Array tilt of the PV system. Can also enter, e.g., RoofPitch, RoofPitch+20, Lati
 - **Name:** ``pv_system_array_tilt``
 - **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3689,11 +3527,9 @@ Array tilt of the PV system. Can also enter, e.g., RoofPitch, RoofPitch+20, Lati
 Maximum power output of the PV system. For a shared system, this is the total building maximum power output.
 
 - **Name:** ``pv_system_max_power_output``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``W``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3721,12 +3557,14 @@ System losses fraction of the PV system. If there are two PV systems, this will 
 
 **PV System 2: Present**
 
-Whether there is a second PV system present.
+Whether there is a second PV system present. If not provided, defaults to false.
 
 - **Name:** ``pv_system_2_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -3774,11 +3612,9 @@ Type of tracking for the second PV system. If not provided, the OS-HPXML default
 Array azimuth of the second PV system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).
 
 - **Name:** ``pv_system_2_array_azimuth``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``degrees``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3789,7 +3625,7 @@ Array tilt of the second PV system. Can also enter, e.g., RoofPitch, RoofPitch+2
 - **Name:** ``pv_system_2_array_tilt``
 - **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3798,22 +3634,22 @@ Array tilt of the second PV system. Can also enter, e.g., RoofPitch, RoofPitch+2
 Maximum power output of the second PV system. For a shared system, this is the total building maximum power output.
 
 - **Name:** ``pv_system_2_max_power_output``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``W``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
 **Battery: Present**
 
-Whether there is a lithium ion battery present.
+Whether there is a lithium ion battery present. If not provided, defaults to false.
 
 - **Name:** ``battery_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -3890,9 +3726,9 @@ Whether there is lighting energy use.
 Fraction of all lamps (interior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_interior_fraction_cfl``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3901,9 +3737,9 @@ Fraction of all lamps (interior) that are compact fluorescent. Lighting not spec
 Fraction of all lamps (interior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_interior_fraction_lfl``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3912,9 +3748,9 @@ Fraction of all lamps (interior) that are linear fluorescent. Lighting not speci
 Fraction of all lamps (interior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_interior_fraction_led``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3934,9 +3770,9 @@ Multiplier on the lighting energy usage (interior) that can reflect, e.g., high/
 Fraction of all lamps (exterior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_exterior_fraction_cfl``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3945,9 +3781,9 @@ Fraction of all lamps (exterior) that are compact fluorescent. Lighting not spec
 Fraction of all lamps (exterior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_exterior_fraction_lfl``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3956,9 +3792,9 @@ Fraction of all lamps (exterior) that are linear fluorescent. Lighting not speci
 Fraction of all lamps (exterior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_exterior_fraction_led``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3978,9 +3814,9 @@ Multiplier on the lighting energy usage (exterior) that can reflect, e.g., high/
 Fraction of all lamps (garage) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_garage_fraction_cfl``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -3989,9 +3825,9 @@ Fraction of all lamps (garage) that are compact fluorescent. Lighting not specif
 Fraction of all lamps (garage) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_garage_fraction_lfl``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -4000,9 +3836,9 @@ Fraction of all lamps (garage) that are linear fluorescent. Lighting not specifi
 Fraction of all lamps (garage) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.
 
 - **Name:** ``lighting_garage_fraction_led``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -4019,12 +3855,14 @@ Multiplier on the lighting energy usage (garage) that can reflect, e.g., high/lo
 
 **Holiday Lighting: Present**
 
-Whether there is holiday lighting.
+Whether there is holiday lighting. If not provided, defaults to false.
 
 - **Name:** ``holiday_lighting_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -4052,14 +3890,14 @@ Enter a date range like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default 
 
 **Dehumidifier: Type**
 
-The type of dehumidifier.
+The type of dehumidifier. If not provided, defaults to none.
 
 - **Name:** ``dehumidifier_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `none`, `portable`, `whole-home`
+- **Choices:** `auto`, `none`, `portable`, `whole-home`
 
 <br/>
 
@@ -4070,9 +3908,9 @@ The efficiency type of dehumidifier.
 - **Name:** ``dehumidifier_efficiency_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `EnergyFactor`, `IntegratedEnergyFactor`
+- **Choices:** `auto`, `EnergyFactor`, `IntegratedEnergyFactor`
 
 <br/>
 
@@ -4081,11 +3919,9 @@ The efficiency type of dehumidifier.
 The efficiency of the dehumidifier.
 
 - **Name:** ``dehumidifier_efficiency``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``liters/kWh``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -4094,11 +3930,9 @@ The efficiency of the dehumidifier.
 The capacity (water removal rate) of the dehumidifier.
 
 - **Name:** ``dehumidifier_capacity``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``pint/day``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -4107,11 +3941,9 @@ The capacity (water removal rate) of the dehumidifier.
 The relative humidity setpoint of the dehumidifier.
 
 - **Name:** ``dehumidifier_rh_setpoint``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -4120,11 +3952,9 @@ The relative humidity setpoint of the dehumidifier.
 The dehumidification load served fraction of the dehumidifier.
 
 - **Name:** ``dehumidifier_fraction_dehumidification_load_served``
-- **Type:** ``Double``
+- **Type:** ``String``
 
-- **Units:** ``Frac``
-
-- **Required:** ``true``
+- **Required:** ``false``
 
 <br/>
 
@@ -4159,9 +3989,9 @@ The efficiency type of the clothes washer.
 - **Name:** ``clothes_washer_efficiency_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `ModifiedEnergyFactor`, `IntegratedModifiedEnergyFactor`
+- **Choices:** `auto`, `ModifiedEnergyFactor`, `IntegratedModifiedEnergyFactor`
 
 <br/>
 
@@ -4284,9 +4114,9 @@ Type of fuel used by the clothes dryer.
 - **Name:** ``clothes_dryer_fuel_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `coal`
+- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `coal`
 
 <br/>
 
@@ -4297,9 +4127,9 @@ The efficiency type of the clothes dryer.
 - **Name:** ``clothes_dryer_efficiency_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `EnergyFactor`, `CombinedEnergyFactor`
+- **Choices:** `auto`, `EnergyFactor`, `CombinedEnergyFactor`
 
 <br/>
 
@@ -4367,9 +4197,9 @@ The efficiency type of dishwasher.
 - **Name:** ``dishwasher_efficiency_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `RatedAnnualkWh`, `EnergyFactor`
+- **Choices:** `auto`, `RatedAnnualkWh`, `EnergyFactor`
 
 <br/>
 
@@ -4498,12 +4328,14 @@ Multiplier on the refrigerator energy usage that can reflect, e.g., high/low usa
 
 **Extra Refrigerator: Present**
 
-Whether there is an extra refrigerator present.
+Whether there is an extra refrigerator present. If not provided, defaults to false.
 
 - **Name:** ``extra_refrigerator_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -4544,12 +4376,14 @@ Multiplier on the extra refrigerator energy usage that can reflect, e.g., high/l
 
 **Freezer: Present**
 
-Whether there is a freezer present.
+Whether there is a freezer present. If not provided, defaults to false.
 
 - **Name:** ``freezer_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -4619,9 +4453,9 @@ Type of fuel used by the cooking range/oven.
 - **Name:** ``cooking_range_oven_fuel_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `coal`
+- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `coal`
 
 <br/>
 
@@ -4796,12 +4630,14 @@ Multiplier on the other energy usage that can reflect, e.g., high/low usage occu
 
 **Misc Plug Loads: Well Pump Present**
 
-Whether there is a well pump.
+Whether there is a well pump. If not provided, defaults to false.
 
 - **Name:** ``misc_plug_loads_well_pump_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -4829,12 +4665,14 @@ Multiplier on the well pump energy usage that can reflect, e.g., high/low usage 
 
 **Misc Plug Loads: Vehicle Present**
 
-Whether there is an electric vehicle.
+Whether there is an electric vehicle. If not provided, defaults to false.
 
 - **Name:** ``misc_plug_loads_vehicle_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -4862,12 +4700,14 @@ Multiplier on the electric vehicle energy usage that can reflect, e.g., high/low
 
 **Misc Fuel Loads: Grill Present**
 
-Whether there is a fuel loads grill.
+Whether there is a fuel loads grill. If not provided, defaults to false.
 
 - **Name:** ``misc_fuel_loads_grill_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -4878,9 +4718,9 @@ The fuel type of the fuel loads grill.
 - **Name:** ``misc_fuel_loads_grill_fuel_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`
+- **Choices:** `auto`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`
 
 <br/>
 
@@ -4908,12 +4748,14 @@ Multiplier on the fuel loads grill energy usage that can reflect, e.g., high/low
 
 **Misc Fuel Loads: Lighting Present**
 
-Whether there is fuel loads lighting.
+Whether there is fuel loads lighting. If not provided, defaults to false.
 
 - **Name:** ``misc_fuel_loads_lighting_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -4924,9 +4766,9 @@ The fuel type of the fuel loads lighting.
 - **Name:** ``misc_fuel_loads_lighting_fuel_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`
+- **Choices:** `auto`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`
 
 <br/>
 
@@ -4954,12 +4796,14 @@ Multiplier on the fuel loads lighting energy usage that can reflect, e.g., high/
 
 **Misc Fuel Loads: Fireplace Present**
 
-Whether there is fuel loads fireplace.
+Whether there is fuel loads fireplace. If not provided, defaults to false.
 
 - **Name:** ``misc_fuel_loads_fireplace_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -4970,9 +4814,9 @@ The fuel type of the fuel loads fireplace.
 - **Name:** ``misc_fuel_loads_fireplace_fuel_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`
+- **Choices:** `auto`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`
 
 <br/>
 
@@ -5022,12 +4866,14 @@ Multiplier on the fuel loads fireplace energy usage that can reflect, e.g., high
 
 **Pool: Present**
 
-Whether there is a pool.
+Whether there is a pool. If not provided, defaults to false.
 
 - **Name:** ``pool_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -5060,9 +4906,9 @@ The type of pool heater. Use 'none' if there is no pool heater.
 - **Name:** ``pool_heater_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `none`, `electric resistance`, `gas fired`, `heat pump`
+- **Choices:** `auto`, `none`, `electric resistance`, `gas fired`, `heat pump`
 
 <br/>
 
@@ -5101,12 +4947,14 @@ Multiplier on the pool heater energy usage that can reflect, e.g., high/low usag
 
 **Permanent Spa: Present**
 
-Whether there is a permanent spa.
+Whether there is a permanent spa. If not provided, defaults to false.
 
 - **Name:** ``permanent_spa_present``
-- **Type:** ``Boolean``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -5139,9 +4987,9 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 - **Name:** ``permanent_spa_heater_type``
 - **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
 
-- **Choices:** `none`, `electric resistance`, `gas fired`, `heat pump`
+- **Choices:** `auto`, `none`, `electric resistance`, `gas fired`, `heat pump`
 
 <br/>
 
