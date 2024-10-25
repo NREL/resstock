@@ -2,13 +2,11 @@
 
 require 'csv'
 
-# Example args: https://github.com/NREL/resstock/blob/develop/resources/hpxml-measures/workflow/hpxml_inputs.json
 # HPXML declared values: https://github.com/NREL/OpenStudio-HPXML/blob/master/HPXMLtoOpenStudio/resources/hpxml.rb
 class RatedCapacityGenerator
   def initialize(runner:,
                  **)
     @runner = runner
-    # TODO: debug
   end
 
   def assign_rated_capacity(args:)
@@ -98,7 +96,7 @@ class RatedCapacityGenerator
       filename = 'electrical_panel_rated_capacity__nonelectric_heating.csv'
     end
     file = File.absolute_path(File.join(File.dirname(__FILE__), 'electrical_panel_resources', filename))
-    prob_table = CSV.read(file).each.to_a
+    prob_table = CSV.read(file)
     return prob_table
   end
 
@@ -159,7 +157,7 @@ class RatedCapacityGenerator
         return 'none'
       end
     elsif cooling_system_type == HPXML::HVACTypeMiniSplitAirConditioner
-      # shared cooling, use none for lookup (note: this is different from tsv assignment)
+      # shared cooling, use none for lookup (note: this would be different if assigned via tsv since shared cooling is not none in HVAC Cooling Type)
       return 'none'
     else
       @runner.registerError("RatedCapacityGenerator cannot determine cooling type based on '#{args[:system_cooling_type]}' and '#{args[:heat_pump_type]}'.")

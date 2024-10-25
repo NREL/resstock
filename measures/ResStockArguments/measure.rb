@@ -836,14 +836,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
     # Electric Panel
-    # collect inputs, execute resources/electric_panel.rb methods, output service rating and available breaker spaces
+    # collect inputs, execute resources/electrical_panel.rb methods, output service rating and available breaker spaces
 
     capacity_sampler = RatedCapacityGenerator.new(runner: runner, **args)
     cap_bin, cap_val = capacity_sampler.assign_rated_capacity(args: args)
 
     args[:electric_panel_service_rating_bin] = cap_bin
     args[:electric_panel_service_rating] = cap_val
-    runner.registerWarning("Panel bin for '#{args[:building_id]}': '#{cap_bin}', '#{cap_val}'") # TEMP
 
     # FIXME: uncomment these once we pull in OS-HPXML's electric_panel branch
     # args[:electric_panel_breaker_spaces_type] = 'headroom'
