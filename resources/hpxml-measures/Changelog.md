@@ -17,9 +17,10 @@ __New Features__
   - Updates relationship between number of bedrooms and number of occupants to use RECS 2020 instead of RECS 2015.
 - Allows optional `HeatingCapacity` and `BackupHeatingCapacity` inputs for heat pump water heaters (HPWHs).
 - Central Fan Integrated Supply (CFIS) mechanical ventilation enhancements:
-  - CFIS systems without automatic flow control of outdoor air (`CFISControls/HasOutdoorAirControl=false`).
-  - CFIS systems with no strategy to meet remainder of ventilation target (`CFISControls/AdditionalRuntimeOperatingMode="none"`).
-  - CFIS systems with supplemental fans that run simultaneously with the air handler (`CFISControls/extension/SupplementalFanRunsWithAirHandlerFan=true`).
+  - Allows CFIS systems without automatic flow control of outdoor air (`CFISControls/HasOutdoorAirControl=false`).
+  - Allows CFIS systems with no strategy to meet remainder of ventilation target (`CFISControls/AdditionalRuntimeOperatingMode="none"`).
+  - Allows CFIS systems with supplemental fans that run simultaneously with the air handler (`CFISControls/extension/SupplementalFanRunsWithAirHandlerFan=true`).
+  - Allows CFIS systems with timer control, in which ventilation operation occurs at a fixed interval (`CFISControls/extension/ControlType="timer"`).
 - HVAC Manual J design load and sizing calculations:
   - Adds optional `DistributionSystemType/AirDistribution/extension/ManualJInputs/BlowerFanHeatBtuh` input.
   - Adds optional `DistributionSystemType/HydronicDistribution/extension/ManualJInputs/HotWaterPipingBtuh` input.
@@ -35,6 +36,7 @@ __New Features__
 - BuildResidentialHPXML measure:
   - **Breaking change**: Replaced `slab_under_width` and `slab_perimeter_depth` arguments with `slab_under_insulation_width` and `slab_perimeter_insulation_depth`
   - **Breaking change**: Replaced `schedules_vacancy_periods`, `schedules_power_outage_periods`, and `schedules_power_outage_periods_window_natvent_availability` arguments with `schedules_unavailable_period_types`, `schedules_unavailable_period_dates`, and `schedules_unavailable_period_window_natvent_availabilities`; this improves flexibility for handling more unavailable period types.
+  - **Breaking change**: Removed `window_<side>_wwr` argument; a value less than 1 can be provided to the `window_area_<side>` and will be treated as a window-to-wall ratio.
 - Utility bill calculations:
   - Allows OpenEI URDB tariffs that have $/day fixed charges.
   - Updates `openei_rates.zip` with the latest residential utility rates from the [OpenEI U.S. Utility Rate database](https://apps.openei.org/USURDB/).
@@ -52,6 +54,7 @@ __Bugfixes__
 - Fixes error if modeling a ground-to-air heat pump with a separate backup heating system.
 - Fixes default CFIS fan power during ventilation only mode.
 - Fixes a bug that potentially oversizes heat pumps when detailed performance capacity fractions are provided.
+- For a CFIS system with a supplemental fan, fixes supplemental fan runtime when using sub-hourly timesteps.
 
 ## OpenStudio-HPXML v1.8.1
 

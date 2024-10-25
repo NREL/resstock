@@ -606,10 +606,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
       elsif hpxml_file == 'base-bldgtype-mf-unit-adjacent-to-other-housing-unit.xml'
         adjacent_to = HPXML::LocationOtherHousingUnit
       end
-      wall = hpxml_bldg.walls.select { |w|
-               w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
-                 w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
-             }[0]
+      wall = hpxml_bldg.walls.find { |w| w.interior_adjacent_to == HPXML::LocationConditionedSpace && w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit }
       wall.exterior_adjacent_to = adjacent_to
       hpxml_bldg.floors[0].exterior_adjacent_to = adjacent_to
       hpxml_bldg.floors[1].exterior_adjacent_to = adjacent_to
@@ -636,10 +633,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
       hpxml_bldg.cooking_ranges[0].location = adjacent_to
     elsif ['base-bldgtype-mf-unit-adjacent-to-multiple.xml',
            'base-bldgtype-mf-unit-adjacent-to-multiple-hvac-none.xml'].include? hpxml_file
-      wall = hpxml_bldg.walls.select { |w|
-               w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
-                 w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
-             }[0]
+      wall = hpxml_bldg.walls.find { |w| w.interior_adjacent_to == HPXML::LocationConditionedSpace && w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit }
       wall.delete
       hpxml_bldg.walls.add(id: "Wall#{hpxml_bldg.walls.size + 1}",
                            exterior_adjacent_to: HPXML::LocationOtherHeatedSpace,
@@ -701,10 +695,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                             area: 150,
                             insulation_assembly_r_value: 2.1,
                             floor_or_ceiling: HPXML::FloorOrCeilingFloor)
-      wall = hpxml_bldg.walls.select { |w|
-               w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
-                 w.exterior_adjacent_to == HPXML::LocationOtherMultifamilyBufferSpace
-             }[0]
+      wall = hpxml_bldg.walls.find { |w| w.interior_adjacent_to == HPXML::LocationConditionedSpace && w.exterior_adjacent_to == HPXML::LocationOtherMultifamilyBufferSpace }
       hpxml_bldg.windows.add(id: "Window#{hpxml_bldg.windows.size + 1}",
                              area: 50,
                              azimuth: 270,
@@ -712,19 +703,13 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                              shgc: 0.45,
                              fraction_operable: 0.67,
                              attached_to_wall_idref: wall.id)
-      wall = hpxml_bldg.walls.select { |w|
-               w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
-                 w.exterior_adjacent_to == HPXML::LocationOtherHeatedSpace
-             }[0]
+      wall = hpxml_bldg.walls.find { |w| w.interior_adjacent_to == HPXML::LocationConditionedSpace && w.exterior_adjacent_to == HPXML::LocationOtherHeatedSpace }
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
                            attached_to_wall_idref: wall.id,
                            area: 20,
                            azimuth: 0,
                            r_value: 4.4)
-      wall = hpxml_bldg.walls.select { |w|
-               w.interior_adjacent_to == HPXML::LocationConditionedSpace &&
-                 w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
-             }[0]
+      wall = hpxml_bldg.walls.find { |w| w.interior_adjacent_to == HPXML::LocationConditionedSpace && w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit }
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
                            attached_to_wall_idref: wall.id,
                            area: 20,
@@ -1452,10 +1437,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
         'base-enclosure-garage.xml',
         'base-zones-spaces.xml',
         'base-zones-spaces-multiple.xml'].include? hpxml_file
-      grg_wall = hpxml_bldg.walls.select { |w|
-                   w.interior_adjacent_to == HPXML::LocationGarage &&
-                     w.exterior_adjacent_to == HPXML::LocationOutside
-                 }[0]
+      grg_wall = hpxml_bldg.walls.find { |w| w.interior_adjacent_to == HPXML::LocationGarage && w.exterior_adjacent_to == HPXML::LocationOutside }
       hpxml_bldg.doors.add(id: "Door#{hpxml_bldg.doors.size + 1}",
                            attached_to_wall_idref: grg_wall.id,
                            area: 70,
@@ -1463,7 +1445,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                            r_value: 4.4)
     end
     if ['base-misc-neighbor-shading-bldgtype-multifamily.xml'].include? hpxml_file
-      wall = hpxml_bldg.walls.select { |w| w.azimuth == hpxml_bldg.neighbor_buildings[0].azimuth }[0]
+      wall = hpxml_bldg.walls.find { |w| w.azimuth == hpxml_bldg.neighbor_buildings[0].azimuth }
       wall.exterior_adjacent_to = HPXML::LocationOtherHeatedSpace
     end
     if ['base-foundation-vented-crawlspace-above-grade2.xml'].include? hpxml_file
@@ -2275,11 +2257,14 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                                       used_for_whole_building_ventilation: true)
     elsif ['base-mechvent-cfis-airflow-fraction-zero.xml'].include? hpxml_file
       hpxml_bldg.ventilation_fans[0].cfis_vent_mode_airflow_fraction = 0.0
+    elsif ['base-mechvent-cfis-control-type-timer.xml'].include? hpxml_file
+      hpxml_bldg.ventilation_fans[0].cfis_control_type = HPXML::CFISControlTypeTimer
     elsif ['base-mechvent-cfis-no-additional-runtime.xml'].include? hpxml_file
       hpxml_bldg.ventilation_fans[0].cfis_addtl_runtime_operating_mode = HPXML::CFISModeNone
     elsif ['base-mechvent-cfis-no-outdoor-air-control.xml'].include? hpxml_file
       hpxml_bldg.ventilation_fans[0].cfis_has_outdoor_air_control = false
     elsif ['base-mechvent-cfis-supplemental-fan-exhaust.xml',
+           'base-mechvent-cfis-supplemental-fan-exhaust-15-mins.xml',
            'base-mechvent-cfis-supplemental-fan-supply.xml',
            'base-mechvent-cfis-supplemental-fan-exhaust-synchronized.xml'].include? hpxml_file
       hpxml_bldg.ventilation_fans.add(id: "VentilationFan#{hpxml_bldg.ventilation_fans.size + 1}",
