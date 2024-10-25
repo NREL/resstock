@@ -80,6 +80,8 @@ class HPXML < Object
   CertificationEnergyStar = 'Energy Star'
   ClothesDryerControlTypeMoisture = 'moisture'
   ClothesDryerControlTypeTimer = 'timer'
+  CFISControlTypeOptimized = 'optimized'
+  CFISControlTypeTimer = 'timer'
   CFISModeAirHandler = 'air handler fan'
   CFISModeNone = 'none'
   CFISModeSupplementalFan = 'supplemental fan'
@@ -7999,6 +8001,7 @@ class HPXML < Object
              :cfis_has_outdoor_air_control,                    # [Boolean] CFISControls/HasOutdoorAirControl
              :cfis_addtl_runtime_operating_mode,               # [String] CFISControls/AdditionalRuntimeOperatingMode (HPXML::CFISModeXXX)
              :cfis_supplemental_fan_idref,                     # [String] CFISControls/SupplementalFan/@idref
+             :cfis_control_type,                               # [String] CFISControls/extension/ControlType (HPXML::CFISControlTypeXXX)
              :cfis_supplemental_fan_runs_with_air_handler_fan, # [Boolean] CFISControls/extension/SupplementalFanRunsWithAirHandlerFan
              :rated_flow_rate,                                 # [Double] RatedFlowRate (cfm)
              :calculated_flow_rate,                            # [Double] CalculatedFlowRate (cfm)
@@ -8245,7 +8248,7 @@ class HPXML < Object
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(ventilation_fan, 'Count', @count, :integer, @count_isdefaulted) unless @count.nil?
       XMLHelper.add_element(ventilation_fan, 'FanType', @fan_type, :string) unless @fan_type.nil?
-      if (not @cfis_addtl_runtime_operating_mode.nil?) || (not @cfis_supplemental_fan_idref.nil?) || (not @cfis_has_outdoor_air_control.nil?) || (not @cfis_supplemental_fan_runs_with_air_handler_fan.nil?)
+      if (not @cfis_addtl_runtime_operating_mode.nil?) || (not @cfis_supplemental_fan_idref.nil?) || (not @cfis_has_outdoor_air_control.nil?) || (not @cfis_control_type.nil?) || (not @cfis_supplemental_fan_runs_with_air_handler_fan.nil?)
         cfis_controls = XMLHelper.add_element(ventilation_fan, 'CFISControls')
         XMLHelper.add_element(cfis_controls, 'HasOutdoorAirControl', @cfis_has_outdoor_air_control, :boolean, @cfis_has_outdoor_air_control_isdefaulted) unless @cfis_has_outdoor_air_control.nil?
         XMLHelper.add_element(cfis_controls, 'AdditionalRuntimeOperatingMode', @cfis_addtl_runtime_operating_mode, :string, @cfis_addtl_runtime_operating_mode_isdefaulted) unless @cfis_addtl_runtime_operating_mode.nil?
@@ -8253,6 +8256,7 @@ class HPXML < Object
           supplemental_fan = XMLHelper.add_element(cfis_controls, 'SupplementalFan')
           XMLHelper.add_attribute(supplemental_fan, 'idref', @cfis_supplemental_fan_idref)
         end
+        XMLHelper.add_extension(cfis_controls, 'ControlType', @cfis_control_type, :string, @cfis_control_type_isdefaulted) unless @cfis_control_type.nil?
         XMLHelper.add_extension(cfis_controls, 'SupplementalFanRunsWithAirHandlerFan', @cfis_supplemental_fan_runs_with_air_handler_fan, :boolean, @cfis_supplemental_fan_runs_with_air_handler_fan_isdefaulted) unless @cfis_supplemental_fan_runs_with_air_handler_fan.nil?
       end
       XMLHelper.add_element(ventilation_fan, 'RatedFlowRate', @rated_flow_rate, :float, @rated_flow_rate_isdefaulted) unless @rated_flow_rate.nil?
@@ -8312,6 +8316,7 @@ class HPXML < Object
       @cfis_has_outdoor_air_control = XMLHelper.get_value(ventilation_fan, 'CFISControls/HasOutdoorAirControl', :boolean)
       @cfis_addtl_runtime_operating_mode = XMLHelper.get_value(ventilation_fan, 'CFISControls/AdditionalRuntimeOperatingMode', :string)
       @cfis_supplemental_fan_idref = HPXML::get_idref(XMLHelper.get_element(ventilation_fan, 'CFISControls/SupplementalFan'))
+      @cfis_control_type = XMLHelper.get_value(ventilation_fan, 'CFISControls/extension/ControlType', :string)
       @cfis_supplemental_fan_runs_with_air_handler_fan = XMLHelper.get_value(ventilation_fan, 'CFISControls/extension/SupplementalFanRunsWithAirHandlerFan', :boolean)
       @rated_flow_rate = XMLHelper.get_value(ventilation_fan, 'RatedFlowRate', :float)
       @calculated_flow_rate = XMLHelper.get_value(ventilation_fan, 'CalculatedFlowRate', :float)
