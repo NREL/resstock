@@ -62892,15 +62892,15 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - UniformEnergyFactor
      - 3.45
      - auto
-     - 0
+     - 
      - auto
      - auto
-     - 0
+     - 
      - 0
      - 125
      - auto
      - auto
-     - auto
+     - 
      - auto
      - auto
    * - Electric Heat Pump, 66 gal, 3.35 UEF
@@ -62911,15 +62911,15 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - UniformEnergyFactor
      - 3.35
      - auto
-     - 0
+     - 
      - auto
      - auto
-     - 0
+     - 
      - 0
      - 125
      - auto
      - auto
-     - auto
+     - 
      - auto
      - auto
    * - Electric Heat Pump, 80 gal, 3.45 UEF
@@ -62930,15 +62930,15 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - UniformEnergyFactor
      - 3.45
      - auto
-     - 0
+     - 
      - auto
      - auto
-     - 0
+     - 
      - 0
      - 125
      - auto
      - auto
-     - auto
+     - 
      - auto
      - auto
    * - Electric Premium
@@ -62948,17 +62948,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - EnergyFactor
      - 0.95
+     - 
+     - 
      - auto
-     - 0
-     - auto
-     - auto
-     - 0
+     - 
+     - 
      - 0
      - 125
      - auto
      - auto
      - auto
-     - auto
+     - 
      - auto
    * - Electric Standard
      - 37%
@@ -62967,36 +62967,36 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - EnergyFactor
      - 0.92
+     - 
+     - 
      - auto
-     - 0
-     - auto
-     - auto
-     - 0
+     - 
+     - 
      - 0
      - 125
      - auto
      - auto
      - auto
-     - auto
+     - 
      - auto
    * - Electric Tankless
      - 2.1%
      - instantaneous water heater
      - electricity
-     - 0
+     - 
      - EnergyFactor
      - 0.99
+     - 
+     - 
      - auto
-     - 0
-     - auto
-     - auto
-     - 0
-     - 0
+     - 
+     - 
+     - 
      - 125
      - auto
      - auto
-     - auto
-     - auto
+     - 
+     - 
      - auto
    * - FIXME Fuel Oil Indirect
      - 0.69%
@@ -63005,17 +63005,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - EnergyFactor
      - 0.62
-     - auto
+     - 
      - 0.78
      - auto
-     - auto
-     - 0
+     - 
+     - 
      - 0
      - 125
      - auto
      - auto
      - auto
-     - auto
+     - 
      - auto
    * - Fuel Oil Premium
      - 0.44%
@@ -63024,17 +63024,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - EnergyFactor
      - 0.68
-     - auto
+     - 
      - 0.9
      - auto
-     - auto
-     - 0
+     - 
+     - 
      - 0
      - 125
      - auto
      - auto
      - auto
-     - auto
+     - 
      - auto
    * - Fuel Oil Standard
      - 1.4%
@@ -63043,17 +63043,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - EnergyFactor
      - 0.62
-     - auto
+     - 
      - 0.78
      - auto
-     - auto
-     - 0
+     - 
+     - 
      - 0
      - 125
      - auto
      - auto
      - auto
-     - auto
+     - 
      - auto
    * - Natural Gas Premium
      - 8.3%
@@ -63062,17 +63062,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - EnergyFactor
      - 0.67
-     - auto
+     - 
      - 0.78
      - auto
-     - auto
-     - 0
+     - 
+     - 
      - 0
      - 125
      - auto
      - auto
      - auto
-     - auto
+     - 
      - auto
    * - Natural Gas Standard
      - 33%
@@ -63081,36 +63081,36 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - EnergyFactor
      - 0.59
-     - auto
+     - 
      - 0.76
      - auto
-     - auto
-     - 0
+     - 
+     - 
      - 0
      - 125
      - auto
      - auto
      - auto
-     - auto
+     - 
      - auto
    * - Natural Gas Tankless
      - 2.9%
      - instantaneous water heater
      - natural gas
-     - 0
+     - 
      - EnergyFactor
      - 0.82
+     - 
+     - 
      - auto
-     - 0
-     - auto
-     - auto
-     - 0
-     - 0
+     - 
+     - 
+     - 
      - 125
      - auto
      - auto
-     - auto
-     - auto
+     - 
+     - 
      - auto
    * - Other Fuel
      - 0.28%
@@ -63119,17 +63119,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - EnergyFactor
      - 0.59
-     - auto
+     - 
      - 0.76
      - auto
-     - auto
-     - 0
+     - 
+     - 
      - 0
      - 125
      - auto
      - auto
      - auto
-     - auto
+     - 
      - auto
    * - Propane Premium
      - 0.62%
@@ -63138,17 +63138,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - EnergyFactor
      - 0.67
-     - auto
+     - 
      - 0.78
      - auto
-     - auto
-     - 0
+     - 
+     - 
      - 0
      - 125
      - auto
      - auto
      - auto
-     - auto
+     - 
      - auto
    * - Propane Standard
      - 2.3%
@@ -63157,36 +63157,36 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - EnergyFactor
      - 0.59
-     - auto
+     - 
      - 0.76
      - auto
-     - auto
-     - 0
+     - 
+     - 
      - 0
      - 125
      - auto
      - auto
      - auto
-     - auto
+     - 
      - auto
    * - Propane Tankless
      - 0.9%
      - instantaneous water heater
      - propane
-     - 0
+     - 
      - EnergyFactor
      - 0.82
+     - 
+     - 
      - auto
-     - 0
-     - auto
-     - auto
-     - 0
-     - 0
+     - 
+     - 
+     - 
      - 125
      - auto
      - auto
-     - auto
-     - auto
+     - 
+     - 
      - auto
 
 .. _water_heater_fuel:
