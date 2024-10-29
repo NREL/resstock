@@ -104,7 +104,7 @@ def convert_annual_col(col):
     if col.startswith("build_existing_model."):
         if col == "build_existing_model.sample_weight":
             return "weight", "", 1.0
-        return col.replace("build_existing_model.", "in."), "", 1.0
+        return col.replace("build_existing_model.", "in."), None, None
     if m1 := endues_energy_col_re.match(col):
         fuel_or_end, fueltype, enduse, fuelunits = m1.groups()
         newcol = shrink_colname(f"out.{fueltype}.{enduse}.energy_consumption")
@@ -221,7 +221,7 @@ def convert_ts_col(col):
         return new_col, "C", 1.0
     return None, None, None
 
-
+# Read inputs.csv and outputs.csv
 here = pathlib.Path(__file__).parent.parent
 inputs_df = pl.read_csv(here / 'inputs.csv')
 inputs_df = inputs_df.select(
@@ -238,6 +238,7 @@ outputs_df = pl.concat(items=[outputs_df, inputs_df], how='diagonal')
 converted_annual_col = {col: convert_annual_col(col) for col in outputs_df['Annual Name'].to_list()}
 converted_ts_col = {col: convert_ts_col(col) for col in outputs_df[str_res_ts_name].to_list()}
 
+# Add published annual and timeseries columns and their unit conversion factors
 outputs_df2 = outputs_df.select(
     pl.col(str_column_type),
     pl.col(str_res_annual_name),
@@ -268,12 +269,13 @@ new_df = pl.DataFrame({
 outputs_df2 = pl.concat(items=[outputs_df2, new_df], how='diagonal')
 
 # Add other miscelleneus columns
-#  'in.representative_income', 'in.county_name', 'out.energy_burden.percentage'
 misc_df = pl.DataFrame({
-    str_column_type: ['Calculated'] * 3,
-    str_pub_annual_name: ['in.representative_income', 'in.county_name', 'out.energy_burden.percentage'],
-    str_pub_annual_unit: ['usd', '', 'percentage'],
-    str_notes: ['Average representative income of the country',
+    str_column_type: ['Calculated'] * 5,
+    str_pub_annual_name: ['upgrade', 'applicability', 'in.representative_income', 'in.county_name', 'out.energy_burden.percentage'],
+    str_pub_annual_unit: [None, None, 'usd', None, 'percentage'],
+    str_notes: ['The upgrade number',
+                'Whether the upgrade is applicable to the building. Will be always True for baseline.',
+                'Average representative income of the country',
                 'County name',
                 'Percentage of income spent on energy']
 })
