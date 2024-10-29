@@ -5498,9 +5498,11 @@ Specifies whether to automatically define the cooling season based on the weathe
 Whether the heating system has a flue or chimney.
 
 - **Name:** ``heating_system_has_flue_or_chimney``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -5509,9 +5511,11 @@ Whether the heating system has a flue or chimney.
 Whether the second heating system has a flue or chimney.
 
 - **Name:** ``heating_system_2_has_flue_or_chimney``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 
@@ -5520,9 +5524,11 @@ Whether the second heating system has a flue or chimney.
 Whether the water heater has a flue or chimney.
 
 - **Name:** ``water_heater_has_flue_or_chimney``
-- **Type:** ``String``
+- **Type:** ``Choice``
 
-- **Required:** ``true``
+- **Required:** ``false``
+
+- **Choices:** `auto`, `true`, `false`
 
 <br/>
 

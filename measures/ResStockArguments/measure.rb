@@ -333,19 +333,24 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_has_flue_or_chimney', true)
+    has_flue_or_chimney_choices = OpenStudio::StringVector.new
+    has_flue_or_chimney_choices << Constants::Auto
+    has_flue_or_chimney_choices << 'true'
+    has_flue_or_chimney_choices << 'false'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heating_system_has_flue_or_chimney', has_flue_or_chimney_choices, false)
     arg.setDisplayName('Heating System: Has Flue or Chimney')
     arg.setDescription('Whether the heating system has a flue or chimney.')
     arg.setDefaultValue(Constants::Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_2_has_flue_or_chimney', true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heating_system_2_has_flue_or_chimney', has_flue_or_chimney_choices, false)
     arg.setDisplayName('Heating System 2: Has Flue or Chimney')
     arg.setDescription('Whether the second heating system has a flue or chimney.')
     arg.setDefaultValue(Constants::Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('water_heater_has_flue_or_chimney', true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_has_flue_or_chimney', has_flue_or_chimney_choices, false)
     arg.setDisplayName('Water Heater: Has Flue or Chimney')
     arg.setDescription('Whether the water heater has a flue or chimney.')
     arg.setDefaultValue(Constants::Auto)
