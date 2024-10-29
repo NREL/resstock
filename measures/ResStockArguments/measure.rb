@@ -847,7 +847,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # FIXME: uncomment these once we pull in OS-HPXML's electric_panel branch
     breaker_spaces_headroom = capacity_sampler.assign_breaker_spaces_headroom(args: args)
     args[:electric_panel_breaker_spaces_type] = 'headroom'
-    args[:electric_panel_breaker_spaces] = breaker_spaces_headroom # Yingli
+    args[:electric_panel_breaker_spaces] = breaker_spaces_headroom 
 
     # Register values to runner
     args.each do |arg_name, arg_value|

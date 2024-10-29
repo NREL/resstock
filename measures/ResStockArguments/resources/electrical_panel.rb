@@ -85,14 +85,14 @@ class RatedCapacityGenerator
     # emulate HVAC Cooling Type 
     hvac_cooling_type = convert_cooling_type(args[:cooling_system_type], args[:heat_pump_type])
     # emulate HVAC Heating Type 
-    hvac_heating_type = convert_heating_type(args[:heating_system_type], args[:heat_pump_type])
+    hvac_heating_type = convert_heating_type(args[:heat_pump_type])
 
     # simplify appliance presence and fuel
     clothes_dryer = convert_fuel_and_presence(args[:clothes_dryer_present], args[:clothes_dryer_fuel_type])
     cooking_range = convert_fuel_and_presence(args[:cooking_range_oven_present], args[:cooking_range_fuel_type])
     water_heater_fuel_type = simplify_fuel_type(args[:water_heater_fuel_type])
     heating_fuel_type = simplify_fuel_type(args[:heating_system_fuel])
-    ev_charger_present = FALSE
+    ev_charger_present = 'FALSE'
 
     lookup_array = [
       hvac_cooling_type,
@@ -101,11 +101,10 @@ class RatedCapacityGenerator
       water_heater_fuel_type,
       clothes_dryer,
       cooking_range,
-      args[:pv_system_present].to_s,
+      args[:pv_system_present].to_s.upcase,
       ev_charger_present.to_s,
-      cap_bin,
+      cap_bin.to_s,
     ]
-  end
     breaker_spaces_headroom = get_row_headers_breaker_spaces_headroom(breaker_spaces_headroom_prob_map, lookup_array)
     row_probability = get_row_probability_breaker_spaces_headroom(breaker_spaces_headroom_prob_map, lookup_array)
     index = weighted_random(prng, row_probability)
