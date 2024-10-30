@@ -188,8 +188,9 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'error-sfd-with-shared-system.xml' => 'base-sfd.xml',
       'error-rim-joist-height-but-no-assembly-r.xml' => 'base-sfd.xml',
       'error-rim-joist-assembly-r-but-no-height.xml' => 'base-sfd.xml',
-      'error-power-outage-args-not-all-same-size.xml' => 'base-sfd.xml',
-      'error-power-outage-window-natvent-invalid.xml' => 'base-sfd.xml',
+      'error-unavailable-period-args-not-all-specified' => 'base-sfd.xml',
+      'error-unavailable-period-args-not-all-same-size.xml' => 'base-sfd.xml',
+      'error-unavailable-period-window-natvent-invalid.xml' => 'base-sfd.xml',
       'error-heating-perf-data-not-all-specified.xml' => 'base-sfd.xml',
       'error-heating-perf-data-not-all-same-size.xml' => 'base-sfd.xml',
       'error-cooling-perf-data-not-all-specified.xml' => 'base-sfd.xml',
@@ -253,8 +254,9 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'error-sfd-with-shared-system.xml' => ['Specified a shared system for a single-family detached unit.'],
       'error-rim-joist-height-but-no-assembly-r.xml' => ['Specified a rim joist height but no rim joist assembly R-value.'],
       'error-rim-joist-assembly-r-but-no-height.xml' => ['Specified a rim joist assembly R-value but no rim joist height.'],
-      'error-power-outage-args-not-all-same-size.xml' => ['One power outage periods schedule argument does not have enough comma-separated elements specified.'],
-      'error-power-outage-window-natvent-invalid.xml' => ["Window natural ventilation availability 'invalid' during a power outage is invalid."],
+      'error-unavailable-period-args-not-all-specified' => ['Did not specify all required unavailable period arguments.'],
+      'error-unavailable-period-args-not-all-same-size.xml' => ['One or more unavailable period arguments does not have enough comma-separated elements specified.'],
+      'error-unavailable-period-window-natvent-invalid.xml' => ["Window natural ventilation availability 'invalid' during an unavailable period is invalid."],
       'error-heating-perf-data-not-all-specified.xml' => ['Did not specify all required heating detailed performance data arguments.'],
       'error-heating-perf-data-not-all-same-size.xml' => ['One or more detailed heating performance data arguments does not have enough comma-separated elements specified.'],
       'error-cooling-perf-data-not-all-specified.xml' => ['Did not specify all required cooling detailed performance data arguments.'],
@@ -729,9 +731,9 @@ class BuildResidentialHPXMLTest < Minitest::Test
     elsif ['base-sfd-header.xml'].include? hpxml_file
       args['software_info_program_used'] = 'Program'
       args['software_info_program_version'] = '1'
-      args['schedules_vacancy_periods'] = 'Jan 2 - Jan 5'
-      args['schedules_power_outage_periods'] = 'Feb 10 - Feb 12'
-      args['schedules_power_outage_periods_window_natvent_availability'] = HPXML::ScheduleAvailable
+      args['schedules_unavailable_period_types'] = 'Vacancy, Power Outage'
+      args['schedules_unavailable_period_dates'] = 'Jan 2 - Jan 5, Feb 10 - Feb 12'
+      args['schedules_unavailable_period_window_natvent_availabilities'] = "#{HPXML::ScheduleUnavailable}, #{HPXML::ScheduleAvailable}"
       args['simulation_control_run_period'] = 'Jan 1 - Dec 31'
       args['simulation_control_run_period_calendar_year'] = 2007
       args['simulation_control_temperature_capacitance_multiplier'] = 1.0
@@ -967,8 +969,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['hvac_perf_data_cooling_min_speed_cops'] = '4.47, 6.34'
       args['hvac_perf_data_cooling_max_speed_cops'] = '2.71, 3.53'
     elsif ['extra-power-outage-periods.xml'].include? hpxml_file
-      args['schedules_power_outage_periods'] = 'Jan 1 - Jan 5, Jan 7 - Jan 9'
-      args['schedules_power_outage_periods_window_natvent_availability'] = "#{HPXML::ScheduleRegular}, #{HPXML::ScheduleAvailable}"
+      args['schedules_unavailable_period_types'] = 'Power Outage, Power Outage'
+      args['schedules_unavailable_period_dates'] = 'Jan 1 - Jan 5, Jan 7 - Jan 9'
     elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
       args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
       args['ducts_supply_leakage_to_outside_value'] = 0.0
@@ -1214,11 +1216,16 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args.delete('rim_joist_assembly_r')
     elsif ['error-rim-joist-assembly-r-but-no-height.xml'].include? hpxml_file
       args.delete('geometry_rim_joist_height')
-    elsif ['error-power-outage-args-not-all-same-size.xml'].include? hpxml_file
-      args['schedules_power_outage_periods'] = 'Jan 1 - Jan 5, Jan 7 - Jan 9'
-      args['schedules_power_outage_periods_window_natvent_availability'] = HPXML::ScheduleRegular
-    elsif ['error-power-outage-window-natvent-invalid.xml'].include? hpxml_file
-      args['schedules_power_outage_periods_window_natvent_availability'] = 'invalid'
+    elsif ['error-unavailable-period-args-not-all-specified'].include? hpxml_file
+      args['schedules_unavailable_period_types'] = 'Vacancy'
+    elsif ['error-unavailable-period-args-not-all-same-size.xml'].include? hpxml_file
+      args['schedules_unavailable_period_types'] = 'Vacancy, Power Outage'
+      args['schedules_unavailable_period_dates'] = 'Jan 1 - Jan 5, Jan 7 - Jan 9'
+      args['schedules_unavailable_period_window_natvent_availabilities'] = HPXML::ScheduleRegular
+    elsif ['error-unavailable-period-window-natvent-invalid.xml'].include? hpxml_file
+      args['schedules_unavailable_period_types'] = 'Power Outage'
+      args['schedules_unavailable_period_dates'] = 'Jan 7 - Jan 9'
+      args['schedules_unavailable_period_window_natvent_availabilities'] = 'invalid'
     elsif ['error-heating-perf-data-not-all-specified.xml'].include? hpxml_file
       args['hvac_perf_data_heating_outdoor_temperatures'] = '47.0'
     elsif ['error-heating-perf-data-not-all-same-size.xml'].include? hpxml_file
@@ -1361,22 +1368,22 @@ class BuildResidentialHPXMLTest < Minitest::Test
     # check warnings/errors
     if not expected_errors.nil?
       expected_errors.each do |expected_error|
-        if runner.result.stepErrors.select { |s| s.include?(expected_error) }.size <= 0
+        if runner.result.stepErrors.count { |s| s.include?(expected_error) } <= 0
           runner.result.stepErrors.each do |s|
             puts "ERROR: #{s}"
           end
         end
-        assert(runner.result.stepErrors.select { |s| s.include?(expected_error) }.size > 0)
+        assert(runner.result.stepErrors.count { |s| s.include?(expected_error) } > 0)
       end
     end
     if not expected_warnings.nil?
       expected_warnings.each do |expected_warning|
-        if runner.result.stepWarnings.select { |s| s.include?(expected_warning) }.size <= 0
+        if runner.result.stepWarnings.count { |s| s.include?(expected_warning) } <= 0
           runner.result.stepWarnings.each do |s|
             puts "WARNING: #{s}"
           end
         end
-        assert(runner.result.stepWarnings.select { |s| s.include?(expected_warning) }.size > 0)
+        assert(runner.result.stepWarnings.count { |s| s.include?(expected_warning) } > 0)
       end
     end
   end

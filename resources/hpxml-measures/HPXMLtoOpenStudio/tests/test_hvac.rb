@@ -519,8 +519,7 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
   def test_air_to_air_heat_pump_multistage_backup_system
     ['base-hvac-air-to-air-heat-pump-1-speed-research-features.xml',
-     'base-hvac-air-to-air-heat-pump-2-speed-research-features.xml',
-     'base-hvac-air-to-air-heat-pump-var-speed-research-features.xml'].each do |hpxml_path|
+     'base-hvac-air-to-air-heat-pump-2-speed-research-features.xml'].each do |hpxml_path|
       args_hash = {}
       args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, hpxml_path))
       model, _hpxml, hpxml_bldg = _test_measure(args_hash)
@@ -746,7 +745,7 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     assert_equal(2, htg_coil.stages.size)
 
     # Check supp heating coil
-    assert_equal(1, model.getCoilHeatingElectricMultiStages.size)
+    assert_equal(1, model.getCoilHeatingElectrics.size)
 
     # Check EMS
     assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
@@ -809,7 +808,7 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
     # Onoff thermostat with detailed setpoints
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-room-ac-only-research-features-detailed-setpoints.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-room-ac-only-research-features.xml'))
     model, hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check cooling coil
@@ -827,37 +826,6 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     _check_onoff_thermostat_EMS(model, clg_coil, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
   end
 
-  def test_air_to_air_heat_pump_2_speed_onoff_thermostat
-    args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-2-speed-research-features.xml'))
-    model, hpxml, _hpxml_bldg = _test_measure(args_hash)
-
-    # Check cooling coil
-    assert_equal(1, model.getCoilCoolingDXMultiSpeeds.size)
-    clg_coil = model.getCoilCoolingDXMultiSpeeds[0]
-
-    # Check heating coil
-    assert_equal(1, model.getCoilHeatingDXMultiSpeeds.size)
-    htg_coil = model.getCoilHeatingDXMultiSpeeds[0]
-
-    # Check supp heating coil
-    assert_equal(1, model.getCoilHeatingElectricMultiStages.size)
-
-    # E+ thermostat
-    onoff_thermostat_deadband = hpxml.header.hvac_onoff_thermostat_deadband
-    assert_equal(1, model.getThermostatSetpointDualSetpoints.size)
-    thermostat_setpoint = model.getThermostatSetpointDualSetpoints[0]
-    assert_in_epsilon(UnitConversions.convert(onoff_thermostat_deadband, 'deltaF', 'deltaC'), thermostat_setpoint.temperatureDifferenceBetweenCutoutAndSetpoint)
-
-    # Check EMS
-    assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
-    _check_onoff_thermostat_EMS(model, htg_coil, 0.741, 0.379, -0.120, 2.154, -1.737, 0.584)
-    _check_onoff_thermostat_EMS(model, clg_coil, 0.655, 0.512, -0.167, 1.639, -0.999, 0.360)
-    # realistic staging EMS is hard to check values
-    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{model.getAirLoopHVACUnitarySystems[0].name} realistic cycling", true)
-    assert(!program_values.empty?) # Check EMS program
-  end
-
   def test_heat_pump_advanced_defrost
     # Var Speed heat pump test
     args_hash = {}
@@ -871,7 +839,7 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     assert_equal(1, model.getCoilHeatingDXMultiSpeeds.size)
     htg_coil = model.getCoilHeatingDXMultiSpeeds[0]
     # q_dot smaller than backup capacity
-    _check_advanced_defrost(model, htg_coil, 4747.75, 4747.75, backup_fuel, 0.06667, 1067.05)
+    _check_advanced_defrost(model, htg_coil, 4747.75, 4747.75, backup_fuel, 0.06667, 1199.87)
 
     # Single Speed heat pump test
     args_hash = {}
@@ -929,6 +897,25 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     htg_coil = model.getCoilHeatingDXMultiSpeeds[0]
     # q_dot smaller than backup capacity
     _check_advanced_defrost(model, htg_coil, supp_htg_power, 2373.9, backup_fuel, 0.06667, 569)
+
+    # Small capacity test
+    args_hash = {}
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-1-speed-research-features.xml')
+    hpxml_bldg.heat_pumps[0].cooling_capacity = 1000
+    hpxml_bldg.heat_pumps[0].heating_capacity = 1000
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+
+    # Get HPXML values
+    heat_pump = hpxml_bldg.heat_pumps[0]
+
+    assert_equal(1, model.getCoilHeatingDXSingleSpeeds.size)
+    htg_coil = model.getCoilHeatingDXSingleSpeeds[0]
+    supp_htg_power = 131.88
+    backup_fuel = EPlus.fuel_type(heat_pump.backup_heating_fuel)
+    # q_dot smaller than backup capacity
+    _check_advanced_defrost(model, htg_coil, supp_htg_power, 131.88, backup_fuel, 0.1, 36.85)
   end
 
   def test_mini_split_heat_pump
@@ -1054,6 +1041,51 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
   def test_ground_to_air_heat_pump
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-ground-to-air-heat-pump.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+
+    # Get HPXML values
+    heat_pump = hpxml_bldg.heat_pumps[0]
+    clg_capacity = UnitConversions.convert(heat_pump.cooling_capacity, 'Btu/hr', 'W')
+    htg_capacity = UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'W')
+
+    # Check cooling coil
+    assert_equal(1, model.getCoilCoolingWaterToAirHeatPumpEquationFits.size)
+    clg_coil = model.getCoilCoolingWaterToAirHeatPumpEquationFits[0]
+    assert_in_epsilon(4.87, clg_coil.ratedCoolingCoefficientofPerformance, 0.01)
+    assert_in_epsilon(clg_capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01)
+
+    # Check heating coil
+    assert_equal(1, model.getCoilHeatingWaterToAirHeatPumpEquationFits.size)
+    htg_coil = model.getCoilHeatingWaterToAirHeatPumpEquationFits[0]
+    assert_in_epsilon(3.6, htg_coil.ratedHeatingCoefficientofPerformance, 0.01)
+    assert_in_epsilon(htg_capacity, htg_coil.ratedHeatingCapacity.get, 0.01)
+
+    # Check EMS
+    assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
+    unitary_system = model.getAirLoopHVACUnitarySystems[0]
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} IQ")
+    assert(program_values.empty?) # Check no EMS program
+
+    # Check ghx
+    assert(1, model.getGroundHeatExchangerVerticals.size)
+    ghx = model.getGroundHeatExchangerVerticals[0]
+
+    # Check xing
+    assert(1, model.getSiteGroundTemperatureUndisturbedXings.size)
+    xing = model.getSiteGroundTemperatureUndisturbedXings[0]
+    assert_in_epsilon(ghx.groundThermalConductivity.get, xing.soilThermalConductivity, 0.01)
+    assert_in_epsilon(962, xing.soilDensity, 0.01)
+    assert_in_epsilon(ghx.groundThermalHeatCapacity.get / xing.soilDensity, xing.soilSpecificHeat, 0.01)
+    assert_in_epsilon(ghx.groundTemperature.get, xing.averageSoilSurfaceTemperature, 0.01)
+    assert_in_epsilon(12.5, xing.soilSurfaceTemperatureAmplitude1, 0.01)
+    assert_in_epsilon(-1.3, xing.soilSurfaceTemperatureAmplitude2, 0.01)
+    assert_in_epsilon(20, xing.phaseShiftofTemperatureAmplitude1, 0.01)
+    assert_in_epsilon(31, xing.phaseShiftofTemperatureAmplitude2, 0.01)
+  end
+
+  def test_ground_to_air_heat_pump_integrated_backup
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-ground-to-air-heat-pump-backup-integrated.xml'))
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
@@ -1278,10 +1310,8 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
     # Get HPXML values
     heat_pump = hpxml_bldg.heat_pumps[0]
-    backup_efficiency = heat_pump.backup_heating_efficiency_percent
     clg_capacity = UnitConversions.convert(heat_pump.cooling_capacity, 'Btu/hr', 'W')
     htg_capacity = UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'W')
-    supp_htg_capacity = UnitConversions.convert(heat_pump.backup_heating_capacity, 'Btu/hr', 'W')
 
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingWaterToAirHeatPumpEquationFits.size)
@@ -1294,12 +1324,6 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
     htg_coil = model.getCoilHeatingWaterToAirHeatPumpEquationFits[0]
     assert_in_epsilon(3.6, htg_coil.ratedHeatingCoefficientofPerformance, 0.01)
     assert_in_epsilon(htg_capacity, htg_coil.ratedHeatingCapacity.get, 0.01)
-
-    # Check supp heating coil
-    assert_equal(1, model.getCoilHeatingElectrics.size)
-    supp_htg_coil = model.getCoilHeatingElectrics[0]
-    assert_in_epsilon(backup_efficiency, supp_htg_coil.efficiency, 0.01)
-    assert_in_epsilon(supp_htg_capacity, supp_htg_coil.nominalCapacity.get, 0.01)
   end
 
   def test_install_quality_air_to_air_heat_pump_1_speed
@@ -1331,7 +1355,7 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
     # Fan
     fan = unitary_system.supplyFan.get.to_FanSystemModel.get
-    assert_in_epsilon(fan_watts_cfm, fan.designPressureRise / fan.fanTotalEfficiency * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
+    assert_in_epsilon(fan_watts_cfm, fan.electricPowerPerUnitFlowRate * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
 
     # Check installation quality EMS
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} IQ")
@@ -1412,8 +1436,8 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
     # Fan
     fan = unitary_system.supplyFan.get.to_FanSystemModel.get
-    assert_in_epsilon(fan_watts_cfm, fan.designPressureRise / fan.fanTotalEfficiency * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
-    assert_in_epsilon(fan_watts_cfm2, fan.designPressureRise / fan.fanTotalEfficiency * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
+    assert_in_epsilon(fan_watts_cfm, fan.electricPowerPerUnitFlowRate * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
+    assert_in_epsilon(fan_watts_cfm2, fan.electricPowerPerUnitFlowRate * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
 
     # Check installation quality EMS
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} IQ")
@@ -1465,7 +1489,7 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
     # Fan
     fan = unitary_system.supplyFan.get.to_FanSystemModel.get
-    assert_in_epsilon(fan_watts_cfm, fan.designPressureRise / fan.fanTotalEfficiency * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
+    assert_in_epsilon(fan_watts_cfm, fan.electricPowerPerUnitFlowRate * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
   end
 
   def test_install_quality_ground_to_air_heat_pump
@@ -1497,7 +1521,7 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
     # Fan
     fan = unitary_system.supplyFan.get.to_FanSystemModel.get
-    assert_in_epsilon(fan_watts_cfm, fan.designPressureRise / fan.fanTotalEfficiency * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
+    assert_in_epsilon(fan_watts_cfm, fan.electricPowerPerUnitFlowRate * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
 
     # Check installation quality EMS
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} IQ")
@@ -1698,7 +1722,7 @@ class HPXMLtoOpenStudioHVACTest < Minitest::Test
 
     # Fan
     fan = unitary_system.supplyFan.get.to_FanSystemModel.get
-    assert_in_epsilon(fan_watts_cfm, fan.designPressureRise / fan.fanTotalEfficiency * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
+    assert_in_epsilon(fan_watts_cfm, fan.electricPowerPerUnitFlowRate * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
 
     # Check installation quality EMS
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} IQ")

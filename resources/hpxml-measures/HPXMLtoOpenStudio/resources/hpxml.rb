@@ -72,6 +72,9 @@ class HPXML < Object
   BatteryTypeLithiumIon = 'Li-ion'
   BatteryLifetimeModelNone = 'None'
   BatteryLifetimeModelKandlerSmith = 'KandlerSmith'
+  BlindsClosed = 'closed'
+  BlindsOpen = 'open'
+  BlindsHalfOpen = 'half open'
   CapacityDescriptionMinimum = 'minimum'
   CapacityDescriptionMaximum = 'maximum'
   CertificationEnergyStar = 'Energy Star'
@@ -254,6 +257,10 @@ class HPXML < Object
   InteriorShadingTypeLightBlinds = 'light blinds'
   InteriorShadingTypeLightCurtains = 'light curtains'
   InteriorShadingTypeLightShades = 'light shades'
+  InteriorShadingTypeMediumBlinds = 'medium blinds'
+  InteriorShadingTypeMediumCurtains = 'medium curtains'
+  InteriorShadingTypeMediumShades = 'medium shades'
+  InteriorShadingTypeOther = 'other'
   InteriorShadingTypeNone = 'none'
   InfiltrationTypeUnitTotal = 'unit total'
   InfiltrationTypeUnitExterior = 'unit exterior only'
@@ -2103,7 +2110,7 @@ class HPXML < Object
 
       # Check for correct PrimaryIndicator values across all refrigerators
       if @refrigerators.size > 1
-        primary_indicators = @refrigerators.select { |r| r.primary_indicator }.size
+        primary_indicators = @refrigerators.count { |r| r.primary_indicator }
         if primary_indicators > 1
           errors << 'More than one refrigerator designated as the primary.'
         elsif primary_indicators == 0
@@ -2112,15 +2119,15 @@ class HPXML < Object
       end
 
       # Check for correct PrimaryHeatingSystem values across all HVAC systems
-      n_primary_heating = @heating_systems.select { |h| h.primary_system }.size +
-                          @heat_pumps.select { |h| h.primary_heating_system }.size
+      n_primary_heating = @heating_systems.count { |h| h.primary_system } +
+                          @heat_pumps.count { |h| h.primary_heating_system }
       if n_primary_heating > 1
         errors << 'More than one heating system designated as the primary.'
       end
 
       # Check for correct PrimaryCoolingSystem values across all HVAC systems
-      n_primary_cooling = @cooling_systems.select { |c| c.primary_system }.size +
-                          @heat_pumps.select { |c| c.primary_cooling_system }.size
+      n_primary_cooling = @cooling_systems.count { |c| c.primary_system } +
+                          @heat_pumps.count { |c| c.primary_cooling_system }
       if n_primary_cooling > 1
         errors << 'More than one cooling system designated as the primary.'
       end
@@ -2464,6 +2471,7 @@ class HPXML < Object
   class BuildingConstruction < BaseElement
     ATTRS = [:year_built,                               # [Integer] YearBuilt
              :residential_facility_type,                # [String] ResidentialFacilityType (HXPML::ResidentialTypeXXX)
+             :unit_height_above_grade,                  # [Double] UnitHeightAboveGrade
              :number_of_units,                          # [Integer] NumberofUnits
              :number_of_units_in_building,              # [Integer] NumberofUnitsInBuilding
              :number_of_conditioned_floors,             # [Double] NumberofConditionedFloors
@@ -2495,6 +2503,7 @@ class HPXML < Object
       building_construction = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'BuildingSummary', 'BuildingConstruction'])
       XMLHelper.add_element(building_construction, 'YearBuilt', @year_built, :integer) unless @year_built.nil?
       XMLHelper.add_element(building_construction, 'ResidentialFacilityType', @residential_facility_type, :string) unless @residential_facility_type.nil?
+      XMLHelper.add_element(building_construction, 'UnitHeightAboveGrade', @unit_height_above_grade, :float, @unit_height_above_grade_isdefaulted) unless @unit_height_above_grade.nil?
       XMLHelper.add_element(building_construction, 'NumberofUnits', @number_of_units, :integer, @number_of_units_isdefaulted) unless @number_of_units.nil?
       XMLHelper.add_element(building_construction, 'NumberofUnitsInBuilding', @number_of_units_in_building, :integer) unless @number_of_units_in_building.nil?
       XMLHelper.add_element(building_construction, 'NumberofConditionedFloors', @number_of_conditioned_floors, :float) unless @number_of_conditioned_floors.nil?
@@ -2520,6 +2529,7 @@ class HPXML < Object
 
       @year_built = XMLHelper.get_value(building_construction, 'YearBuilt', :integer)
       @residential_facility_type = XMLHelper.get_value(building_construction, 'ResidentialFacilityType', :string)
+      @unit_height_above_grade = XMLHelper.get_value(building_construction, 'UnitHeightAboveGrade', :float)
       @number_of_units = XMLHelper.get_value(building_construction, 'NumberofUnits', :integer)
       @number_of_units_in_building = XMLHelper.get_value(building_construction, 'NumberofUnitsInBuilding', :integer)
       @number_of_conditioned_floors = XMLHelper.get_value(building_construction, 'NumberofConditionedFloors', :float)
@@ -2548,7 +2558,7 @@ class HPXML < Object
              :manualj_humidity_difference,          # [Double] HVACSizingControl/ManualJInputs/HumidityDifference (grains)
              :manualj_internal_loads_sensible,      # [Double] HVACSizingControl/ManualJInputs/InternalLoadsSensible (Btu/hr)
              :manualj_internal_loads_latent,        # [Double] HVACSizingControl/ManualJInputs/InternalLoadsLatent (Btu/hr)
-             :manualj_num_occupants,                # [Integer] HVACSizingControl/ManualJInputs/NumberofOccupants
+             :manualj_num_occupants,                # [Double] HVACSizingControl/ManualJInputs/NumberofOccupants
              :manualj_infiltration_shielding_class, # [Integer] HVACSizingControl/ManualJInputs/InfiltrationShieldingClass (1-5)
              :manualj_infiltration_method,          # [String] HVACSizingControl/ManualJInputs/InfiltrationMethod (HPXML::ManualJInfiltrationMethodXXX)
              :natvent_days_per_week,                # [Integer] NaturalVentilationAvailabilityDaysperWeek
@@ -2594,7 +2604,7 @@ class HPXML < Object
         XMLHelper.add_element(manualj_sizing_inputs, 'HumidityDifference', @manualj_humidity_difference, :float, @manualj_humidity_difference_isdefaulted) unless @manualj_humidity_difference.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InternalLoadsSensible', @manualj_internal_loads_sensible, :float, @manualj_internal_loads_sensible_isdefaulted) unless @manualj_internal_loads_sensible.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InternalLoadsLatent', @manualj_internal_loads_latent, :float, @manualj_internal_loads_latent_isdefaulted) unless @manualj_internal_loads_latent.nil?
-        XMLHelper.add_element(manualj_sizing_inputs, 'NumberofOccupants', @manualj_num_occupants, :integer, @manualj_num_occupants_isdefaulted) unless @manualj_num_occupants.nil?
+        XMLHelper.add_element(manualj_sizing_inputs, 'NumberofOccupants', @manualj_num_occupants, :float, @manualj_num_occupants_isdefaulted) unless @manualj_num_occupants.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InfiltrationShieldingClass', @manualj_infiltration_shielding_class, :integer, @manualj_infiltration_shielding_class_isdefaulted) unless @manualj_infiltration_shielding_class.nil?
         XMLHelper.add_element(manualj_sizing_inputs, 'InfiltrationMethod', @manualj_infiltration_method, :string, @manualj_infiltration_method_isdefaulted) unless @manualj_infiltration_method.nil?
       end
@@ -2647,7 +2657,7 @@ class HPXML < Object
       @manualj_humidity_difference = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/HumidityDifference', :float)
       @manualj_internal_loads_sensible = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InternalLoadsSensible', :float)
       @manualj_internal_loads_latent = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InternalLoadsLatent', :float)
-      @manualj_num_occupants = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/NumberofOccupants', :integer)
+      @manualj_num_occupants = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/NumberofOccupants', :float)
       @manualj_infiltration_shielding_class = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InfiltrationShieldingClass', :integer)
       @manualj_infiltration_method = XMLHelper.get_value(building_summary, 'extension/HVACSizingControl/ManualJInputs/InfiltrationMethod', :string)
       @extension_properties = {}
@@ -2700,9 +2710,9 @@ class HPXML < Object
         weather_station = XMLHelper.add_element(climate_and_risk_zones, 'WeatherStation')
         sys_id = XMLHelper.add_element(weather_station, 'SystemIdentifier')
         XMLHelper.add_attribute(sys_id, 'id', @weather_station_id)
-        XMLHelper.add_element(weather_station, 'Name', @weather_station_name, :string) unless @weather_station_name.nil?
-        XMLHelper.add_element(weather_station, 'WMO', @weather_station_wmo, :string) unless @weather_station_wmo.nil?
-        XMLHelper.add_extension(weather_station, 'EPWFilePath', @weather_station_epw_filepath, :string) unless @weather_station_epw_filepath.nil?
+        XMLHelper.add_element(weather_station, 'Name', @weather_station_name, :string, @weather_station_name_isdefaulted) unless @weather_station_name.nil?
+        XMLHelper.add_element(weather_station, 'WMO', @weather_station_wmo, :string, @weather_station_wmo_isdefaulted) unless @weather_station_wmo.nil?
+        XMLHelper.add_extension(weather_station, 'EPWFilePath', @weather_station_epw_filepath, :string, @weather_station_epw_filepath_isdefaulted) unless @weather_station_epw_filepath.nil?
       end
     end
 
@@ -5553,32 +5563,44 @@ class HPXML < Object
 
   # Object for /HPXML/Building/BuildingDetails/Enclosure/Windows/Window.
   class Window < BaseElement
-    ATTRS = [:id,                                     # [String] SystemIdentifier/@id
-             :area,                                   # [Double] Area (ft2)
-             :azimuth,                                # [Integer] Azimuth (deg)
-             :orientation,                            # [String] Orientation (HPXML::OrientationXXX)
-             :frame_type,                             # [String] FrameType/* (HPXML::WindowFrameTypeXXX)
-             :thermal_break,                          # [Boolean] FrameType/*/ThermalBreak
-             :glass_layers,                           # [String] GlassLayers (HPXML::WindowLayersXXX)
-             :glass_type,                             # [String] GlassType (HPXML::WindowGlassTypeXXX)
-             :gas_fill,                               # [String] GasFill (HPXML::WindowGasXXX)
-             :ufactor,                                # [Double] UFactor (Btu/F-ft2-hr)
-             :shgc,                                   # [Double] SHGC
-             :exterior_shading_id,                    # [String] ExteriorShading/SystemIdentifier/@id
-             :exterior_shading_type,                  # [String] ExteriorShading/Type
-             :exterior_shading_factor_summer,         # [Double] ExteriorShading/SummerShadingCoefficient (frac)
-             :exterior_shading_factor_winter,         # [Double] ExteriorShading/WinterShadingCoefficient (frac)
-             :interior_shading_id,                    # [String] InteriorShading/SystemIdentifier/@id
-             :interior_shading_type,                  # [String] InteriorShading/Type
-             :interior_shading_factor_summer,         # [Double] InteriorShading/SummerShadingCoefficient (frac)
-             :interior_shading_factor_winter,         # [Double] InteriorShading/WinterShadingCoefficient (frac)
-             :storm_type,                             # [String] StormWindow/GlassType (HPXML::WindowGlassTypeXXX)
-             :overhangs_depth,                        # [Double] Overhangs/Depth (ft)
-             :overhangs_distance_to_top_of_window,    # [Double] Overhangs/DistanceToTopOfWindow (ft)
-             :overhangs_distance_to_bottom_of_window, # [Double] Overhangs/DistanceToBottomOfWindow (ft)
-             :fraction_operable,                      # [Double] FractionOperable (frac)
-             :performance_class,                      # [String] PerformanceClass (HPXML::WindowClassXXX)
-             :attached_to_wall_idref]                 # [String] AttachedToWall/@idref
+    ATTRS = [:id,                                             # [String] SystemIdentifier/@id
+             :area,                                           # [Double] Area (ft2)
+             :azimuth,                                        # [Integer] Azimuth (deg)
+             :orientation,                                    # [String] Orientation (HPXML::OrientationXXX)
+             :frame_type,                                     # [String] FrameType/* (HPXML::WindowFrameTypeXXX)
+             :thermal_break,                                  # [Boolean] FrameType/*/ThermalBreak
+             :glass_layers,                                   # [String] GlassLayers (HPXML::WindowLayersXXX)
+             :glass_type,                                     # [String] GlassType (HPXML::WindowGlassTypeXXX)
+             :gas_fill,                                       # [String] GasFill (HPXML::WindowGasXXX)
+             :ufactor,                                        # [Double] UFactor (Btu/F-ft2-hr)
+             :shgc,                                           # [Double] SHGC
+             :exterior_shading_id,                            # [String] ExteriorShading/SystemIdentifier/@id
+             :exterior_shading_type,                          # [String] ExteriorShading/Type (HPXML::ExteriorShadingTypeXXX)
+             :exterior_shading_coverage_summer,               # [Double] ExteriorShading/SummerFractionCovered
+             :exterior_shading_coverage_winter,               # [Double] ExteriorShading/WinterFractionCovered
+             :exterior_shading_factor_summer,                 # [Double] ExteriorShading/SummerShadingCoefficient (frac)
+             :exterior_shading_factor_winter,                 # [Double] ExteriorShading/WinterShadingCoefficient (frac)
+             :interior_shading_id,                            # [String] InteriorShading/SystemIdentifier/@id
+             :interior_shading_type,                          # [String] InteriorShading/Type (HPXML::InteriorShadingTypeXXX)
+             :interior_shading_blinds_summer_closed_or_open,  # [String] InteriorShading/BlindsSummerClosedOrOpen (HPXML::BlindsXXX)
+             :interior_shading_blinds_winter_closed_or_open,  # [String] InteriorShading/BlindsWinterClosedOrOpen (HPXML::BlindsXXX)
+             :interior_shading_coverage_summer,               # [Double] InteriorShading/SummerFractionCovered
+             :interior_shading_coverage_winter,               # [Double] InteriorShading/WinterFractionCovered
+             :interior_shading_factor_summer,                 # [Double] InteriorShading/SummerShadingCoefficient (frac)
+             :interior_shading_factor_winter,                 # [Double] InteriorShading/WinterShadingCoefficient (frac)
+             :storm_type,                                     # [String] StormWindow/GlassType (HPXML::WindowGlassTypeXXX)
+             :insect_screen_present,                          # [Element] InsectScreen
+             :insect_screen_location,                         # [String] InsectScreen/Location (HPXML::LocationXXX)
+             :insect_screen_coverage_summer,                  # [Double] InsectScreen/SummerFractionCovered (frac)
+             :insect_screen_coverage_winter,                  # [Double] InsectScreen/WinterFractionCovered (frac)
+             :insect_screen_factor_summer,                    # [Double] InsectScreen/SummerShadingCoefficient (frac)
+             :insect_screen_factor_winter,                    # [Double] InsectScreen/WinterShadingCoefficient (frac)
+             :overhangs_depth,                                # [Double] Overhangs/Depth (ft)
+             :overhangs_distance_to_top_of_window,            # [Double] Overhangs/DistanceToTopOfWindow (ft)
+             :overhangs_distance_to_bottom_of_window,         # [Double] Overhangs/DistanceToBottomOfWindow (ft)
+             :fraction_operable,                              # [Double] FractionOperable (frac)
+             :performance_class,                              # [String] PerformanceClass (HPXML::WindowClassXXX)
+             :attached_to_wall_idref]                         # [String] AttachedToWall/@idref
     attr_accessor(*ATTRS)
 
     # Returns the parent wall that includes this skylight.
@@ -5674,7 +5696,7 @@ class HPXML < Object
       XMLHelper.add_element(window, 'GasFill', @gas_fill, :string, @gas_fill_isdefaulted) unless @gas_fill.nil?
       XMLHelper.add_element(window, 'UFactor', @ufactor, :float, @ufactor_isdefaulted) unless @ufactor.nil?
       XMLHelper.add_element(window, 'SHGC', @shgc, :float, @shgc_isdefaulted) unless @shgc.nil?
-      if (not @exterior_shading_type.nil?) || (not @exterior_shading_factor_summer.nil?) || (not @exterior_shading_factor_winter.nil?)
+      if (not @exterior_shading_type.nil?) || (not @exterior_shading_factor_summer.nil?) || (not @exterior_shading_factor_winter.nil?) || (not @exterior_shading_coverage_summer.nil?) || (not @exterior_shading_coverage_winter.nil?)
         exterior_shading = XMLHelper.add_element(window, 'ExteriorShading')
         sys_id = XMLHelper.add_element(exterior_shading, 'SystemIdentifier')
         if @exterior_shading_id.nil?
@@ -5682,11 +5704,13 @@ class HPXML < Object
         else
           XMLHelper.add_attribute(sys_id, 'id', @exterior_shading_id)
         end
-        XMLHelper.add_element(exterior_shading, 'Type', @exterior_shading_type, :string) unless @exterior_shading_type.nil?
+        XMLHelper.add_element(exterior_shading, 'Type', @exterior_shading_type, :string, @exterior_shading_type_isdefaulted) unless @exterior_shading_type.nil?
+        XMLHelper.add_element(exterior_shading, 'SummerFractionCovered', @exterior_shading_coverage_summer, :float, @exterior_shading_coverage_summer_isdefaulted) unless @exterior_shading_coverage_summer.nil?
+        XMLHelper.add_element(exterior_shading, 'WinterFractionCovered', @exterior_shading_coverage_winter, :float, @exterior_shading_coverage_winter_isdefaulted) unless @exterior_shading_coverage_winter.nil?
         XMLHelper.add_element(exterior_shading, 'SummerShadingCoefficient', @exterior_shading_factor_summer, :float, @exterior_shading_factor_summer_isdefaulted) unless @exterior_shading_factor_summer.nil?
         XMLHelper.add_element(exterior_shading, 'WinterShadingCoefficient', @exterior_shading_factor_winter, :float, @exterior_shading_factor_winter_isdefaulted) unless @exterior_shading_factor_winter.nil?
       end
-      if (not @interior_shading_type.nil?) || (not @interior_shading_factor_summer.nil?) || (not @interior_shading_factor_winter.nil?)
+      if (not @interior_shading_type.nil?) || (not @interior_shading_factor_summer.nil?) || (not @interior_shading_factor_winter.nil?) || (not @interior_shading_blinds_summer_closed_or_open.nil?) || (not @interior_shading_blinds_winter_closed_or_open.nil?) || (not @interior_shading_coverage_summer.nil?) || (not @interior_shading_coverage_winter.nil?)
         interior_shading = XMLHelper.add_element(window, 'InteriorShading')
         sys_id = XMLHelper.add_element(interior_shading, 'SystemIdentifier')
         if @interior_shading_id.nil?
@@ -5694,15 +5718,29 @@ class HPXML < Object
         else
           XMLHelper.add_attribute(sys_id, 'id', @interior_shading_id)
         end
-        XMLHelper.add_element(interior_shading, 'Type', @interior_shading_type, :string) unless @interior_shading_type.nil?
+        XMLHelper.add_element(interior_shading, 'Type', @interior_shading_type, :string, @interior_shading_type_isdefaulted) unless @interior_shading_type.nil?
+        XMLHelper.add_element(interior_shading, 'BlindsSummerClosedOrOpen', @interior_shading_blinds_summer_closed_or_open, :string, @interior_shading_blinds_summer_closed_or_open_isdefaulted) unless @interior_shading_blinds_summer_closed_or_open.nil?
+        XMLHelper.add_element(interior_shading, 'BlindsWinterClosedOrOpen', @interior_shading_blinds_winter_closed_or_open, :string, @interior_shading_blinds_winter_closed_or_open_isdefaulted) unless @interior_shading_blinds_winter_closed_or_open.nil?
+        XMLHelper.add_element(interior_shading, 'SummerFractionCovered', @interior_shading_coverage_summer, :float, @interior_shading_coverage_summer_isdefaulted) unless @interior_shading_coverage_summer.nil?
+        XMLHelper.add_element(interior_shading, 'WinterFractionCovered', @interior_shading_coverage_winter, :float, @interior_shading_coverage_winter_isdefaulted) unless @interior_shading_coverage_winter.nil?
         XMLHelper.add_element(interior_shading, 'SummerShadingCoefficient', @interior_shading_factor_summer, :float, @interior_shading_factor_summer_isdefaulted) unless @interior_shading_factor_summer.nil?
         XMLHelper.add_element(interior_shading, 'WinterShadingCoefficient', @interior_shading_factor_winter, :float, @interior_shading_factor_winter_isdefaulted) unless @interior_shading_factor_winter.nil?
+      end
+      if @insect_screen_present
+        insect_screen = XMLHelper.add_element(window, 'InsectScreen')
+        sys_id = XMLHelper.add_element(insect_screen, 'SystemIdentifier')
+        XMLHelper.add_attribute(sys_id, 'id', "#{id}InsectScreen")
+        XMLHelper.add_element(insect_screen, 'Location', @insect_screen_location, :string, @insect_screen_location_isdefaulted) unless @insect_screen_location.nil?
+        XMLHelper.add_element(insect_screen, 'SummerFractionCovered', @insect_screen_coverage_summer, :float, @insect_screen_coverage_summer_isdefaulted) unless @insect_screen_coverage_summer.nil?
+        XMLHelper.add_element(insect_screen, 'WinterFractionCovered', @insect_screen_coverage_winter, :float, @insect_screen_coverage_winter_isdefaulted) unless @insect_screen_coverage_winter.nil?
+        XMLHelper.add_element(insect_screen, 'SummerShadingCoefficient', @insect_screen_factor_summer, :float, @insect_screen_factor_summer_isdefaulted) unless @insect_screen_factor_summer.nil?
+        XMLHelper.add_element(insect_screen, 'WinterShadingCoefficient', @insect_screen_factor_winter, :float, @insect_screen_factor_winter_isdefaulted) unless @insect_screen_factor_winter.nil?
       end
       if not @storm_type.nil?
         storm_window = XMLHelper.add_element(window, 'StormWindow')
         sys_id = XMLHelper.add_element(storm_window, 'SystemIdentifier')
         XMLHelper.add_attribute(sys_id, 'id', "#{id}StormWindow")
-        XMLHelper.add_element(storm_window, 'GlassType', @storm_type, :string) unless @storm_type.nil?
+        XMLHelper.add_element(storm_window, 'GlassType', @storm_type, :string, @storm_type_isdefaulted) unless @storm_type.nil?
       end
       if (not @overhangs_depth.nil?) || (not @overhangs_distance_to_top_of_window.nil?) || (not @overhangs_distance_to_bottom_of_window.nil?)
         overhangs = XMLHelper.add_element(window, 'Overhangs')
@@ -5742,10 +5780,16 @@ class HPXML < Object
       @shgc = XMLHelper.get_value(window, 'SHGC', :float)
       @exterior_shading_id = HPXML::get_id(window, 'ExteriorShading/SystemIdentifier')
       @exterior_shading_type = XMLHelper.get_value(window, 'ExteriorShading/Type', :string)
+      @exterior_shading_coverage_summer = XMLHelper.get_value(window, 'ExteriorShading/SummerFractionCovered', :float)
+      @exterior_shading_coverage_winter = XMLHelper.get_value(window, 'ExteriorShading/WinterFractionCovered', :float)
       @exterior_shading_factor_summer = XMLHelper.get_value(window, 'ExteriorShading/SummerShadingCoefficient', :float)
       @exterior_shading_factor_winter = XMLHelper.get_value(window, 'ExteriorShading/WinterShadingCoefficient', :float)
       @interior_shading_id = HPXML::get_id(window, 'InteriorShading/SystemIdentifier')
       @interior_shading_type = XMLHelper.get_value(window, 'InteriorShading/Type', :string)
+      @interior_shading_blinds_summer_closed_or_open = XMLHelper.get_value(window, 'InteriorShading/BlindsSummerClosedOrOpen', :string)
+      @interior_shading_blinds_winter_closed_or_open = XMLHelper.get_value(window, 'InteriorShading/BlindsWinterClosedOrOpen', :string)
+      @interior_shading_coverage_summer = XMLHelper.get_value(window, 'InteriorShading/SummerFractionCovered', :float)
+      @interior_shading_coverage_winter = XMLHelper.get_value(window, 'InteriorShading/WinterFractionCovered', :float)
       @interior_shading_factor_summer = XMLHelper.get_value(window, 'InteriorShading/SummerShadingCoefficient', :float)
       @interior_shading_factor_winter = XMLHelper.get_value(window, 'InteriorShading/WinterShadingCoefficient', :float)
       @overhangs_depth = XMLHelper.get_value(window, 'Overhangs/Depth', :float)
@@ -5755,6 +5799,14 @@ class HPXML < Object
       @performance_class = XMLHelper.get_value(window, 'PerformanceClass', :string)
       @attached_to_wall_idref = HPXML::get_idref(XMLHelper.get_element(window, 'AttachedToWall'))
       @storm_type = XMLHelper.get_value(window, 'StormWindow/GlassType', :string)
+      @insect_screen_present = XMLHelper.has_element(window, 'InsectScreen')
+      if @insect_screen_present
+        @insect_screen_location = XMLHelper.get_value(window, 'InsectScreen/Location', :string)
+        @insect_screen_coverage_summer = XMLHelper.get_value(window, 'InsectScreen/SummerFractionCovered', :float)
+        @insect_screen_coverage_winter = XMLHelper.get_value(window, 'InsectScreen/WinterFractionCovered', :float)
+        @insect_screen_factor_summer = XMLHelper.get_value(window, 'InsectScreen/SummerShadingCoefficient', :float)
+        @insect_screen_factor_winter = XMLHelper.get_value(window, 'InsectScreen/WinterShadingCoefficient', :float)
+      end
     end
   end
 
@@ -5940,7 +5992,7 @@ class HPXML < Object
         storm_window = XMLHelper.add_element(skylight, 'StormWindow')
         sys_id = XMLHelper.add_element(storm_window, 'SystemIdentifier')
         XMLHelper.add_attribute(sys_id, 'id', "#{id}StormWindow")
-        XMLHelper.add_element(storm_window, 'GlassType', @storm_type, :string) unless @storm_type.nil?
+        XMLHelper.add_element(storm_window, 'GlassType', @storm_type, :string, @storm_type_isdefaulted) unless @storm_type.nil?
       end
       if not @attached_to_roof_idref.nil?
         attached_to_roof = XMLHelper.add_element(skylight, 'AttachedToRoof')
@@ -8168,6 +8220,11 @@ class HPXML < Object
     #
     # @return [nil]
     def delete
+      if is_cfis_supplemental_fan
+        @parent_object.ventilation_fans.each do |vent_fan|
+          vent_fan.cfis_supplemental_fan_idref = nil if vent_fan.cfis_supplemental_fan_idref == @id
+        end
+      end
       @parent_object.ventilation_fans.delete(self)
     end
 
@@ -8326,6 +8383,7 @@ class HPXML < Object
              :tank_volume,               # [Double] TankVolume (gal)
              :fraction_dhw_load_served,  # [Double] FractionDHWLoadServed (frac)
              :heating_capacity,          # [Double] HeatingCapacity (Btu/hr)
+             :backup_heating_capacity,   # [Double] BackupHeatingCapacity (Btu/hr)
              :energy_factor,             # [Double] EnergyFactor (frac)
              :uniform_energy_factor,     # [Double] UniformEnergyFactor (frac)
              :operating_mode,            # [String] HPWHOperatingMode (HPXML::WaterHeaterOperatingModeXXX)
@@ -8409,6 +8467,7 @@ class HPXML < Object
       XMLHelper.add_element(water_heating_system, 'TankVolume', @tank_volume, :float, @tank_volume_isdefaulted) unless @tank_volume.nil?
       XMLHelper.add_element(water_heating_system, 'FractionDHWLoadServed', @fraction_dhw_load_served, :float) unless @fraction_dhw_load_served.nil?
       XMLHelper.add_element(water_heating_system, 'HeatingCapacity', @heating_capacity, :float, @heating_capacity_isdefaulted) unless @heating_capacity.nil?
+      XMLHelper.add_element(water_heating_system, 'BackupHeatingCapacity', @backup_heating_capacity, :float, @backup_heating_capacity_isdefaulted) unless @backup_heating_capacity.nil?
       XMLHelper.add_element(water_heating_system, 'EnergyFactor', @energy_factor, :float, @energy_factor_isdefaulted) unless @energy_factor.nil?
       XMLHelper.add_element(water_heating_system, 'UniformEnergyFactor', @uniform_energy_factor, :float) unless @uniform_energy_factor.nil?
       XMLHelper.add_element(water_heating_system, 'HPWHOperatingMode', @operating_mode, :string, @operating_mode_isdefaulted) unless @operating_mode.nil?
@@ -8456,6 +8515,7 @@ class HPXML < Object
       @tank_volume = XMLHelper.get_value(water_heating_system, 'TankVolume', :float)
       @fraction_dhw_load_served = XMLHelper.get_value(water_heating_system, 'FractionDHWLoadServed', :float)
       @heating_capacity = XMLHelper.get_value(water_heating_system, 'HeatingCapacity', :float)
+      @backup_heating_capacity = XMLHelper.get_value(water_heating_system, 'BackupHeatingCapacity', :float)
       @energy_factor = XMLHelper.get_value(water_heating_system, 'EnergyFactor', :float)
       @uniform_energy_factor = XMLHelper.get_value(water_heating_system, 'UniformEnergyFactor', :float)
       @operating_mode = XMLHelper.get_value(water_heating_system, 'HPWHOperatingMode', :string)
@@ -9171,7 +9231,7 @@ class HPXML < Object
     ATTRS = [:id, :type, :lifetime_model, :rated_power_output, :location,
              :nominal_capacity_kwh, :nominal_capacity_ah, :nominal_voltage,
              :round_trip_efficiency, :usable_capacity_kwh, :usable_capacity_ah,
-             :energy_efficiency, :miles_per_year, :hours_per_week,
+             :energy_efficiency, :vehicle_type, :miles_per_year, :hours_per_week,
              :fraction_charged_home, :ev_charger_idref]
     attr_accessor(*ATTRS)
 
@@ -9202,7 +9262,7 @@ class HPXML < Object
       sys_id = XMLHelper.add_element(vehicle, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
       ev_type = XMLHelper.add_element(vehicle, 'VehicleType')
-      electric_vehicle = XMLHelper.add_element(ev_type, 'BEV')
+      electric_vehicle = XMLHelper.add_element(ev_type, Constants::ObjectTypeBatteryElectricVehicle)
       battery = XMLHelper.add_element(electric_vehicle, 'Battery')
 
       # Battery
@@ -11144,8 +11204,8 @@ class HPXML < Object
       # For every unique outdoor temperature, check we have exactly one minimum and one maximum datapoint
       outdoor_temps = self.select { |dp| [HPXML::CapacityDescriptionMinimum, HPXML::CapacityDescriptionMaximum].include? dp.capacity_description }.map { |dp| dp.outdoor_temperature }.uniq
       outdoor_temps.each do |outdoor_temp|
-        num_min = self.select { |dp| dp.capacity_description == HPXML::CapacityDescriptionMinimum && dp.outdoor_temperature == outdoor_temp }.size
-        num_max = self.select { |dp| dp.capacity_description == HPXML::CapacityDescriptionMaximum && dp.outdoor_temperature == outdoor_temp }.size
+        num_min = count { |dp| dp.capacity_description == HPXML::CapacityDescriptionMinimum && dp.outdoor_temperature == outdoor_temp }
+        num_max = count { |dp| dp.capacity_description == HPXML::CapacityDescriptionMaximum && dp.outdoor_temperature == outdoor_temp }
         if (num_min != 1) || (num_max != 1)
           errors << "Cooling detailed performance data for outdoor temperature = #{outdoor_temp} is incomplete; there must be exactly one minimum and one maximum capacity datapoint."
         end
@@ -11252,8 +11312,8 @@ class HPXML < Object
       # For every unique outdoor temperature, check we have exactly one minimum and one maximum datapoint
       outdoor_temps = self.select { |dp| [HPXML::CapacityDescriptionMinimum, HPXML::CapacityDescriptionMaximum].include? dp.capacity_description }.map { |dp| dp.outdoor_temperature }.uniq
       outdoor_temps.each do |outdoor_temp|
-        num_min = self.select { |dp| dp.capacity_description == HPXML::CapacityDescriptionMinimum && dp.outdoor_temperature == outdoor_temp }.size
-        num_max = self.select { |dp| dp.capacity_description == HPXML::CapacityDescriptionMaximum && dp.outdoor_temperature == outdoor_temp }.size
+        num_min = count { |dp| dp.capacity_description == HPXML::CapacityDescriptionMinimum && dp.outdoor_temperature == outdoor_temp }
+        num_max = count { |dp| dp.capacity_description == HPXML::CapacityDescriptionMaximum && dp.outdoor_temperature == outdoor_temp }
         if (num_min != 1) || (num_max != 1)
           errors << "Heating detailed performance data for outdoor temperature = #{outdoor_temp} is incomplete; there must be exactly one minimum and one maximum capacity datapoint."
         end
@@ -11292,7 +11352,7 @@ class HPXML < Object
     # @return [nil]
     def delete
       (@parent_object.heating_systems + @parent_object.heat_pumps).each do |heating_system|
-        heating_system.cooling_detailed_performance_data.delete(self)
+        heating_system.heating_detailed_performance_data.delete(self)
       end
     end
 
@@ -11344,7 +11404,7 @@ class HPXML < Object
   #
   # @return [Oga::XML::Document] The HPXML document
   def _create_hpxml_document
-    doc = XMLHelper.create_doc('1.0', 'UTF-8')
+    doc = XMLHelper.create_doc()
     hpxml = XMLHelper.add_element(doc, 'HPXML')
     XMLHelper.add_attribute(hpxml, 'xmlns', NameSpace)
     XMLHelper.add_attribute(hpxml, 'schemaVersion', Version::HPXML_Version)
