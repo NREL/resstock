@@ -192,21 +192,21 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_continuous_exterior_r', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_continuous_exterior_r', false)
     arg.setDisplayName('Rim Joist: Continuous Exterior Insulation Nominal R-value')
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDescription('Nominal R-value for the rim joist continuous exterior insulation. Only applies to basements/crawlspaces.')
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_continuous_interior_r', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_continuous_interior_r', false)
     arg.setDisplayName('Rim Joist: Continuous Interior Insulation Nominal R-value')
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDescription('Nominal R-value for the rim joist continuous interior insulation that runs parallel to floor joists. Only applies to basements/crawlspaces.')
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_assembly_interior_r', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_assembly_interior_r', false)
     arg.setDisplayName('Rim Joist: Interior Assembly R-value')
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDescription('Assembly R-value for the rim joist assembly interior insulation that runs perpendicular to floor joists. Only applies to basements/crawlspaces.')
@@ -813,8 +813,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Rim Joist Assembly R-Value
-    rim_joist_assembly_r = 0
-    if args[:geometry_rim_joist_height] > 0
+    if !args[:geometry_rim_joist_height].nil? && args[:geometry_rim_joist_height] > 0
       drywall_assembly_r = 0.9
       uninsulated_wall_assembly_r = 3.4
 
@@ -835,8 +834,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
 
       rim_joist_assembly_r = assembly_exterior_r + assembly_interior_r
+      args[:rim_joist_assembly_r] = rim_joist_assembly_r
     end
-    args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
     args.each do |arg_name, arg_value|
       if args_to_delete.include?(arg_name) || (arg_value == Constants::Auto)

@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>75ddc6ab-03ad-4db8-9783-d07e69d2103b</version_id>
-  <version_modified>2024-10-30T03:08:54Z</version_modified>
+  <version_id>bf0ae443-eda5-4c43-ad69-90a57ada3d4d</version_id>
+  <version_modified>2024-10-30T21:04:04Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -3502,12 +3502,16 @@
     <argument>
       <name>ducts_supply_buried_insulation_level</name>
       <display_name>Ducts: Supply Buried Insulation Level</display_name>
-      <description>Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.</description>
+      <description>Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#air-distribution'&gt;Air Distribution&lt;/a&gt;) is used.</description>
       <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
       <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
         <choice>
           <value>not buried</value>
           <display_name>not buried</display_name>
@@ -3669,12 +3673,16 @@
     <argument>
       <name>ducts_return_buried_insulation_level</name>
       <display_name>Ducts: Return Buried Insulation Level</display_name>
-      <description>Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.</description>
+      <description>Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#air-distribution'&gt;Air Distribution&lt;/a&gt;) is used.</description>
       <type>Choice</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
       <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
         <choice>
           <value>not buried</value>
           <display_name>not buried</display_name>
@@ -7147,7 +7155,7 @@
       <description>Nominal R-value for the rim joist continuous exterior insulation. Only applies to basements/crawlspaces.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
@@ -7157,7 +7165,7 @@
       <description>Nominal R-value for the rim joist continuous interior insulation that runs parallel to floor joists. Only applies to basements/crawlspaces.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
@@ -7167,7 +7175,7 @@
       <description>Assembly R-value for the rim joist assembly interior insulation that runs perpendicular to floor joists. Only applies to basements/crawlspaces.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
@@ -7546,7 +7554,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>09F1CD8D</checksum>
+      <checksum>3E25555A</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -7563,7 +7571,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>FB72782F</checksum>
+      <checksum>CB66D000</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
