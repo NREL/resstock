@@ -1800,6 +1800,40 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     end
   end
 
+  def test_detailed_design_load_output_file
+    args_hash = { 'output_format' => 'json',
+                  'hpxml_path' => File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence.xml')) }
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    design_load_details_path = File.absolute_path(File.join(File.dirname(__FILE__), 'results_design_load_details.json'))
+    json = JSON.parse(File.read(design_load_details_path))
+
+    tol = 10 # Btuh, allow some tolerance due to rounding
+
+    num_reports = 0
+    json.keys.each do |report|
+      next unless report.include? 'Loads'
+
+      sum_htg = 0
+      sum_clg_sens = 0
+      sum_clg_lat = 0
+      json[report].keys.each do |component|
+        if component == 'Total'
+          num_reports += 1
+          assert_in_delta(sum_htg, json[report][component]['Heating (Btuh)'].to_f, tol)
+          assert_in_delta(sum_clg_sens, json[report][component]['Cooling Sensible (Btuh)'].to_f, tol)
+          assert_in_delta(sum_clg_lat, json[report][component]['Cooling Latent (Btuh)'].to_f, tol)
+        else
+          sum_htg += json[report][component]['Heating (Btuh)'].to_f
+          sum_clg_sens += json[report][component]['Cooling Sensible (Btuh)'].to_f
+          sum_clg_lat += json[report][component]['Cooling Latent (Btuh)'].to_f
+        end
+      end
+    end
+
+    num_expected_reports = hpxml_bldg.conditioned_zones.size + hpxml_bldg.conditioned_spaces.size
+    assert_equal(num_expected_reports, num_reports)
+  end
+
   def _test_measure(args_hash)
     # create an instance of the measure
     measure = HPXMLtoOpenStudio.new

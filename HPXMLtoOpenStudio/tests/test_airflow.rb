@@ -622,8 +622,8 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     # Get HPXML values
-    supply_leakage = hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.select { |m| m.duct_type == HPXML::DuctTypeSupply }[0]
-    return_leakage = hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.select { |m| m.duct_type == HPXML::DuctTypeReturn }[0]
+    supply_leakage = hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.find { |m| m.duct_type == HPXML::DuctTypeSupply }
+    return_leakage = hpxml_bldg.hvac_distributions[0].duct_leakage_measurements.find { |m| m.duct_type == HPXML::DuctTypeReturn }
     supply_leakage_frac = supply_leakage.duct_leakage_value
     return_leakage_frac = return_leakage.duct_leakage_value
 
@@ -712,25 +712,25 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
   def test_infiltration_assumed_height
     # Base
     _hpxml, hpxml_bldg = _create_hpxml('base.xml')
-    infil_volume = hpxml_bldg.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_volume = hpxml_bldg.air_infiltration_measurements.find { |m| !m.infiltration_volume.nil? }.infiltration_volume
     infil_height = hpxml_bldg.inferred_infiltration_height(infil_volume)
     assert_equal(9.75, infil_height)
 
     # Test w/o conditioned basement
     _hpxml, hpxml_bldg = _create_hpxml('base-foundation-unconditioned-basement.xml')
-    infil_volume = hpxml_bldg.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_volume = hpxml_bldg.air_infiltration_measurements.find { |m| !m.infiltration_volume.nil? }.infiltration_volume
     infil_height = hpxml_bldg.inferred_infiltration_height(infil_volume)
     assert_equal(8, infil_height)
 
     # Test w/ walkout basement
     _hpxml, hpxml_bldg = _create_hpxml('base-foundation-walkout-basement.xml')
-    infil_volume = hpxml_bldg.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_volume = hpxml_bldg.air_infiltration_measurements.find { |m| !m.infiltration_volume.nil? }.infiltration_volume
     infil_height = hpxml_bldg.inferred_infiltration_height(infil_volume)
     assert_equal(16, infil_height)
 
     # Test 2 story building
     _hpxml, hpxml_bldg = _create_hpxml('base-enclosure-2stories.xml')
-    infil_volume = hpxml_bldg.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_volume = hpxml_bldg.air_infiltration_measurements.find { |m| !m.infiltration_volume.nil? }.infiltration_volume
     infil_height = hpxml_bldg.inferred_infiltration_height(infil_volume)
     assert_equal(17.75, infil_height)
 

@@ -619,7 +619,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
         sf_winter *= window.exterior_shading_factor_winter unless window.exterior_shading_factor_winter.nil?
 
         # Check shading transmittance for sky beam and sky diffuse
-        os_subsurface = model.getSubSurfaces.select { |ss| ss.name.to_s.start_with? window.id }[0]
+        os_subsurface = model.getSubSurfaces.find { |ss| ss.name.to_s.start_with? window.id }
         os_ism = nil
         model.getSurfacePropertyIncidentSolarMultipliers.each do |ism|
           next unless os_subsurface == ism.subSurface
@@ -683,7 +683,7 @@ class HPXMLtoOpenStudioEnclosureTest < Minitest::Test
         sf_winter *= skylight.exterior_shading_factor_winter unless skylight.exterior_shading_factor_winter.nil?
 
         # Check shading transmittance for sky beam and sky diffuse
-        os_subsurface = model.getSubSurfaces.select { |ss| ss.name.to_s.start_with? skylight.id }[0]
+        os_subsurface = model.getSubSurfaces.find { |ss| ss.name.to_s.start_with? skylight.id }
         os_ism = nil
         model.getSurfacePropertyIncidentSolarMultipliers.each do |ism|
           next unless os_subsurface == ism.subSurface

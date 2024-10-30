@@ -36,6 +36,7 @@ __New Features__
 - BuildResidentialHPXML measure:
   - **Breaking change**: Replaced `slab_under_width` and `slab_perimeter_depth` arguments with `slab_under_insulation_width` and `slab_perimeter_insulation_depth`
   - **Breaking change**: Replaced `schedules_vacancy_periods`, `schedules_power_outage_periods`, and `schedules_power_outage_periods_window_natvent_availability` arguments with `schedules_unavailable_period_types`, `schedules_unavailable_period_dates`, and `schedules_unavailable_period_window_natvent_availabilities`; this improves flexibility for handling more unavailable period types.
+  - **Breaking change**: Removed `window_<side>_wwr` argument; a value less than 1 can be provided to the `window_area_<side>` and will be treated as a window-to-wall ratio.
 - Utility bill calculations:
   - Allows OpenEI URDB tariffs that have $/day fixed charges.
   - Updates `openei_rates.zip` with the latest residential utility rates from the [OpenEI U.S. Utility Rate database](https://apps.openei.org/USURDB/).
