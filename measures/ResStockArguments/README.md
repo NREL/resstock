@@ -94,7 +94,7 @@ IECC zone of the home address.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `1A`, `1B`, `1C`, `2A`, `2B`, `2C`, `3A`, `3B`, `3C`, `4A`, `4B`, `4C`, `5A`, `5B`, `5C`, `6A`, `6B`, `6C`, `7`, `8`
+- **Choices:** `1A`, `1B`, `1C`, `2A`, `2B`, `2C`, `3A`, `3B`, `3C`, `4A`, `4B`, `4C`, `5A`, `5B`, `5C`, `6A`, `6B`, `6C`, `7`, `8`
 
 <br/>
 
@@ -350,7 +350,7 @@ The position of the garage. Only applies to single-family detached units.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `Right`, `Left`
+- **Choices:** `Right`, `Left`
 
 <br/>
 
@@ -422,7 +422,7 @@ The roof type of the building. Ignored if the building has a flat roof.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `gable`, `hip`
+- **Choices:** `gable`, `hip`
 
 <br/>
 
@@ -435,7 +435,7 @@ The roof pitch of the attic. Ignored if the building has a flat roof.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `1:12`, `2:12`, `3:12`, `4:12`, `5:12`, `6:12`, `7:12`, `8:12`, `9:12`, `10:12`, `11:12`, `12:12`
+- **Choices:** `1:12`, `2:12`, `3:12`, `4:12`, `5:12`, `6:12`, `7:12`, `8:12`, `9:12`, `10:12`, `11:12`, `12:12`
 
 <br/>
 
@@ -617,7 +617,7 @@ Whether the insulation is on the interior or exterior of the foundation wall. On
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `interior`, `exterior`
+- **Choices:** `interior`, `exterior`
 
 <br/>
 
@@ -832,7 +832,7 @@ The location of the radiant barrier in the attic.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `none`, `Attic roof only`, `Attic roof and gable walls`, `Attic floor`
+- **Choices:** `none`, `Attic roof only`, `Attic roof and gable walls`, `Attic floor`
 
 <br/>
 
@@ -1102,7 +1102,7 @@ The type of insect screens, if present. If not provided, assumes there are no in
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `none`, `exterior`, `interior`
+- **Choices:** `none`, `exterior`, `interior`
 
 <br/>
 
@@ -1115,7 +1115,7 @@ The type of storm, if present. If not provided, assumes there is no storm.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `clear`, `low-e`
+- **Choices:** `clear`, `low-e`
 
 <br/>
 
@@ -1326,7 +1326,7 @@ The type of storm, if present. If not provided, assumes there is no storm.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `clear`, `low-e`
+- **Choices:** `clear`, `low-e`
 
 <br/>
 
@@ -1365,7 +1365,7 @@ Qualitative description of infiltration. If provided, the Year Built of the home
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `very tight`, `tight`, `average`, `leaky`, `very leaky`
+- **Choices:** `very tight`, `tight`, `average`, `leaky`, `very leaky`
 
 <br/>
 
@@ -1378,7 +1378,7 @@ The unit of measure for the air leakage if providing a numeric air leakage value
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `ACH`, `CFM`, `ACHnatural`, `CFMnatural`, `EffectiveLeakageArea`
+- **Choices:** `ACH`, `CFM`, `ACHnatural`, `CFMnatural`, `EffectiveLeakageArea`
 
 <br/>
 
@@ -1413,7 +1413,7 @@ Type of air leakage if providing a numeric air leakage value. If 'unit total', r
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `unit total`, `unit exterior only`
+- **Choices:** `unit total`, `unit exterior only`
 
 <br/>
 
@@ -1439,7 +1439,7 @@ The fuel type of the heating system. Ignored for ElectricResistance.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
+- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
 
 <br/>
 
@@ -1531,7 +1531,7 @@ The efficiency type of the cooling system. System types central air conditioner 
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `SEER`, `SEER2`, `EER`, `CEER`
+- **Choices:** `SEER`, `SEER2`, `EER`, `CEER`
 
 <br/>
 
@@ -1647,7 +1647,7 @@ The fuel type of the heating system integrated into cooling system. Only used fo
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
+- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
 
 <br/>
 
@@ -1706,7 +1706,7 @@ The heating efficiency type of heat pump. System types air-to-air and mini-split
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `HSPF`, `HSPF2`, `COP`
+- **Choices:** `HSPF`, `HSPF2`, `COP`
 
 <br/>
 
@@ -1730,7 +1730,7 @@ The cooling efficiency type of heat pump. System types air-to-air and mini-split
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `SEER`, `SEER2`, `EER`, `CEER`
+- **Choices:** `SEER`, `SEER2`, `EER`, `CEER`
 
 <br/>
 
@@ -1899,7 +1899,7 @@ The backup type of the heat pump. If 'integrated', represents e.g. built-in elec
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `none`, `integrated`, `separate`
+- **Choices:** `none`, `integrated`, `separate`
 
 <br/>
 
@@ -1934,7 +1934,7 @@ The backup fuel type of the heat pump. Only applies if Backup Type is 'integrate
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`
+- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`
 
 <br/>
 
@@ -2030,7 +2030,7 @@ Type of capacity values for detailed performance data if available. Applies only
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `Absolute capacities`, `Normalized capacity fractions`
+- **Choices:** `Absolute capacities`, `Normalized capacity fractions`
 
 <br/>
 
@@ -2273,7 +2273,7 @@ The type of the second heating system. If a heat pump is specified and the backu
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `none`, `Furnace`, `WallFurnace`, `FloorFurnace`, `Boiler`, `ElectricResistance`, `Stove`, `SpaceHeater`, `Fireplace`
+- **Choices:** `none`, `Furnace`, `WallFurnace`, `FloorFurnace`, `Boiler`, `ElectricResistance`, `Stove`, `SpaceHeater`, `Fireplace`
 
 <br/>
 
@@ -2286,7 +2286,7 @@ The fuel type of the second heating system. Ignored for ElectricResistance.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
+- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
 
 <br/>
 
@@ -2387,7 +2387,7 @@ The leakage units of the ducts.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `CFM25`, `CFM50`, `Percent`
+- **Choices:** `CFM25`, `CFM50`, `Percent`
 
 <br/>
 
@@ -2435,7 +2435,7 @@ Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Parti
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `not buried`, `partially buried`, `fully buried`, `deeply buried`
+- **Choices:** `not buried`, `partially buried`, `fully buried`, `deeply buried`
 
 <br/>
 
@@ -2516,7 +2516,7 @@ Whether the return ducts are buried in, e.g., attic loose-fill insulation. Parti
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `not buried`, `partially buried`, `fully buried`, `deeply buried`
+- **Choices:** `not buried`, `partially buried`, `fully buried`, `deeply buried`
 
 <br/>
 
@@ -2573,7 +2573,7 @@ The type of the mechanical ventilation. Use 'none' if there is no mechanical ven
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `none`, `exhaust only`, `supply only`, `energy recovery ventilator`, `heat recovery ventilator`, `balanced`, `central fan integrated supply`
+- **Choices:** `none`, `exhaust only`, `supply only`, `energy recovery ventilator`, `heat recovery ventilator`, `balanced`, `central fan integrated supply`
 
 <br/>
 
@@ -2608,7 +2608,7 @@ The total recovery efficiency type of the mechanical ventilation.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `Unadjusted`, `Adjusted`
+- **Choices:** `Unadjusted`, `Adjusted`
 
 <br/>
 
@@ -2676,7 +2676,7 @@ Fuel type of the preconditioning heating equipment. Only used for a shared mecha
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
+- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`, `coal`
 
 <br/>
 
@@ -2711,7 +2711,7 @@ Fuel type of the preconditioning cooling equipment. Only used for a shared mecha
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `electricity`
+- **Choices:** `electricity`
 
 <br/>
 
@@ -2746,7 +2746,7 @@ The type of the second mechanical ventilation. Use 'none' if there is no second 
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `none`, `exhaust only`, `supply only`, `energy recovery ventilator`, `heat recovery ventilator`, `balanced`
+- **Choices:** `none`, `exhaust only`, `supply only`, `energy recovery ventilator`, `heat recovery ventilator`, `balanced`
 
 <br/>
 
@@ -2781,7 +2781,7 @@ The total recovery efficiency type of the second mechanical ventilation.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `Unadjusted`, `Adjusted`
+- **Choices:** `Unadjusted`, `Adjusted`
 
 <br/>
 
@@ -2985,7 +2985,7 @@ The fuel type of water heater. Ignored for heat pump water heater.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `coal`
+- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `coal`
 
 <br/>
 
@@ -3022,7 +3022,7 @@ The efficiency type of water heater. Does not apply to space-heating boilers.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `EnergyFactor`, `UniformEnergyFactor`
+- **Choices:** `EnergyFactor`, `UniformEnergyFactor`
 
 <br/>
 
@@ -3199,7 +3199,7 @@ If the distribution system is Recirculation, the type of hot water recirculation
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `no control`, `timer`, `temperature`, `presence sensor demand control`, `manual demand control`
+- **Choices:** `no control`, `timer`, `temperature`, `presence sensor demand control`, `manual demand control`
 
 <br/>
 
@@ -3256,7 +3256,7 @@ Which facilities are connected for the drain water heat recovery. Use 'none' if 
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `none`, `one`, `all`
+- **Choices:** `none`, `one`, `all`
 
 <br/>
 
@@ -3341,7 +3341,7 @@ The type of solar thermal system. Use 'none' if there is no solar thermal system
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `none`, `hot water`
+- **Choices:** `none`, `hot water`
 
 <br/>
 
@@ -3365,7 +3365,7 @@ The collector loop type of the solar thermal system.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `liquid direct`, `liquid indirect`, `passive thermosyphon`
+- **Choices:** `liquid direct`, `liquid indirect`, `passive thermosyphon`
 
 <br/>
 
@@ -3378,7 +3378,7 @@ The collector type of the solar thermal system.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `evacuated tube`, `single glazing black`, `double glazing black`, `integrated collector storage`
+- **Choices:** `evacuated tube`, `single glazing black`, `double glazing black`, `integrated collector storage`
 
 <br/>
 
@@ -3897,7 +3897,7 @@ The type of dehumidifier. If not provided, defaults to none.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `none`, `portable`, `whole-home`
+- **Choices:** `none`, `portable`, `whole-home`
 
 <br/>
 
@@ -3910,7 +3910,7 @@ The efficiency type of dehumidifier.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `EnergyFactor`, `IntegratedEnergyFactor`
+- **Choices:** `EnergyFactor`, `IntegratedEnergyFactor`
 
 <br/>
 
@@ -3991,7 +3991,7 @@ The efficiency type of the clothes washer.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `ModifiedEnergyFactor`, `IntegratedModifiedEnergyFactor`
+- **Choices:** `ModifiedEnergyFactor`, `IntegratedModifiedEnergyFactor`
 
 <br/>
 
@@ -4116,7 +4116,7 @@ Type of fuel used by the clothes dryer.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `coal`
+- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `coal`
 
 <br/>
 
@@ -4129,7 +4129,7 @@ The efficiency type of the clothes dryer.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `EnergyFactor`, `CombinedEnergyFactor`
+- **Choices:** `EnergyFactor`, `CombinedEnergyFactor`
 
 <br/>
 
@@ -4199,7 +4199,7 @@ The efficiency type of dishwasher.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `RatedAnnualkWh`, `EnergyFactor`
+- **Choices:** `RatedAnnualkWh`, `EnergyFactor`
 
 <br/>
 
@@ -4455,7 +4455,7 @@ Type of fuel used by the cooking range/oven.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `coal`
+- **Choices:** `electricity`, `natural gas`, `fuel oil`, `propane`, `wood`, `coal`
 
 <br/>
 
@@ -4720,7 +4720,7 @@ The fuel type of the fuel loads grill.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`
+- **Choices:** `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`
 
 <br/>
 
@@ -4768,7 +4768,7 @@ The fuel type of the fuel loads lighting.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`
+- **Choices:** `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`
 
 <br/>
 
@@ -4816,7 +4816,7 @@ The fuel type of the fuel loads fireplace.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`
+- **Choices:** `natural gas`, `fuel oil`, `propane`, `wood`, `wood pellets`
 
 <br/>
 
@@ -4908,7 +4908,7 @@ The type of pool heater. Use 'none' if there is no pool heater.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `none`, `electric resistance`, `gas fired`, `heat pump`
+- **Choices:** `none`, `electric resistance`, `gas fired`, `heat pump`
 
 <br/>
 
@@ -4989,7 +4989,7 @@ The type of permanent spa heater. Use 'none' if there is no permanent spa heater
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `none`, `electric resistance`, `gas fired`, `heat pump`
+- **Choices:** `none`, `electric resistance`, `gas fired`, `heat pump`
 
 <br/>
 
