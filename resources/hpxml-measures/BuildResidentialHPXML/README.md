@@ -3034,7 +3034,7 @@ The nominal insulation r-value of the supply ducts excluding air films. Use 0 fo
 
 **Ducts: Supply Buried Insulation Level**
 
-Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#air-distribution'>Air Distribution</a>) is used.
 
 - **Name:** ``ducts_supply_buried_insulation_level``
 - **Type:** ``Choice``
@@ -3123,7 +3123,7 @@ The nominal insulation r-value of the return ducts excluding air films. Use 0 fo
 
 **Ducts: Return Buried Insulation Level**
 
-Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#air-distribution'>Air Distribution</a>) is used.
 
 - **Name:** ``ducts_return_buried_insulation_level``
 - **Type:** ``Choice``
