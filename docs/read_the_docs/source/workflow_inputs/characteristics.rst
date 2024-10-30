@@ -1138,10 +1138,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 28%
      - false
-     - 0
-     - 0
-     - 0
-     - 0
+     - 
+     - 
+     - 
+     - 
    * - Standard Efficiency
      - 63%
      - true
@@ -1152,10 +1152,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Standard Efficiency, No usage
      - 8.7%
      - false
-     - auto
-     - 0
-     - 0
-     - 0
+     - 
+     - 
+     - 
+     - 
 
 .. _census_division:
 
@@ -4861,11 +4861,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 18%
      - false
-     - auto
-     - natural gas
-     - CombinedEnergyFactor
-     - 2.70
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
    * - Propane
      - 1.1%
      - true
@@ -5108,15 +5108,15 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 3.68
    * - None
      - 16%
-     - auto
-     - IntegratedModifiedEnergyFactor
-     - 0
-     - 0
-     - 0
-     - 0
-     - 0
-     - 0
-     - 0
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - Standard
      - 50%
      - auto
@@ -5479,10 +5479,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 0.096%
      - false
-     - auto
-     - natural gas
-     - false
-     - auto
+     - 
+     - 
+     - 
+     - 
    * - Propane
      - 4.9%
      - true
@@ -34710,14 +34710,14 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 28%
      - false
-     - auto
-     - RatedAnnualkWh
-     - 0
-     - 0
-     - 0
-     - 0
-     - 0
-     - 0
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - Void
      - 0%
      - 
@@ -38017,48 +38017,48 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Ducted Heat Pump
      - 15%
      - none
-     - SEER
-     - 0
-     - auto
-     - auto
-     - auto
-     - auto
-     - false
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - Non-Ducted Heat Pump
      - 0.97%
      - none
-     - SEER
-     - 0
-     - auto
-     - auto
-     - auto
-     - auto
-     - false
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - None
      - 11%
      - none
-     - SEER
-     - 0
-     - auto
-     - auto
-     - auto
-     - auto
-     - false
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - Room AC, EER 8.5
      - 0.43%
      - room air conditioner
@@ -38887,10 +38887,10 @@ Arguments
      - auto, 3/4" pipe, 1" pipe, 1-1/4" pipe
      - Pipe diameter of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
    * - ``heating_system_has_flue_or_chimney``
-     - true
+     - false
      - 
-     - String
-     -
+     - Choice
+     - auto, true, false
      - Whether the heating system has a flue or chimney.
 
 Options
@@ -38952,10 +38952,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - ASHP, SEER 10, 6.2 HSPF
      - 0.72%
      - none
-     - 0
-     - auto
-     - auto
-     - 1
+     - 
+     - 
+     - 
+     - 
      - 
      - air-to-air
      - HSPF
@@ -38983,24 +38983,24 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 
      - auto
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - ASHP, SEER 13, 7.7 HSPF
      - 7.4%
      - none
-     - 0
-     - auto
-     - auto
-     - 1
+     - 
+     - 
+     - 
+     - 
      - 
      - air-to-air
      - HSPF
@@ -39028,24 +39028,24 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 
      - auto
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - ASHP, SEER 15, 8.5 HSPF
      - 7.2%
      - none
-     - 0
-     - auto
-     - auto
-     - 1
+     - 
+     - 
+     - 
+     - 
      - 
      - air-to-air
      - HSPF
@@ -39073,17 +39073,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 
      - auto
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - Electric Baseboard, 100% Efficiency
      - 6.3%
      - ElectricResistance
@@ -39093,41 +39093,41 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - 
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Electric Boiler, 100% AFUE
      - 0.21%
@@ -39138,41 +39138,41 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - 
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Electric Furnace, 100% AFUE
      - 11%
@@ -39183,41 +39183,41 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - 
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Electric Wall Furnace, 100% AFUE
      - 1.1%
@@ -39228,41 +39228,41 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - 
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Fuel Boiler, 76% AFUE
      - 0.89%
@@ -39273,41 +39273,41 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - auto
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Fuel Boiler, 80% AFUE
      - 3.3%
@@ -39318,41 +39318,41 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - auto
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Fuel Boiler, 90% AFUE
      - 0.49%
@@ -39363,41 +39363,41 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - auto
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Fuel Furnace, 60% AFUE
      - 0.49%
@@ -39408,41 +39408,41 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - auto
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Fuel Furnace, 76% AFUE
      - 2.8%
@@ -39453,41 +39453,41 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - auto
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Fuel Furnace, 80% AFUE
      - 25%
@@ -39498,41 +39498,41 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - auto
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Fuel Furnace, 92.5% AFUE
      - 15%
@@ -39543,41 +39543,41 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - auto
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Fuel Wall/Floor Furnace, 60% AFUE
      - 3.2%
@@ -39588,41 +39588,41 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - auto
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Fuel Wall/Floor Furnace, 68% AFUE
      - 2.8%
@@ -39633,49 +39633,49 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1
      - auto
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
      - 
      - 
-     - auto
-     - auto
      - 
      - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - MSHP, SEER 14.5, 8.2 HSPF
      - 0.96%
      - none
-     - 0
-     - auto
-     - auto
-     - 1
+     - 
+     - 
+     - 
+     - 
      - 
      - mini-split
      - HSPF
@@ -39703,24 +39703,24 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - false
      - auto
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - MSHP, SEER 29.3, 14 HSPF
      - 0.015%
      - none
-     - 0
-     - auto
-     - auto
-     - 1
+     - 
+     - 
+     - 
+     - 
      - 
      - mini-split
      - HSPF
@@ -39748,62 +39748,62 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - false
      - auto
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - None
      - 1.1%
      - none
-     - 0
-     - auto
-     - auto
-     - 1
-     - 
-     - none
-     - HSPF
-     - 6.2
-     - SEER
-     - 10
      - 
      - 
-     - auto
-     - auto
      - 
-     - 
-     - auto
-     - auto
-     - 1
-     - 1
-     - 
-     - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - 
-     - ACCA
-     - auto
      - 
      - 
      - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - Shared Heating
      - 9.6%
      - 
@@ -40110,10 +40110,10 @@ Arguments
      -
      - The maximum capacity limit applied to the auto-sizing methodology. If not provided, no limit is used.
    * - ``heating_system_2_has_flue_or_chimney``
-     - true
+     - false
      - 
-     - String
-     -
+     - Choice
+     - auto, true, false
      - Whether the second heating system has a flue or chimney.
 
 Options
@@ -40186,17 +40186,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 1e+02%
      - none
-     - 0
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
    * - Shared Heating
      - 0.0017%
      - none
-     - 0
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
    * - Void
      - 0%
      - 
@@ -40705,10 +40705,10 @@ Arguments
      - auto, 3/4" pipe, 1" pipe, 1-1/4" pipe
      - Pipe diameter of the geothermal loop. Only applies to ground-to-air heat pump type. If not provided, the OS-HPXML default (see `HPXML Geothermal Loops <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-geothermal-loops>`_) is used.
    * - ``heating_system_has_flue_or_chimney``
-     - true
+     - false
      - 
-     - String
-     -
+     - Choice
+     - auto, true, false
      - Whether the heating system has a flue or chimney.
 
 Options
@@ -40778,33 +40778,33 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - 
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
-     - auto
-     - auto
-     - auto
-     - auto
-     - 1
-     - 1
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - ACCA
-     - auto
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Boiler Baseboards Heating Only, Fuel
      - 4.4%
@@ -40820,33 +40820,33 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - 
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
-     - auto
-     - auto
-     - auto
-     - auto
-     - 1
-     - 1
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - ACCA
-     - auto
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Fan Coil Cooling Only
      - 1.4%
@@ -40904,33 +40904,33 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - false
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
-     - auto
-     - auto
-     - auto
-     - auto
-     - 1
-     - 1
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - ACCA
-     - auto
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - Fan Coil Heating and Cooling, Fuel
      - 1.1%
@@ -40946,33 +40946,33 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - false
      - none
-     - HSPF
-     - 0
-     - SEER
-     - 0
-     - auto
-     - auto
-     - auto
-     - auto
-     - 1
-     - 1
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - none
-     - auto
-     - electricity
-     - 1
-     - auto
-     - ACCA
-     - auto
-     - none
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
    * - None
      - 89%
@@ -42454,14 +42454,14 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 100%
      - Standard
      - auto
-     - no control
-     - 0
-     - 0
-     - 0
+     - 
+     - 
+     - 
+     - 
      - 0
      - none
-     - true
-     - 0.0
+     - 
+     - 
 
 .. _hot_water_fixtures:
 
@@ -44703,13 +44703,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 100%
      - none
-     - 0
-     - 0
-     - Unadjusted
-     - 0
-     - 0
-     - 0
-     - 0
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - auto
      - auto
      - auto
@@ -44718,15 +44718,15 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - none
-     - 0
-     - 0
-     - Unadjusted
-     - 0
-     - 0
-     - 0
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - false
-     - 0
-     - 0
+     - 
+     - 
 
 .. _metropolitan_and_micropolitan_statistical_area:
 
@@ -62115,15 +62115,15 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 100%
      - none
-     - 40
-     - liquid indirect
-     - single glazing black
-     - 180
-     - roofpitch
-     - 0.77
-     - 0.793
-     - auto
-     - 0
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
 
 .. _state:
 
@@ -62848,10 +62848,10 @@ Arguments
      - auto, hybrid/auto, heat pump only
      - The water heater operating mode. The 'heat pump only' option only uses the heat pump, while 'hybrid/auto' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to heat pump water heater. If not provided, the OS-HPXML default (see `Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump>`_) is used.
    * - ``water_heater_has_flue_or_chimney``
-     - true
+     - false
      - 
-     - String
-     -
+     - Choice
+     - auto, true, false
      - Whether the water heater has a flue or chimney.
 
 Options
