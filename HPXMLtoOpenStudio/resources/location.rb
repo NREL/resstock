@@ -7,14 +7,25 @@ module Location
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param epw_path [String] Path to the EPW weather file
   # @return [nil]
-  def self.apply(model, weather, hpxml_header, hpxml_bldg)
+  def self.apply(model, weather, hpxml_bldg, hpxml_header, epw_path)
+    apply_weather_file(model, epw_path)
     apply_year(model, hpxml_header, weather)
     apply_site(model, hpxml_bldg)
     apply_dst(model, hpxml_bldg)
     apply_ground_temps(model, weather, hpxml_bldg)
+  end
+
+  # Sets the OpenStudio WeatherFile object.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param epw_path [String] Path to the EPW weather file
+  # @return [nil]
+  def self.apply_weather_file(model, epw_path)
+    OpenStudio::Model::WeatherFile.setWeatherFile(model, OpenStudio::EpwFile.new(epw_path))
   end
 
   # Set latitude, longitude, time zone, and elevation on the OpenStudio Site object.
@@ -79,39 +90,12 @@ module Location
     sgts.resetAllMonths
     sgts.setAllMonthlyTemperatures(weather.data.ShallowGroundMonthlyTemps.map { |t| UnitConversions.convert(t, 'F', 'C') })
 
-    if hpxml_bldg.heat_pumps.select { |h| h.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
+    if hpxml_bldg.heat_pumps.count { |h| h.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir } > 0
       # Deep ground temperatures used by GSHP setpoint manager
       dgts = model.getSiteGroundTemperatureDeep
       dgts.resetAllMonths
       dgts.setAllMonthlyTemperatures([UnitConversions.convert(weather.data.DeepGroundAnnualTemp, 'F', 'C')] * 12)
     end
-  end
-
-  # Get the absolute path to the climate zones CSV lookup file containing WMO, station, county, state, and BA/IECC zone data.
-  #
-  # @return [String] Path to the climate_zones.csv lookup file
-  def self.get_climate_zones
-    zones_csv = File.join(File.dirname(__FILE__), 'data', 'climate_zones.csv')
-    if not File.exist?(zones_csv)
-      fail 'Could not find climate_zones.csv'
-    end
-
-    return zones_csv
-  end
-
-  # From the climate zones CSV lookup file, get the IECC zone corresponding to given WMO number.
-  #
-  # @param wmo [String] Weather station World Meteorological Organization (WMO) number
-  # @return [String or nil] IECC zone if WMO is found, otherwise nil
-  def self.get_climate_zone_iecc(wmo)
-    zones_csv = get_climate_zones
-
-    require 'csv'
-    CSV.foreach(zones_csv) do |row|
-      return row[6].to_s if row[0].to_s == wmo.to_s
-    end
-
-    return
   end
 
   # Get (find) the absolute path to the EPW file.
@@ -120,7 +104,11 @@ module Location
   # @param hpxml_path [String] Path to the HPXML file
   # @return [String] Path to the EnergyPlus weather file (EPW)
   def self.get_epw_path(hpxml_bldg, hpxml_path)
-    epw_filepath = hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath
+    if hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath.nil?
+      epw_filepath = Defaults.lookup_weather_data_from_zipcode(hpxml_bldg.zip_code)[:station_filename]
+    else
+      epw_filepath = hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath
+    end
     abs_epw_path = File.absolute_path(epw_filepath)
 
     if not File.exist? abs_epw_path

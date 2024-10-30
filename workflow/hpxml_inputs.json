@@ -1040,7 +1040,8 @@
   },
   "sample_files/base-battery-scheduled-power-outage.xml": {
     "parent_hpxml": "sample_files/base-battery-scheduled.xml",
-    "schedules_power_outage_periods": "Jul 1 5 - Jul 31 14"
+    "schedules_unavailable_period_types": "Power Outage",
+    "schedules_unavailable_period_dates": "Jul 1 5 - Jul 31 14"
   },
   "sample_files/base-bldgtype-sfa-unit.xml": {
     "parent_hpxml": "sample_files/base.xml",
@@ -1093,6 +1094,7 @@
     "geometry_building_num_units": 6,
     "geometry_foundation_type": "AboveApartment",
     "geometry_attic_type": "BelowApartment",
+    "geometry_unit_height_above_grade": 10,
     "window_front_wwr": 0.18,
     "window_back_wwr": 0.18,
     "window_left_wwr": 0.18,
@@ -1144,6 +1146,11 @@
     "air_leakage_value": null,
     "air_leakage_units": null,
     "air_leakage_type": null
+  },
+  "sample_files/base-bldgtype-mf-unit-neighbor-shading.xml": {
+    "parent_hpxml": "sample_files/base-bldgtype-mf-unit.xml",
+    "neighbor_right_distance": 15,
+    "combine_like_surfaces": false
   },
   "sample_files/base-bldgtype-mf-unit-residents-1.xml": {
     "parent_hpxml": "sample_files/base-bldgtype-mf-unit.xml",
@@ -1240,9 +1247,7 @@
     "heat_pump_cooling_capacity": 12000,
     "heat_pump_fraction_heat_load_served": 1,
     "heat_pump_fraction_cool_load_served": 1,
-    "heat_pump_backup_type": "integrated",
-    "heat_pump_backup_heating_efficiency": 1,
-    "heat_pump_backup_heating_capacity": 12000
+    "heat_pump_backup_type": "none"
   },
   "sample_files/base-bldgtype-mf-unit-shared-laundry-room.xml": {
     "parent_hpxml": "sample_files/base-bldgtype-mf-unit.xml"
@@ -1314,7 +1319,8 @@
     "water_heater_type": "heat pump water heater",
     "water_heater_tank_volume": 120,
     "water_heater_efficiency": 2.3,
-    "water_heater_num_bedrooms_served": 18
+    "water_heater_num_bedrooms_served": 18,
+    "water_heater_heating_capacity": null
   },
   "sample_files/base-bldgtype-mf-unit-shared-water-heater-recirc.xml": {
     "parent_hpxml": "sample_files/base-bldgtype-mf-unit-shared-water-heater.xml"
@@ -1529,7 +1535,14 @@
     "parent_hpxml": "sample_files/base.xml",
     "water_heater_type": "heat pump water heater",
     "water_heater_tank_volume": 80,
-    "water_heater_efficiency": 2.3
+    "water_heater_efficiency": 2.3,
+    "water_heater_heating_capacity": null
+  },
+  "sample_files/base-dhw-tank-heat-pump-capacities.xml": {
+    "parent_hpxml": "sample_files/base-dhw-tank-heat-pump.xml",
+    "water_heater_type": "heat pump water heater",
+    "water_heater_heating_capacity": 3000,
+    "water_heater_backup_heating_capacity": 0
   },
   "sample_files/base-dhw-tank-heat-pump-outside.xml": {
     "parent_hpxml": "sample_files/base-dhw-tank-heat-pump.xml",
@@ -1790,6 +1803,38 @@
   "sample_files/base-enclosure-walltypes.xml": {
     "parent_hpxml": "sample_files/base.xml"
   },
+  "sample_files/base-enclosure-windows-exterior-shading-solar-film.xml": {
+    "parent_hpxml": "sample_files/base.xml",
+    "window_exterior_shading_type": "solar film",
+    "window_exterior_shading_winter": null,
+    "window_exterior_shading_summer": null
+  },
+  "sample_files/base-enclosure-windows-exterior-shading-solar-screens.xml": {
+    "parent_hpxml": "sample_files/base.xml",
+    "window_exterior_shading_type": "solar screens",
+    "window_exterior_shading_winter": null,
+    "window_exterior_shading_summer": null
+  },
+  "sample_files/base-enclosure-windows-insect-screens-exterior.xml": {
+    "parent_hpxml": "sample_files/base.xml",
+    "window_insect_screens": "exterior"
+  },
+  "sample_files/base-enclosure-windows-insect-screens-interior.xml": {
+    "parent_hpxml": "sample_files/base.xml",
+    "window_insect_screens": "interior"
+  },
+  "sample_files/base-enclosure-windows-interior-shading-blinds.xml": {
+    "parent_hpxml": "sample_files/base.xml",
+    "window_interior_shading_type": "dark blinds",
+    "window_interior_shading_winter": null,
+    "window_interior_shading_summer": null
+  },
+  "sample_files/base-enclosure-windows-interior-shading-curtains.xml": {
+    "parent_hpxml": "sample_files/base.xml",
+    "window_interior_shading_type": "medium curtains",
+    "window_interior_shading_winter": null,
+    "window_interior_shading_summer": null
+  },
   "sample_files/base-enclosure-windows-natural-ventilation-availability.xml": {
     "parent_hpxml": "sample_files/base.xml",
     "window_natvent_availability": 7
@@ -1804,12 +1849,15 @@
   "sample_files/base-enclosure-windows-physical-properties.xml": {
     "parent_hpxml": "sample_files/base.xml"
   },
-  "sample_files/base-enclosure-windows-shading.xml": {
+  "sample_files/base-enclosure-windows-shading-factors.xml": {
     "parent_hpxml": "sample_files/base.xml"
   },
   "sample_files/base-enclosure-windows-shading-seasons.xml": {
     "parent_hpxml": "sample_files/base.xml",
     "window_shading_summer_season": "May 1 - Sep 30"
+  },
+  "sample_files/base-enclosure-windows-shading-types-detailed.xml": {
+    "parent_hpxml": "sample_files/base-misc-neighbor-shading.xml"
   },
   "sample_files/base-enclosure-windows-storms.xml": {
     "parent_hpxml": "sample_files/base.xml",
@@ -2036,19 +2084,8 @@
     "hvac_control_heating_weekday_setpoint": "64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64",
     "hvac_control_heating_weekend_setpoint": "64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64"
   },
-  "sample_files/base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures-research-features.xml": {
-    "parent_hpxml": "sample_files/base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures.xml",
-    "site_iecc_zone": 7,
-    "site_state_code": "MN",
-    "weather_station_epw_filepath": "USA_MN_Duluth.Intl.AP.727450_TMY3.epw",
-    "simulation_control_timestep": 1,
-    "heat_pump_backup_heating_capacity": 34121.4,
-    "simulation_control_onoff_thermostat_deadband": 2,
-    "simulation_control_heat_pump_backup_heating_capacity_increment": 17060.71,
-    "simulation_control_defrost_model_type": "advanced"
-  },
   "sample_files/base-hvac-air-to-air-heat-pump-1-speed-research-features.xml": {
-    "parent_hpxml": "sample_files/base-hvac-air-to-air-heat-pump-1-speed.xml",
+    "parent_hpxml": "sample_files/base-hvac-air-to-air-heat-pump-1-speed-lockout-temperatures.xml",
     "site_iecc_zone": 7,
     "site_state_code": "MN",
     "weather_station_epw_filepath": "USA_MN_Duluth.Intl.AP.727450_TMY3.epw",
@@ -2140,13 +2177,8 @@
   },
   "sample_files/base-hvac-air-to-air-heat-pump-var-speed-research-features.xml": {
     "parent_hpxml": "sample_files/base-hvac-air-to-air-heat-pump-var-speed.xml",
-    "site_iecc_zone": 7,
-    "site_state_code": "MN",
-    "weather_station_epw_filepath": "USA_MN_Duluth.Intl.AP.727450_TMY3.epw",
     "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/hvac-variable-system-maximum-power-ratios-varied.csv",
-    "simulation_control_timestep": 1,
-    "heat_pump_backup_heating_capacity": 34121.4,
-    "simulation_control_heat_pump_backup_heating_capacity_increment": 17060.71,
+    "simulation_control_timestep": 60,
     "simulation_control_defrost_model_type": "advanced"
   },
   "sample_files/base-hvac-air-to-air-heat-pump-var-speed-max-power-ratio-schedule-two-systems.xml": {
@@ -2291,11 +2323,6 @@
     "parent_hpxml": "sample_files/base-hvac-central-ac-only-1-speed.xml",
     "cooling_system_cooling_efficiency": 18,
     "cooling_system_cooling_compressor_type": "two stage"
-  },
-  "sample_files/base-hvac-central-ac-only-2-speed-research-features.xml": {
-    "parent_hpxml": "sample_files/base-hvac-central-ac-only-2-speed.xml",
-    "simulation_control_timestep": 1,
-    "simulation_control_onoff_thermostat_deadband": 2
   },
   "sample_files/base-hvac-central-ac-only-var-speed.xml": {
     "parent_hpxml": "sample_files/base-hvac-central-ac-only-1-speed.xml",
@@ -2529,6 +2556,19 @@
     "hvac_control_heating_weekend_setpoint": null,
     "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-heating-only.csv"
   },
+  "sample_files/base-hvac-furnace-gas-plus-air-to-air-heat-pump-cooling.xml": {
+    "parent_hpxml": "sample_files/base-hvac-furnace-gas-only.xml",
+    "heat_pump_type": "air-to-air",
+    "heat_pump_heating_efficiency": 7.7,
+    "heat_pump_cooling_efficiency": 13,
+    "heat_pump_cooling_compressor_type": "single stage",
+    "heat_pump_cooling_sensible_heat_fraction": 0.73,
+    "heat_pump_heating_capacity": 36000,
+    "heat_pump_heating_capacity_retention_fraction": 0.6,
+    "heat_pump_heating_capacity_retention_temp": 17.0,
+    "heat_pump_cooling_capacity": 36000,
+    "heat_pump_fraction_cool_load_served": 1
+  },
   "sample_files/base-hvac-furnace-gas-room-ac.xml": {
     "parent_hpxml": "sample_files/base.xml",
     "cooling_system_type": "room air conditioner",
@@ -2569,9 +2609,21 @@
     "heat_pump_cooling_capacity": 36000,
     "heat_pump_fraction_heat_load_served": 1,
     "heat_pump_fraction_cool_load_served": 1,
+    "heat_pump_backup_type": "none"
+  },
+  "sample_files/base-hvac-ground-to-air-heat-pump-backup-integrated.xml": {
+    "parent_hpxml": "sample_files/base-hvac-ground-to-air-heat-pump.xml",
     "heat_pump_backup_type": "integrated",
     "heat_pump_backup_heating_efficiency": 1,
     "heat_pump_backup_heating_capacity": 36000
+  },
+  "sample_files/base-hvac-ground-to-air-heat-pump-backup-stove.xml": {
+    "parent_hpxml": "sample_files/base-hvac-ground-to-air-heat-pump.xml",
+    "heat_pump_backup_type": "separate",
+    "heating_system_2_type": "Stove",
+    "heating_system_2_fuel": "fuel oil",
+    "heating_system_2_heating_efficiency": 0.6,
+    "heating_system_2_heating_capacity": 60000
   },
   "sample_files/base-hvac-ground-to-air-heat-pump-detailed-geothermal-loop.xml": {
     "parent_hpxml": "sample_files/base-hvac-ground-to-air-heat-pump.xml",
@@ -2841,8 +2893,6 @@
     "heat_pump_heating_capacity_retention_temp": 17.0,
     "heat_pump_cooling_capacity": 18000,
     "heat_pump_backup_type": "separate",
-    "heat_pump_backup_heating_efficiency": 1,
-    "heat_pump_backup_heating_capacity": 36000,
     "heating_system_2_type": "Stove",
     "heating_system_2_fuel": "fuel oil",
     "heating_system_2_heating_efficiency": 0.6,
@@ -2915,7 +2965,10 @@
     "heat_pump_cooling_efficiency": 11.4,
     "heat_pump_cooling_sensible_heat_fraction": 0.65,
     "heat_pump_heating_capacity_retention_fraction": 0.6,
-    "heat_pump_heating_capacity_retention_temp": 17.0
+    "heat_pump_heating_capacity_retention_temp": 17.0,
+    "heat_pump_backup_type": "integrated",
+    "heat_pump_backup_heating_efficiency": 1,
+    "heat_pump_backup_heating_capacity": 36000
   },
   "sample_files/base-hvac-pthp-heating-capacity-17f.xml": {
     "parent_hpxml": "sample_files/base-hvac-pthp.xml"
@@ -2960,11 +3013,6 @@
     "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-cooling-only.csv"
   },
   "sample_files/base-hvac-room-ac-only-research-features.xml": {
-    "parent_hpxml": "sample_files/base-hvac-room-ac-only.xml",
-    "simulation_control_timestep": 1,
-    "simulation_control_onoff_thermostat_deadband": 2
-  },
-  "sample_files/base-hvac-room-ac-only-research-features-detailed-setpoints.xml": {
     "parent_hpxml": "sample_files/base-hvac-room-ac-only-detailed-setpoints.xml",
     "simulation_control_timestep": 1,
     "simulation_control_onoff_thermostat_deadband": 2
@@ -3087,13 +3135,14 @@
   },
   "sample_files/base-location-detailed.xml": {
     "parent_hpxml": "sample_files/base.xml",
-    "site_time_zone_utc_offset": -7,
-    "site_elevation": 6191,
-    "site_latitude": 40.51,
-    "site_longitude": -107.55,
+    "site_time_zone_utc_offset": -6,
+    "site_elevation": 5548,
+    "site_latitude": 39.77,
+    "site_longitude": -104.73,
     "site_state_code": "CO",
-    "site_city": "Craig",
-    "site_zip_code": 81625
+    "site_city": "Aurora",
+    "site_zip_code": 80019,
+    "weather_station_epw_filepath": null
   },
   "sample_files/base-location-duluth-mn.xml": {
     "parent_hpxml": "sample_files/base-foundation-unconditioned-basement.xml",
@@ -3193,13 +3242,16 @@
     "mech_vent_num_units_served": 1
   },
   "sample_files/base-mechvent-cfis-no-additional-runtime.xml": {
-    "parent_hpxml": "sample_files/base-mechvent-cfis.xml"
+    "parent_hpxml": "sample_files/base-mechvent-cfis.xml",
+    "mech_vent_fan_power": null
   },
   "sample_files/base-mechvent-cfis-supplemental-fan-exhaust.xml": {
-    "parent_hpxml": "sample_files/base-mechvent-cfis.xml"
+    "parent_hpxml": "sample_files/base-mechvent-cfis.xml",
+    "mech_vent_fan_power": null
   },
   "sample_files/base-mechvent-cfis-supplemental-fan-supply.xml": {
-    "parent_hpxml": "sample_files/base-mechvent-cfis.xml"
+    "parent_hpxml": "sample_files/base-mechvent-cfis.xml",
+    "mech_vent_fan_power": null
   },
   "sample_files/base-mechvent-erv.xml": {
     "parent_hpxml": "sample_files/base.xml",
@@ -3474,11 +3526,6 @@
     "neighbor_back_distance": 10,
     "neighbor_front_height": 12
   },
-  "sample_files/base-misc-neighbor-shading-bldgtype-multifamily.xml": {
-    "parent_hpxml": "sample_files/base-bldgtype-mf-unit.xml",
-    "neighbor_right_distance": 15,
-    "combine_like_surfaces": false
-  },
   "sample_files/base-misc-shielding-of-home.xml": {
     "parent_hpxml": "sample_files/base.xml",
     "site_shielding_of_home": "well-shielded"
@@ -3694,9 +3741,9 @@
     "permanent_spa_pump_annual_kwh": null,
     "permanent_spa_heater_annual_kwh": null
   },
-  "sample_files/base-residents-5.xml": {
+  "sample_files/base-residents-5-5.xml": {
     "parent_hpxml": "sample_files/base-misc-defaults.xml",
-    "geometry_unit_num_occupants": 5
+    "geometry_unit_num_occupants": 5.5
   },
   "sample_files/base-schedules-simple.xml": {
     "parent_hpxml": "sample_files/base.xml",
@@ -3708,7 +3755,9 @@
   },
   "sample_files/base-schedules-simple-vacancy.xml": {
     "parent_hpxml": "sample_files/base.xml",
-    "schedules_vacancy_periods": "Dec 1 - Jan 31",
+    "schedules_unavailable_period_types": "Vacancy",
+    "schedules_unavailable_period_dates": "Dec 1 - Jan 31",
+    "schedules_unavailable_period_window_natvent_availabilities": "always unavailable",
     "hot_water_distribution_system_type": "Recirculation",
     "hot_water_distribution_recirc_control_type": "no control",
     "hot_water_distribution_recirc_piping_length": 50,
@@ -3717,12 +3766,23 @@
   },
   "sample_files/base-schedules-simple-power-outage.xml": {
     "parent_hpxml": "sample_files/base.xml",
-    "schedules_power_outage_periods": "Jul 1 5 - Jul 31 14",
+    "schedules_unavailable_period_types": "Power Outage",
+    "schedules_unavailable_period_dates": "Jul 1 5 - Jul 31 14",
     "hot_water_distribution_system_type": "Recirculation",
     "hot_water_distribution_recirc_control_type": "no control",
     "hot_water_distribution_recirc_piping_length": 50,
     "hot_water_distribution_recirc_branch_piping_length": 50,
     "hot_water_distribution_recirc_pump_power": 50
+  },
+  "sample_files/base-schedules-simple-no-space-heating.xml": {
+    "parent_hpxml": "sample_files/base.xml",
+    "schedules_unavailable_period_types": "No Space Heating",
+    "schedules_unavailable_period_dates": "Dec 5 0 - Dec 31 23"
+  },
+  "sample_files/base-schedules-simple-no-space-cooling.xml": {
+    "parent_hpxml": "sample_files/base.xml",
+    "schedules_unavailable_period_types": "No Space Cooling",
+    "schedules_unavailable_period_dates": "Jul 1 22 - Aug 3 14"
   },
   "sample_files/base-schedules-detailed-all-10-mins.xml": {
     "parent_hpxml": "sample_files/base-simcontrol-timestep-10-mins.xml",
@@ -3744,7 +3804,8 @@
   },
   "sample_files/base-schedules-detailed-mixed-timesteps-power-outage.xml": {
     "parent_hpxml": "sample_files/base-schedules-detailed-mixed-timesteps.xml",
-    "schedules_power_outage_periods": "Dec 1 5 - Jan 31 14"
+    "schedules_unavailable_period_types": "Power Outage",
+    "schedules_unavailable_period_dates": "Dec 1 5 - Jan 31 14"
   },
   "sample_files/base-schedules-detailed-occupancy-stochastic.xml": {
     "parent_hpxml": "sample_files/base.xml",
@@ -3752,11 +3813,24 @@
   },
   "sample_files/base-schedules-detailed-occupancy-stochastic-vacancy.xml": {
     "parent_hpxml": "sample_files/base-schedules-detailed-occupancy-stochastic.xml",
-    "schedules_vacancy_periods": "Dec 1 - Jan 31"
+    "schedules_unavailable_period_types": "Vacancy",
+    "schedules_unavailable_period_dates": "Dec 1 - Jan 31",
+    "schedules_unavailable_period_window_natvent_availabilities": "always unavailable"
   },
   "sample_files/base-schedules-detailed-occupancy-stochastic-power-outage.xml": {
     "parent_hpxml": "sample_files/base-schedules-detailed-occupancy-stochastic.xml",
-    "schedules_power_outage_periods": "Dec 1 5 - Jan 31 14"
+    "schedules_unavailable_period_types": "Power Outage",
+    "schedules_unavailable_period_dates": "Dec 1 5 - Jan 31 14"
+  },
+  "sample_files/base-schedules-detailed-occupancy-stochastic-no-space-heating.xml": {
+    "parent_hpxml": "sample_files/base-schedules-detailed-occupancy-stochastic.xml",
+    "schedules_unavailable_period_types": "No Space Heating",
+    "schedules_unavailable_period_dates": "Dec 11 5 - Jan 2 14"
+  },
+  "sample_files/base-schedules-detailed-occupancy-stochastic-no-space-cooling.xml": {
+    "parent_hpxml": "sample_files/base-schedules-detailed-occupancy-stochastic.xml",
+    "schedules_unavailable_period_types": "No Space Cooling",
+    "schedules_unavailable_period_dates": "Jun 15 5 - Jul 30 14"
   },
   "sample_files/base-schedules-detailed-occupancy-stochastic-10-mins.xml": {
     "parent_hpxml": "sample_files/base.xml",

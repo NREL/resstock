@@ -4,6 +4,7 @@ require_relative '../resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
+require 'time'
 require_relative '../resources/weather.rb'
 require_relative '../resources/unit_conversions.rb'
 require_relative '../resources/psychrometrics.rb'
@@ -11,6 +12,9 @@ require_relative '../resources/materials.rb'
 require_relative '../resources/constants.rb'
 require_relative '../resources/util.rb'
 require_relative '../resources/location.rb'
+require_relative '../resources/calendar.rb'
+require_relative '../resources/defaults.rb'
+require_relative '../resources/math.rb'
 
 class HPXMLtoOpenStudioWeatherTest < Minitest::Test
   def teardown
@@ -183,6 +187,6 @@ class HPXMLtoOpenStudioWeatherTest < Minitest::Test
 
     # Check runner
     assert_equal(0, runner.result.stepErrors.size)
-    assert_equal(1, runner.result.stepWarnings.select { |w| w == 'No design condition info found; calculating design conditions from EPW weather data.' }.size)
+    assert_equal(1, runner.result.stepWarnings.count { |w| w == 'No design condition info found; calculating design conditions from EPW weather data.' })
   end
 end

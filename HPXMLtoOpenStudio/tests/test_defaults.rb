@@ -23,7 +23,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     @args_hash['debug'] = true
     @args_hash['output_dir'] = File.absolute_path(@tmp_output_path)
 
-    @default_schedules_csv_data = HPXMLDefaults.get_default_schedules_csv_data()
+    @default_schedules_csv_data = Defaults.get_schedules_csv_data()
   end
 
   def teardown
@@ -73,6 +73,24 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     default_hpxml, _default_hpxml_bldg = _test_measure()
     _test_default_header_values(default_hpxml, 60, 1, 1, 12, 31, 2007, 7.0, nil, nil, nil)
+  end
+
+  def test_weather_station
+    # Test inputs not overridden by defaults
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = 'USA_NV_Las.Vegas-McCarran.Intl.AP.723860_TMY3.epw'
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    assert_equal('USA_NV_Las.Vegas-McCarran.Intl.AP.723860_TMY3.epw', default_hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath)
+
+    # Test defaults w/ zipcode
+    hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath = nil
+    hpxml_bldg.zip_code = '08202' # Testing a zip-code with a leading zero to make sure it's handled correctly
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    assert_equal('USA_NJ_Cape.May.County.AP.745966_TMY3.epw', default_hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath)
+    assert_equal('Cape May Co', default_hpxml_bldg.climate_and_risk_zones.weather_station_name)
+    assert_equal('745966', default_hpxml_bldg.climate_and_risk_zones.weather_station_wmo)
   end
 
   def test_emissions_factors
@@ -300,6 +318,18 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_building_values(default_hpxml_bldg, true, 3, 12, 11, 5, 'CO', 'Denver Intl Ap', -7, 5413.4, 39.83, -104.65, 3, HPXML::HeatPumpSizingHERS, false,
                                   5, 1, 10, 31, 6.8, 91.76, HPXML::ManualJDailyTempRangeHigh, 70.0, 75.0, 0.45, -28.8, 2400.0, 0.0, 4, HPXML::HeatPumpBackupSizingEmergency, HPXML::ManualJInfiltrationMethodBlowerDoor, 4)
 
+    # Test defaults w/ NumberOfResidents provided and less than Nbr+1
+    hpxml_bldg.building_occupancy.number_of_residents = 1
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    assert_equal(4, default_hpxml_bldg.header.manualj_num_occupants)
+
+    # Test defaults w/ NumberOfResidents provided and greater than Nbr+1
+    hpxml_bldg.building_occupancy.number_of_residents = 5.5
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    assert_equal(5.5, default_hpxml_bldg.header.manualj_num_occupants)
+
     # Test defaults - DST in weather file
     hpxml, hpxml_bldg = _create_hpxml('base-location-AMY-2012.xml')
     hpxml_bldg.dst_enabled = nil
@@ -459,25 +489,44 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.building_construction.conditioned_building_volume = 20000
     hpxml_bldg.building_construction.average_ceiling_height = 7
     hpxml_bldg.building_construction.number_of_units = 3
+    hpxml_bldg.building_construction.unit_height_above_grade = 1.6
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_building_construction_values(default_hpxml_bldg, 20000, 7.0, 4, 3)
+    _test_default_building_construction_values(default_hpxml_bldg, 20000, 7.0, 4, 3, 1.6)
 
     # Test defaults
     hpxml_bldg.building_construction.conditioned_building_volume = nil
     hpxml_bldg.building_construction.average_ceiling_height = nil
     hpxml_bldg.building_construction.number_of_bathrooms = nil
     hpxml_bldg.building_construction.number_of_units = nil
+    hpxml_bldg.building_construction.unit_height_above_grade = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_building_construction_values(default_hpxml_bldg, 22140, 8.2, 2, 1)
+    _test_default_building_construction_values(default_hpxml_bldg, 22140, 8.2, 2, 1, -7)
 
     # Test defaults w/ conditioned crawlspace
     hpxml, hpxml_bldg = _create_hpxml('base-foundation-conditioned-crawlspace.xml')
     hpxml_bldg.building_construction.conditioned_building_volume = nil
+    hpxml_bldg.building_construction.unit_height_above_grade = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_building_construction_values(default_hpxml_bldg, 16200, 8.0, 2, 1)
+    _test_default_building_construction_values(default_hpxml_bldg, 16200, 8.0, 2, 1, 0)
+
+    # Test defaults w/ belly-and-wing foundation
+    hpxml, hpxml_bldg = _create_hpxml('base-foundation-belly-wing-skirt.xml')
+    hpxml_bldg.building_construction.conditioned_building_volume = nil
+    hpxml_bldg.building_construction.unit_height_above_grade = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_building_construction_values(default_hpxml_bldg, 10800, 8.0, 2, 1, 2)
+
+    # Test defaults w/ pier & beam foundation
+    hpxml, hpxml_bldg = _create_hpxml('base-foundation-ambient.xml')
+    hpxml_bldg.building_construction.conditioned_building_volume = nil
+    hpxml_bldg.building_construction.unit_height_above_grade = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_building_construction_values(default_hpxml_bldg, 10800, 8.0, 2, 1, 2)
   end
 
   def test_climate_and_risk_zones
@@ -669,7 +718,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _test_default_infiltration_values(default_hpxml_bldg, 2000 * 8, false, 8.0 + (9.7 - 8.0) * 0.25)
   end
 
-  def test_infiltration_compartmentaliztion_test_adjustment
+  def test_infiltration_compartmentalization_test_adjustment
     # Test single-family detached
     hpxml, hpxml_bldg = _create_hpxml('base.xml')
     hpxml_bldg.air_infiltration_measurements[0].infiltration_type = HPXML::InfiltrationTypeUnitTotal
@@ -1040,38 +1089,42 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def test_windows
     # Test inputs not overridden by defaults
-    hpxml, hpxml_bldg = _create_hpxml('base-enclosure-windows-shading.xml')
-    hpxml_bldg.windows.each do |window|
-      window.fraction_operable = 0.5
-      window.exterior_shading_factor_summer = 0.44
-      window.exterior_shading_factor_winter = 0.55
-      window.interior_shading_factor_summer = 0.66
-      window.interior_shading_factor_winter = 0.77
-      window.azimuth = 123
-    end
+    hpxml, hpxml_bldg = _create_hpxml('base-enclosure-windows-shading-factors.xml')
+    hpxml_bldg.windows[0].fraction_operable = 0.5
+    hpxml_bldg.windows[0].exterior_shading_factor_summer = 0.44
+    hpxml_bldg.windows[0].exterior_shading_factor_winter = 0.55
+    hpxml_bldg.windows[0].interior_shading_factor_summer = 0.66
+    hpxml_bldg.windows[0].interior_shading_factor_winter = 0.77
+    hpxml_bldg.windows[0].azimuth = 123
+    hpxml_bldg.windows[0].insect_screen_present = true
+    hpxml_bldg.windows[0].insect_screen_location = HPXML::LocationInterior
+    hpxml_bldg.windows[0].insect_screen_coverage_summer = 0.19
+    hpxml_bldg.windows[0].insect_screen_coverage_winter = 0.28
+    hpxml_bldg.windows[0].insect_screen_factor_summer = 0.37
+    hpxml_bldg.windows[0].insect_screen_factor_winter = 0.46
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    n_windows = default_hpxml_bldg.windows.size
-    _test_default_window_values(default_hpxml_bldg, [0.44] * n_windows, [0.55] * n_windows, [0.66] * n_windows, [0.77] * n_windows, [0.5] * n_windows, [123] * n_windows)
+    _test_default_window_values(default_hpxml_bldg.windows[0], 0.44, 0.55, 0.66, 0.77, 0.5, 123, HPXML::LocationInterior, 0.19, 0.28, 0.37, 0.46)
 
     # Test defaults after 301-2022 Addendum C
-    hpxml_bldg.windows.each do |window|
-      window.fraction_operable = nil
-      window.exterior_shading_factor_summer = nil
-      window.exterior_shading_factor_winter = nil
-      window.interior_shading_factor_summer = nil
-      window.interior_shading_factor_winter = nil
-      window.orientation = HPXML::OrientationSouthwest
-      window.azimuth = nil
-    end
+    hpxml_bldg.windows[0].fraction_operable = nil
+    hpxml_bldg.windows[0].exterior_shading_factor_summer = nil
+    hpxml_bldg.windows[0].exterior_shading_factor_winter = nil
+    hpxml_bldg.windows[0].interior_shading_factor_summer = nil
+    hpxml_bldg.windows[0].interior_shading_factor_winter = nil
+    hpxml_bldg.windows[0].orientation = HPXML::OrientationSouthwest
+    hpxml_bldg.windows[0].azimuth = nil
+    hpxml_bldg.windows[0].insect_screen_location = nil
+    hpxml_bldg.windows[0].insect_screen_coverage_summer = nil
+    hpxml_bldg.windows[0].insect_screen_coverage_winter = nil
+    hpxml_bldg.windows[0].insect_screen_factor_summer = nil
+    hpxml_bldg.windows[0].insect_screen_factor_winter = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    n_windows = default_hpxml_bldg.windows.size
-    int_shade_coeff = 0.92 - (0.21 * 0.45)
-    _test_default_window_values(default_hpxml_bldg, [1.0] * n_windows, [1.0] * n_windows, [int_shade_coeff] * n_windows, [int_shade_coeff] * n_windows, [0.67] * n_windows, [225] * n_windows)
+    _test_default_window_values(default_hpxml_bldg.windows[0], 1.0, 1.0, 0.8255, 0.8255, 0.67, 225, HPXML::LocationExterior, 0.67, 0.67, 0.7588, 0.7588)
   end
 
-  def test_windows_properties
+  def test_windows_physical_properties
     # Test defaults w/ single pane, aluminum frame
     hpxml, hpxml_bldg = _create_hpxml('base.xml')
     hpxml_bldg.windows[0].ufactor = nil
@@ -1079,7 +1132,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.windows[0].frame_type = HPXML::WindowFrameTypeAluminum
     hpxml_bldg.windows[0].glass_layers = HPXML::WindowLayersSinglePane
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
-    default_hpxml, default_hpxml_bldg = _test_measure()
+    _default_hpxml, default_hpxml_bldg = _test_measure()
 
     assert_equal(false, default_hpxml_bldg.windows[0].thermal_break)
     assert_equal(HPXML::WindowGlassTypeClear, default_hpxml_bldg.windows[0].glass_type)
@@ -1092,7 +1145,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.windows[0].frame_type = HPXML::WindowFrameTypeMetal
     hpxml_bldg.windows[0].glass_layers = HPXML::WindowLayersDoublePane
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
-    default_hpxml, default_hpxml_bldg = _test_measure()
+    _default_hpxml, default_hpxml_bldg = _test_measure()
 
     assert_equal(true, default_hpxml_bldg.windows[0].thermal_break)
     assert_equal(HPXML::WindowGlassTypeClear, default_hpxml_bldg.windows[0].glass_type)
@@ -1106,7 +1159,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.windows[0].glass_layers = HPXML::WindowLayersTriplePane
     hpxml_bldg.windows[0].glass_type = HPXML::WindowGlassTypeLowE
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
-    default_hpxml, default_hpxml_bldg = _test_measure()
+    _default_hpxml, default_hpxml_bldg = _test_measure()
 
     assert_nil(default_hpxml_bldg.windows[0].thermal_break)
     assert_equal(HPXML::WindowGlassTypeLowE, default_hpxml_bldg.windows[0].glass_type)
@@ -1145,44 +1198,181 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
       hpxml_bldg.windows[0].glass_type = glass_type
       hpxml_bldg.windows[0].gas_fill = gas_fill
       XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
-      default_hpxml, default_hpxml_bldg = _test_measure()
+      _default_hpxml, default_hpxml_bldg = _test_measure()
 
       assert_equal(ufactor, default_hpxml_bldg.windows[0].ufactor)
       assert_equal(shgc, default_hpxml_bldg.windows[0].shgc)
     end
   end
 
+  def test_windows_interior_shading_types
+    # Test defaults
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.windows[0].interior_shading_type = nil
+    hpxml_bldg.windows[0].interior_shading_factor_summer = nil
+    hpxml_bldg.windows[0].interior_shading_factor_winter = nil
+    hpxml_bldg.windows[0].interior_shading_coverage_summer = nil
+    hpxml_bldg.windows[0].interior_shading_coverage_winter = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_equal(HPXML::InteriorShadingTypeLightCurtains, default_hpxml_bldg.windows[0].interior_shading_type)
+    assert_equal(0.5, default_hpxml_bldg.windows[0].interior_shading_coverage_summer)
+    assert_equal(0.5, default_hpxml_bldg.windows[0].interior_shading_coverage_winter)
+    assert_equal(0.8255, default_hpxml_bldg.windows[0].interior_shading_factor_summer)
+    assert_equal(0.8255, default_hpxml_bldg.windows[0].interior_shading_factor_winter)
+
+    # Test defaults w/ none shading
+    hpxml_bldg.windows[0].interior_shading_type = HPXML::InteriorShadingTypeNone
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_nil(default_hpxml_bldg.windows[0].interior_shading_coverage_summer)
+    assert_nil(default_hpxml_bldg.windows[0].interior_shading_coverage_winter)
+    assert_equal(1.0, default_hpxml_bldg.windows[0].interior_shading_factor_summer)
+    assert_equal(1.0, default_hpxml_bldg.windows[0].interior_shading_factor_winter)
+
+    # Test defaults w/ other shading
+    hpxml_bldg.windows[0].interior_shading_type = HPXML::InteriorShadingTypeOther
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_equal(0.5, default_hpxml_bldg.windows[0].interior_shading_coverage_summer)
+    assert_equal(0.5, default_hpxml_bldg.windows[0].interior_shading_coverage_winter)
+    assert_equal(0.75, default_hpxml_bldg.windows[0].interior_shading_factor_summer)
+    assert_equal(0.75, default_hpxml_bldg.windows[0].interior_shading_factor_winter)
+
+    # Test defaults w/ dark shades (fully covered summer, fully uncovered winter)
+    hpxml_bldg.windows[0].interior_shading_type = HPXML::InteriorShadingTypeDarkShades
+    hpxml_bldg.windows[0].interior_shading_coverage_summer = 1.0
+    hpxml_bldg.windows[0].interior_shading_coverage_winter = 0.0
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_equal(0.8315, default_hpxml_bldg.windows[0].interior_shading_factor_summer)
+    assert_equal(1.0, default_hpxml_bldg.windows[0].interior_shading_factor_winter)
+
+    # Test defaults w/ medium blinds (closed fully covered summer, half open half covered winter)
+    hpxml_bldg.windows[0].interior_shading_type = HPXML::InteriorShadingTypeMediumBlinds
+    hpxml_bldg.windows[0].interior_shading_blinds_summer_closed_or_open = HPXML::BlindsClosed
+    hpxml_bldg.windows[0].interior_shading_coverage_winter = 0.5
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_equal(HPXML::BlindsHalfOpen, default_hpxml_bldg.windows[0].interior_shading_blinds_winter_closed_or_open)
+    assert_equal(1.0, default_hpxml_bldg.windows[0].interior_shading_coverage_summer)
+    assert_equal(0.7155, default_hpxml_bldg.windows[0].interior_shading_factor_summer)
+    assert_equal(0.9165, default_hpxml_bldg.windows[0].interior_shading_factor_winter)
+  end
+
+  def test_windows_exterior_shading_types
+    # Test defaults
+    hpxml, hpxml_bldg = _create_hpxml('base.xml')
+    hpxml_bldg.windows[0].exterior_shading_type = nil
+    hpxml_bldg.windows[0].exterior_shading_factor_summer = nil
+    hpxml_bldg.windows[0].exterior_shading_factor_winter = nil
+    hpxml_bldg.windows[0].exterior_shading_coverage_summer = nil
+    hpxml_bldg.windows[0].exterior_shading_coverage_winter = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_equal(HPXML::InteriorShadingTypeNone, default_hpxml_bldg.windows[0].exterior_shading_type)
+    assert_nil(default_hpxml_bldg.windows[0].exterior_shading_coverage_summer)
+    assert_nil(default_hpxml_bldg.windows[0].exterior_shading_coverage_winter)
+    assert_equal(1.0, default_hpxml_bldg.windows[0].exterior_shading_factor_summer)
+    assert_equal(1.0, default_hpxml_bldg.windows[0].exterior_shading_factor_winter)
+
+    # Test defaults w/ none shading
+    hpxml_bldg.windows[0].exterior_shading_type = HPXML::ExteriorShadingTypeNone
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_nil(default_hpxml_bldg.windows[0].exterior_shading_coverage_summer)
+    assert_nil(default_hpxml_bldg.windows[0].exterior_shading_coverage_winter)
+    assert_equal(1.0, default_hpxml_bldg.windows[0].exterior_shading_factor_summer)
+    assert_equal(1.0, default_hpxml_bldg.windows[0].exterior_shading_factor_winter)
+
+    # Test defaults w/ other shading
+    hpxml_bldg.windows[0].exterior_shading_type = HPXML::ExteriorShadingTypeOther
+    hpxml_bldg.windows[0].exterior_shading_coverage_summer = 0.25
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_equal(0.25, default_hpxml_bldg.windows[0].exterior_shading_coverage_summer)
+    assert_equal(0.5, default_hpxml_bldg.windows[0].exterior_shading_coverage_winter)
+    assert_equal(0.875, default_hpxml_bldg.windows[0].exterior_shading_factor_summer)
+    assert_equal(0.75, default_hpxml_bldg.windows[0].exterior_shading_factor_winter)
+
+    # Test defaults w/ deciduous tree shading
+    hpxml_bldg.windows[0].exterior_shading_type = HPXML::ExteriorShadingTypeDeciduousTree
+    hpxml_bldg.windows[0].exterior_shading_coverage_summer = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_equal(0.5, default_hpxml_bldg.windows[0].exterior_shading_factor_summer)
+    assert_equal(0.75, default_hpxml_bldg.windows[0].exterior_shading_factor_winter)
+
+    # Test defaults w/ overhangs not explicitly defined
+    hpxml_bldg.windows[0].exterior_shading_type = HPXML::ExteriorShadingTypeExternalOverhangs
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_equal(0.0, default_hpxml_bldg.windows[0].exterior_shading_factor_summer)
+    assert_equal(0.0, default_hpxml_bldg.windows[0].exterior_shading_factor_winter)
+
+    # Test defaults w/ overhangs explicitly defined
+    hpxml_bldg.windows[0].overhangs_depth = 2.0
+    hpxml_bldg.windows[0].overhangs_distance_to_top_of_window = 1.0
+    hpxml_bldg.windows[0].overhangs_distance_to_bottom_of_window = 4.0
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_nil(default_hpxml_bldg.windows[0].exterior_shading_factor_summer)
+    assert_nil(default_hpxml_bldg.windows[0].exterior_shading_factor_winter)
+
+    # Test defaults w/ neighbor buildings not explicitly defined
+    hpxml_bldg.windows[0].exterior_shading_type = HPXML::ExteriorShadingTypeBuilding
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_equal(0.5, default_hpxml_bldg.windows[0].exterior_shading_factor_summer)
+    assert_equal(0.5, default_hpxml_bldg.windows[0].exterior_shading_factor_winter)
+
+    # Test defaults w/ neighbor buildings explicitly defined
+    hpxml_bldg.neighbor_buildings.add(azimuth: 0,
+                                      distance: 10)
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+
+    assert_nil(default_hpxml_bldg.windows[0].exterior_shading_factor_summer)
+    assert_nil(default_hpxml_bldg.windows[0].exterior_shading_factor_winter)
+  end
+
   def test_skylights
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-enclosure-skylights.xml')
-    hpxml_bldg.skylights.each do |skylight|
-      skylight.exterior_shading_factor_summer = 0.44
-      skylight.exterior_shading_factor_winter = 0.55
-      skylight.interior_shading_factor_summer = 0.66
-      skylight.interior_shading_factor_winter = 0.77
-      skylight.azimuth = 123
-    end
+    hpxml_bldg.skylights[0].exterior_shading_factor_summer = 0.44
+    hpxml_bldg.skylights[0].exterior_shading_factor_winter = 0.55
+    hpxml_bldg.skylights[0].interior_shading_factor_summer = 0.66
+    hpxml_bldg.skylights[0].interior_shading_factor_winter = 0.77
+    hpxml_bldg.skylights[0].azimuth = 123
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    n_skylights = default_hpxml_bldg.skylights.size
-    _test_default_skylight_values(default_hpxml_bldg, [0.44] * n_skylights, [0.55] * n_skylights, [0.66] * n_skylights, [0.77] * n_skylights, [123] * n_skylights)
+    _test_default_skylight_values(default_hpxml_bldg.skylights[0], 0.44, 0.55, 0.66, 0.77, 123)
 
     # Test defaults
-    hpxml_bldg.skylights.each do |skylight|
-      skylight.exterior_shading_factor_summer = nil
-      skylight.exterior_shading_factor_winter = nil
-      skylight.interior_shading_factor_summer = nil
-      skylight.interior_shading_factor_winter = nil
-      skylight.orientation = HPXML::OrientationWest
-      skylight.azimuth = nil
-    end
+    hpxml_bldg.skylights[0].exterior_shading_factor_summer = nil
+    hpxml_bldg.skylights[0].exterior_shading_factor_winter = nil
+    hpxml_bldg.skylights[0].interior_shading_factor_summer = nil
+    hpxml_bldg.skylights[0].interior_shading_factor_winter = nil
+    hpxml_bldg.skylights[0].orientation = HPXML::OrientationWest
+    hpxml_bldg.skylights[0].azimuth = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    n_skylights = default_hpxml_bldg.skylights.size
-    _test_default_skylight_values(default_hpxml_bldg, [1.0] * n_skylights, [1.0] * n_skylights, [1.0] * n_skylights, [1.0] * n_skylights, [270] * n_skylights)
+    _test_default_skylight_values(default_hpxml_bldg.skylights[0], 1.0, 1.0, 1.0, 1.0, 270)
   end
 
-  def test_skylights_properties
+  def test_skylights_physical_properties
     # Test defaults w/ single pane, aluminum frame
     hpxml, hpxml_bldg = _create_hpxml('base-enclosure-skylights.xml')
     hpxml_bldg.skylights[0].ufactor = nil
@@ -2096,7 +2286,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
   def test_ground_source_heat_pumps
     # Test inputs not overridden by defaults
-    hpxml, hpxml_bldg = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-ground-to-air-heat-pump-backup-integrated.xml')
     hpxml_bldg.heat_pumps[0].pump_watts_per_ton = 9.9
     hpxml_bldg.heat_pumps[0].fan_watts_per_cfm = 0.66
     hpxml_bldg.heat_pumps[0].airflow_defect_ratio = -0.22
@@ -2776,7 +2966,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
                                     used_for_whole_building_ventilation: true)
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_mech_vent_values(default_hpxml_bldg, false, 24.0, 19.8, 56.9)
+    _test_default_mech_vent_values(default_hpxml_bldg, false, 24.0, 19.9, 56.9)
 
     # Test defaults w/ MF building, guarded test
     hpxml_bldg.air_infiltration_measurements[0].infiltration_type = HPXML::InfiltrationTypeUnitExterior
@@ -2823,32 +3013,13 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     # Test inputs not overridden by defaults w/ CFIS
     hpxml, hpxml_bldg = _create_hpxml('base-mechvent-cfis.xml')
     vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
-    vent_fan.is_shared_system = false
     vent_fan.hours_in_operation = 12.0
     vent_fan.fan_power = 12.5
     vent_fan.rated_flow_rate = 222.0
     vent_fan.cfis_vent_mode_airflow_fraction = 0.5
-    vent_fan.cfis_addtl_runtime_operating_mode = HPXML::CFISModeSupplementalFan
-    hpxml_bldg.ventilation_fans.add(id: "VentilationFan#{hpxml_bldg.ventilation_fans.size + 1}",
-                                    tested_flow_rate: 79.0,
-                                    fan_power: 9.0,
-                                    fan_type: HPXML::MechVentTypeExhaust,
-                                    is_shared_system: false,
-                                    used_for_whole_building_ventilation: true)
-    suppl_vent_fan = hpxml_bldg.ventilation_fans[-1]
-    vent_fan.cfis_supplemental_fan_idref = suppl_vent_fan.id
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_mech_vent_values(default_hpxml_bldg, false, 12.0, 12.5, 222.0, 0.5, HPXML::CFISModeSupplementalFan)
-    _test_default_mech_vent_suppl_values(default_hpxml_bldg, false, nil, 9.0, 79.0)
-
-    # Test defaults w/ CFIS supplemental fan
-    suppl_vent_fan.tested_flow_rate = nil
-    suppl_vent_fan.is_shared_system = nil
-    suppl_vent_fan.fan_power = nil
-    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
-    _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_mech_vent_suppl_values(default_hpxml_bldg, false, nil, 35.6, 101.8)
+    _test_default_mech_vent_values(default_hpxml_bldg, false, 12.0, 12.5, 222.0, 0.5, HPXML::CFISModeAirHandler)
 
     # Test defaults w/ CFIS
     vent_fan.is_shared_system = nil
@@ -2859,7 +3030,28 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     vent_fan.cfis_addtl_runtime_operating_mode = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_mech_vent_values(default_hpxml_bldg, false, 8.0, 177.1, 305.4, 1.0, HPXML::CFISModeAirHandler)
+    _test_default_mech_vent_values(default_hpxml_bldg, false, 8.0, 300.0, 305.4, 1.0, HPXML::CFISModeAirHandler)
+
+    # Test inputs not overridden by defaults w/ CFIS & supplemental fan
+    hpxml, hpxml_bldg = _create_hpxml('base-mechvent-cfis-supplemental-fan-exhaust.xml')
+    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeCFIS }
+    vent_fan.hours_in_operation = 12.0
+    vent_fan.rated_flow_rate = 222.0
+    suppl_vent_fan = vent_fan.cfis_supplemental_fan
+    suppl_vent_fan.tested_flow_rate = 79.0
+    suppl_vent_fan.fan_power = 9.0
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_mech_vent_values(default_hpxml_bldg, false, 12.0, nil, 222.0, nil, HPXML::CFISModeSupplementalFan)
+    _test_default_mech_vent_suppl_values(default_hpxml_bldg, false, nil, 9.0, 79.0)
+
+    # Test defaults w/ CFIS supplemental fan
+    suppl_vent_fan.tested_flow_rate = nil
+    suppl_vent_fan.is_shared_system = nil
+    suppl_vent_fan.fan_power = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_mech_vent_suppl_values(default_hpxml_bldg, false, nil, 35.6, 101.8)
 
     # Test inputs not overridden by defaults w/ ERV
     hpxml, hpxml_bldg = _create_hpxml('base-mechvent-erv.xml')
@@ -2942,7 +3134,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
       wh.is_shared_system = true
       wh.number_of_bedrooms_served = 6
       wh.heating_capacity = 15000.0
-      wh.tank_volume = 40.0
+      wh.tank_volume = 44.0
       wh.recovery_efficiency = 0.95
       wh.location = HPXML::LocationConditionedSpace
       wh.temperature = 111
@@ -2952,7 +3144,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
     _test_default_storage_water_heater_values(default_hpxml_bldg,
-                                              [true, 15000.0, 40.0, 0.95, HPXML::LocationConditionedSpace, 111, 0.90, HPXML::WaterHeaterTankModelTypeStratified])
+                                              [true, 15000.0, 44.0, 0.95, HPXML::LocationConditionedSpace, 111, 0.90, HPXML::WaterHeaterTankModelTypeStratified])
 
     # Test defaults w/ 3-bedroom house & electric storage water heater
     hpxml_bldg.water_heating_systems.each do |wh|
@@ -3068,33 +3260,41 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
   def test_heat_pump_water_heaters
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-dhw-tank-heat-pump.xml')
+    hpxml_bldg.water_heating_systems[0].tank_volume = 44.0
     hpxml_bldg.water_heating_systems[0].operating_mode = HPXML::WaterHeaterOperatingModeHeatPumpOnly
+    hpxml_bldg.water_heating_systems[0].heating_capacity = 4000.0
+    hpxml_bldg.water_heating_systems[0].backup_heating_capacity = 5000.0
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_heat_pump_water_heater_values(default_hpxml_bldg, [HPXML::WaterHeaterOperatingModeHeatPumpOnly])
+    _test_default_heat_pump_water_heater_values(default_hpxml_bldg, [44.0, HPXML::WaterHeaterOperatingModeHeatPumpOnly, 4000.0, 5000.0])
 
     # Test defaults
+    hpxml_bldg.water_heating_systems[0].tank_volume = nil
     hpxml_bldg.water_heating_systems[0].operating_mode = nil
+    hpxml_bldg.water_heating_systems[0].heating_capacity = nil
+    hpxml_bldg.water_heating_systems[0].backup_heating_capacity = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_heat_pump_water_heater_values(default_hpxml_bldg, [HPXML::WaterHeaterOperatingModeHybridAuto])
+    _test_default_heat_pump_water_heater_values(default_hpxml_bldg, [50.0, HPXML::WaterHeaterOperatingModeHybridAuto, 4811.0, 15355.0])
   end
 
   def test_indirect_water_heaters
     # Test inputs not overridden by defaults
     hpxml, hpxml_bldg = _create_hpxml('base-dhw-indirect.xml')
+    hpxml_bldg.water_heating_systems[0].tank_volume = 44.0
     hpxml_bldg.water_heating_systems[0].standby_loss_value = 0.99
     hpxml_bldg.water_heating_systems[0].standby_loss_units = HPXML::UnitsDegFPerHour
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_indirect_water_heater_values(default_hpxml_bldg, [HPXML::UnitsDegFPerHour, 0.99])
+    _test_default_indirect_water_heater_values(default_hpxml_bldg, [44.0, HPXML::UnitsDegFPerHour, 0.99])
 
     # Test defaults
+    hpxml_bldg.water_heating_systems[0].tank_volume = nil
     hpxml_bldg.water_heating_systems[0].standby_loss_value = nil
     hpxml_bldg.water_heating_systems[0].standby_loss_units = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_indirect_water_heater_values(default_hpxml_bldg, [HPXML::UnitsDegFPerHour, 0.843])
+    _test_default_indirect_water_heater_values(default_hpxml_bldg, [40.0, HPXML::UnitsDegFPerHour, 0.975])
   end
 
   def test_hot_water_distribution
@@ -4487,11 +4687,13 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     end
   end
 
-  def _test_default_building_construction_values(hpxml_bldg, building_volume, average_ceiling_height, n_bathrooms, n_units)
+  def _test_default_building_construction_values(hpxml_bldg, building_volume, average_ceiling_height, number_of_bathrooms,
+                                                 number_of_units, unit_height_above_grade)
     assert_equal(building_volume, hpxml_bldg.building_construction.conditioned_building_volume)
     assert_in_epsilon(average_ceiling_height, hpxml_bldg.building_construction.average_ceiling_height, 0.01)
-    assert_equal(n_bathrooms, hpxml_bldg.building_construction.number_of_bathrooms)
-    assert_equal(n_units, hpxml_bldg.building_construction.number_of_units)
+    assert_equal(number_of_bathrooms, hpxml_bldg.building_construction.number_of_bathrooms)
+    assert_equal(number_of_units, hpxml_bldg.building_construction.number_of_units)
+    assert_equal(unit_height_above_grade, hpxml_bldg.building_construction.unit_height_above_grade)
   end
 
   def _test_default_infiltration_values(hpxml_bldg, volume, has_flue_or_chimney_in_conditioned_space, ach50 = nil)
@@ -4614,27 +4816,27 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     assert_equal(ext_horiz_depth, slab.exterior_horizontal_insulation_depth_below_grade)
   end
 
-  def _test_default_window_values(hpxml_bldg, ext_summer_sfs, ext_winter_sfs, int_summer_sfs, int_winter_sfs, fraction_operable, azimuths)
-    assert_equal(ext_summer_sfs.size, hpxml_bldg.windows.size)
-    hpxml_bldg.windows.each_with_index do |window, idx|
-      assert_equal(ext_summer_sfs[idx], window.exterior_shading_factor_summer)
-      assert_equal(ext_winter_sfs[idx], window.exterior_shading_factor_winter)
-      assert_equal(int_summer_sfs[idx], window.interior_shading_factor_summer)
-      assert_equal(int_winter_sfs[idx], window.interior_shading_factor_winter)
-      assert_equal(fraction_operable[idx], window.fraction_operable)
-      assert_equal(azimuths[idx], window.azimuth)
-    end
+  def _test_default_window_values(window, ext_summer_sf, ext_winter_sf, int_summer_sf, int_winter_sf, fraction_operable, azimuth,
+                                  is_location, is_summer_cover, is_winter_cover, is_summer_sf, is_winter_sf)
+    assert_equal(ext_summer_sf, window.exterior_shading_factor_summer)
+    assert_equal(ext_winter_sf, window.exterior_shading_factor_winter)
+    assert_equal(int_summer_sf, window.interior_shading_factor_summer)
+    assert_equal(int_winter_sf, window.interior_shading_factor_winter)
+    assert_equal(fraction_operable, window.fraction_operable)
+    assert_equal(azimuth, window.azimuth)
+    assert_equal(is_location, window.insect_screen_location)
+    assert_equal(is_summer_cover, window.insect_screen_coverage_summer)
+    assert_equal(is_winter_cover, window.insect_screen_coverage_winter)
+    assert_equal(is_summer_sf, window.insect_screen_factor_summer)
+    assert_equal(is_winter_sf, window.insect_screen_factor_winter)
   end
 
-  def _test_default_skylight_values(hpxml_bldg, ext_summer_sfs, ext_winter_sfs, int_summer_sfs, int_winter_sfs, azimuths)
-    assert_equal(ext_summer_sfs.size, hpxml_bldg.skylights.size)
-    hpxml_bldg.skylights.each_with_index do |skylight, idx|
-      assert_equal(ext_summer_sfs[idx], skylight.exterior_shading_factor_summer)
-      assert_equal(ext_winter_sfs[idx], skylight.exterior_shading_factor_winter)
-      assert_equal(int_summer_sfs[idx], skylight.interior_shading_factor_summer)
-      assert_equal(int_winter_sfs[idx], skylight.interior_shading_factor_winter)
-      assert_equal(azimuths[idx], skylight.azimuth)
-    end
+  def _test_default_skylight_values(skylight, ext_summer_sf, ext_winter_sf, int_summer_sf, int_winter_sf, azimuth)
+    assert_equal(ext_summer_sf, skylight.exterior_shading_factor_summer)
+    assert_equal(ext_winter_sf, skylight.exterior_shading_factor_winter)
+    assert_equal(int_summer_sf, skylight.interior_shading_factor_summer)
+    assert_equal(int_winter_sf, skylight.interior_shading_factor_winter)
+    assert_equal(azimuth, skylight.azimuth)
   end
 
   def _test_default_door_values(hpxml_bldg, azimuths)
@@ -5237,7 +5439,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
 
     assert_equal(is_shared_system, vent_fan.is_shared_system)
     assert_equal(hours_in_operation, vent_fan.hours_in_operation)
-    assert_in_delta(fan_power, vent_fan.fan_power, 0.1)
+    if fan_power.nil?
+      assert_nil(vent_fan.fan_power)
+    else
+      assert_in_delta(fan_power, vent_fan.fan_power, 0.1)
+    end
     assert_in_delta(flow_rate, vent_fan.rated_flow_rate.to_f + vent_fan.calculated_flow_rate.to_f + vent_fan.tested_flow_rate.to_f + vent_fan.delivered_ventilation.to_f, 0.1)
     if cfis_vent_mode_airflow_fraction.nil?
       assert_nil(vent_fan.cfis_vent_mode_airflow_fraction)
@@ -5326,9 +5532,12 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     heat_pump_water_heaters = hpxml_bldg.water_heating_systems.select { |w| w.water_heater_type == HPXML::WaterHeaterTypeHeatPump }
     assert_equal(expected_wh_values.size, heat_pump_water_heaters.size)
     heat_pump_water_heaters.each_with_index do |wh_system, idx|
-      operating_mode, = expected_wh_values[idx]
+      tank_volume, operating_mode, htg_cap, backup_htg_cap = expected_wh_values[idx]
 
+      assert_equal(tank_volume, wh_system.tank_volume)
       assert_equal(operating_mode, wh_system.operating_mode)
+      assert_in_epsilon(htg_cap, wh_system.heating_capacity, 0.01)
+      assert_in_epsilon(backup_htg_cap, wh_system.backup_heating_capacity, 0.01)
     end
   end
 
@@ -5336,8 +5545,9 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     indirect_water_heaters = hpxml_bldg.water_heating_systems.select { |w| w.water_heater_type == HPXML::WaterHeaterTypeCombiStorage }
     assert_equal(expected_wh_values.size, indirect_water_heaters.size)
     indirect_water_heaters.each_with_index do |wh_system, idx|
-      standby_loss_units, standby_loss_value, = expected_wh_values[idx]
+      tank_volume, standby_loss_units, standby_loss_value = expected_wh_values[idx]
 
+      assert_equal(tank_volume, wh_system.tank_volume)
       assert_equal(standby_loss_units, wh_system.standby_loss_units)
       assert_equal(standby_loss_value, wh_system.standby_loss_value)
     end
