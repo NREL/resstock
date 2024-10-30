@@ -48,7 +48,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           choices.unshift(Constants::Auto) if arg.description.to_s.include?('OS-HPXML default')
           new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
         when 'boolean'
-          choices = [Constants::Auto, 'true', 'false']
+          choices = ['true', 'false']
+          choices.unshift(Constants::Auto) if arg.description.to_s.include?('OS-HPXML default')
           new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
         else
           new_arg = OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)

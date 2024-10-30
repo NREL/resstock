@@ -1623,7 +1623,7 @@ Whether the cooling system is ducted or not. Only used for mini-split and evapor
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -2006,7 +2006,7 @@ Whether the heat pump is ducted or not. Only used for mini-split. It's assumed t
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -2937,7 +2937,7 @@ Whether there is a whole house fan.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -3136,7 +3136,7 @@ Requires that the dwelling unit has a air-to-air, mini-split, or ground-to-air h
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -3269,7 +3269,7 @@ Whether the drain water heat recovery has equal flow.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -3293,7 +3293,7 @@ Whether the shower fixture is low flow. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -3306,7 +3306,7 @@ Whether the sink fixture is low flow. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -3457,7 +3457,7 @@ Whether there is a PV system present. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -3564,7 +3564,7 @@ Whether there is a second PV system present. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -3649,7 +3649,7 @@ Whether there is a lithium ion battery present. If not provided, defaults to fal
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -3862,7 +3862,7 @@ Whether there is holiday lighting. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -4335,7 +4335,7 @@ Whether there is an extra refrigerator present. If not provided, defaults to fal
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -4383,7 +4383,7 @@ Whether there is a freezer present. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -4637,7 +4637,7 @@ Whether there is a well pump. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -4672,7 +4672,7 @@ Whether there is an electric vehicle. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -4707,7 +4707,7 @@ Whether there is a fuel loads grill. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -4755,7 +4755,7 @@ Whether there is fuel loads lighting. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -4803,7 +4803,7 @@ Whether there is fuel loads fireplace. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -4873,7 +4873,7 @@ Whether there is a pool. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
@@ -4954,7 +4954,7 @@ Whether there is a permanent spa. If not provided, defaults to false.
 
 - **Required:** ``false``
 
-- **Choices:** `auto`, `true`, `false`
+- **Choices:** `true`, `false`
 
 <br/>
 
