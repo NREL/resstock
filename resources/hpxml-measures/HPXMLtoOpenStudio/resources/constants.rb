@@ -88,7 +88,7 @@ module Constants
 
   # Arrays/Maps
   ERIVersions = ['2014', '2014A', '2014AE', '2014AEG', '2019', '2019A',
-                 '2019AB', '2019ABC', '2019ABCD', '2022', '2022C']
+                 '2019AB', '2019ABC', '2019ABCD', '2022', '2022C', '2022CE']
   IECCZones = ['1A', '1B', '1C', '2A', '2B', '2C', '3A', '3B', '3C',
                '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8']
   StateCodesMap = { 'AK' => 'Alaska',

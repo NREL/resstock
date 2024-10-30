@@ -1962,6 +1962,7 @@
     <sch:title>[MechanicalVentilationType=ExhaustOnly]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true" and h:FanType="exhaust only"]'>
       <sch:assert role='ERROR' test='count(h:IsSharedSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: IsSharedSystem</sch:assert> <!-- See [MechanicalVentilationType=Shared] -->
+      <sch:assert role='ERROR' test='count(h:CFISControls) = 0'>Expected 0 element(s) for xpath: CFISControls</sch:assert>
       <sch:assert role='ERROR' test='count(h:RatedFlowRate) + count(h:CalculatedFlowRate) + count(h:TestedFlowRate) + count(h:DeliveredVentilation) &gt;= 0'>Expected 0 or more element(s) for xpath: RatedFlowRate | CalculatedFlowRate | TestedFlowRate | DeliveredVentilation</sch:assert>
       <sch:assert role='ERROR' test='count(h:HoursInOperation) &lt;= 1'>Expected 0 or 1 element(s) for xpath: HoursInOperation</sch:assert>
       <sch:assert role='ERROR' test='count(h:FanPower) &lt;= 1'>Expected 0 or 1 element(s) for xpath: FanPower</sch:assert>
@@ -1974,6 +1975,7 @@
     <sch:title>[MechanicalVentilationType=SupplyOnly]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true" and h:FanType="supply only"]'>
       <sch:assert role='ERROR' test='count(h:IsSharedSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: IsSharedSystem</sch:assert> <!-- See [MechanicalVentilationType=Shared] -->
+      <sch:assert role='ERROR' test='count(h:CFISControls) = 0'>Expected 0 element(s) for xpath: CFISControls</sch:assert>
       <sch:assert role='ERROR' test='count(h:RatedFlowRate) + count(h:CalculatedFlowRate) + count(h:TestedFlowRate) + count(h:DeliveredVentilation) &gt;= 0'>Expected 0 or more element(s) for xpath: RatedFlowRate | CalculatedFlowRate | TestedFlowRate | DeliveredVentilation</sch:assert>
       <sch:assert role='ERROR' test='count(h:HoursInOperation) &lt;= 1'>Expected 0 or 1 element(s) for xpath: HoursInOperation</sch:assert>
       <sch:assert role='ERROR' test='count(h:FanPower) &lt;= 1'>Expected 0 or 1 element(s) for xpath: FanPower</sch:assert>
@@ -1986,6 +1988,7 @@
     <sch:title>[MechanicalVentilationType=Balanced]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true" and h:FanType="balanced"]'>
       <sch:assert role='ERROR' test='count(h:IsSharedSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: IsSharedSystem</sch:assert> <!-- See [MechanicalVentilationType=Shared] -->
+      <sch:assert role='ERROR' test='count(h:CFISControls) = 0'>Expected 0 element(s) for xpath: CFISControls</sch:assert>
       <sch:assert role='ERROR' test='count(h:RatedFlowRate) + count(h:CalculatedFlowRate) + count(h:TestedFlowRate) + count(h:DeliveredVentilation) &gt;= 0'>Expected 0 or more element(s) for xpath: RatedFlowRate | CalculatedFlowRate | TestedFlowRate | DeliveredVentilation</sch:assert>
       <sch:assert role='ERROR' test='count(h:HoursInOperation) &lt;= 1'>Expected 0 or 1 element(s) for xpath: HoursInOperation</sch:assert>
       <sch:assert role='ERROR' test='count(h:FanPower) &lt;= 1'>Expected 0 or 1 element(s) for xpath: FanPower</sch:assert>
@@ -1998,6 +2001,7 @@
     <sch:title>[MechanicalVentilationType=HRV]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true" and h:FanType="heat recovery ventilator"]'>
       <sch:assert role='ERROR' test='count(h:IsSharedSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: IsSharedSystem</sch:assert> <!-- See [MechanicalVentilationType=Shared] -->
+      <sch:assert role='ERROR' test='count(h:CFISControls) = 0'>Expected 0 element(s) for xpath: CFISControls</sch:assert>
       <sch:assert role='ERROR' test='count(h:RatedFlowRate) + count(h:CalculatedFlowRate) + count(h:TestedFlowRate) + count(h:DeliveredVentilation) &gt;= 0'>Expected 0 or more element(s) for xpath: RatedFlowRate | CalculatedFlowRate | TestedFlowRate | DeliveredVentilation</sch:assert>
       <sch:assert role='ERROR' test='count(h:HoursInOperation) &lt;= 1'>Expected 0 or 1 element(s) for xpath: HoursInOperation</sch:assert>
       <sch:assert role='ERROR' test='count(h:AdjustedTotalRecoveryEfficiency) + count(h:TotalRecoveryEfficiency) = 0'>Expected 0 element(s) for xpath: AdjustedTotalRecoveryEfficiency | TotalRecoveryEfficiency</sch:assert>
@@ -2010,6 +2014,7 @@
     <sch:title>[MechanicalVentilationType=ERV]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true" and h:FanType="energy recovery ventilator"]'>
       <sch:assert role='ERROR' test='count(h:IsSharedSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: IsSharedSystem</sch:assert> <!-- See [MechanicalVentilationType=Shared] -->
+      <sch:assert role='ERROR' test='count(h:CFISControls) = 0'>Expected 0 element(s) for xpath: CFISControls</sch:assert>
       <sch:assert role='ERROR' test='count(h:RatedFlowRate) + count(h:CalculatedFlowRate) + count(h:TestedFlowRate) + count(h:DeliveredVentilation) &gt;= 0'>Expected 0 or more element(s) for xpath: RatedFlowRate | CalculatedFlowRate | TestedFlowRate | DeliveredVentilation</sch:assert>
       <sch:assert role='ERROR' test='count(h:HoursInOperation) &lt;= 1'>Expected 0 or 1 element(s) for xpath: HoursInOperation</sch:assert>
       <sch:assert role='ERROR' test='count(h:AdjustedTotalRecoveryEfficiency) + count(h:TotalRecoveryEfficiency) = 1'>Expected 1 element(s) for xpath: AdjustedTotalRecoveryEfficiency | TotalRecoveryEfficiency</sch:assert>
@@ -2025,8 +2030,11 @@
     <sch:title>[MechanicalVentilationType=CFIS]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true" and h:FanType="central fan integrated supply"]'>
       <sch:assert role='ERROR' test='count(h:IsSharedSystem[text()="true"]) = 0'>Expected 0 element(s) for xpath: IsSharedSystem[text()="true"]</sch:assert>
+      <sch:assert role='ERROR' test='count(h:CFISControls/h:HasOutdoorAirControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CFISControls/HasOutdoorAirControl</sch:assert>
       <sch:assert role='ERROR' test='count(h:CFISControls/h:AdditionalRuntimeOperatingMode) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CFISControls/AdditionalRuntimeOperatingMode</sch:assert>
       <sch:assert role='ERROR' test='h:CFISControls/h:AdditionalRuntimeOperatingMode[text()="air handler fan" or text()="supplemental fan" or text()="none"] or not(h:CFISControls/h:AdditionalRuntimeOperatingMode)'>Expected CFISControls/AdditionalRuntimeOperatingMode to be 'air handler fan' or 'supplemental fan' or 'none'</sch:assert> <!-- See [CFISAdditionalRuntimeMode=AirHandlerFan] or [CFISAdditionalRuntimeMode=SupplementalFan] or [CFISAdditionalRuntimeMode=None] -->
+      <sch:assert role='ERROR' test='count(h:CFISControls/h:extension/h:ControlType) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CFISControls/extension/ControlType</sch:assert>
+      <sch:assert role='ERROR' test='h:CFISControls/h:extension/h:ControlType[text()="optimized" or text()="timer"] or not(h:CFISControls/h:extension/h:ControlType)'>Expected CFISControls/extension/ControlType to be 'optimized' or 'timer'</sch:assert> <!-- See CFISControlType=Timer -->
       <sch:assert role='ERROR' test='count(h:RatedFlowRate) + count(h:CalculatedFlowRate) + count(h:TestedFlowRate) + count(h:DeliveredVentilation) &gt;= 0'>Expected 0 or more element(s) for xpath: RatedFlowRate | CalculatedFlowRate | TestedFlowRate | DeliveredVentilation</sch:assert>
       <sch:assert role='ERROR' test='count(h:HoursInOperation) &lt;= 1'>Expected 0 or 1 element(s) for xpath: HoursInOperation</sch:assert>
       <sch:assert role='ERROR' test='count(h:TotalRecoveryEfficiency) + count(h:AdjustedTotalRecoveryEfficiency) = 0'>Expected 0 element(s) for xpath: TotalRecoveryEfficiency | AdjustedTotalRecoveryEfficiency</sch:assert>
@@ -2034,11 +2042,19 @@
       <sch:assert role='ERROR' test='count(h:AttachedToHVACDistributionSystem) = 1'>Expected 1 element(s) for xpath: AttachedToHVACDistributionSystem</sch:assert>
     </sch:rule>
   </sch:pattern>
+  
+  <sch:pattern>
+    <sch:title>[CFISControlType=Timer]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true" and h:FanType="central fan integrated supply" and h:CFISControls/h:extension/h:ControlType="timer"]'>
+      <sch:assert role='ERROR' test='h:CFISControls/h:AdditionalRuntimeOperatingMode[text()="air handler fan"]'>Expected CFISControls/AdditionalRuntimeOperatingMode to be 'air handler fan'</sch:assert>
+    </sch:rule>
+  </sch:pattern>
 
   <sch:pattern>
     <sch:title>[CFISAdditionalRuntimeMode=AirHandlerFan]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true" and h:FanType="central fan integrated supply" and h:CFISControls/h:AdditionalRuntimeOperatingMode="air handler fan"]'>
       <sch:assert role='ERROR' test='count(h:CFISControls/h:SupplementalFan) = 0'>Expected 0 element(s) for xpath: CFISControls/SupplementalFan</sch:assert>
+      <sch:assert role='ERROR' test='count(h:CFISControls/h:extension/h:SupplementalFanRunsWithAirHandlerFan) = 0'>Expected 0 element(s) for xpath: CFISControls/extension/SupplementalFanRunsWithAirHandlerFan</sch:assert>
       <sch:assert role='ERROR' test='count(h:FanPower) &lt;= 1'>Expected 0 or 1 element(s) for xpath: FanPower</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:VentilationOnlyModeAirflowFraction) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/VentilationOnlyModeAirflowFraction</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:VentilationOnlyModeAirflowFraction) &gt;= 0 or not(h:extension/h:VentilationOnlyModeAirflowFraction)'>Expected extension/VentilationOnlyModeAirflowFraction to be greater than or equal to 0</sch:assert>
@@ -2050,6 +2066,7 @@
     <sch:title>[CFISAdditionalRuntimeMode=SupplementalFan]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true" and h:FanType="central fan integrated supply" and h:CFISControls/h:AdditionalRuntimeOperatingMode="supplemental fan"]'>
       <sch:assert role='ERROR' test='count(h:CFISControls/h:SupplementalFan) = 1'>Expected 1 element(s) for xpath: CFISControls/SupplementalFan</sch:assert>
+      <sch:assert role='ERROR' test='count(h:CFISControls/h:extension/h:SupplementalFanRunsWithAirHandlerFan) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CFISControls/extension/SupplementalFanRunsWithAirHandlerFan</sch:assert>
       <sch:assert role='ERROR' test='count(h:FanPower) = 0'>Expected 0 element(s) for xpath: FanPower</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:VentilationOnlyModeAirflowFraction) = 0'>Expected 0 element(s) for xpath: extension/VentilationOnlyModeAirflowFraction</sch:assert>
     </sch:rule>
@@ -2059,6 +2076,7 @@
     <sch:title>[CFISAdditionalRuntimeMode=None]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true" and h:FanType="central fan integrated supply" and h:CFISControls/h:AdditionalRuntimeOperatingMode="none"]'>
       <sch:assert role='ERROR' test='count(h:CFISControls/h:SupplementalFan) = 0'>Expected 0 element(s) for xpath: CFISControls/SupplementalFan</sch:assert>
+      <sch:assert role='ERROR' test='count(h:CFISControls/h:extension/h:SupplementalFanRunsWithAirHandlerFan) = 0'>Expected 0 element(s) for xpath: CFISControls/extension/SupplementalFanRunsWithAirHandlerFan</sch:assert>
       <sch:assert role='ERROR' test='count(h:FanPower) = 0'>Expected 0 element(s) for xpath: FanPower</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:VentilationOnlyModeAirflowFraction) = 0'>Expected 0 element(s) for xpath: extension/VentilationOnlyModeAirflowFraction</sch:assert>
     </sch:rule>

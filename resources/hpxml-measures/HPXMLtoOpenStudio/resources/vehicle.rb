@@ -34,27 +34,17 @@ class Vehicle
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
   def self.apply_electric_vehicle(runner, model, spaces, hpxml_bldg, vehicle, schedules_file)
-    ev_charger = nil
-    if not vehicle.ev_charger_idref.nil?
-      hpxml_bldg.ev_chargers.each do |charger|
-        next unless vehicle.ev_charger_idref == charger.id
-
-        ev_charger = charger
-      end
-    end
-
     # Assign charging and vehicle space
-    if ev_charger
+    ev_charger = vehicle.ev_charger
+    if ev_charger.nil?
+      runner.registerWarning('Electric vehicle specified with no charger provided; battery will not be modeled.')
+      return
+    else
       ev_charger.additional_properties.space = Geometry.get_space_from_location(ev_charger.location, spaces)
       vehicle.location = ev_charger.location
       vehicle.additional_properties.space = Geometry.get_space_from_location(vehicle.location, spaces)
     end
-
-    if ev_charger.nil?
-      runner.registerWarning('Electric vehicle specified with no charger provided; battery will not be modeled.')
-      return
-    end
-    Battery.apply_battery(runner, model, spaces, hpxml_bldg, vehicle, schedules_file, is_ev: true, ev_charger: ev_charger)
+    Battery.apply_battery(runner, model, spaces, hpxml_bldg, vehicle, schedules_file)
 
     # Apply EMS program to adjust discharge power based on ambient temperature.
     model.getElectricLoadCenterStorageLiIonNMCBatterys.each do |elcs|

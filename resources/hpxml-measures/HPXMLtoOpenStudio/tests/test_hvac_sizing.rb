@@ -1153,6 +1153,7 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
         htg_cap_orig = hpxml_bldg.heat_pumps[0].heating_capacity
         clg_cap_orig = hpxml_bldg.heat_pumps[0].cooling_capacity
         backup_htg_cap_orig = hpxml_bldg.heat_pumps[0].backup_heating_capacity
+
         # apply autosizing factor
         hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-detailed-performance-autosize.xml')
         hpxml_bldg.heat_pumps[0].backup_heating_capacity = nil
@@ -1343,6 +1344,35 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
         end
       end
     end
+  end
+
+  def test_detailed_performance_autosizing
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+
+    # Test heat pump w/ detailed performance
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-detailed-performance-autosize.xml')
+    hpxml_bldg.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingMaxLoad
+    hpxml_bldg.heat_pumps[0].backup_heating_capacity = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    htg_cap_orig = hpxml_bldg.heat_pumps[0].heating_capacity
+    clg_cap_orig = hpxml_bldg.heat_pumps[0].cooling_capacity
+    backup_htg_cap_orig = hpxml_bldg.heat_pumps[0].backup_heating_capacity
+
+    # Test heat pump w/ detailed performance when maximum fractions are over 1.0 at rated temperature
+    hpxml, hpxml_bldg = _create_hpxml('base-hvac-air-to-air-heat-pump-var-speed-detailed-performance-autosize.xml')
+    hpxml_bldg.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingMaxLoad
+    hpxml_bldg.heat_pumps[0].backup_heating_capacity = nil
+    hpxml_bldg.heat_pumps[0].heating_capacity = nil
+    hpxml_bldg.heat_pumps[0].cooling_capacity = nil
+    hpxml_bldg.heat_pumps[0].heating_detailed_performance_data.find { |dp| dp.outdoor_temperature == HVAC::AirSourceHeatRatedODB && dp.capacity_description == HPXML::CapacityDescriptionMaximum }.capacity_fraction_of_nominal = 1.2
+    hpxml_bldg.heat_pumps[0].cooling_detailed_performance_data.find { |dp| dp.outdoor_temperature == HVAC::AirSourceCoolRatedODB && dp.capacity_description == HPXML::CapacityDescriptionMaximum }.capacity_fraction_of_nominal = 1.1
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    assert_equal(hpxml_bldg.heat_pumps[0].heating_capacity, htg_cap_orig)
+    assert_equal(hpxml_bldg.heat_pumps[0].cooling_capacity, clg_cap_orig)
+    assert_equal(hpxml_bldg.heat_pumps[0].backup_heating_capacity, backup_htg_cap_orig)
   end
 
   def test_manual_j_detailed_sizing_inputs
@@ -1768,6 +1798,40 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
         HVACSizing.get_geothermal_loop_g_functions_data_from_json(g_functions_json, bore_config, num_bore_holes, '5._192._0.08') # b_h_rb is arbitrary
       end
     end
+  end
+
+  def test_detailed_design_load_output_file
+    args_hash = { 'output_format' => 'json',
+                  'hpxml_path' => File.absolute_path(File.join(@test_files_path, 'ACCA_Examples', 'Bob_Ross_Residence.xml')) }
+    _model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+    design_load_details_path = File.absolute_path(File.join(File.dirname(__FILE__), 'results_design_load_details.json'))
+    json = JSON.parse(File.read(design_load_details_path))
+
+    tol = 10 # Btuh, allow some tolerance due to rounding
+
+    num_reports = 0
+    json.keys.each do |report|
+      next unless report.include? 'Loads'
+
+      sum_htg = 0
+      sum_clg_sens = 0
+      sum_clg_lat = 0
+      json[report].keys.each do |component|
+        if component == 'Total'
+          num_reports += 1
+          assert_in_delta(sum_htg, json[report][component]['Heating (Btuh)'].to_f, tol)
+          assert_in_delta(sum_clg_sens, json[report][component]['Cooling Sensible (Btuh)'].to_f, tol)
+          assert_in_delta(sum_clg_lat, json[report][component]['Cooling Latent (Btuh)'].to_f, tol)
+        else
+          sum_htg += json[report][component]['Heating (Btuh)'].to_f
+          sum_clg_sens += json[report][component]['Cooling Sensible (Btuh)'].to_f
+          sum_clg_lat += json[report][component]['Cooling Latent (Btuh)'].to_f
+        end
+      end
+    end
+
+    num_expected_reports = hpxml_bldg.conditioned_zones.size + hpxml_bldg.conditioned_spaces.size
+    assert_equal(num_expected_reports, num_reports)
   end
 
   def _test_measure(args_hash)

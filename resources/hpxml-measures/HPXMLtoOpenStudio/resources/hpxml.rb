@@ -80,6 +80,8 @@ class HPXML < Object
   CertificationEnergyStar = 'Energy Star'
   ClothesDryerControlTypeMoisture = 'moisture'
   ClothesDryerControlTypeTimer = 'timer'
+  CFISControlTypeOptimized = 'optimized'
+  CFISControlTypeTimer = 'timer'
   CFISModeAirHandler = 'air handler fan'
   CFISModeNone = 'none'
   CFISModeSupplementalFan = 'supplemental fan'
@@ -8002,40 +8004,43 @@ class HPXML < Object
 
   # Object for /HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan.
   class VentilationFan < BaseElement
-    ATTRS = [:id,                                       # [String] SystemIdentifier/@id
-             :count,                                    # [Integer] Count
-             :fan_type,                                 # [String] FanType (HPXML::MechVentTypeXXX)
-             :cfis_addtl_runtime_operating_mode,        # [String] CFISControls/AdditionalRuntimeOperatingMode (HPXML::CFISModeXXX)
-             :cfis_supplemental_fan_idref,              # [String] CFISControls/SupplementalFan/@idref
-             :rated_flow_rate,                          # [Double] RatedFlowRate (cfm)
-             :calculated_flow_rate,                     # [Double] CalculatedFlowRate (cfm)
-             :tested_flow_rate,                         # [Double] TestedFlowRate (cfm)
-             :hours_in_operation,                       # [Double] HoursInOperation (hrs/day)
-             :delivered_ventilation,                    # [Double] DeliveredVentilation (cfm)
-             :fan_location,                             # [String] FanLocation (HPXML::LocationXXX)
-             :used_for_local_ventilation,               # [Boolean] UsedForLocalVentilation
-             :used_for_whole_building_ventilation,      # [Boolean] UsedForWholeBuildingVentilation
-             :used_for_seasonal_cooling_load_reduction, # [Boolean] UsedForSeasonalCoolingLoadReduction
-             :used_for_garage_ventilation,              # [Boolean] UsedForGarageVentilation
-             :is_shared_system,                         # [Boolean] IsSharedSystem
-             :fraction_recirculation,                   # [Double] FractionRecirculation (frac)
-             :total_recovery_efficiency,                # [Double] TotalRecoveryEfficiency (frac)
-             :sensible_recovery_efficiency,             # [Double] SensibleRecoveryEfficiency (frac)
-             :total_recovery_efficiency_adjusted,       # [Double] AdjustedTotalRecoveryEfficiency (frac)
-             :sensible_recovery_efficiency_adjusted,    # [Double] AdjustedSensibleRecoveryEfficiency (frac)
-             :fan_power,                                # [Double] FanPower (W)
-             :distribution_system_idref,                # [String] AttachedToHVACDistributionSystem/@idref
-             :start_hour,                               # [Integer] extension/StartHour
-             :in_unit_flow_rate,                        # [Double] extension/InUnitFlowRate (cfm)
-             :preheating_fuel,                          # [String] extension/PreHeating/Fuel (HPXML::FuelTypeXXX)
-             :preheating_efficiency_cop,                # [Double] extension/PreHeating/AnnualHeatingEfficiency[Units="COP"]/Value (W/W)
-             :preheating_fraction_load_served,          # [Double] extension/PreHeating/FractionVentilationHeatLoadServed (frac)
-             :precooling_fuel,                          # [String] extension/PreCooling/Fuel (HPXML::FuelTypeXXX)
-             :precooling_efficiency_cop,                # [Double] extension/PreCooling/AnnualCoolingEfficiency[Units="COP"]/Value (W/W)
-             :precooling_fraction_load_served,          # [Double] extension/PreCooling/FractionVentilationCoolLoadServed (frac)
-             :flow_rate_not_tested,                     # [Boolean] extension/FlowRateNotTested
-             :fan_power_defaulted,                      # [Boolean] extension/FanPowerDefaulted
-             :cfis_vent_mode_airflow_fraction]          # [Double] extension/VentilationOnlyModeAirflowFraction (frac)
+    ATTRS = [:id,                                              # [String] SystemIdentifier/@id
+             :count,                                           # [Integer] Count
+             :fan_type,                                        # [String] FanType (HPXML::MechVentTypeXXX)
+             :cfis_has_outdoor_air_control,                    # [Boolean] CFISControls/HasOutdoorAirControl
+             :cfis_addtl_runtime_operating_mode,               # [String] CFISControls/AdditionalRuntimeOperatingMode (HPXML::CFISModeXXX)
+             :cfis_supplemental_fan_idref,                     # [String] CFISControls/SupplementalFan/@idref
+             :cfis_control_type,                               # [String] CFISControls/extension/ControlType (HPXML::CFISControlTypeXXX)
+             :cfis_supplemental_fan_runs_with_air_handler_fan, # [Boolean] CFISControls/extension/SupplementalFanRunsWithAirHandlerFan
+             :rated_flow_rate,                                 # [Double] RatedFlowRate (cfm)
+             :calculated_flow_rate,                            # [Double] CalculatedFlowRate (cfm)
+             :tested_flow_rate,                                # [Double] TestedFlowRate (cfm)
+             :hours_in_operation,                              # [Double] HoursInOperation (hrs/day)
+             :delivered_ventilation,                           # [Double] DeliveredVentilation (cfm)
+             :fan_location,                                    # [String] FanLocation (HPXML::LocationXXX)
+             :used_for_local_ventilation,                      # [Boolean] UsedForLocalVentilation
+             :used_for_whole_building_ventilation,             # [Boolean] UsedForWholeBuildingVentilation
+             :used_for_seasonal_cooling_load_reduction,        # [Boolean] UsedForSeasonalCoolingLoadReduction
+             :used_for_garage_ventilation,                     # [Boolean] UsedForGarageVentilation
+             :is_shared_system,                                # [Boolean] IsSharedSystem
+             :fraction_recirculation,                          # [Double] FractionRecirculation (frac)
+             :total_recovery_efficiency,                       # [Double] TotalRecoveryEfficiency (frac)
+             :sensible_recovery_efficiency,                    # [Double] SensibleRecoveryEfficiency (frac)
+             :total_recovery_efficiency_adjusted,              # [Double] AdjustedTotalRecoveryEfficiency (frac)
+             :sensible_recovery_efficiency_adjusted,           # [Double] AdjustedSensibleRecoveryEfficiency (frac)
+             :fan_power,                                       # [Double] FanPower (W)
+             :distribution_system_idref,                       # [String] AttachedToHVACDistributionSystem/@idref
+             :start_hour,                                      # [Integer] extension/StartHour
+             :in_unit_flow_rate,                               # [Double] extension/InUnitFlowRate (cfm)
+             :preheating_fuel,                                 # [String] extension/PreHeating/Fuel (HPXML::FuelTypeXXX)
+             :preheating_efficiency_cop,                       # [Double] extension/PreHeating/AnnualHeatingEfficiency[Units="COP"]/Value (W/W)
+             :preheating_fraction_load_served,                 # [Double] extension/PreHeating/FractionVentilationHeatLoadServed (frac)
+             :precooling_fuel,                                 # [String] extension/PreCooling/Fuel (HPXML::FuelTypeXXX)
+             :precooling_efficiency_cop,                       # [Double] extension/PreCooling/AnnualCoolingEfficiency[Units="COP"]/Value (W/W)
+             :precooling_fraction_load_served,                 # [Double] extension/PreCooling/FractionVentilationCoolLoadServed (frac)
+             :flow_rate_not_tested,                            # [Boolean] extension/FlowRateNotTested
+             :fan_power_defaulted,                             # [Boolean] extension/FanPowerDefaulted
+             :cfis_vent_mode_airflow_fraction]                 # [Double] extension/VentilationOnlyModeAirflowFraction (frac)
     attr_accessor(*ATTRS)
 
     # Returns the HVAC distribution system for the ventilation fan.
@@ -8252,13 +8257,16 @@ class HPXML < Object
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(ventilation_fan, 'Count', @count, :integer, @count_isdefaulted) unless @count.nil?
       XMLHelper.add_element(ventilation_fan, 'FanType', @fan_type, :string) unless @fan_type.nil?
-      if (not @cfis_addtl_runtime_operating_mode.nil?) || (not @cfis_supplemental_fan_idref.nil?)
+      if (not @cfis_addtl_runtime_operating_mode.nil?) || (not @cfis_supplemental_fan_idref.nil?) || (not @cfis_has_outdoor_air_control.nil?) || (not @cfis_control_type.nil?) || (not @cfis_supplemental_fan_runs_with_air_handler_fan.nil?)
         cfis_controls = XMLHelper.add_element(ventilation_fan, 'CFISControls')
+        XMLHelper.add_element(cfis_controls, 'HasOutdoorAirControl', @cfis_has_outdoor_air_control, :boolean, @cfis_has_outdoor_air_control_isdefaulted) unless @cfis_has_outdoor_air_control.nil?
         XMLHelper.add_element(cfis_controls, 'AdditionalRuntimeOperatingMode', @cfis_addtl_runtime_operating_mode, :string, @cfis_addtl_runtime_operating_mode_isdefaulted) unless @cfis_addtl_runtime_operating_mode.nil?
         if not @cfis_supplemental_fan_idref.nil?
           supplemental_fan = XMLHelper.add_element(cfis_controls, 'SupplementalFan')
           XMLHelper.add_attribute(supplemental_fan, 'idref', @cfis_supplemental_fan_idref)
         end
+        XMLHelper.add_extension(cfis_controls, 'ControlType', @cfis_control_type, :string, @cfis_control_type_isdefaulted) unless @cfis_control_type.nil?
+        XMLHelper.add_extension(cfis_controls, 'SupplementalFanRunsWithAirHandlerFan', @cfis_supplemental_fan_runs_with_air_handler_fan, :boolean, @cfis_supplemental_fan_runs_with_air_handler_fan_isdefaulted) unless @cfis_supplemental_fan_runs_with_air_handler_fan.nil?
       end
       XMLHelper.add_element(ventilation_fan, 'RatedFlowRate', @rated_flow_rate, :float, @rated_flow_rate_isdefaulted) unless @rated_flow_rate.nil?
       XMLHelper.add_element(ventilation_fan, 'CalculatedFlowRate', @calculated_flow_rate, :float, @calculated_flow_rate_isdefaulted) unless @calculated_flow_rate.nil?
@@ -8314,6 +8322,11 @@ class HPXML < Object
       @id = HPXML::get_id(ventilation_fan)
       @count = XMLHelper.get_value(ventilation_fan, 'Count', :integer)
       @fan_type = XMLHelper.get_value(ventilation_fan, 'FanType', :string)
+      @cfis_has_outdoor_air_control = XMLHelper.get_value(ventilation_fan, 'CFISControls/HasOutdoorAirControl', :boolean)
+      @cfis_addtl_runtime_operating_mode = XMLHelper.get_value(ventilation_fan, 'CFISControls/AdditionalRuntimeOperatingMode', :string)
+      @cfis_supplemental_fan_idref = HPXML::get_idref(XMLHelper.get_element(ventilation_fan, 'CFISControls/SupplementalFan'))
+      @cfis_control_type = XMLHelper.get_value(ventilation_fan, 'CFISControls/extension/ControlType', :string)
+      @cfis_supplemental_fan_runs_with_air_handler_fan = XMLHelper.get_value(ventilation_fan, 'CFISControls/extension/SupplementalFanRunsWithAirHandlerFan', :boolean)
       @rated_flow_rate = XMLHelper.get_value(ventilation_fan, 'RatedFlowRate', :float)
       @calculated_flow_rate = XMLHelper.get_value(ventilation_fan, 'CalculatedFlowRate', :float)
       @tested_flow_rate = XMLHelper.get_value(ventilation_fan, 'TestedFlowRate', :float)
@@ -8343,8 +8356,6 @@ class HPXML < Object
       @flow_rate_not_tested = XMLHelper.get_value(ventilation_fan, 'extension/FlowRateNotTested', :boolean)
       @fan_power_defaulted = XMLHelper.get_value(ventilation_fan, 'extension/FanPowerDefaulted', :boolean)
       @cfis_vent_mode_airflow_fraction = XMLHelper.get_value(ventilation_fan, 'extension/VentilationOnlyModeAirflowFraction', :float)
-      @cfis_addtl_runtime_operating_mode = XMLHelper.get_value(ventilation_fan, 'CFISControls/AdditionalRuntimeOperatingMode', :string)
-      @cfis_supplemental_fan_idref = HPXML::get_idref(XMLHelper.get_element(ventilation_fan, 'CFISControls/SupplementalFan'))
     end
   end
 
@@ -9334,6 +9345,20 @@ class HPXML < Object
       @fraction_charged_home = XMLHelper.get_value(vehicle, "VehicleType/#{@vehicle_type}/FractionChargedLocation/Percentage", :float)
       @ev_charger_idref = HPXML::get_idref(XMLHelper.get_element(vehicle, "VehicleType/#{@vehicle_type}/ConnectedCharger"))
       @lifetime_model = XMLHelper.get_value(vehicle, "#{battery_prefix}/extension/LifetimeModel", :string)
+    end
+
+    # Returns the EV charger for the vehicle.
+    #
+    # @return [HPXML::ElectricVehicleCharger] The connected EV charger
+    def ev_charger
+      return if @ev_charger_idref.nil?
+
+      @parent_object.ev_chargers.each do |ev_charger|
+        next unless ev_charger.id == @ev_charger_idref
+
+        return ev_charger
+      end
+      fail "Connected charger '#{@ev_charger_idref}' not found for vehicle '#{@id}'."
     end
   end
 

@@ -2275,21 +2275,30 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                                       used_for_whole_building_ventilation: true)
     elsif ['base-mechvent-cfis-airflow-fraction-zero.xml'].include? hpxml_file
       hpxml_bldg.ventilation_fans[0].cfis_vent_mode_airflow_fraction = 0.0
+    elsif ['base-mechvent-cfis-control-type-timer.xml'].include? hpxml_file
+      hpxml_bldg.ventilation_fans[0].cfis_control_type = HPXML::CFISControlTypeTimer
     elsif ['base-mechvent-cfis-no-additional-runtime.xml'].include? hpxml_file
       hpxml_bldg.ventilation_fans[0].cfis_addtl_runtime_operating_mode = HPXML::CFISModeNone
+    elsif ['base-mechvent-cfis-no-outdoor-air-control.xml'].include? hpxml_file
+      hpxml_bldg.ventilation_fans[0].cfis_has_outdoor_air_control = false
     elsif ['base-mechvent-cfis-supplemental-fan-exhaust.xml',
-           'base-mechvent-cfis-supplemental-fan-supply.xml'].include? hpxml_file
+           'base-mechvent-cfis-supplemental-fan-exhaust-15-mins.xml',
+           'base-mechvent-cfis-supplemental-fan-supply.xml',
+           'base-mechvent-cfis-supplemental-fan-exhaust-synchronized.xml'].include? hpxml_file
       hpxml_bldg.ventilation_fans.add(id: "VentilationFan#{hpxml_bldg.ventilation_fans.size + 1}",
                                       tested_flow_rate: 120,
                                       fan_power: 30,
                                       used_for_whole_building_ventilation: true)
-      if hpxml_file == 'base-mechvent-cfis-supplemental-fan-exhaust.xml'
+      if hpxml_file.include? 'exhaust'
         hpxml_bldg.ventilation_fans[-1].fan_type = HPXML::MechVentTypeExhaust
-      else
+      elsif hpxml_file.include? 'supply'
         hpxml_bldg.ventilation_fans[-1].fan_type = HPXML::MechVentTypeSupply
       end
       hpxml_bldg.ventilation_fans[0].cfis_addtl_runtime_operating_mode = HPXML::CFISModeSupplementalFan
       hpxml_bldg.ventilation_fans[0].cfis_supplemental_fan_idref = hpxml_bldg.ventilation_fans[1].id
+      if hpxml_file == 'base-mechvent-cfis-supplemental-fan-exhaust-synchronized.xml'
+        hpxml_bldg.ventilation_fans[0].cfis_supplemental_fan_runs_with_air_handler_fan = true
+      end
     end
 
     # ---------------- #
