@@ -179,7 +179,7 @@ OptionParser.new do |opts|
   end
 
   options[:debug] = false
-  opts.on('-d', '--debug', 'Generate additional OpenStudio/EnergyPlus output files for debugging') do |_t|
+  opts.on('-d', '--debug', 'Generate additional OpenStudio and EnergyPlus files for debugging') do |_t|
     options[:debug] = true
   end
 

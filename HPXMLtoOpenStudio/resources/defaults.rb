@@ -2743,13 +2743,26 @@ module Defaults
       end
       next unless vent_fan.fan_type == HPXML::MechVentTypeCFIS
 
+      # These apply to CFIS systems
       if vent_fan.cfis_addtl_runtime_operating_mode.nil?
         vent_fan.cfis_addtl_runtime_operating_mode = HPXML::CFISModeAirHandler
         vent_fan.cfis_addtl_runtime_operating_mode_isdefaulted = true
       end
+      if vent_fan.cfis_has_outdoor_air_control.nil?
+        vent_fan.cfis_has_outdoor_air_control = true
+        vent_fan.cfis_has_outdoor_air_control_isdefaulted = true
+      end
       if vent_fan.cfis_vent_mode_airflow_fraction.nil? && (vent_fan.cfis_addtl_runtime_operating_mode == HPXML::CFISModeAirHandler)
         vent_fan.cfis_vent_mode_airflow_fraction = 1.0
         vent_fan.cfis_vent_mode_airflow_fraction_isdefaulted = true
+      end
+      if vent_fan.cfis_supplemental_fan_runs_with_air_handler_fan.nil? && (vent_fan.cfis_addtl_runtime_operating_mode == HPXML::CFISModeSupplementalFan)
+        vent_fan.cfis_supplemental_fan_runs_with_air_handler_fan = false
+        vent_fan.cfis_supplemental_fan_runs_with_air_handler_fan_isdefaulted = true
+      end
+      if vent_fan.cfis_control_type.nil?
+        vent_fan.cfis_control_type = HPXML::CFISControlTypeOptimized
+        vent_fan.cfis_control_type_isdefaulted = true
       end
     end
 
@@ -2877,6 +2890,14 @@ module Defaults
         water_heating_system.performance_adjustment = get_water_heater_performance_adjustment(water_heating_system)
         water_heating_system.performance_adjustment_isdefaulted = true
       end
+      if water_heating_system.usage_bin.nil? && (not water_heating_system.uniform_energy_factor.nil?) # FHR & UsageBin only applies to UEF
+        if not water_heating_system.first_hour_rating.nil?
+          water_heating_system.usage_bin = get_water_heater_usage_bin(water_heating_system.first_hour_rating)
+        else
+          water_heating_system.usage_bin = HPXML::WaterHeaterUsageBinMedium
+        end
+        water_heating_system.usage_bin_isdefaulted = true
+      end
       if (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeCombiStorage)
         if water_heating_system.tank_volume.nil?
           water_heating_system.tank_volume = get_water_heater_tank_volume(water_heating_system.related_hvac_system.heating_system_fuel, nbeds, nbaths)
@@ -2932,19 +2953,11 @@ module Defaults
           water_heating_system.operating_mode_isdefaulted = true
         end
       end
-      if water_heating_system.location.nil?
-        iecc_zone = hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs.empty? ? nil : hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs[0].zone
-        water_heating_system.location = get_water_heater_location(hpxml_bldg, iecc_zone)
-        water_heating_system.location_isdefaulted = true
-      end
-      next unless water_heating_system.usage_bin.nil? && (not water_heating_system.uniform_energy_factor.nil?) # FHR & UsageBin only applies to UEF
+      next unless water_heating_system.location.nil?
 
-      if not water_heating_system.first_hour_rating.nil?
-        water_heating_system.usage_bin = get_water_heater_usage_bin(water_heating_system.first_hour_rating)
-      else
-        water_heating_system.usage_bin = HPXML::WaterHeaterUsageBinMedium
-      end
-      water_heating_system.usage_bin_isdefaulted = true
+      iecc_zone = hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs.empty? ? nil : hpxml_bldg.climate_and_risk_zones.climate_zone_ieccs[0].zone
+      water_heating_system.location = get_water_heater_location(hpxml_bldg, iecc_zone)
+      water_heating_system.location_isdefaulted = true
     end
   end
 

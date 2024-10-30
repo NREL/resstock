@@ -31,23 +31,19 @@ module Battery
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param battery [HPXML::Battery] Object that defines a single home battery
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param is_ev [Boolean] Whether the battery is in an electric vehicle
-  # @param ev_charger [HPXML::ElectricVehicleCharger] Object that defines an EV charger connected to the battery, if applicable
   # @return [nil]
-  def self.apply_battery(runner, model, spaces, hpxml_bldg, battery, schedules_file, is_ev: false, ev_charger: nil)
+  def self.apply_battery(runner, model, spaces, hpxml_bldg, battery, schedules_file)
     nbeds = hpxml_bldg.building_construction.number_of_bedrooms
     unit_multiplier = hpxml_bldg.building_construction.number_of_units
     pv_systems = hpxml_bldg.pv_systems
+    is_ev = battery.is_a?(HPXML::Vehicle)
 
     charging_schedule = nil
     discharging_schedule = nil
-    if is_ev
-      charging_col = SchedulesFile::Columns[:EVBatteryCharging].name
-      discharging_col = SchedulesFile::Columns[:EVBatteryDischarging].name
-    else
-      charging_col = SchedulesFile::Columns[:BatteryCharging].name
-      discharging_col = SchedulesFile::Columns[:BatteryDischarging].name
-    end
+    charging_col = is_ev ? :EVBatteryCharging : :BatteryCharging
+    discharging_col = is_ev ? :EVBatteryDischarging : :BatteryDischarging
+    charging_col = SchedulesFile::Columns[charging_col].name
+    discharging_col = SchedulesFile::Columns[discharging_col].name
 
     if not schedules_file.nil?
       charging_schedule = schedules_file.create_schedule_file(model, col_name: charging_col)
@@ -96,8 +92,8 @@ module Battery
       rated_power_output = rated_power_output * nbeds.to_f / battery.number_of_bedrooms_served.to_f
     end
 
-    if not ev_charger.nil?
-      charging_power = ev_charger.charging_power
+    if is_ev
+      charging_power = battery.ev_charger.charging_power
     else
       charging_power = rated_power_output
     end

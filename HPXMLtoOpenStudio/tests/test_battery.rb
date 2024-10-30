@@ -23,7 +23,6 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
 
       return b
     end
-    return
   end
 
   def calc_nom_capacity(battery)
@@ -71,7 +70,7 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
 
     hpxml_bldg.batteries.each do |hpxml_battery|
       battery = get_battery(model, hpxml_battery.id)
-      assert_nil(battery)
+      assert_empty(battery)
     end
 
     elcds = model.getElectricLoadCenterDistributions
@@ -79,7 +78,6 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
   end
 
   def test_battery_scheduled
-    skip
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-battery-scheduled.xml'))
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)

@@ -3017,9 +3017,11 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     vent_fan.fan_power = 12.5
     vent_fan.rated_flow_rate = 222.0
     vent_fan.cfis_vent_mode_airflow_fraction = 0.5
+    vent_fan.cfis_has_outdoor_air_control = false
+    vent_fan.cfis_control_type = HPXML::CFISControlTypeTimer
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_mech_vent_values(default_hpxml_bldg, false, 12.0, 12.5, 222.0, 0.5, HPXML::CFISModeAirHandler)
+    _test_default_mech_vent_values(default_hpxml_bldg, false, 12.0, 12.5, 222.0, 0.5, HPXML::CFISModeAirHandler, false, HPXML::CFISControlTypeTimer)
 
     # Test defaults w/ CFIS
     vent_fan.is_shared_system = nil
@@ -3028,22 +3030,37 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     vent_fan.rated_flow_rate = nil
     vent_fan.cfis_vent_mode_airflow_fraction = nil
     vent_fan.cfis_addtl_runtime_operating_mode = nil
+    vent_fan.cfis_has_outdoor_air_control = nil
+    vent_fan.cfis_control_type = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_mech_vent_values(default_hpxml_bldg, false, 8.0, 300.0, 305.4, 1.0, HPXML::CFISModeAirHandler)
+    _test_default_mech_vent_values(default_hpxml_bldg, false, 8.0, 300.0, 305.4, 1.0, HPXML::CFISModeAirHandler, true, HPXML::CFISControlTypeOptimized)
 
     # Test inputs not overridden by defaults w/ CFIS & supplemental fan
     hpxml, hpxml_bldg = _create_hpxml('base-mechvent-cfis-supplemental-fan-exhaust.xml')
     vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeCFIS }
     vent_fan.hours_in_operation = 12.0
     vent_fan.rated_flow_rate = 222.0
+    vent_fan.cfis_supplemental_fan_runs_with_air_handler_fan = true
     suppl_vent_fan = vent_fan.cfis_supplemental_fan
     suppl_vent_fan.tested_flow_rate = 79.0
     suppl_vent_fan.fan_power = 9.0
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_mech_vent_values(default_hpxml_bldg, false, 12.0, nil, 222.0, nil, HPXML::CFISModeSupplementalFan)
+    _test_default_mech_vent_values(default_hpxml_bldg, false, 12.0, nil, 222.0, nil, HPXML::CFISModeSupplementalFan, true, HPXML::CFISControlTypeOptimized, true)
     _test_default_mech_vent_suppl_values(default_hpxml_bldg, false, nil, 9.0, 79.0)
+
+    # Test defaults w/ CFIS & supplemental fan
+    vent_fan.is_shared_system = nil
+    vent_fan.hours_in_operation = nil
+    vent_fan.fan_power = nil
+    vent_fan.rated_flow_rate = nil
+    vent_fan.cfis_vent_mode_airflow_fraction = nil
+    vent_fan.cfis_has_outdoor_air_control = nil
+    vent_fan.cfis_supplemental_fan_runs_with_air_handler_fan = nil
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    _default_hpxml, default_hpxml_bldg = _test_measure()
+    _test_default_mech_vent_values(default_hpxml_bldg, false, 8.0, nil, 305.4, nil, HPXML::CFISModeSupplementalFan, true, HPXML::CFISControlTypeOptimized, false)
 
     # Test defaults w/ CFIS supplemental fan
     suppl_vent_fan.tested_flow_rate = nil
@@ -5434,7 +5451,8 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
   end
 
   def _test_default_mech_vent_values(hpxml_bldg, is_shared_system, hours_in_operation, fan_power, flow_rate,
-                                     cfis_vent_mode_airflow_fraction = nil, cfis_addtl_runtime_operating_mode = nil)
+                                     cfis_vent_mode_airflow_fraction = nil, cfis_addtl_runtime_operating_mode = nil,
+                                     cfis_has_outdoor_air_control = nil, cfis_control_type = nil, cfis_suppl_fan_runs_with_air_handler = nil)
     vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation && !f.is_cfis_supplemental_fan }
 
     assert_equal(is_shared_system, vent_fan.is_shared_system)
@@ -5454,6 +5472,21 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
       assert_nil(vent_fan.cfis_addtl_runtime_operating_mode)
     else
       assert_equal(cfis_addtl_runtime_operating_mode, vent_fan.cfis_addtl_runtime_operating_mode)
+    end
+    if cfis_has_outdoor_air_control.nil?
+      assert_nil(vent_fan.cfis_has_outdoor_air_control)
+    else
+      assert_equal(cfis_has_outdoor_air_control, vent_fan.cfis_has_outdoor_air_control)
+    end
+    if cfis_suppl_fan_runs_with_air_handler.nil?
+      assert_nil(vent_fan.cfis_supplemental_fan_runs_with_air_handler_fan)
+    else
+      assert_equal(cfis_suppl_fan_runs_with_air_handler, vent_fan.cfis_supplemental_fan_runs_with_air_handler_fan)
+    end
+    if cfis_control_type.nil?
+      assert_nil(vent_fan.cfis_control_type)
+    else
+      assert_equal(cfis_control_type, vent_fan.cfis_control_type)
     end
   end
 
