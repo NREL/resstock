@@ -472,11 +472,14 @@ end
 # @param separator [String] character between key and value sets
 # @return [String] a single String containing Hash contents
 def hash_to_string(hash, delim = '=', separator = ',')
-  vals = []
+  hash_s = ''
   hash.each do |k, v|
-    vals << "#{k}#{delim}#{v}"
+    hash_s += "#{k}#{delim}#{v}#{separator}"
   end
-  return vals.join(separator.to_s)
+  if hash_s.size > 0
+    hash_s = hash_s.chomp(separator.to_s)
+  end
+  return hash_s
 end
 
 # Register provided error message to OpenStudio Runner.
