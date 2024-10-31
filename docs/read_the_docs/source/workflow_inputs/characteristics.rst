@@ -11,7 +11,7 @@ For each parameter, the following (if applicable) are reported based on the cont
 - **Source**
 - **Assumption**
 
-Additionally, for each parameter an **Arguments** table is populated (if applicable) based on the contents of `ResStockArguments <https://github.com/NREL/resstock/blob/develop/measures/ResStockArguments>`_ and `BuildResidentialHPXML <https://github.com/NREL/resstock/blob/develop/resources/hpxml-measures/BuildResidentialHPXML>`_ measure.xml files.
+Additionally, for each housing characteristics parameter an **Arguments** table is populated (if applicable) based on the contents of `ResStockArguments <https://github.com/NREL/resstock/blob/develop/measures/ResStockArguments>`_ and `BuildResidentialHPXML <https://github.com/NREL/resstock/blob/develop/resources/hpxml-measures/BuildResidentialHPXML>`_ measure.xml files.
 
 - **Name** [#]_
 - **Required** [#]_
@@ -24,8 +24,7 @@ Additionally, for each parameter an **Arguments** table is populated (if applica
 .. [#] May be "true" or "false".
 .. [#] May be "String", "Double", "Integer", "Boolean", or "Choice".
 
-Furthermore, all *optional* Choice arguments include "auto" as one of the possible **Choices**.
-Most *optional* String/Double/Integer/Boolean arguments can also be assigned a value of "auto" (e.g., ``site_ground_conductivity``).
+Most *optional* arguments include "auto" as one of the possible **Choices**.
 Assigning "auto" means that downstream default values (e.g., from OpenStudio-HPXML) will be used (if applicable).
 When an argument is defaulted using OpenStudio-HPXML, the **Description** field will include link(s) to `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest>`_ describing these default values.
 
@@ -211,7 +210,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, 1A, 1B, 1C, 2A, 2B, 2C, 3A, 3B, 3C, 4A, 4B, 4C, 5A, 5B, 5C, 6A, 6B, 6C, 7, 8
+     - 1A, 1B, 1C, 2A, 2B, 2C, 3A, 3B, 3C, 4A, 4B, 4C, 5A, 5B, 5C, 6A, 6B, 6C, 7, 8
      - IECC zone of the home address.
 
 Options
@@ -720,7 +719,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is a lithium ion battery present. If not provided, defaults to false.
    * - ``battery_location``
      - false
@@ -775,11 +774,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 100%
      - false
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
    * - 10 kWh
      - 0%
      - true
@@ -4802,13 +4801,13 @@ Arguments
      - false
      - 
      - Choice
-     - auto, electricity, natural gas, fuel oil, propane, wood, coal
+     - electricity, natural gas, fuel oil, propane, wood, coal
      - Type of fuel used by the clothes dryer.
    * - ``clothes_dryer_efficiency_type``
      - false
      - 
      - Choice
-     - auto, EnergyFactor, CombinedEnergyFactor
+     - EnergyFactor, CombinedEnergyFactor
      - The efficiency type of the clothes dryer.
    * - ``clothes_dryer_efficiency``
      - false
@@ -5028,7 +5027,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, ModifiedEnergyFactor, IntegratedModifiedEnergyFactor
+     - ModifiedEnergyFactor, IntegratedModifiedEnergyFactor
      - The efficiency type of the clothes washer.
    * - ``clothes_washer_efficiency``
      - false
@@ -5422,7 +5421,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, electricity, natural gas, fuel oil, propane, wood, coal
+     - electricity, natural gas, fuel oil, propane, wood, coal
      - Type of fuel used by the cooking range/oven.
    * - ``cooking_range_oven_is_induction``
      - false
@@ -34487,13 +34486,13 @@ Arguments
      - false
      - 
      - Choice
-     - auto, none, portable, whole-home
+     - none, portable, whole-home
      - The type of dehumidifier. If not provided, defaults to none.
    * - ``dehumidifier_efficiency_type``
      - false
      - 
      - Choice
-     - auto, EnergyFactor, IntegratedEnergyFactor
+     - EnergyFactor, IntegratedEnergyFactor
      - The efficiency type of dehumidifier.
    * - ``dehumidifier_efficiency``
      - false
@@ -34624,7 +34623,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, RatedAnnualkWh, EnergyFactor
+     - RatedAnnualkWh, EnergyFactor
      - The efficiency type of dishwasher.
    * - ``dishwasher_efficiency``
      - false
@@ -34965,7 +34964,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, CFM25, CFM50, Percent
+     - CFM25, CFM50, Percent
      - The leakage units of the ducts.
    * - ``ducts_supply_leakage_to_outside_value``
      - false
@@ -34984,7 +34983,7 @@ Arguments
      - 
      - Choice
      - auto, not buried, partially buried, fully buried, deeply buried
-     - Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+     - Whether the supply ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#air-distribution>`_) is used.
    * - ``ducts_supply_fraction_rectangular``
      - false
      - frac
@@ -35008,7 +35007,7 @@ Arguments
      - 
      - Choice
      - auto, not buried, partially buried, fully buried, deeply buried
-     - Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts.
+     - Whether the return ducts are buried in, e.g., attic loose-fill insulation. Partially buried ducts have insulation that does not cover the top of the ducts. Fully buried ducts have insulation that just covers the top of the ducts. Deeply buried ducts have insulation that continues above the top of the ducts. If not provided, the OS-HPXML default (see `Air Distribution <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#air-distribution>`_) is used.
    * - ``ducts_return_fraction_rectangular``
      - false
      - frac
@@ -35457,7 +35456,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is an electric vehicle. If not provided, defaults to false.
    * - ``misc_plug_loads_vehicle_annual_kwh``
      - false
@@ -35751,13 +35750,13 @@ Arguments
      - false
      - 
      - Choice
-     - auto, gable, hip
+     - gable, hip
      - The roof type of the building. Ignored if the building has a flat roof.
    * - ``geometry_roof_pitch``
      - false
      - 
      - Choice
-     - auto, 1:12, 2:12, 3:12, 4:12, 5:12, 6:12, 7:12, 8:12, 9:12, 10:12, 11:12, 12:12
+     - 1:12, 2:12, 3:12, 4:12, 5:12, 6:12, 7:12, 8:12, 9:12, 10:12, 11:12, 12:12
      - The roof pitch of the attic. Ignored if the building has a flat roof.
 
 Options
@@ -36763,7 +36762,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - Ambient
      - 4
      - 4
-     - 0
+     - 
    * - Heated Basement
      - 12%
      - ConditionedBasement
@@ -36773,9 +36772,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Slab
      - 39%
      - SlabOnGrade
-     - 0
-     - 0
-     - 0
+     - 
+     - 
+     - 
    * - Unheated Basement
      - 15%
      - UnconditionedBasement
@@ -36869,7 +36868,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, Right, Left
+     - Right, Left
      - The position of the garage. Only applies to single-family detached units.
 
 Options
@@ -36906,8 +36905,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 68%
      - 0
-     - 24
-     - Right
+     - 
+     - 
 
 .. _geometry_space_combination:
 
@@ -37859,7 +37858,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, SEER, SEER2, EER, CEER
+     - SEER, SEER2, EER, CEER
      - The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER or SEER2. System types room air conditioner and packaged terminal air conditioner use EER or CEER. Ignored for system type evaporative cooler.
    * - ``cooling_system_cooling_efficiency``
      - false
@@ -37895,7 +37894,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.
    * - ``cooling_system_crankcase_heater_watts``
      - false
@@ -37907,7 +37906,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, electricity, natural gas, fuel oil, propane, wood, wood pellets, coal
+     - electricity, natural gas, fuel oil, propane, wood, wood pellets, coal
      - The fuel type of the heating system integrated into cooling system. Only used for packaged terminal air conditioner and room air conditioner.
    * - ``cooling_system_integrated_heating_system_efficiency_percent``
      - false
@@ -37965,10 +37964,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - false
      - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
    * - AC, SEER 10
      - 6%
      - central air conditioner
@@ -37980,10 +37979,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - false
      - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
    * - AC, SEER 13
      - 29%
      - central air conditioner
@@ -37995,10 +37994,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - false
      - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
    * - AC, SEER 15
      - 13%
      - central air conditioner
@@ -38010,10 +38009,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - false
      - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
    * - Ducted Heat Pump
      - 15%
      - none
@@ -38070,10 +38069,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - false
      - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
    * - Room AC, EER 9.8
      - 2.6%
      - room air conditioner
@@ -38085,10 +38084,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - false
      - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
    * - Room AC, EER 10.7
      - 9.6%
      - room air conditioner
@@ -38100,10 +38099,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - false
      - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
    * - Room AC, EER 12.0
      - 7.4%
      - room air conditioner
@@ -38115,10 +38114,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - false
      - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
    * - Shared Cooling
      - 3.8%
      - 
@@ -38680,7 +38679,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, HSPF, HSPF2, COP
+     - HSPF, HSPF2, COP
      - The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF or HSPF2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use COP.
    * - ``heat_pump_heating_efficiency``
      - false
@@ -38692,7 +38691,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, SEER, SEER2, EER, CEER
+     - SEER, SEER2, EER, CEER
      - The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER or SEER2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use EER.
    * - ``heat_pump_cooling_efficiency``
      - false
@@ -38770,7 +38769,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, none, integrated, separate
+     - none, integrated, separate
      - The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.
    * - ``heat_pump_backup_heating_autosizing_limit``
      - false
@@ -38782,7 +38781,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, electricity, natural gas, fuel oil, propane
+     - electricity, natural gas, fuel oil, propane
      - The backup fuel type of the heat pump. Only applies if Backup Type is 'integrated'.
    * - ``heat_pump_backup_heating_efficiency``
      - false
@@ -38818,7 +38817,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether the heat pump is ducted or not. Only used for mini-split. It's assumed that air-to-air and ground-to-air are ducted, and packaged terminal heat pump and room air conditioner with reverse cycle are not ducted. If not provided, assumes not ducted.
    * - ``heat_pump_crankcase_heater_watts``
      - false
@@ -40089,7 +40088,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, none, Furnace, WallFurnace, FloorFurnace, Boiler, ElectricResistance, Stove, SpaceHeater, Fireplace
+     - none, Furnace, WallFurnace, FloorFurnace, Boiler, ElectricResistance, Stove, SpaceHeater, Fireplace
      - The type of the second heating system. If a heat pump is specified and the backup type is 'separate', this heating system represents 'separate' backup heating. For ducted heat pumps where the backup heating system is a 'Furnace', the backup would typically be characterized as 'integrated' in that the furnace and heat pump share the same distribution system and blower fan; a 'Furnace' as 'separate' backup to a ducted heat pump is not supported. If not provided, defaults to none.
    * - ``heating_system_2_heating_efficiency``
      - false
@@ -40253,7 +40252,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, electricity, natural gas, fuel oil, propane, wood, wood pellets, coal
+     - electricity, natural gas, fuel oil, propane, wood, wood pellets, coal
      - The fuel type of the second heating system. Ignored for ElectricResistance.
 
 Options
@@ -40510,7 +40509,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, SEER, SEER2, EER, CEER
+     - SEER, SEER2, EER, CEER
      - The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER or SEER2. System types room air conditioner and packaged terminal air conditioner use EER or CEER. Ignored for system type evaporative cooler.
    * - ``cooling_system_cooling_efficiency``
      - false
@@ -40534,7 +40533,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.
    * - ``heat_pump_type``
      - true
@@ -40546,7 +40545,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, HSPF, HSPF2, COP
+     - HSPF, HSPF2, COP
      - The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF or HSPF2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use COP.
    * - ``heat_pump_heating_efficiency``
      - false
@@ -40558,7 +40557,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, SEER, SEER2, EER, CEER
+     - SEER, SEER2, EER, CEER
      - The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER or SEER2. System types ground-to-air, packaged terminal heat pump and room air conditioner with reverse cycle use EER.
    * - ``heat_pump_cooling_efficiency``
      - false
@@ -40606,7 +40605,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, none, integrated, separate
+     - none, integrated, separate
      - The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.
    * - ``heat_pump_backup_heating_autosizing_limit``
      - false
@@ -40618,7 +40617,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, electricity, natural gas, fuel oil, propane
+     - electricity, natural gas, fuel oil, propane
      - The backup fuel type of the heat pump. Only applies if Backup Type is 'integrated'.
    * - ``heat_pump_backup_heating_efficiency``
      - false
@@ -41628,7 +41627,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, electricity, natural gas, fuel oil, propane, wood, wood pellets, coal
+     - electricity, natural gas, fuel oil, propane, wood, wood pellets, coal
      - The fuel type of the heating system. Ignored for ElectricResistance.
 
 Options
@@ -42295,7 +42294,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is holiday lighting. If not provided, defaults to false.
    * - ``holiday_lighting_daily_kwh``
      - false
@@ -42329,8 +42328,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - No Exterior Use
      - 100%
      - false
-     - 0
-     - auto
+     - 
+     - 
 
 .. _hot_water_distribution:
 
@@ -42382,7 +42381,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, no control, timer, temperature, presence sensor demand control, manual demand control
+     - no control, timer, temperature, presence sensor demand control, manual demand control
      - If the distribution system is Recirculation, the type of hot water recirculation control, if any.
    * - ``hot_water_distribution_recirc_piping_length``
      - false
@@ -42412,13 +42411,13 @@ Arguments
      - false
      - 
      - Choice
-     - auto, none, one, all
+     - none, one, all
      - Which facilities are connected for the drain water heat recovery. Use 'none' if there is no drain water heat recovery system.
    * - ``dwhr_equal_flow``
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether the drain water heat recovery has equal flow.
    * - ``dwhr_efficiency``
      - false
@@ -42507,13 +42506,13 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether the shower fixture is low flow. If not provided, defaults to false.
    * - ``water_fixtures_sink_low_flow``
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether the sink fixture is low flow. If not provided, defaults to false.
    * - ``water_fixtures_usage_multiplier``
      - false
@@ -42982,13 +42981,13 @@ Arguments
      - false
      - 
      - Choice
-     - auto, very tight, tight, average, leaky, very leaky
+     - very tight, tight, average, leaky, very leaky
      - Qualitative description of infiltration. If provided, the Year Built of the home is required. Either provide this input or provide a numeric air leakage value below.
    * - ``air_leakage_units``
      - false
      - 
      - Choice
-     - auto, ACH, CFM, ACHnatural, CFMnatural, EffectiveLeakageArea
+     - ACH, CFM, ACHnatural, CFMnatural, EffectiveLeakageArea
      - The unit of measure for the air leakage if providing a numeric air leakage value.
    * - ``air_leakage_house_pressure``
      - false
@@ -43006,7 +43005,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, unit total, unit exterior only
+     - unit total, unit exterior only
      - Type of air leakage if providing a numeric air leakage value. If 'unit total', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'unit exterior only', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is single-family attached or apartment unit.
 
 Options
@@ -43031,7 +43030,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 1 ACH50
      - 0.064%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 1
@@ -43039,7 +43038,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 2 ACH50
      - 0.66%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 2
@@ -43047,7 +43046,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 3 ACH50
      - 1.4%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 3
@@ -43055,7 +43054,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 4 ACH50
      - 2.3%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 4
@@ -43063,7 +43062,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 5 ACH50
      - 3.4%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 5
@@ -43071,7 +43070,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 6 ACH50
      - 4.3%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 6
@@ -43079,7 +43078,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 7 ACH50
      - 4.9%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 7
@@ -43087,7 +43086,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 8 ACH50
      - 5.3%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 8
@@ -43095,7 +43094,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 10 ACH50
      - 11%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 10
@@ -43103,7 +43102,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 15 ACH50
      - 24%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 15
@@ -43111,7 +43110,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 20 ACH50
      - 17%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 20
@@ -43119,7 +43118,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 25 ACH50
      - 10%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 25
@@ -43127,7 +43126,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 30 ACH50
      - 6.1%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 30
@@ -43135,7 +43134,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 40 ACH50
      - 5.7%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 40
@@ -43143,7 +43142,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - 50 ACH50
      - 3.2%
      - normal
-     - auto
+     - 
      - ACH
      - 50
      - 50
@@ -43321,8 +43320,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - None
      - 39%
-     - 0
-     - 5.3
+     - 
+     - 
      - WoodFrame
    * - Uninsulated
      - 48%
@@ -43401,7 +43400,7 @@ Arguments
      - false
      - ft
      - Choice
-     - auto, interior, exterior
+     - interior, exterior
      - Whether the insulation is on the interior or exterior of the foundation wall. Only applies to basements/crawlspaces.
    * - ``foundation_wall_insulation_distance_to_top``
      - false
@@ -43444,13 +43443,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - None
      - 48%
-     - solid concrete
-     - auto
-     - 0
-     - exterior
-     - 0
-     - 0
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - Uninsulated
      - 47%
      - solid concrete
@@ -43535,19 +43534,19 @@ Arguments
      -
      - Assembly R-value for the rim joists. Only applies to basements/crawlspaces. Required if a rim joist height is provided.
    * - ``rim_joist_continuous_exterior_r``
-     - true
+     - false
      - h-ft^2-R/Btu
      - Double
      -
      - Nominal R-value for the rim joist continuous exterior insulation. Only applies to basements/crawlspaces.
    * - ``rim_joist_continuous_interior_r``
-     - true
+     - false
      - h-ft^2-R/Btu
      - Double
      -
      - Nominal R-value for the rim joist continuous interior insulation that runs parallel to floor joists. Only applies to basements/crawlspaces.
    * - ``rim_joist_assembly_interior_r``
-     - true
+     - false
      - h-ft^2-R/Btu
      - Double
      -
@@ -43572,10 +43571,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - None
      - 48%
-     - auto
-     - 0
-     - 0
-     - 0
+     - 
+     - 
+     - 
+     - 
    * - Uninsulated
      - 47%
      - auto
@@ -43813,16 +43812,16 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - None
      - 61%
+     - 
+     - 
+     - 
+     - 
+     - 
      - 0
-     - 0
-     - 0
-     - 0
-     - 0
-     - 0
-     - 0
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
    * - Uninsulated
      - 30%
      - 0
@@ -44515,7 +44514,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, none, exhaust only, supply only, energy recovery ventilator, heat recovery ventilator, balanced, central fan integrated supply
+     - none, exhaust only, supply only, energy recovery ventilator, heat recovery ventilator, balanced, central fan integrated supply
      - The type of the mechanical ventilation. Use 'none' if there is no mechanical ventilation system. If not provided, defaults to none.
    * - ``mech_vent_flow_rate``
      - false
@@ -44533,7 +44532,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, Unadjusted, Adjusted
+     - Unadjusted, Adjusted
      - The total recovery efficiency type of the mechanical ventilation.
    * - ``mech_vent_total_recovery_efficiency``
      - false
@@ -44569,7 +44568,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, electricity, natural gas, fuel oil, propane, wood, wood pellets, coal
+     - electricity, natural gas, fuel oil, propane, wood, wood pellets, coal
      - Fuel type of the preconditioning heating equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no preheating.
    * - ``mech_vent_shared_preheating_efficiency``
      - false
@@ -44587,7 +44586,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, electricity
+     - electricity
      - Fuel type of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system. If not provided, assumes no precooling.
    * - ``mech_vent_shared_precooling_efficiency``
      - false
@@ -44605,7 +44604,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, none, exhaust only, supply only, energy recovery ventilator, heat recovery ventilator, balanced
+     - none, exhaust only, supply only, energy recovery ventilator, heat recovery ventilator, balanced
      - The type of the second mechanical ventilation. Use 'none' if there is no second mechanical ventilation system. If not provided, defaults to none.
    * - ``mech_vent_2_flow_rate``
      - false
@@ -44623,7 +44622,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, Unadjusted, Adjusted
+     - Unadjusted, Adjusted
      - The total recovery efficiency type of the second mechanical ventilation.
    * - ``mech_vent_2_total_recovery_efficiency``
      - false
@@ -44647,7 +44646,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is a whole house fan.
    * - ``whole_house_fan_flow_rate``
      - false
@@ -44710,13 +44709,13 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - 
      - 
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
      - none
      - 
      - 
@@ -46697,7 +46696,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is an extra refrigerator present. If not provided, defaults to false.
    * - ``extra_refrigerator_location``
      - false
@@ -46780,9 +46779,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 74%
      - false
-     - auto
-     - 0
-     - 0
+     - 
+     - 
+     - 
    * - Void
      - 0%
      - 
@@ -46852,7 +46851,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is a freezer present. If not provided, defaults to false.
    * - ``freezer_location``
      - false
@@ -46899,9 +46898,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 67%
      - false
-     - auto
-     - 0
-     - 0
+     - 
+     - 
+     - 
    * - Void
      - 0%
      - 
@@ -46947,13 +46946,13 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is fuel loads fireplace. If not provided, defaults to false.
    * - ``misc_fuel_loads_fireplace_fuel_type``
      - false
      - 
      - Choice
-     - auto, natural gas, fuel oil, propane, wood, wood pellets
+     - natural gas, fuel oil, propane, wood, wood pellets
      - The fuel type of the fuel loads fireplace.
    * - ``misc_fuel_loads_fireplace_annual_therm``
      - false
@@ -47010,11 +47009,11 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 97%
      - false
-     - natural gas
-     - 0
-     - auto
-     - auto
-     - 0
+     - 
+     - 
+     - 
+     - 
+     - 
 
 .. _misc_gas_grill:
 
@@ -47054,13 +47053,13 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is a fuel loads grill. If not provided, defaults to false.
    * - ``misc_fuel_loads_grill_fuel_type``
      - false
      - 
      - Choice
-     - auto, natural gas, fuel oil, propane, wood, wood pellets
+     - natural gas, fuel oil, propane, wood, wood pellets
      - The fuel type of the fuel loads grill.
    * - ``misc_fuel_loads_grill_annual_therm``
      - false
@@ -47101,9 +47100,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 97%
      - false
-     - natural gas
-     - 0
-     - 0
+     - 
+     - 
+     - 
 
 .. _misc_gas_lighting:
 
@@ -47143,13 +47142,13 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is fuel loads lighting. If not provided, defaults to false.
    * - ``misc_fuel_loads_lighting_fuel_type``
      - false
      - 
      - Choice
-     - auto, natural gas, fuel oil, propane, wood, wood pellets
+     - natural gas, fuel oil, propane, wood, wood pellets
      - The fuel type of the fuel loads lighting.
    * - ``misc_fuel_loads_lighting_annual_therm``
      - false
@@ -47190,9 +47189,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 99%
      - false
-     - natural gas
-     - 0
-     - 0
+     - 
+     - 
+     - 
 
 .. _misc_hot_tub_spa:
 
@@ -47276,7 +47275,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is a permanent spa. If not provided, defaults to false.
    * - ``permanent_spa_pump_annual_kwh``
      - false
@@ -47294,7 +47293,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, none, electric resistance, gas fired, heat pump
+     - none, electric resistance, gas fired, heat pump
      - The type of permanent spa heater. Use 'none' if there is no permanent spa heater.
    * - ``permanent_spa_heater_annual_kwh``
      - false
@@ -47356,12 +47355,12 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 95%
      - false
-     - 0
-     - 0
-     - none
-     - 0
-     - 0
-     - 0
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
    * - Other Fuel
      - 0.33%
      - false
@@ -47447,7 +47446,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is a pool. If not provided, defaults to false.
 
 Options
@@ -47512,7 +47511,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, none, electric resistance, gas fired, heat pump
+     - none, electric resistance, gas fired, heat pump
      - The type of pool heater. Use 'none' if there is no pool heater.
    * - ``pool_heater_annual_kwh``
      - false
@@ -47565,9 +47564,9 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 98%
      - none
-     - 0
-     - 0
-     - 0
+     - 
+     - 
+     - 
    * - Other Fuel
      - 0.65%
      - none
@@ -47639,8 +47638,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
 
    * - None
      - 93%
-     - 0
-     - 0
+     - 
+     - 
    * - 1.0 HP Pump
      - 7.1%
      - auto
@@ -47684,7 +47683,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is a well pump. If not provided, defaults to false.
    * - ``misc_plug_loads_well_pump_annual_kwh``
      - false
@@ -47966,10 +47965,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 0
      - 0
-     - auto
-     - auto
-     - auto
-     - auto
+     - 
+     - 
+     - 
+     - 
 
 .. _occupants:
 
@@ -48301,17 +48300,17 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 100%
      - 0
+     - 
+     - 
      - 0
-     - 4
+     - 
+     - 
      - 0
+     - 
+     - 
      - 0
-     - 4
-     - 0
-     - 0
-     - 4
-     - 0
-     - 0
-     - 4
+     - 
+     - 
 
 .. _puma:
 
@@ -60338,7 +60337,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is a PV system present. If not provided, defaults to false.
    * - ``pv_system_module_type``
      - false
@@ -60386,7 +60385,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Whether there is a second PV system present. If not provided, defaults to false.
    * - ``pv_system_2_module_type``
      - false
@@ -60561,19 +60560,19 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 99%
      - false
-     - auto
+     - 
      - roof
-     - auto
-     - roofpitch
-     - 0
-     - auto
-     - auto
-     - false
-     - auto
-     - auto
-     - auto
-     - roofpitch
-     - 0
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
 
 .. _plug_load_diversity:
 
@@ -61382,7 +61381,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, none, Attic roof only, Attic roof and gable walls, Attic floor
+     - none, Attic roof only, Attic roof and gable walls, Attic floor
      - The location of the radiant barrier in the attic.
    * - ``radiant_barrier_grade``
      - false
@@ -61409,7 +61408,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 26%
      - none
-     - 1
+     - 
    * - Yes
      - 0%
      - Attic roof only
@@ -61417,7 +61416,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - No
      - 74%
      - none
-     - 1
+     - 
 
 .. _range_spot_vent_hour:
 
@@ -61810,8 +61809,8 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 1.3%
      - false
-     - auto
-     - 0
+     - 
+     - 
    * - Void
      - 0%
      - 
@@ -62032,7 +62031,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, none, hot water
+     - none, hot water
      - The type of solar thermal system. Use 'none' if there is no solar thermal system.
    * - ``solar_thermal_collector_area``
      - false
@@ -62044,13 +62043,13 @@ Arguments
      - false
      - 
      - Choice
-     - auto, liquid direct, liquid indirect, passive thermosyphon
+     - liquid direct, liquid indirect, passive thermosyphon
      - The collector loop type of the solar thermal system.
    * - ``solar_thermal_collector_type``
      - false
      - 
      - Choice
-     - auto, evacuated tube, single glazing black, double glazing black, integrated collector storage
+     - evacuated tube, single glazing black, double glazing black, integrated collector storage
      - The collector type of the solar thermal system.
    * - ``solar_thermal_collector_azimuth``
      - false
@@ -62761,7 +62760,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, electricity, natural gas, fuel oil, propane, wood, coal
+     - electricity, natural gas, fuel oil, propane, wood, coal
      - The fuel type of water heater. Ignored for heat pump water heater.
    * - ``water_heater_tank_volume``
      - false
@@ -62773,7 +62772,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, EnergyFactor, UniformEnergyFactor
+     - EnergyFactor, UniformEnergyFactor
      - The efficiency type of water heater. Does not apply to space-heating boilers.
    * - ``water_heater_efficiency``
      - false
@@ -62833,7 +62832,7 @@ Arguments
      - false
      - 
      - Boolean
-     - auto, true, false
+     - true, false
      - Requires that the dwelling unit has a air-to-air, mini-split, or ground-to-air heat pump or a central air conditioner or mini-split air conditioner. If not provided, assumes no desuperheater.
    * - ``water_heater_tank_model_type``
      - false
@@ -62899,7 +62898,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - 
      - auto
      - auto
@@ -62918,7 +62917,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - 
      - auto
      - auto
@@ -62937,7 +62936,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - 
      - auto
      - auto
@@ -62956,7 +62955,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - auto
      - 
      - auto
@@ -62975,7 +62974,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - auto
      - 
      - auto
@@ -62994,7 +62993,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - 125
      - auto
-     - auto
+     - 
      - 
      - 
      - auto
@@ -63013,7 +63012,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - auto
      - 
      - auto
@@ -63032,7 +63031,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - auto
      - 
      - auto
@@ -63051,7 +63050,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - auto
      - 
      - auto
@@ -63070,7 +63069,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - auto
      - 
      - auto
@@ -63089,7 +63088,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - auto
      - 
      - auto
@@ -63108,7 +63107,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - 125
      - auto
-     - auto
+     - 
      - 
      - 
      - auto
@@ -63127,7 +63126,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - auto
      - 
      - auto
@@ -63146,7 +63145,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - auto
      - 
      - auto
@@ -63165,7 +63164,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0
      - 125
      - auto
-     - auto
+     - 
      - auto
      - 
      - auto
@@ -63184,7 +63183,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 
      - 125
      - auto
-     - auto
+     - 
      - 
      - 
      - auto
@@ -63733,7 +63732,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, none, exterior, interior
+     - none, exterior, interior
      - The type of insect screens, if present. If not provided, assumes there are no insect screens.
    * - ``skylight_ufactor``
      - false
@@ -63751,7 +63750,7 @@ Arguments
      - false
      - 
      - Choice
-     - auto, clear, low-e
+     - clear, low-e
      - The type of storm, if present. If not provided, assumes there is no storm.
 
 Options
@@ -63787,10 +63786,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - 0.37
-     - 0.3
-     - auto
+     - none
+     - 
+     - 
+     - 
    * - Double, Clear, Metal, Air, Exterior Clear Storm
      - 1.5%
      - 0.55
@@ -63800,10 +63799,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - 0.37
-     - 0.3
-     - auto
+     - none
+     - 
+     - 
+     - 
    * - Double, Clear, Non-metal, Air
      - 19%
      - 0.49
@@ -63813,10 +63812,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - 0.37
-     - 0.3
-     - auto
+     - none
+     - 
+     - 
+     - 
    * - Double, Clear, Non-metal, Air, Exterior Clear Storm
      - 3.5%
      - 0.34
@@ -63826,10 +63825,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - 0.37
-     - 0.3
-     - auto
+     - none
+     - 
+     - 
+     - 
    * - Double, Low-E, Non-metal, Air, M-Gain
      - 22%
      - 0.38
@@ -63839,10 +63838,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - 0.37
-     - 0.3
-     - auto
+     - none
+     - 
+     - 
+     - 
    * - Single, Clear, Metal
      - 14%
      - 1.16
@@ -63852,10 +63851,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - 0.37
-     - 0.3
-     - auto
+     - none
+     - 
+     - 
+     - 
    * - Single, Clear, Metal, Exterior Clear Storm
      - 0.99%
      - 0.67
@@ -63865,10 +63864,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - 0.37
-     - 0.3
-     - auto
+     - none
+     - 
+     - 
+     - 
    * - Single, Clear, Non-metal
      - 17%
      - 0.84
@@ -63878,10 +63877,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - 0.37
-     - 0.3
-     - auto
+     - none
+     - 
+     - 
+     - 
    * - Single, Clear, Non-metal, Exterior Clear Storm
      - 1.5%
      - 0.47
@@ -63891,10 +63890,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - 0.37
-     - 0.3
-     - auto
+     - none
+     - 
+     - 
+     - 
    * - Triple, Low-E, Non-metal, Air, L-Gain
      - 1.8%
      - 0.29
@@ -63904,10 +63903,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
      - auto
-     - auto
-     - 0.37
-     - 0.3
-     - auto
+     - none
+     - 
+     - 
+     - 
    * - Void
      - 0%
      - 
