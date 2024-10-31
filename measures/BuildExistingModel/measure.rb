@@ -323,7 +323,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       print_option_assignment(parameter_name, option_name, runner)
       options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
       options_measure_args[option_name].each do |measure_subdir, args_hash|
-        update_args_hash(measures, measure_subdir, args_hash, false)
+        update_args_hash(measures, measure_subdir, args_hash)
       end
     end
 
