@@ -4,7 +4,7 @@ os_sha: f953b6fcaf
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 # output_directory:  /projects/heatpump/test_runs/n_500_20240530_2007_v1
-output_directory:  /kfs2/projects/heatpump/test_runs/test_amy_30k_full_run
+output_directory:  /kfs2/projects/heatpump/test_runs/test_amy_30k_full_run_case_12
 # weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
@@ -344,6 +344,22 @@ upgrades:
       - &hvac_performance-data_mshp_case_11
         option: HVAC Detailed Performance Data|High Capacity Cold Temp Non-Ducted
         apply_logic: *nonducted_MSHP_apply_logic     
+
+  - upgrade_name: Case 12 - Heat Pump Selection – DOE CCHP Challenge
+
+    package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+    options:
+      - &hvac_heating_efficiency_ashp_case_12
+        option: HVAC Heating Efficiency|ASHP, SEER2 18.4, 10.9 HSPF2, Case 12
+        apply_logic: *ducted_ASHP_apply_logic
+        costs: *dummy_cost_values
+        lifetime: *dummy_lifetime_value
+      - *hvac_cooling_efficiency_ducted_heat_pump
+      - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve
+      - &hvac_performance_data_ashp_case_12
+        option: HVAC Detailed Performance Data|DOE CCHP Challenge
+        apply_logic: *ducted_ASHP_apply_logic
 
 
   - upgrade_name: Case 14a - Heat Pump Sizing - Typical Cold Climate
