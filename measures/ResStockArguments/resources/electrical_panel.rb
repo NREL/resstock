@@ -79,32 +79,16 @@ class RatedCapacityGenerator
   end
 
   def sample_breaker_spaces_headroom(prng, breaker_spaces_headroom_prob_map, args)
-    # get panel capacity bin 
-    cap_bin, cap_val = assign_rated_capacity(args: args)
-
-    # emulate HVAC Cooling Type 
-    hvac_cooling_type = convert_cooling_type(args[:cooling_system_type], args[:heat_pump_type])
-    # emulate HVAC Heating Type 
-    hvac_heating_type = convert_heating_type(args[:heat_pump_type])
-
-    # simplify appliance presence and fuel
-    clothes_dryer = convert_fuel_and_presence(args[:clothes_dryer_present], args[:clothes_dryer_fuel_type])
-    cooking_range = convert_fuel_and_presence(args[:cooking_range_oven_present], args[:cooking_range_fuel_type])
-    water_heater_fuel_type = simplify_fuel_type(args[:water_heater_fuel_type])
-    heating_fuel_type = simplify_fuel_type(args[:heating_system_fuel])
-    ev_charger_present = 'FALSE'
+    # calculate number of major electric load
+    major_elec_load_count = get_major_elec_load_count(args)
+    # get panel capacity bin
+    capacity_bin = args[:electric_panel_service_rating_bin]
 
     lookup_array = [
-      hvac_cooling_type,
-      hvac_heating_type,
-      heating_fuel_type,
-      water_heater_fuel_type,
-      clothes_dryer,
-      cooking_range,
-      args[:pv_system_present].to_s.upcase,
-      ev_charger_present.to_s,
-      cap_bin.to_s,
+      major_elec_load_count.to_s,
+      capacity_bin.to_s,
     ]
+    
     breaker_spaces_headroom = get_row_headers_breaker_spaces_headroom(breaker_spaces_headroom_prob_map, lookup_array)
     row_probability = get_row_probability_breaker_spaces_headroom(breaker_spaces_headroom_prob_map, lookup_array)
     index = weighted_random(prng, row_probability)
@@ -238,6 +222,14 @@ class RatedCapacityGenerator
     end
   end
 
+  def has_cooling(hvac_cooling_type)
+    if hvac_cooling_type != 'none'
+      return 1
+    else
+      return 0
+    end
+  end
+
   def convert_heating_type(heat_pump_type)
     if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type)
       return 'ASHP or GHP'
@@ -261,4 +253,69 @@ class RatedCapacityGenerator
       return 'non-electricity'
     end
   end
+
+  def get_major_elec_load_count(args)
+    # has electric primary heating
+    has_elec_heating_primary = electric_fuel(args[:heating_system_fuel])
+    # emulate HVAC Heating Type 
+    hvac_heating_type = convert_heating_type(args[:heat_pump_type])
+
+    # has electric water heater
+    has_elec_water_heater = electric_fuel(args[:water_heater_fuel_type])
+
+    # emulate HVAC Cooling Type 
+    hvac_cooling_type = convert_cooling_type(args[:cooling_system_type], args[:heat_pump_type])
+    has_cooling = has_cooling(hvac_cooling_type)
+
+    # appliance presence and electric fuel
+    has_elec_drying = electric_fuel_and_presence(args[:clothes_dryer_present], args[:clothes_dryer_fuel_type])
+    has_elec_cooking = electric_fuel_and_presence(args[:cooking_range_oven_present], args[:cooking_range_fuel_type])
+    has_pv = has_pv(args[:pv_system_present])
+    has_ev_charging = 0
+
+    load_vars = [
+      has_elec_heating_primary,
+      has_elec_water_heater,
+      has_elec_drying,
+      has_elec_cooking,
+      has_cooling,
+      has_ev_charging,
+      has_pv
+    ]
+    load_count = load_vars.sum
+
+    #Count heat pump only once if it provides heating and cooling
+    if hvac_cooling_type == "heat pump" and hvac_heating_type == "ASHP or GHP"
+      load_count = load_count - 1 #Assuming a single heat pump provides heating and cooling
+    #Don't count plug-in Room ACs as major loads
+    elsif hvac_cooling_type == "room air conditioner"
+      load_count = load_count - 1
+    end
+    return load_count
+  end
+
+  def electric_fuel_and_presence(equipment_present, fuel_type)
+    if equipment_present == 'false'
+      return 0
+    else
+      return electric_fuel(fuel_type)
+    end
+  end
+  
+  def electric_fuel(fuel_type)
+    if fuel_type == HPXML::FuelTypeElectricity
+      return 1
+    else
+      return 0
+    end
+  end
+
+  def has_pv(pv_system_present)
+    if pv_system_present == 'false'
+      return 0
+    else
+      return 1
+    end
+  end
+
 end
