@@ -393,6 +393,31 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     assert_equal(1, get_oed_for_ventilation(model, "#{Constants::ObjectTypeMechanicalVentilationHouseFan} latent load").size)
   end
 
+  def test_mechanical_ventilation_cfis_pthp
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-hvac-pthp-cfis.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+
+    # Get HPXML values
+    vent_fan = hpxml_bldg.ventilation_fans.find { |f| f.used_for_whole_building_ventilation }
+    vent_fan_cfm = vent_fan.oa_unit_flow_rate
+    vent_fan_power = vent_fan.fan_power
+    vent_fan_operation = vent_fan.hours_in_operation / 24.0
+
+    # Check infiltration/ventilation program
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants::ObjectTypeInfiltration} program")
+    assert_in_epsilon(vent_fan_cfm, UnitConversions.convert(program_values['oa_cfm_ah'].sum, 'm^3/s', 'cfm'), 0.01)
+    assert_in_epsilon(0.0, UnitConversions.convert(program_values['QWHV_sup'].sum, 'm^3/s', 'cfm'), 0.01)
+    assert_in_epsilon(0.0, UnitConversions.convert(program_values['QWHV_exh'].sum, 'm^3/s', 'cfm'), 0.01)
+    assert_in_epsilon(vent_fan_power, program_values['ah_fan_w'].sum, 0.01)
+    assert_in_epsilon(vent_fan_operation, program_values['f_operation'].sum, 0.01)
+    assert_in_epsilon(0.0, UnitConversions.convert(program_values['Qrange'].sum, 'm^3/s', 'cfm'), 0.01)
+    assert_in_epsilon(0.0, UnitConversions.convert(program_values['Qbath'].sum, 'm^3/s', 'cfm'), 0.01)
+    # Load actuators
+    assert_equal(1, get_oed_for_ventilation(model, "#{Constants::ObjectTypeMechanicalVentilationHouseFan} sensible load").size)
+    assert_equal(1, get_oed_for_ventilation(model, "#{Constants::ObjectTypeMechanicalVentilationHouseFan} latent load").size)
+  end
+
   def test_mechanical_ventilation_cfis_with_supplemental_fan
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-mechvent-cfis-supplemental-fan-exhaust.xml'))

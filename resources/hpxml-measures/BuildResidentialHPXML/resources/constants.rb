@@ -2,6 +2,7 @@
 
 # Collection of constants.
 module Constants
+  Auto = 'auto'
   BuildingAmerica = 'BuildingAmerica'
   FacadeFront = 'front'
   FacadeBack = 'back'
@@ -15,4 +16,13 @@ module Constants
   PositionLeft = 'Left'
   RoofTypeGable = 'gable'
   RoofTypeHip = 'hip'
+end
+
+# TODO
+module Argument
+  Choice = 'makeChoiceArgument'
+  String = 'makeStringArgument'
+  Double = 'makeDoubleArgument'
+  Integer = 'makeIntegerArgument'
+  Boolean = 'makeBoolArgument'
 end

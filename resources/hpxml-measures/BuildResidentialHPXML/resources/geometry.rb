@@ -676,10 +676,10 @@ module Geometry
                                          geometry_attic_type:,
                                          geometry_roof_type:,
                                          geometry_roof_pitch:,
-                                         geometry_unit_left_wall_is_adiabatic:,
-                                         geometry_unit_right_wall_is_adiabatic:,
-                                         geometry_unit_front_wall_is_adiabatic:,
-                                         geometry_unit_back_wall_is_adiabatic:,
+                                         geometry_unit_left_wall_is_adiabatic: false,
+                                         geometry_unit_right_wall_is_adiabatic: false,
+                                         geometry_unit_front_wall_is_adiabatic: false,
+                                         geometry_unit_back_wall_is_adiabatic: false,
                                          **)
 
     cfa = geometry_unit_cfa
@@ -976,10 +976,10 @@ module Geometry
                             geometry_attic_type:,
                             geometry_roof_type:,
                             geometry_roof_pitch:,
-                            geometry_unit_left_wall_is_adiabatic:,
-                            geometry_unit_right_wall_is_adiabatic:,
-                            geometry_unit_front_wall_is_adiabatic:,
-                            geometry_unit_back_wall_is_adiabatic:,
+                            geometry_unit_left_wall_is_adiabatic: false,
+                            geometry_unit_right_wall_is_adiabatic: false,
+                            geometry_unit_front_wall_is_adiabatic: false,
+                            geometry_unit_back_wall_is_adiabatic: false,
                             **)
 
     cfa = geometry_unit_cfa
@@ -1392,10 +1392,10 @@ module Geometry
                                         window_area_left:,
                                         window_area_right:,
                                         window_aspect_ratio:,
-                                        skylight_area_front:,
-                                        skylight_area_back:,
-                                        skylight_area_left:,
-                                        skylight_area_right:,
+                                        skylight_area_front: 0,
+                                        skylight_area_back: 0,
+                                        skylight_area_left: 0,
+                                        skylight_area_right: 0,
                                         **)
     facades = [Constants::FacadeBack, Constants::FacadeRight, Constants::FacadeFront, Constants::FacadeLeft]
 
