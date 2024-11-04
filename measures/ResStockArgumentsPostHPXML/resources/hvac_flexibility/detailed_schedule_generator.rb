@@ -1,28 +1,27 @@
 require 'openstudio'
-require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
-require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/constants'
+require_relative '../../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
+require_relative '../../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/constants'
 require 'openstudio'
 require 'pathname'
 require 'oga'
 require 'json'
 
-Dir["#{File.dirname(__FILE__)}/../../../resources/hpxml-measures/BuildResidentialScheduleFile/resources/*.rb"].each do |resource_file|
+Dir["#{File.dirname(__FILE__)}/../../../../resources/hpxml-measures/BuildResidentialScheduleFile/resources/*.rb"].each do |resource_file|
   require resource_file
 end
-Dir["#{File.dirname(__FILE__)}/../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/*.rb"].each do |resource_file|
+Dir["#{File.dirname(__FILE__)}/../../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/*.rb"].each do |resource_file|
   next if resource_file.include? 'minitest_helper.rb'
   require resource_file
 end
 
-class SetpointScheduleGenerator
+class HVACScheduleGenerator
 
-  def initialize(hpxml, hpxml_path, workflow_path, building_index)
+  def initialize(hpxml, hpxml_path, runner, building_index)
     @hpxml_path = hpxml_path
     @hpxml = hpxml
     @hpxml_bldg = @hpxml.buildings[building_index]
     @epw_path = Location.get_epw_path(@hpxml_bldg, @hpxml_path)
-    @workflow_json = OpenStudio::WorkflowJSON.new(workflow_path)
-    @runner = OpenStudio::Measure::OSRunner.new(@workflow_json)
+    @runner = runner
     @weather = WeatherFile.new(epw_path: @epw_path, runner: @runner, hpxml: @hpxml)
     @sim_year = Location.get_sim_calendar_year(@hpxml.header.sim_calendar_year, @weather)
     @total_days_in_year = Calendar.num_days_in_year(@sim_year)
@@ -55,7 +54,7 @@ class SetpointScheduleGenerator
         cooling_setpoints << cooling_setpoint_sch[day][hour]
       end
     end
-    return {"heating_setpoints": heating_setpoints, "cooling_setpoints": cooling_setpoints}
+    return {heating_setpoints: heating_setpoints, cooling_setpoints: cooling_setpoints}
   end
 
   def c2f(setpoint_sch)
@@ -96,21 +95,4 @@ class SetpointScheduleGenerator
                              output_path: @tmp_schedule_file_path)
 
   end
-
-
-end
-
-def generate_setpoint_schedules(hpxml_path, workflow_path)
-  if hpxml_path.nil? || workflow_path.nil?
-    raise "Usage: ruby create_setpoint_schedules.rb <hpxml_path> <workflow_path>"
-  end
-  hpxml = HPXML.new(hpxml_path: hpxml_path)
-  num_buildings = hpxml.buildings.size
-  setpoint_array = []
-  num_buildings.times do |building_index|
-    generator = SetpointScheduleGenerator.new(hpxml, hpxml_path, workflow_path, building_index)
-    setpoints = generator.get_heating_cooling_setpoint_schedule
-    setpoint_array << setpoints
-  end
-  return setpoint_array.to_json
 end

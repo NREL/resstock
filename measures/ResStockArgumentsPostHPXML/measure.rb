@@ -3,6 +3,10 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
+require_relative 'resources/hvac_flexibility/detailed_schedule_generator'
+require_relative 'resources/hvac_flexibility/setpoint_modifier'
+require 'byebug'
+
 # start the measure
 class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   # human readable name
@@ -28,6 +32,37 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_path', false)
     arg.setDisplayName('HPXML File Path')
     arg.setDescription('Absolute/relative path of the HPXML file.')
+    args << arg
+
+    # Add args for flexibility inputs. Use hours format for the duration and minutes for the random offset. Offsets are degree F.
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_peak_duration_hours', false)
+    arg.setDisplayName('Load Flexibility: Peak Duration (hours)')
+    arg.setDescription('Duration of the peak period in hours.')
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_peak_offset', false)
+    arg.setDisplayName('Load Flexibility: Peak Offset (deg F)')
+    arg.setDescription('Offset of the peak period in degrees Fahrenheit.')
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_pre_peak_duration_hours', false)
+    arg.setDisplayName('Load Flexibility: Pre-Peak Duration (hours)')
+    arg.setDescription('Duration of the pre-peak period in hours.')
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_pre_peak_offset', false)
+    arg.setDisplayName('Load Flexibility: Pre-Peak Offset (deg F)')
+    arg.setDescription('Offset of the pre-peak period in degrees Fahrenheit.')
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_random_shift_minutes', false)
+    arg.setDisplayName('Load Flexibility: Random Shift (minutes)')
+    arg.setDescription('Number of minutes to randomly shift the peak period. If minutes less than timestep, will be assumed to be 0.')
+    arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('output_csv_path', false)
@@ -58,43 +93,77 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
       fail "'#{hpxml_path}' does not exist or is not an .xml file."
     end
 
-    _hpxml = HPXML.new(hpxml_path: hpxml_path)
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
 
-    # init
-    new_schedules = {}
-
-    # TODO: populate new_schedules
-
-    # return if not writing schedules
-    return true if new_schedules.empty?
-
-    # write schedules
-    schedules_filepath = File.join(File.dirname(args[:output_csv_path].get), 'schedules2.csv')
-    write_new_schedules(new_schedules, schedules_filepath)
-
-    # modify the hpxml with the schedules path
+    # Parse the HPXML document
     doc = XMLHelper.parse_file(hpxml_path)
-    extension = XMLHelper.create_elements_as_needed(XMLHelper.get_element(doc, '/HPXML'), ['SoftwareInfo', 'extension'])
-    schedules_filepaths = XMLHelper.get_values(extension, 'SchedulesFilePath', :string)
-    if !schedules_filepaths.include?(schedules_filepath)
-      XMLHelper.add_element(extension, 'SchedulesFilePath', schedules_filepath, :string)
+    hpxml_doc = XMLHelper.get_element(doc, '/HPXML')
+    doc_buildings = XMLHelper.get_elements(hpxml_doc, 'Building')
 
-      # write out the modified hpxml
-      XMLHelper.write_file(doc, hpxml_path)
-      runner.registerInfo("Wrote file: #{hpxml_path}")
+    # Process each building
+    doc_buildings.each_with_index do |building, index|
+      schedule = create_schedule(hpxml, hpxml_path, runner, index)
+      modified_schedule = modify_schedule(hpxml, index, args, runner, schedule)
+      # TODO: Add function to modify the schedule here
+      schedules_filepath = write_schedule(modified_schedule, args[:output_csv_path], index)
+      update_hpxml_schedule_filepath(building, schedules_filepath)
     end
 
-    return true
+    # Write out the modified hpxml
+    XMLHelper.write_file(doc, hpxml_path)
+    runner.registerInfo("Wrote file: #{hpxml_path}")
+
+    true
   end
 
-  def write_new_schedules(schedules, schedules_filepath)
+  def create_schedule(hpxml, hpxml_path, runner, building_index)
+    generator = HVACScheduleGenerator.new(hpxml, hpxml_path, runner, building_index)
+    generator.get_heating_cooling_setpoint_schedule
+  end
+
+  def modify_schedule(hpxml, building_index, args, runner, schedule)
+    byebug
+    minutes_per_step = hpxml.header.timestep
+    hpxml_bldg = hpxml.buildings[building_index]
+    building_id = hpxml_bldg.building_id
+    state = hpxml_bldg.state_code
+    sim_year = hpxml.header.sim_calendar_year
+    schedule_modifier = HVACScheduleModifier.new(state: state,
+                                                sim_year: sim_year,
+                                                minutes_per_step: minutes_per_step,
+                                                runner: runner)
+    flexibility_inputs = get_flexibility_inputs(args, minutes_per_step, building_id)
+    schedule_modifier.modify_setpoints(schedule, flexibility_inputs)
+  end
+
+  def get_flexibility_inputs(args, minutes_per_step, building_id)
+    srand(10)  # update with building_id
+    max_random_shift_steps = (args[:loadflex_random_shift_minutes] / minutes_per_step).to_i
+    random_shift_steps = rand(-max_random_shift_steps..max_random_shift_steps)
+    FlexibilityInputs.new(
+      peak_duration_steps: args[:loadflex_peak_duration_hours] * 60 / minutes_per_step,
+      peak_offset: args[:loadflex_peak_offset],
+      pre_peak_duration_steps: args[:loadflex_pre_peak_duration_hours] * 60 / minutes_per_step,
+      pre_peak_offset: args[:loadflex_pre_peak_offset],
+      random_shift_steps: random_shift_steps
+    )
+  end
+
+  def write_schedule(schedule, output_csv_path, building_index)
+    schedules_filepath = File.join(File.dirname(output_csv_path), "detailed_schedules_#{building_index + 1}.csv")
     CSV.open(schedules_filepath, 'w') do |csv|
-      csv << schedules.keys
-      rows = schedules.values.transpose
-      rows.each do |row|
+      csv << schedule.keys
+      schedule.values.transpose.each do |row|
         csv << row.map { |x| '%.3g' % x }
       end
     end
+    return schedules_filepath
+  end
+
+  def update_hpxml_schedule_filepath(building, new_schedule_filepath)
+    building_extension = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'BuildingSummary', 'extension'])
+    existing_schedules_filepaths = XMLHelper.get_values(building_extension, 'SchedulesFilePath', :string)
+    XMLHelper.add_element(building_extension, 'SchedulesFilePath', new_schedule_filepath, :string) unless existing_schedules_filepaths.include?(new_schedule_filepath)
   end
 end
 
