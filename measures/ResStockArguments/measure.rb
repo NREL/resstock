@@ -40,27 +40,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       # Following are arguments with the same name but different options
       next if arg.name == 'geometry_unit_cfa'
 
-      # Convert optional arguments to string arguments that allow Constants::Auto for defaulting
-      if !arg.required
-        case arg.type.valueName.downcase
-        when 'choice'
-          choices = arg.choiceValues.map(&:to_s)
-          choices.unshift(Constants::Auto) if arg.description.to_s.include?('OS-HPXML default')
-          new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
-        when 'boolean'
-          choices = ['true', 'false']
-          choices.unshift(Constants::Auto) if arg.description.to_s.include?('OS-HPXML default')
-          new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
-        else
-          new_arg = OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
-        end
-        new_arg.setDisplayName(arg.displayName.to_s)
-        new_arg.setDescription(arg.description.to_s)
-        new_arg.setUnits(arg.units.to_s)
-        args << new_arg
-      else
-        args << arg
-      end
+      args << arg
     end
 
     # BuildResidentialScheduleFile
@@ -837,11 +817,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args[:rim_joist_assembly_r] = rim_joist_assembly_r
     end
 
+    # Register argument/value pairs so they are assigned to BuildResidentialHPXML
     args.each do |arg_name, arg_value|
-      if args_to_delete.include?(arg_name) || (arg_value == Constants::Auto)
-        arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
-      end
-
+      arg_value = '' if args_to_delete.include?(arg_name) # don't assign these
       register_value(runner, arg_name.to_s, arg_value)
     end
 
