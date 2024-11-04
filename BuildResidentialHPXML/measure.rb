@@ -5134,40 +5134,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
   end
 
   # TODO
-  def convertArgumentValues(arguments_model, args)
-    args.each do |name, value|
-      if value == Constants::Auto
-        args.delete(name)
-        next
-      end
-
-      arg = arguments_model.find { |a| name == a.name.to_sym }
-      type = arg.type
-
-      if type == 'Choice'.to_OSArgumentType
-        choices = arg.choiceValues
-        if choices.include?(Constants::Auto)
-          if value.downcase.to_s == 'true'
-            args[name] = true
-          elsif value.downcase.to_s == 'false'
-            args[name] = false
-          end
-        end
-      elsif type == 'String'.to_OSArgumentType
-        begin
-          args[name] = Integer(value)
-        rescue
-          begin
-            args[name] = Float(value)
-          rescue
-          end
-        end
-      end
-    end
-    return args
-  end
-
-  # TODO
   def defaultOptionalArgumentValues(args)
     # these were previously required arguments with default values set
     args[:floor_over_foundation_assembly_r] = 28.1 if args[:floor_over_foundation_assembly_r].nil?
@@ -5187,9 +5153,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args[:neighbor_left_distance] = 10.0 if args[:neighbor_left_distance].nil?
     args[:neighbor_right_distance] = 10.0 if args[:neighbor_right_distance].nil?
     args[:overhangs_front_depth] = 0 if args[:overhangs_front_depth].nil?
+    args[:overhangs_front_distance_to_top_of_window] = 0 if args[:overhangs_front_distance_to_top_of_window].nil?
+    args[:overhangs_front_distance_to_bottom_of_window] = 4 if args[:overhangs_front_distance_to_bottom_of_window].nil?
     args[:overhangs_back_depth] = 0 if args[:overhangs_back_depth].nil?
+    args[:overhangs_back_distance_to_top_of_window] = 0 if args[:overhangs_back_distance_to_top_of_window].nil?
+    args[:overhangs_back_distance_to_bottom_of_window] = 4 if args[:overhangs_back_distance_to_bottom_of_window].nil?
     args[:overhangs_left_depth] = 0 if args[:overhangs_left_depth].nil?
+    args[:overhangs_left_distance_to_top_of_window] = 0 if args[:overhangs_left_distance_to_top_of_window].nil?
+    args[:overhangs_left_distance_to_bottom_of_window] = 4 if args[:overhangs_left_distance_to_bottom_of_window].nil?
     args[:overhangs_right_depth] = 0 if args[:overhangs_right_depth].nil?
+    args[:overhangs_right_distance_to_top_of_window] = 0 if args[:overhangs_right_distance_to_top_of_window].nil?
+    args[:overhangs_right_distance_to_bottom_of_window] = 4 if args[:overhangs_right_distance_to_bottom_of_window].nil?
     args[:skylight_ufactor] = 0.33 if args[:skylight_ufactor].nil?
     args[:skylight_shgc] = 0.45 if args[:skylight_shgc].nil?
     args[:heating_system_2_type] = Constants::None if args[:heating_system_2_type].nil?
