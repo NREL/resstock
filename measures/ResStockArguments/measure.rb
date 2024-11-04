@@ -404,7 +404,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     args = runner.getArgumentValues(arguments(model), user_arguments)
-    args = convert_args(args)
+    args = convertArgumentValues(arguments(model), args, false)
 
     # collect arguments for deletion
     arg_names = []
@@ -868,23 +868,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     month_day = "#{month_names[date.monthOfYear.value - 1]} #{date.dayOfMonth}"
     return month_day
-  end
-
-  def convert_args(args)
-    measure_arguments = @build_residential_hpxml_measure_arguments
-    measure_arguments.each do |arg|
-      arg_name = arg.name.to_sym
-      value = args[arg_name]
-      next if value.nil? || (value == Constants::Auto)
-
-      case arg.type.valueName.downcase
-      when 'double'
-        args[arg_name] = Float(value)
-      when 'integer'
-        args[arg_name] = Integer(value)
-      end
-    end
-    return args
   end
 end
 
