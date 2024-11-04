@@ -429,10 +429,8 @@ module Waterheater
   # @param plantloop_map [Hash] Map of HPXML System ID => OpenStudio PlantLoop objects
   # @return [nil]
   def self.apply_combi_system_EMS(model, water_heating_systems, plantloop_map)
-    water_heating_systems.select { |wh|
-      [HPXML::WaterHeaterTypeCombiStorage,
-       HPXML::WaterHeaterTypeCombiTankless].include? wh.water_heater_type
-    }.each do |water_heating_system|
+    combi_whs = water_heating_systems.select { |wh| [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? wh.water_heater_type }
+    combi_whs.each do |water_heating_system|
       combi_sys_id = water_heating_system.id
 
       # EMS for modulate source side mass flow rate

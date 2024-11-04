@@ -1,7 +1,7 @@
 ## OpenStudio-HPXML v1.9.0
 
 __New Features__
-- Updates to HPXML v4.0 final release.
+- Updates to OpenStudio 3.9/EnergyPlus 24.2/HPXML v4.0 final release.
 - Allows `Site/Address/ZipCode` to be provided instead of `ClimateandRiskZones/WeatherStation/extension/EPWFilePath`, in which case the closest TMY3 weather station will be automatically selected.
 - Allows optional inputs for modeling skylight curbs and/or shafts.
 - Allows modeling exterior horizontal insulation for a slab-on-grade foundation (or basement/crawlspace floor).
@@ -21,6 +21,7 @@ __New Features__
   - Allows CFIS systems with no strategy to meet remainder of ventilation target (`CFISControls/AdditionalRuntimeOperatingMode="none"`).
   - Allows CFIS systems with supplemental fans that run simultaneously with the air handler (`CFISControls/extension/SupplementalFanRunsWithAirHandlerFan=true`).
   - Allows CFIS systems with timer control, in which ventilation operation occurs at a fixed interval (`CFISControls/extension/ControlType="timer"`).
+  - Allows CFIS systems to be attached to ductless HVAC systems like PTHPs (requires using a DSE=1 distribution system, see documentation).
 - HVAC Manual J design load and sizing calculations:
   - Adds optional `DistributionSystemType/AirDistribution/extension/ManualJInputs/BlowerFanHeatBtuh` input.
   - Adds optional `DistributionSystemType/HydronicDistribution/extension/ManualJInputs/HotWaterPipingBtuh` input.
@@ -36,6 +37,7 @@ __New Features__
 - BuildResidentialHPXML measure:
   - **Breaking change**: Replaced `slab_under_width` and `slab_perimeter_depth` arguments with `slab_under_insulation_width` and `slab_perimeter_insulation_depth`
   - **Breaking change**: Replaced `schedules_vacancy_periods`, `schedules_power_outage_periods`, and `schedules_power_outage_periods_window_natvent_availability` arguments with `schedules_unavailable_period_types`, `schedules_unavailable_period_dates`, and `schedules_unavailable_period_window_natvent_availabilities`; this improves flexibility for handling more unavailable period types.
+  - **Breaking change**: Removed `window_<side>_wwr` argument; a value less than 1 can be provided to the `window_area_<side>` and will be treated as a window-to-wall ratio.
 - Utility bill calculations:
   - Allows OpenEI URDB tariffs that have $/day fixed charges.
   - Updates `openei_rates.zip` with the latest residential utility rates from the [OpenEI U.S. Utility Rate database](https://apps.openei.org/USURDB/).
