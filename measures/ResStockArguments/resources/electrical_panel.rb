@@ -230,11 +230,11 @@ class RatedCapacityGenerator
     end
   end
 
-  def convert_heating_type(heat_pump_type)
+  def is_ducted_heat_pump_heating(heat_pump_type)
     if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type)
-      return 'ASHP or GHP'
+      return 'true'
     else
-      return 'not ASHP or GHP'
+      return 'false'
     end
   end
 
@@ -256,22 +256,19 @@ class RatedCapacityGenerator
 
   def get_major_elec_load_count(args)
     # has electric primary heating
-    has_elec_heating_primary = electric_fuel(args[:heating_system_fuel])
-    # emulate HVAC Heating Type 
-    hvac_heating_type = convert_heating_type(args[:heat_pump_type])
-
+    has_elec_heating_primary = is_electric_fuel(args[:heating_system_fuel])
     # has electric water heater
-    has_elec_water_heater = electric_fuel(args[:water_heater_fuel_type])
-
-    # emulate HVAC Cooling Type 
+    has_elec_water_heater = is_electric_fuel(args[:water_heater_fuel_type])
+    # has cooling
     hvac_cooling_type = convert_cooling_type(args[:cooling_system_type], args[:heat_pump_type])
     has_cooling = has_cooling(hvac_cooling_type)
-
     # appliance presence and electric fuel
     has_elec_drying = electric_fuel_and_presence(args[:clothes_dryer_present], args[:clothes_dryer_fuel_type])
     has_elec_cooking = electric_fuel_and_presence(args[:cooking_range_oven_present], args[:cooking_range_fuel_type])
+    # has pv
     has_pv = has_pv(args[:pv_system_present])
-    has_ev_charging = 0
+    # has ev charging
+    has_ev_charging = 0 #TODO: connect with args[:ev_charger_present] when PR 1299 is merged
 
     load_vars = [
       has_elec_heating_primary,
@@ -282,27 +279,22 @@ class RatedCapacityGenerator
       has_ev_charging,
       has_pv
     ]
+    # The maximum load_count is 7.
+    # The calculation of load_count is based on the available information of training data, not the real load count in the model.
     load_count = load_vars.sum
 
-    #Count heat pump only once if it provides heating and cooling
-    if hvac_cooling_type == "heat pump" and hvac_heating_type == "ASHP or GHP"
-      load_count = load_count - 1 #Assuming a single heat pump provides heating and cooling
-    #Don't count plug-in Room ACs as major loads
-    elsif hvac_cooling_type == "room air conditioner"
-      load_count = load_count - 1
-    end
-    return load_count
+    load_count = load_count_hvac_adjustment(load_count, args)
   end
 
   def electric_fuel_and_presence(equipment_present, fuel_type)
     if equipment_present == 'false'
       return 0
     else
-      return electric_fuel(fuel_type)
+      return is_electric_fuel(fuel_type)
     end
   end
   
-  def electric_fuel(fuel_type)
+  def is_electric_fuel(fuel_type)
     if fuel_type == HPXML::FuelTypeElectricity
       return 1
     else
@@ -316,6 +308,22 @@ class RatedCapacityGenerator
     else
       return 1
     end
+  end
+
+  def load_count_hvac_adjustment(load_count, args)
+    # emulate HVAC Heating Type 
+    is_ducted_heat_pump_heating = is_ducted_heat_pump_heating(args[:heat_pump_type]) # ASHP or GHP
+    # emulate HVAC Cooling Type 
+    hvac_cooling_type = convert_cooling_type(args[:cooling_system_type], args[:heat_pump_type])
+
+    #Count ducted heat pump only once if it provides heating and cooling
+    if hvac_cooling_type == "heat pump" and is_ducted_heat_pump_heating == 'true'
+      load_count = load_count - 1 #Assuming a single ducted heat pump provides heating and cooling
+    #Don't count plug-in Room ACs as major loads
+    elsif HPXML::HVACTypeRoomAirConditioner == "room air conditioner"
+      load_count = load_count - 1
+    end
+    return load_count
   end
 
 end
