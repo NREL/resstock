@@ -5169,8 +5169,23 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
   # TODO
   def defaultOptionalArgumentValues(args)
+    # these were previously required arguments with default values set
     args[:floor_over_foundation_assembly_r] = 28.1 if args[:floor_over_foundation_assembly_r].nil?
+    args[:floor_over_garage_assembly_r] = 28.1 if args[:floor_over_garage_assembly_r].nil?
+    args[:ceiling_assembly_r] = 31.6 if args[:ceiling_assembly_r].nil?
     args[:geometry_roof_pitch] = '6:12' if args[:geometry_roof_pitch].nil?
+    args[:geometry_garage_width] = 0.0 if args[:geometry_garage_width].nil?
+    args[:geometry_garage_depth] = 20.0 if args[:geometry_garage_depth].nil?
+    args[:geometry_garage_protrusion] = 0.0 if args[:geometry_garage_protrusion].nil?
+    args[:geometry_garage_position] = Constants::PositionRight if args[:geometry_garage_position].nil?
+    args[:slab_perimeter_insulation_r] = 0 if args[:slab_perimeter_insulation_r].nil?
+    args[:slab_perimeter_insulation_depth] = 0 if args[:slab_perimeter_insulation_depth].nil?
+    args[:slab_under_insulation_r] = 0 if args[:slab_under_insulation_r].nil?
+    args[:slab_under_insulation_width] = 0 if args[:slab_under_insulation_width].nil?
+    args[:neighbor_front_distance] = 0.0 if args[:neighbor_front_distance].nil?
+    args[:neighbor_back_distance] = 0.0 if args[:neighbor_back_distance].nil?
+    args[:neighbor_left_distance] = 10.0 if args[:neighbor_left_distance].nil?
+    args[:neighbor_right_distance] = 10.0 if args[:neighbor_right_distance].nil?
     args[:overhangs_front_depth] = 0 if args[:overhangs_front_depth].nil?
     args[:overhangs_back_depth] = 0 if args[:overhangs_back_depth].nil?
     args[:overhangs_left_depth] = 0 if args[:overhangs_left_depth].nil?
