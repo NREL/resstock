@@ -5135,10 +5135,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
   # TODO
   def defaultOptionalArgumentValues(args)
-    # these were previously required arguments with default values set
+    # these were previously required arguments with default values set (i.e., arg.setDefaultValue(xxx))
     args[:floor_over_foundation_assembly_r] = 28.1 if args[:floor_over_foundation_assembly_r].nil?
     args[:floor_over_garage_assembly_r] = 28.1 if args[:floor_over_garage_assembly_r].nil?
     args[:ceiling_assembly_r] = 31.6 if args[:ceiling_assembly_r].nil?
+    args[:geometry_foundation_height] = 0.0 if args[:geometry_foundation_height].nil?
+    args[:geometry_foundation_height_above_grade] = 0.0 if args[:geometry_foundation_height_above_grade].nil?
     args[:geometry_roof_pitch] = '6:12' if args[:geometry_roof_pitch].nil?
     args[:geometry_garage_width] = 0.0 if args[:geometry_garage_width].nil?
     args[:geometry_garage_depth] = 20.0 if args[:geometry_garage_depth].nil?
@@ -5166,15 +5168,25 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args[:overhangs_right_distance_to_bottom_of_window] = 4 if args[:overhangs_right_distance_to_bottom_of_window].nil?
     args[:skylight_ufactor] = 0.33 if args[:skylight_ufactor].nil?
     args[:skylight_shgc] = 0.45 if args[:skylight_shgc].nil?
-    args[:heating_system_2_type] = Constants::None if args[:heating_system_2_type].nil?
-    args[:heating_system_2_fuel] = HPXML::FuelTypeElectricity if args[:heating_system_2_fuel].nil?
+    args[:heating_system_fuel] = HPXML::FuelTypeNaturalGas if args[:heating_system_fuel].nil?
+    args[:heating_system_heating_efficiency] = 0.78 if args[:heating_system_heating_efficiency].nil?
+    args[:heating_system_fraction_heat_load_served] = 1 if args[:heating_system_fraction_heat_load_served].nil?
+    args[:cooling_system_cooling_efficiency_type] = HPXML::UnitsSEER if args[:cooling_system_cooling_efficiency_type].nil?
+    args[:cooling_system_cooling_efficiency] = 13.0 if args[:cooling_system_cooling_efficiency].nil?
+    args[:cooling_system_fraction_cool_load_served] = 1 if args[:cooling_system_fraction_cool_load_served].nil?
     args[:heat_pump_heating_efficiency_type] = HPXML::UnitsHSPF if args[:heat_pump_heating_efficiency_type].nil?
     args[:heat_pump_heating_efficiency] = 7.7 if args[:heat_pump_heating_efficiency].nil?
     args[:heat_pump_cooling_efficiency_type] = HPXML::UnitsSEER if args[:heat_pump_cooling_efficiency_type].nil?
     args[:heat_pump_cooling_efficiency] = 13.0 if args[:heat_pump_cooling_efficiency].nil?
+    args[:heat_pump_fraction_heat_load_served] = 1 if args[:heat_pump_fraction_heat_load_served].nil?
+    args[:heat_pump_fraction_cool_load_served] = 1 if args[:heat_pump_fraction_cool_load_served].nil?
     args[:heat_pump_backup_type] = HPXML::HeatPumpBackupTypeIntegrated if args[:heat_pump_backup_type].nil?
     args[:heat_pump_backup_fuel] = HPXML::FuelTypeElectricity if args[:heat_pump_backup_fuel].nil?
     args[:heat_pump_backup_heating_efficiency] = 1 if args[:heat_pump_backup_heating_efficiency].nil?
+    args[:heating_system_2_type] = Constants::None if args[:heating_system_2_type].nil?
+    args[:heating_system_2_fuel] = HPXML::FuelTypeElectricity if args[:heating_system_2_fuel].nil?
+    args[:heating_system_2_heating_efficiency] = 1.0 if args[:heating_system_2_heating_efficiency].nil?
+    args[:heating_system_2_fraction_heat_load_served] = 0.25 if args[:heating_system_2_fraction_heat_load_served].nil?
     args[:mech_vent_fan_type] = Constants::None if args[:mech_vent_fan_type].nil?
     args[:mech_vent_recovery_efficiency_type] = 'Unadjusted' if args[:mech_vent_recovery_efficiency_type].nil?
     args[:mech_vent_total_recovery_efficiency] = 0.48 if args[:mech_vent_total_recovery_efficiency].nil?
@@ -5186,8 +5198,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args[:water_fixtures_shower_low_flow] = false if args[:water_fixtures_shower_low_flow].nil?
     args[:water_fixtures_sink_low_flow] = false if args[:water_fixtures_sink_low_flow].nil?
     args[:solar_thermal_system_type] = Constants::None if args[:solar_thermal_system_type].nil?
-    args[:solar_thermal_solar_fraction] = 0 if args[:solar_thermal_solar_fraction].nil?
+    args[:solar_thermal_collector_area] = 40.0 if args[:solar_thermal_collector_area].nil?
+    args[:solar_thermal_collector_loop_type] = HPXML::SolarThermalLoopTypeDirect if args[:solar_thermal_collector_loop_type].nil?
+    args[:solar_thermal_collector_type] = HPXML::SolarThermalCollectorTypeEvacuatedTube if args[:solar_thermal_collector_type].nil?
+    args[:solar_thermal_collector_azimuth] = 180 if args[:solar_thermal_collector_azimuth].nil?
     args[:solar_thermal_collector_tilt] = 'RoofPitch' if args[:solar_thermal_collector_tilt].nil?
+    args[:solar_thermal_collector_rated_optical_efficiency] = 0.5 if args[:solar_thermal_collector_rated_optical_efficiency].nil?
+    args[:solar_thermal_collector_rated_thermal_losses] = 0.2799 if args[:solar_thermal_collector_rated_thermal_losses].nil?
+    args[:solar_thermal_solar_fraction] = 0 if args[:solar_thermal_solar_fraction].nil?
     args[:misc_fuel_loads_grill_fuel_type] = HPXML::FuelTypeNaturalGas if args[:misc_fuel_loads_grill_fuel_type].nil?
     args[:misc_fuel_loads_lighting_fuel_type] = HPXML::FuelTypeNaturalGas if args[:misc_fuel_loads_lighting_fuel_type].nil?
     args[:misc_fuel_loads_fireplace_fuel_type] = HPXML::FuelTypeNaturalGas if args[:misc_fuel_loads_fireplace_fuel_type].nil?
