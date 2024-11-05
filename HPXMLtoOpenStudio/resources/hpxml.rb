@@ -9487,8 +9487,8 @@ class HPXML < Object
       permanent_spa_heaters = @parent_object.permanent_spas.select { |permanent_spa| @system_idrefs.include? permanent_spa.heater_id }
       pool_pumps = @parent_object.pools.select { |pool| @system_idrefs.include? pool.pump_id }
       pool_heaters = @parent_object.pools.select { |pool| @system_idrefs.include? pool.heater_id }
-      plug_load_well_pumps = @parent_object.plug_loads.select { |plug_load| @system_idrefs.include? plug_load.id && plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump }
-      plug_load_vehicles = @parent_object.plug_loads.select { |plug_load| @system_idrefs.include? plug_load.id && plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging }
+      plug_load_well_pumps = @parent_object.plug_loads.select { |plug_load| @system_idrefs.include?(plug_load.id) && plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump }
+      plug_load_vehicles = @parent_object.plug_loads.select { |plug_load| @system_idrefs.include?(plug_load.id) && plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging }
 
       if !heating_systems.empty?
         fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeHeating].include?(@type)
@@ -9527,7 +9527,7 @@ class HPXML < Object
         fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePoolHeater].include?(@type)
       end
       if !plug_load_well_pumps.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::PlugLoadTypeWellPump].include?(@type)
+        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeWellPump].include?(@type)
       end
       if !plug_load_vehicles.empty?
         fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeElectricVehicleCharging].include?(@type)
