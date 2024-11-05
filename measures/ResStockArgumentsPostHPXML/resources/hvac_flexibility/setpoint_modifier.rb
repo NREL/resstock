@@ -3,8 +3,6 @@ require 'csv'
 require 'json'
 require 'openstudio'
 
-require 'byebug'
-
 Dir["#{File.dirname(__FILE__)}/../../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/*.rb"].each do |resource_file|
   next if resource_file.include? 'minitest_helper.rb'
   require resource_file

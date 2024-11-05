@@ -5,7 +5,6 @@
 
 require_relative 'resources/hvac_flexibility/detailed_schedule_generator'
 require_relative 'resources/hvac_flexibility/setpoint_modifier'
-require 'byebug'
 
 # start the measure
 class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure

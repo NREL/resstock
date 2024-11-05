@@ -5,7 +5,6 @@ require_relative '../../../resources/buildstock'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/hpxml'
 require_relative '../resources/hvac_flexibility/setpoint_modifier.rb'
-require 'byebug'
 
 
 class ResStockArgumentsPostHPXMLTest < Minitest::Test
