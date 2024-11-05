@@ -23,6 +23,19 @@ class RatedCapacityGenerator
     return capacity_bin, capacity_value
   end
 
+  def assign_breaker_spaces_headroom(args:)
+    # initialize a random number generator
+    prng = Random.new(args[:building_id])
+
+    # load probability distribution csv
+    breaker_spaces_headroom_prob_map = read_breaker_spaces_headroom_probs()
+
+    # assign breaker space headroom number
+    breaker_spaces_headroom = sample_breaker_spaces_headroom(prng, breaker_spaces_headroom_prob_map, args)
+
+    return breaker_spaces_headroom
+  end
+
   def sample_rated_capacity_bin(prng, rated_capacity_map, args)
     # emulate Geometry Building Type RECS
     geometry_building_type_recs = convert_building_type(args[:geometry_unit_type], args[:geometry_building_num_units])
@@ -65,6 +78,23 @@ class RatedCapacityGenerator
     return capacity_bins[index]
   end
 
+  def sample_breaker_spaces_headroom(prng, breaker_spaces_headroom_prob_map, args)
+    # calculate number of major electric load
+    major_elec_load_count = get_major_elec_load_count(args)
+    # get panel capacity bin
+    capacity_bin = args[:electric_panel_service_rating_bin]
+
+    lookup_array = [
+      major_elec_load_count.to_s,
+      capacity_bin.to_s,
+    ]
+    
+    breaker_spaces_headroom = get_row_headers_breaker_spaces_headroom(breaker_spaces_headroom_prob_map, lookup_array)
+    row_probability = get_row_probability_breaker_spaces_headroom(breaker_spaces_headroom_prob_map, lookup_array)
+    index = weighted_random(prng, row_probability)
+    return breaker_spaces_headroom[index]
+  end
+
   def convert_capacity_bin_to_value(capacity_bin, heating_system_fuel, geometry_unit_cfa_bin)
     if capacity_bin == '<100'
       if heating_system_fuel == HPXML::FuelTypeElectricity
@@ -100,9 +130,22 @@ class RatedCapacityGenerator
     return prob_table
   end
 
+  def read_breaker_spaces_headroom_probs()
+    filename = 'electrical_panel_breaker_space.csv'
+    file = File.absolute_path(File.join(File.dirname(__FILE__), 'electrical_panel_resources', filename))
+    prob_table = CSV.read(file)
+    return prob_table
+  end
+
   def get_row_headers(prob_table, lookup_array)
     len = lookup_array.length()
     row_headers = prob_table[0][len..len + 7]
+    return row_headers
+  end
+
+  def get_row_headers_breaker_spaces_headroom(prob_table, lookup_array)
+    len = lookup_array.length()
+    row_headers = prob_table[0][len..len + 32]
     return row_headers
   end
 
@@ -117,6 +160,21 @@ class RatedCapacityGenerator
 
     if row_probability.length() != 7
       @runner.registerError("RatedCapacityGenerator cannot find row_probability for keys: #{lookup_array}")
+    end
+    return row_probability
+  end
+
+  def get_row_probability_breaker_spaces_headroom(prob_table, lookup_array)
+    len = lookup_array.length()
+    row_probability = []
+    prob_table.each do |row|
+      next if row[0..len - 1] != lookup_array
+
+      row_probability = row[len..len + 32].map(&:to_f)
+    end
+
+    if row_probability.length() != 32
+      @runner.registerError("BreakerSpacesHeadroomGenerator cannot find row_probability for keys: #{lookup_array}")
     end
     return row_probability
   end
@@ -164,8 +222,24 @@ class RatedCapacityGenerator
     end
   end
 
+  def has_cooling(hvac_cooling_type)
+    if hvac_cooling_type != 'none'
+      return 1
+    else
+      return 0
+    end
+  end
+
+  def is_ducted_heat_pump_heating(heat_pump_type)
+    if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type)
+      return true
+    else
+      return false
+    end
+  end
+
   def convert_fuel_and_presence(equipment_present, fuel_type)
-    if equipment_present == 'false'
+    if equipment_present == false
       return 'none'
     else
       return simplify_fuel_type(fuel_type)
@@ -179,4 +253,78 @@ class RatedCapacityGenerator
       return 'non-electricity'
     end
   end
+
+  def get_major_elec_load_count(args)
+    # has electric primary heating
+    has_elec_heating_primary = is_electric_fuel(args[:heating_system_fuel])
+    # has electric water heater
+    has_elec_water_heater = is_electric_fuel(args[:water_heater_fuel_type])
+    # has cooling
+    hvac_cooling_type = convert_cooling_type(args[:cooling_system_type], args[:heat_pump_type])
+    has_cooling = has_cooling(hvac_cooling_type)
+    # appliance presence and electric fuel
+    has_elec_drying = electric_fuel_and_presence(args[:clothes_dryer_present], args[:clothes_dryer_fuel_type])
+    has_elec_cooking = electric_fuel_and_presence(args[:cooking_range_oven_present], args[:cooking_range_fuel_type])
+    # has pv
+    has_pv = has_pv(args[:pv_system_present])
+    # has ev charging
+    has_ev_charging = 0 #TODO: connect with args[:ev_charger_present] when PR 1299 is merged
+
+    load_vars = [
+      has_elec_heating_primary,
+      has_elec_water_heater,
+      has_elec_drying,
+      has_elec_cooking,
+      has_cooling,
+      has_ev_charging,
+      has_pv
+    ]
+    # The maximum load_count is 7.
+    # The calculation of load_count is based on the available information of training data, not the real load count in the model.
+    load_count = load_vars.sum
+
+    load_count = load_count_hvac_adjustment(load_count, args)
+    return load_count
+  end
+
+  def electric_fuel_and_presence(equipment_present, fuel_type)
+    if equipment_present == false
+      return 0
+    else
+      return is_electric_fuel(fuel_type)
+    end
+  end
+  
+  def is_electric_fuel(fuel_type)
+    if fuel_type == HPXML::FuelTypeElectricity
+      return 1
+    else
+      return 0
+    end
+  end
+
+  def has_pv(pv_system_present)
+    if pv_system_present
+      return 1
+    else
+      return 0
+    end
+  end
+
+  def load_count_hvac_adjustment(load_count, args)
+    # emulate HVAC Heating Type 
+    is_ducted_heat_pump_heating = is_ducted_heat_pump_heating(args[:heat_pump_type]) # ASHP or GHP
+    # emulate HVAC Cooling Type 
+    hvac_cooling_type = convert_cooling_type(args[:cooling_system_type], args[:heat_pump_type])
+
+    #Count ducted heat pump only once if it provides heating and cooling
+    if hvac_cooling_type == "heat pump" and is_ducted_heat_pump_heating == true
+      load_count = load_count - 1 #Assuming a single ducted heat pump provides heating and cooling
+    #Don't count plug-in Room ACs as major loads
+    elsif hvac_cooling_type == HPXML::HVACTypeRoomAirConditioner
+      load_count = load_count - 1
+    end
+    return load_count
+  end
+
 end
