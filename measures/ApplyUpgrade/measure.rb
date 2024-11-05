@@ -736,8 +736,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         panel_system_additions['electric_panel_load_kitchen_fans_addition'] = true
       elsif arg_name.start_with?('bathroom_fans_quantity') && value > 0
         panel_system_additions['electric_panel_load_bathroom_fans_addition'] = true
-      elsif arg_name.start_with?('whole_house_fan_present') && value
-        panel_system_additions['electric_panel_load_whole_house_fan_addition'] = true
       elsif arg_name.start_with?('water_heater_type') && value != Constants::None
         panel_system_additions['electric_panel_load_water_heater_addition'] = true
       elsif arg_name.start_with?('clothes_dryer_present') && value
