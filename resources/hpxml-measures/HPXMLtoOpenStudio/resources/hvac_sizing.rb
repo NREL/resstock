@@ -1386,7 +1386,7 @@ module HVACSizing
         lengths_by_azimuth = {}
         adj_fnd_walls.each do |fnd_wall|
           if fnd_wall.azimuth.nil?
-            azimuths = HPXMLDefaults.get_default_azimuths(hpxml_bldg)
+            azimuths = Defaults.get_azimuths(hpxml_bldg)
           else
             azimuths = [fnd_wall.azimuth]
           end
@@ -1972,7 +1972,7 @@ module HVACSizing
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @return [nil]
   def self.apply_hvac_cfis_loads(mj, hvac_loads, zone_loads, hvac_heating, hvac_cooling, hpxml_bldg)
-    if hpxml_bldg.zones[0].id == 'BobRossResidenceConditioned' && hpxml_bldg.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeERV }.size == 1
+    if hpxml_bldg.zones[0].id == 'BobRossResidenceConditioned' && hpxml_bldg.ventilation_fans.count { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeERV } == 1
       # FUTURE: For now, ACCA is okay with us bypassing our inputs to manually test this.
       # Bob Ross 3-18: ERV to equipment (system load)
       htg_sens_eff = 0.68
@@ -2356,15 +2356,17 @@ module HVACSizing
       heating_delta_t = hvac_heating_ap.supply_air_temp - mj.heat_setpoint
 
       if hvac_heating.is_a?(HPXML::HeatingSystem) && hvac_heating.is_heat_pump_backup_system
-        # Adjust heating load using the HP backup calculation
         hvac_hp = hvac_heating.primary_heat_pump
-        hp_sizing_values = @all_hvac_sizings[{ heating: hvac_hp, cooling: hvac_hp }]
-        if hp_sizing_values.nil?
-          fail 'Primary heat pump should have been sized already.'
-        end
+        if hvac_hp.heat_pump_type != HPXML::HVACTypeHeatPumpGroundToAir
+          # Adjust heating load using the HP backup calculation
+          hp_sizing_values = @all_hvac_sizings[{ heating: hvac_hp, cooling: hvac_hp }]
+          if hp_sizing_values.nil?
+            fail 'Primary heat pump should have been sized already.'
+          end
 
-        hp_heating_speed = get_nominal_speed(hvac_hp.additional_properties, false)
-        hvac_sizings.Heat_Load = calculate_heat_pump_backup_load(mj, hvac_hp, hvac_sizings.Heat_Load, hp_sizing_values.Heat_Capacity, hp_heating_speed, hpxml_bldg)
+          hp_heating_speed = get_nominal_speed(hvac_hp.additional_properties, false)
+          hvac_sizings.Heat_Load = calculate_heat_pump_backup_load(mj, hvac_hp, hvac_sizings.Heat_Load, hp_sizing_values.Heat_Capacity, hp_heating_speed, hpxml_bldg)
+        end
       end
     elsif not hvac_cooling.nil? && hvac_cooling.has_integrated_heating
       heating_delta_t = hvac_cooling_ap.supply_air_temp - mj.heat_setpoint
@@ -2498,7 +2500,7 @@ module HVACSizing
       coefficients_1speed = HVAC.get_cool_cap_eir_ft_spec(HPXML::HVACCompressorTypeSingleStage)[0][0]
     elsif mode == :htg
       rated_indoor_temp = HVAC::AirSourceHeatRatedIDB
-      capacity_retention_temp_1speed, capacity_retention_fraction_1speed = HVAC.get_default_heating_capacity_retention(HPXML::HVACCompressorTypeSingleStage)
+      capacity_retention_temp_1speed, capacity_retention_fraction_1speed = Defaults.get_heating_capacity_retention(HPXML::HVACCompressorTypeSingleStage)
       coefficients_1speed = HVAC.get_heat_cap_eir_ft_spec(HPXML::HVACCompressorTypeSingleStage, capacity_retention_temp_1speed, capacity_retention_fraction_1speed)[0][0]
     end
     return MathTools.biquadratic(indoor_temp, outdoor_temp, coefficients_1speed) / MathTools.biquadratic(rated_indoor_temp, outdoor_temp, coefficients_1speed)
@@ -2528,11 +2530,14 @@ module HVACSizing
       max_rated_dp = detailed_performance_data.find { |dp| dp.outdoor_temperature == rated_odb && dp.capacity_description == HPXML::CapacityDescriptionMaximum }
       if max_rated_dp.capacity.nil?
         property = :capacity_fraction_of_nominal
+        # Should use nominal instead of maximum
+        capacity_nominal = 1.0
       else
         property = :capacity
+        # Should use nominal instead of maximum
+        capacity_nominal = (mode == :clg) ? hvac_sys.cooling_capacity : hvac_sys.heating_capacity
       end
-      capacity_max = detailed_performance_data.find { |dp| dp.outdoor_temperature == rated_odb && dp.capacity_description == HPXML::CapacityDescriptionMaximum }.send(property)
-      odb_adj = HVAC.interpolate_to_odb_table_point(detailed_performance_data, HPXML::CapacityDescriptionMaximum, outdoor_temp, property) / capacity_max
+      odb_adj = HVAC.interpolate_to_odb_table_point(detailed_performance_data, HPXML::CapacityDescriptionMaximum, outdoor_temp, property) / capacity_nominal
     end
     return odb_adj
   end
@@ -3290,11 +3295,11 @@ module HVACSizing
 
     # FUTURE: For now, ACCA is okay with us bypassing our inputs to manually test these.
     if hpxml_bldg.zones[0].id == 'BobRossResidenceConditioned'
-      if hpxml_bldg.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeERV }.size == 1
+      if hpxml_bldg.ventilation_fans.count { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeERV } == 1
         # Bob Ross 3-18: ERV to equipment (system load)
         return { q_imb: 0.0, q_oa: 0.0, q_preheat: 0.0, q_precool: 0.0, q_recirc: 0.0,
                  htg_sens_eff: 0.0, clg_sens_eff: 0.0, clg_lat_eff: 0.0 }
-      elsif hpxml_bldg.ventilation_fans.select { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeHRV }.size == 1
+      elsif hpxml_bldg.ventilation_fans.count { |f| f.used_for_whole_building_ventilation && f.fan_type == HPXML::MechVentTypeHRV } == 1
         # Bob Ross 3-21: HRV to space (space load)
         htg_sens_eff = 0.64
         clg_sens_eff = 0.58
@@ -3809,7 +3814,7 @@ module HVACSizing
       end
       ach = Airflow.get_infiltration_ACH_from_SLA(sla, 8.202, weather) if ach.nil?
     else # Unvented space
-      ach = Airflow.get_default_unvented_space_ach()
+      ach = Airflow::UnventedSpaceACH
     end
     volume = Geometry.calculate_zone_volume(hpxml_bldg, location)
     infiltration_cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
@@ -4175,7 +4180,7 @@ module HVACSizing
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param leakiness_description [String] Leakiness description to look up the infiltration ach value
   # @param cfa [Double] Conditioned floor area in the dwelling unit (ft2)
-  # @return [Array<Float, Float>] Heating and cooling ACH values from Manual J Table 5A/5B
+  # @return [Array<Double, Double>] Heating and cooling ACH values from Manual J Table 5A/5B
   def self.get_mj_default_ach_values(hpxml_bldg, leakiness_description, cfa)
     ncfl_ag = hpxml_bldg.building_construction.number_of_conditioned_floors_above_grade
     # Manual J Table 5A
@@ -4887,17 +4892,22 @@ module HVACSizing
     end
   end
 
-  # Writes a output file with additional detailed information needed to fill out, e.g., an ACCA Form J1.
+  # Appends additional detailed information needed to fill out, e.g., an ACCA Form J1 to the provided array
+  # for eventual writing to an output file.
   #
   # @param output_format [String] Detailed output file format ('csv', 'json', or 'msgpack')
-  # @param output_file_path [String] Detailed output file path
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param all_zone_loads [Hash] Map of HPXML::Zones => DesignLoadValues object
   # @param all_space_loads [Hash] Map of HPXML::Spaces => DesignLoadValues object
+  # @param results_out [Array] Rows of output data
   # @return [nil]
-  def self.write_detailed_output(output_format, output_file_path, hpxml_bldg, all_zone_loads, all_space_loads)
+  def self.append_detailed_output(output_format, hpxml_bldg, all_zone_loads, all_space_loads, results_out)
     line_break = nil
-    results_out = []
+
+    if (output_format == 'csv') && (not results_out.empty?)
+      # Separate from existing data with line break
+      results_out << [line_break]
+    end
 
     orientation_map = { HPXML::OrientationEast => 'E',
                         HPXML::OrientationNorth => 'N',
@@ -5043,12 +5053,17 @@ module HVACSizing
     all_space_loads.values.each_with_index do |space_loads, i|
       results_out << [space_col_names[i]] + space_loads.HourlyFenestrationLoads.map { |l| l.round }
     end
+  end
 
+  # Writes an output file for the given rows of output data.
+  #
+  # @param results_out [Array] Rows of output data
+  # @param output_format [String] Detailed output file format ('csv', 'json', or 'msgpack')
+  # @param output_file_path [String] Detailed output file path
+  # @return [nil]
+  def self.write_detailed_output(results_out, output_format, output_file_path)
+    line_break = nil
     if ['csv'].include? output_format
-      if File.exist? output_file_path
-        # Separate from existing data
-        results_out.insert(0, [line_break])
-      end
       CSV.open(output_file_path, 'a') { |csv| results_out.to_a.each { |elem| csv << elem } }
     elsif ['json', 'msgpack'].include? output_format
       h = {}
@@ -5074,10 +5089,6 @@ module HVACSizing
           items[columns[i - 1]] = out[i]
         end
         h[report][name] = items
-      end
-
-      if File.exist? output_file_path
-        h = JSON.parse(File.read(output_file_path)).merge(h)
       end
 
       if output_format == 'json'

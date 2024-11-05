@@ -5,7 +5,7 @@ require 'csv'
 # HPXML declared values: https://github.com/NREL/OpenStudio-HPXML/blob/master/HPXMLtoOpenStudio/resources/hpxml.rb
 class ElectricalPanelSampler
   def initialize(runner:,
-                 building_id:, 
+                 building_id:,
                  **)
     @runner = runner
     @prng = Random.new(building_id) # initialize a random number generator
@@ -18,7 +18,7 @@ class ElectricalPanelSampler
     # assign rated capacity bin and value
     capacity_bin = sample_rated_capacity_bin(capacity_prob_map, args)
     capacity_value = convert_capacity_bin_to_value(capacity_bin, args[:heating_system_fuel], args[:geometry_unit_cfa_bin])
-  
+
     return capacity_bin, capacity_value
   end
 
@@ -68,8 +68,8 @@ class ElectricalPanelSampler
         vintage,
       ]
     end
-    capacity_bins = get_row_headers(rated_capacity_map, lookup_array, header_size:7)
-    row_probability = get_row_probability(rated_capacity_map, lookup_array, header_size:7)
+    capacity_bins = get_row_headers(rated_capacity_map, lookup_array, header_size: 7)
+    row_probability = get_row_probability(rated_capacity_map, lookup_array, header_size: 7)
     index = weighted_random(row_probability)
     return capacity_bins[index]
   end
@@ -82,9 +82,9 @@ class ElectricalPanelSampler
       major_elec_load_count.to_s,
       args[:electric_panel_service_rating_bin].to_s,
     ]
-    
-    breaker_space_headroom = get_row_headers(breaker_space_headroom_prob_map, lookup_array, header_size:32)
-    row_probability = get_row_probability(breaker_space_headroom_prob_map, lookup_array, header_size:32)
+
+    breaker_space_headroom = get_row_headers(breaker_space_headroom_prob_map, lookup_array, header_size: 32)
+    row_probability = get_row_probability(breaker_space_headroom_prob_map, lookup_array, header_size: 32)
     index = weighted_random(row_probability)
     return breaker_space_headroom[index]
   end
@@ -126,7 +126,7 @@ class ElectricalPanelSampler
     # has pv
     has_pv = has_pv(args[:pv_system_present])
     # has ev charging
-    has_ev_charging = 0 #TODO: connect with args[:ev_charger_present] when PR 1299 is merged
+    has_ev_charging = 0 # TODO: connect with args[:ev_charger_present] when PR 1299 is merged
 
     load_vars = [
       has_elec_heating_primary,
@@ -175,7 +175,7 @@ class ElectricalPanelSampler
   end
 
   def has_central_non_heat_pump_cooling(args)
-    # emulate HVAC Cooling Type 
+    # emulate HVAC Cooling Type
     hvac_cooling_type = convert_cooling_type(args[:cooling_system_type], args[:heat_pump_type])
     is_ducted_heat_pump_heating = is_ducted_heat_pump_heating(args[:heat_pump_type])
 
@@ -222,7 +222,7 @@ class ElectricalPanelSampler
       return is_electric_fuel(fuel_type)
     end
   end
-  
+
   def is_electric_fuel(fuel_type)
     if fuel_type == HPXML::FuelTypeElectricity
       return 1
@@ -268,6 +268,7 @@ class ElectricalPanelSampler
     row_probability = []
     prob_table.each do |row|
       next if row[0..len - 1] != lookup_array
+
       row_probability = row[len..len + header_size].map(&:to_f)
     end
 
@@ -288,5 +289,4 @@ class ElectricalPanelSampler
     end
     return weights.size - 1 # If the prob weight don't sum to n, return last index
   end
-
 end
