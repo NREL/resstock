@@ -11009,12 +11009,31 @@ class HPXML < Object
     attr_accessor(*ATTRS)
 
     # TODO
-    def panel_loads
+    def pump_panel_loads
       list = []
       @parent_object.electric_panels.each do |electric_panel|
         electric_panel.panel_loads.each do |panel_load|
           next if panel_load.system_idrefs.empty?
-          next if !panel_load.system_idrefs.include?(@pump_id) || !panel_load.system_idrefs.include?(@heater_id)
+          next unless panel_load.system_idrefs.include?(@pump_id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
+
+    # TODO
+    def heater_panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@heater_id)
 
           list << panel_load
         end
@@ -11172,12 +11191,31 @@ class HPXML < Object
     attr_accessor(*ATTRS)
 
     # TODO
-    def panel_loads
+    def pump_panel_loads
       list = []
       @parent_object.electric_panels.each do |electric_panel|
         electric_panel.panel_loads.each do |panel_load|
           next if panel_load.system_idrefs.empty?
-          next if !panel_load.system_idrefs.include?(@pump_id) || !panel_load.system_idrefs.include?(@heater_id)
+          next unless panel_load.system_idrefs.include?(@pump_id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
+
+    # TODO
+    def heater_panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@heater_id)
 
           list << panel_load
         end

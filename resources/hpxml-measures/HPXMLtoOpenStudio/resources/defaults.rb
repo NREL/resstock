@@ -3274,14 +3274,16 @@ module Defaults
       end
 
       hpxml_bldg.permanent_spas.each do |permanent_spa|
-        next if !permanent_spa.panel_loads.nil?
-
-        panel_loads.add(type: HPXML::ElectricPanelLoadTypePermanentSpaPump,
-                        type_isdefaulted: true,
-                        system_idrefs: [permanent_spa.pump_id],
-                        system_idrefs_isdefaulted: true)
+        if permanent_spa.pump_panel_loads.nil?
+          panel_loads.add(type: HPXML::ElectricPanelLoadTypePermanentSpaPump,
+                          type_isdefaulted: true,
+                          system_idrefs: [permanent_spa.pump_id],
+                          system_idrefs_isdefaulted: true)
+        end
 
         next if ![HPXML::HeaterTypeElectricResistance, HPXML::HeaterTypeHeatPump].include?(permanent_spa.heater_type)
+
+        next unless permanent_spa.heater_panel_loads.nil?
 
         panel_loads.add(type: HPXML::ElectricPanelLoadTypePermanentSpaHeater,
                         type_isdefaulted: true,
@@ -3290,14 +3292,16 @@ module Defaults
       end
 
       hpxml_bldg.pools.each do |pool|
-        next if !pool.panel_loads.nil?
-
-        panel_loads.add(type: HPXML::ElectricPanelLoadTypePoolPump,
-                        type_isdefaulted: true,
-                        system_idrefs: [pool.pump_id],
-                        system_idrefs_isdefaulted: true)
+        if pool.pump_panel_loads.nil?
+          panel_loads.add(type: HPXML::ElectricPanelLoadTypePoolPump,
+                          type_isdefaulted: true,
+                          system_idrefs: [pool.pump_id],
+                          system_idrefs_isdefaulted: true)
+        end
 
         next if ![HPXML::HeaterTypeElectricResistance, HPXML::HeaterTypeHeatPump].include?(pool.heater_type)
+
+        next unless pool.heater_panel_loads.nil?
 
         panel_loads.add(type: HPXML::ElectricPanelLoadTypePoolHeater,
                         type_isdefaulted: true,
@@ -6125,7 +6129,7 @@ module Defaults
       breaker_spaces += 1
     elsif type == HPXML::ElectricPanelLoadTypePermanentSpaHeater
       hpxml_bldg.permanent_spas.each do |permanent_spa|
-        next if !system_ids.include?(permanent_spa.id)
+        next if !system_ids.include?(permanent_spa.heater_id)
         next if ![HPXML::HeaterTypeElectricResistance, HPXML::HeaterTypeHeatPump].include?(permanent_spa.heater_type)
 
         watts += 1000
@@ -6133,14 +6137,14 @@ module Defaults
       end
     elsif type == HPXML::ElectricPanelLoadTypePermanentSpaPump
       hpxml_bldg.permanent_spas.each do |permanent_spa|
-        next if !system_ids.include?(permanent_spa.id)
+        next if !system_ids.include?(permanent_spa.pump_id)
 
         watts += 1491
         breaker_spaces += 1
       end
     elsif type == HPXML::ElectricPanelLoadTypePoolHeater
       hpxml_bldg.pools.each do |pool|
-        next if !system_ids.include?(pool.id)
+        next if !system_ids.include?(pool.heater_id)
         next if ![HPXML::HeaterTypeElectricResistance, HPXML::HeaterTypeHeatPump].include?(pool.heater_type) # FIXME: probably want to separate out HeatPump here
 
         watts += 27000
@@ -6148,7 +6152,7 @@ module Defaults
       end
     elsif type == HPXML::ElectricPanelLoadTypePoolPump
       hpxml_bldg.pools.each do |pool|
-        next if !system_ids.include?(pool.id)
+        next if !system_ids.include?(pool.pump_id)
 
         watts += 1491
         breaker_spaces += 1
