@@ -232,14 +232,14 @@ class RatedCapacityGenerator
 
   def is_ducted_heat_pump_heating(heat_pump_type)
     if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type)
-      return 'true'
+      return true
     else
-      return 'false'
+      return false
     end
   end
 
   def convert_fuel_and_presence(equipment_present, fuel_type)
-    if equipment_present == 'false'
+    if equipment_present == false
       return 'none'
     else
       return simplify_fuel_type(fuel_type)
@@ -284,10 +284,11 @@ class RatedCapacityGenerator
     load_count = load_vars.sum
 
     load_count = load_count_hvac_adjustment(load_count, args)
+    return load_count
   end
 
   def electric_fuel_and_presence(equipment_present, fuel_type)
-    if equipment_present == 'false'
+    if equipment_present == false
       return 0
     else
       return is_electric_fuel(fuel_type)
@@ -303,10 +304,10 @@ class RatedCapacityGenerator
   end
 
   def has_pv(pv_system_present)
-    if pv_system_present == 'false'
-      return 0
-    else
+    if pv_system_present
       return 1
+    else
+      return 0
     end
   end
 
@@ -317,10 +318,10 @@ class RatedCapacityGenerator
     hvac_cooling_type = convert_cooling_type(args[:cooling_system_type], args[:heat_pump_type])
 
     #Count ducted heat pump only once if it provides heating and cooling
-    if hvac_cooling_type == "heat pump" and is_ducted_heat_pump_heating == 'true'
+    if hvac_cooling_type == "heat pump" and is_ducted_heat_pump_heating == true
       load_count = load_count - 1 #Assuming a single ducted heat pump provides heating and cooling
     #Don't count plug-in Room ACs as major loads
-    elsif HPXML::HVACTypeRoomAirConditioner == "room air conditioner"
+    elsif hvac_cooling_type == HPXML::HVACTypeRoomAirConditioner
       load_count = load_count - 1
     end
     return load_count
