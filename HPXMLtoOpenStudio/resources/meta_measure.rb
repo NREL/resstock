@@ -624,3 +624,38 @@ class String
     return true
   end
 end
+
+# TODO
+def convertArgumentValues(arguments_model, args, delete_auto = true)
+  args.each do |name, value|
+    if delete_auto && value == Constants::Auto
+      args.delete(name)
+      next
+    end
+
+    arg = arguments_model.find { |a| name == a.name.to_sym }
+    type = arg.type
+
+    if type == 'Choice'.to_OSArgumentType
+      choices = arg.choiceValues
+      if choices.include?(Constants::Auto)
+        if value.downcase.to_s == 'true'
+          args[name] = true
+        elsif value.downcase.to_s == 'false'
+          args[name] = false
+        end
+      end
+    elsif type == 'String'.to_OSArgumentType
+      begin
+        value = Float(value)
+        if value % 1 == 0
+          args[name] = Integer(value)
+        else
+          args[name] = value
+        end
+      rescue
+      end
+    end
+  end
+  return args
+end
