@@ -2600,6 +2600,19 @@ The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge)
 
 <br/>
 
+**Heat Pump: Crankcase Heater Power Watts**
+
+Heat Pump crankcase heater power consumption in Watts. Applies only to air-to-air, mini-split, packaged terminal heat pump and room air conditioner with reverse cycle. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#air-to-air-heat-pump'>Air-to-Air Heat Pump</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#mini-split-heat-pump'>Mini-Split Heat Pump</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#packaged-terminal-heat-pump'>Packaged Terminal Heat Pump</a>, <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#room-air-conditioner-w-reverse-cycle'>Room Air Conditioner w/ Reverse Cycle</a>) is used.
+
+- **Name:** ``heat_pump_crankcase_heater_watts``
+- **Type:** ``Double``
+
+- **Units:** ``W``
+
+- **Required:** ``false``
+
+<br/>
+
 **HVAC Detailed Performance Data: Capacity Type**
 
 Type of capacity values for detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps).

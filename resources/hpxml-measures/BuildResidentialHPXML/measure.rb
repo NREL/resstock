@@ -1566,6 +1566,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_crankcase_heater_watts', false)
+    arg.setDisplayName('Heat Pump: Crankcase Heater Power Watts')
+    arg.setDescription("Heat Pump crankcase heater power consumption in Watts. Applies only to #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, #{HPXML::HVACTypeHeatPumpPTHP} and #{HPXML::HVACTypeHeatPumpRoom}. If not provided, the OS-HPXML default (see <a href='#{docs_base_url}#air-to-air-heat-pump'>Air-to-Air Heat Pump</a>, <a href='#{docs_base_url}#mini-split-heat-pump'>Mini-Split Heat Pump</a>, <a href='#{docs_base_url}#packaged-terminal-heat-pump'>Packaged Terminal Heat Pump</a>, <a href='#{docs_base_url}#room-air-conditioner-w-reverse-cycle'>Room Air Conditioner w/ Reverse Cycle</a>) is used.")
+    arg.setUnits('W')
+    args << arg
+
     perf_data_capacity_type_choices = OpenStudio::StringVector.new
     perf_data_capacity_type_choices << 'Absolute capacities'
     perf_data_capacity_type_choices << 'Normalized capacity fractions'
@@ -7776,9 +7782,11 @@ module HPXMLFile
 
     hpxml_bldg.pools.add(id: "Pool#{hpxml_bldg.pools.size + 1}",
                          type: HPXML::TypeUnknown,
+                         pump_id: "Pool#{hpxml_bldg.pools.size + 1}Pump",
                          pump_type: HPXML::TypeUnknown,
                          pump_kwh_per_year: args[:pool_pump_annual_kwh],
                          pump_usage_multiplier: args[:pool_pump_usage_multiplier],
+                         heater_id: "Pool#{hpxml_bldg.pools.size + 1}Heater",
                          heater_type: args[:pool_heater_type],
                          heater_load_units: heater_load_units,
                          heater_load_value: heater_load_value,
@@ -7814,9 +7822,11 @@ module HPXMLFile
 
     hpxml_bldg.permanent_spas.add(id: "PermanentSpa#{hpxml_bldg.permanent_spas.size + 1}",
                                   type: HPXML::TypeUnknown,
+                                  pump_id: "PermanentSpa#{hpxml_bldg.permanent_spas.size + 1}Pump",
                                   pump_type: HPXML::TypeUnknown,
                                   pump_kwh_per_year: args[:permanent_spa_pump_annual_kwh],
                                   pump_usage_multiplier: args[:permanent_spa_pump_usage_multiplier],
+                                  heater_id: "PermanentSpa#{hpxml_bldg.permanent_spas.size + 1}Heater",
                                   heater_type: args[:permanent_spa_heater_type],
                                   heater_load_units: heater_load_units,
                                   heater_load_value: heater_load_value,
