@@ -5624,18 +5624,32 @@ module HVAC
   def self.check_distribution_system(hvac_distribution, system_type)
     return if hvac_distribution.nil?
 
-    hvac_distribution_type_map = { HPXML::HVACTypeFurnace => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
-                                   HPXML::HVACTypeBoiler => [HPXML::HVACDistributionTypeHydronic, HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
-                                   HPXML::HVACTypeCentralAirConditioner => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
-                                   HPXML::HVACTypeEvaporativeCooler => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
-                                   HPXML::HVACTypeMiniSplitAirConditioner => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
-                                   HPXML::HVACTypeHeatPumpAirToAir => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
-                                   HPXML::HVACTypeHeatPumpMiniSplit => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
-                                   HPXML::HVACTypeHeatPumpGroundToAir => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
-                                   HPXML::HVACTypeHeatPumpWaterLoopToAir => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE] }
+    hvac_distribution_type_map = {
+      HPXML::HVACTypeFurnace => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+      HPXML::HVACTypeBoiler => [HPXML::HVACDistributionTypeHydronic, HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+      HPXML::HVACTypeCentralAirConditioner => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+      HPXML::HVACTypeEvaporativeCooler => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+      HPXML::HVACTypeMiniSplitAirConditioner => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+      HPXML::HVACTypeRoomAirConditioner => [HPXML::HVACDistributionTypeDSE],
+      HPXML::HVACTypePTAC => [HPXML::HVACDistributionTypeDSE],
+      HPXML::HVACTypeHeatPumpAirToAir => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+      HPXML::HVACTypeHeatPumpMiniSplit => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+      HPXML::HVACTypeHeatPumpGroundToAir => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+      HPXML::HVACTypeHeatPumpWaterLoopToAir => [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeDSE],
+      HPXML::HVACTypeHeatPumpPTHP => [HPXML::HVACDistributionTypeDSE],
+      HPXML::HVACTypeHeatPumpRoom => [HPXML::HVACDistributionTypeDSE],
+    }
 
     if not hvac_distribution_type_map[system_type].include? hvac_distribution.distribution_system_type
       fail "Incorrect HVAC distribution system type for HVAC type: '#{system_type}'. Should be one of: #{hvac_distribution_type_map[system_type]}"
+    end
+
+    # Also check that DSE=1 if PTAC/PTHP/RoomAC/RoomHP, since it is only used to attach a CFIS system
+    if [HPXML::HVACTypePTAC, HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeRoomAirConditioner, HPXML::HVACTypeHeatPumpRoom].include? system_type
+      if ((not hvac_distribution.annual_cooling_dse.nil?) && (hvac_distribution.annual_cooling_dse != 1)) ||
+         ((not hvac_distribution.annual_heating_dse.nil?) && (hvac_distribution.annual_heating_dse != 1))
+        fail "HVAC type '#{system_type}' must have a heating and/or cooling DSE of 1."
+      end
     end
   end
 end

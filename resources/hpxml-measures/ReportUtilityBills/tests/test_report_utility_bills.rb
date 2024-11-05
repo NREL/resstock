@@ -288,10 +288,10 @@ class ReportUtilityBillsTest < Minitest::Test
     # Check that we can successfully look up "auto" rates for every state and every fuel type.
     Constants::StateCodesMap.keys.each do |state_code|
       fuel_types.each do |fuel_type|
-        flat_rate, average_rate = UtilityBills.get_rates_from_eia_data(nil, state_code, fuel_type, 1) # fixed_charge > 0 ensures marginal_rate != average_rate
-        refute_nil(flat_rate)
+        marginal_rate, average_rate = UtilityBills.get_rates_from_eia_data(nil, state_code, fuel_type, 1) # fixed_charge > 0 ensures marginal_rate != average_rate
+        refute_nil(marginal_rate)
         if [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas].include? fuel_type
-          assert_operator(flat_rate, :<, average_rate)
+          assert_operator(marginal_rate, :<, average_rate)
         else
           assert_nil(average_rate)
         end
@@ -300,10 +300,10 @@ class ReportUtilityBillsTest < Minitest::Test
 
     # Check that we can successfully look up "auto" rates for the US too.
     fuel_types.each do |fuel_type|
-      flat_rate, average_rate = UtilityBills.get_rates_from_eia_data(nil, 'US', fuel_type, 1) # fixed_charge > 0 ensures marginal_rate != average_rate
-      refute_nil(flat_rate)
+      marginal_rate, average_rate = UtilityBills.get_rates_from_eia_data(nil, 'US', fuel_type, 1) # fixed_charge > 0 ensures marginal_rate != average_rate
+      refute_nil(marginal_rate)
       if [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas].include? fuel_type
-        assert_operator(flat_rate, :<, average_rate)
+        assert_operator(marginal_rate, :<, average_rate)
       else
         assert_nil(average_rate)
       end
@@ -322,10 +322,10 @@ class ReportUtilityBillsTest < Minitest::Test
     # Check that we can successfully provide rates for every state and every fuel type.
     Constants::StateCodesMap.keys.each do |state_code|
       fuel_types.each do |fuel_type|
-        flat_rate, average_rate = UtilityBills.get_rates_from_eia_data(nil, state_code, fuel_type, 1, marginal_rate) # fixed_charge > 0 ensures marginal_rate != average_rate
-        assert_equal(flat_rate, marginal_rate)
+        marginal_rate, average_rate = UtilityBills.get_rates_from_eia_data(nil, state_code, fuel_type, 1, marginal_rate) # fixed_charge > 0 ensures marginal_rate != average_rate
+        assert_equal(marginal_rate, marginal_rate)
         if [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas].include? fuel_type
-          assert_operator(flat_rate, :<, average_rate)
+          assert_operator(marginal_rate, :<, average_rate)
         else
           assert_nil(average_rate)
         end
@@ -334,10 +334,10 @@ class ReportUtilityBillsTest < Minitest::Test
 
     # Check that we can successfully provide rates for the US too.
     fuel_types.each do |fuel_type|
-      flat_rate, average_rate = UtilityBills.get_rates_from_eia_data(nil, 'US', fuel_type, 1, marginal_rate) # fixed_charge > 0 ensures marginal_rate != average_rate
-      assert_equal(flat_rate, marginal_rate)
+      marginal_rate, average_rate = UtilityBills.get_rates_from_eia_data(nil, 'US', fuel_type, 1, marginal_rate) # fixed_charge > 0 ensures marginal_rate != average_rate
+      assert_equal(marginal_rate, marginal_rate)
       if [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas].include? fuel_type
-        assert_operator(flat_rate, :<, average_rate)
+        assert_operator(marginal_rate, :<, average_rate)
       else
         assert_nil(average_rate)
       end
