@@ -838,14 +838,14 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # Electric Panel
     # collect inputs, execute resources/electrical_panel.rb methods, output service rating and available breaker spaces
 
-    capacity_sampler = RatedCapacityGenerator.new(runner: runner, **args)
-    cap_bin, cap_val = capacity_sampler.assign_rated_capacity(args: args)
+    panel_sampler = ElectricalPanelSampler.new(runner: runner, **args)
+    cap_bin, cap_val = panel_sampler.assign_rated_capacity(args: args)
 
     args[:electric_panel_service_rating_bin] = cap_bin
     args[:electric_panel_service_rating] = cap_val
 
     # FIXME: uncomment these once we pull in OS-HPXML's electric_panel branch
-    breaker_spaces_headroom = capacity_sampler.assign_breaker_spaces_headroom(args: args)
+    breaker_spaces_headroom = panel_sampler.assign_breaker_space_headroom(args: args)
     args[:electric_panel_breaker_spaces_type] = 'headroom'
     args[:electric_panel_breaker_spaces] = breaker_spaces_headroom 
 
