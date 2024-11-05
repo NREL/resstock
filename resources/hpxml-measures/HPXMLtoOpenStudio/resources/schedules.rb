@@ -1242,6 +1242,7 @@ class SchedulesFile
                  output_path:,
                  offset_db: nil)
     return if schedules_paths.empty?
+  
     @year = year
     import(schedules_paths)
     create_battery_charging_discharging_schedules
@@ -1355,6 +1356,7 @@ class SchedulesFile
         csv << "#{row.join(',')}\n"
       end
     end
+
     return true
   end
 
