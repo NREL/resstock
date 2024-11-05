@@ -6417,6 +6417,23 @@ module HPXMLFile
 
           distribution_system_idref = hvac_distribution.id
         end
+        if distribution_system_idref.nil?
+          # Allow for PTAC/PTHP by automatically adding a DSE=1 distribution system to attach the CFIS to
+          hpxml_bldg.hvac_systems.each do |hvac_system|
+            next unless (hvac_system.is_a?(HPXML::CoolingSystem) && [HPXML::HVACTypePTAC, HPXML::HVACTypeRoomAirConditioner].include?(hvac_system.cooling_system_type)) ||
+                        (hvac_system.is_a?(HPXML::HeatPump) && [HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include?(hvac_system.heat_pump_type))
+
+            hpxml_bldg.hvac_distributions.add(id: "HVACDistribution#{hpxml_bldg.hvac_distributions.size + 1}",
+                                              distribution_system_type: HPXML::HVACDistributionTypeDSE,
+                                              annual_cooling_dse: 1.0,
+                                              annual_heating_dse: 1.0)
+            hvac_system.distribution_system_idref = hpxml_bldg.hvac_distributions[-1].id
+            distribution_system_idref = hpxml_bldg.hvac_distributions[-1].id
+          end
+        end
+
+        return if distribution_system_idref.nil? # No distribution system to attach the CFIS to
+
         cfis_addtl_runtime_operating_mode = HPXML::CFISModeAirHandler
       end
 
