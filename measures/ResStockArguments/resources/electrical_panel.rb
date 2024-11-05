@@ -182,7 +182,7 @@ class ElectricalPanelSampler
     # Adjust count for cooling
     if hvac_cooling_type == 'none'
       return 0
-    elsif hvac_cooling_type == 'heat pump' and is_ducted_heat_pump_heating
+    elsif hvac_cooling_type == 'heat pump' && is_ducted_heat_pump_heating
       return 0 # Ducted heat pump provides heating and cooling, so no additional slots for cooling
     elsif hvac_cooling_type == HPXML::HVACTypeRoomAirConditioner
       return 0 # All Room ACs are assumed plug-in and do not take up slots
