@@ -378,14 +378,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
 
       if whole_sfa_or_mf_building_sim && num_units_modeled > 1
-        measures['BuildResidentialHPXML'][0]['battery_present'] = 'false' # limitation of OS-HPXML
+        measures['BuildResidentialHPXML'][0]['battery_present'] = false # limitation of OS-HPXML
       end
 
       if !unit_multipliers.empty?
         unit_multiplier = unit_multipliers[unit_number - 1]
         measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
         if unit_multiplier > 1
-          measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = 'none' # limitation of OS-HPXML
+          measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = Constants::None # limitation of OS-HPXML
         end
       end
 

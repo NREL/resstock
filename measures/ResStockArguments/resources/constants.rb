@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module Constants
-  Auto = 'auto'
   Heating = 'heating'
   Cooling = 'cooling'
   Weekday = 'weekday'

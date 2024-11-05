@@ -40,26 +40,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       # Following are arguments with the same name but different options
       next if arg.name == 'geometry_unit_cfa'
 
-      # Convert optional arguments to string arguments that allow Constants::Auto for defaulting
-      if !arg.required
-        case arg.type.valueName.downcase
-        when 'choice'
-          choices = arg.choiceValues.map(&:to_s)
-          choices.unshift(Constants::Auto)
-          new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
-        when 'boolean'
-          choices = [Constants::Auto, 'true', 'false']
-          new_arg = OpenStudio::Measure::OSArgument.makeChoiceArgument(arg.name, choices, false)
-        else
-          new_arg = OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
-        end
-        new_arg.setDisplayName(arg.displayName.to_s)
-        new_arg.setDescription(arg.description.to_s)
-        new_arg.setUnits(arg.units.to_s)
-        args << new_arg
-      else
-        args << arg
-      end
+      args << arg
     end
 
     # BuildResidentialScheduleFile
@@ -191,21 +172,21 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_continuous_exterior_r', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_continuous_exterior_r', false)
     arg.setDisplayName('Rim Joist: Continuous Exterior Insulation Nominal R-value')
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDescription('Nominal R-value for the rim joist continuous exterior insulation. Only applies to basements/crawlspaces.')
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_continuous_interior_r', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_continuous_interior_r', false)
     arg.setDisplayName('Rim Joist: Continuous Interior Insulation Nominal R-value')
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDescription('Nominal R-value for the rim joist continuous interior insulation that runs parallel to floor joists. Only applies to basements/crawlspaces.')
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_assembly_interior_r', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_assembly_interior_r', false)
     arg.setDisplayName('Rim Joist: Interior Assembly R-value')
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDescription('Assembly R-value for the rim joist assembly interior insulation that runs perpendicular to floor joists. Only applies to basements/crawlspaces.')
@@ -333,19 +314,24 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_has_flue_or_chimney', true)
+    has_flue_or_chimney_choices = OpenStudio::StringVector.new
+    has_flue_or_chimney_choices << Constants::Auto
+    has_flue_or_chimney_choices << 'true'
+    has_flue_or_chimney_choices << 'false'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heating_system_has_flue_or_chimney', has_flue_or_chimney_choices, false)
     arg.setDisplayName('Heating System: Has Flue or Chimney')
     arg.setDescription('Whether the heating system has a flue or chimney.')
     arg.setDefaultValue(Constants::Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_2_has_flue_or_chimney', true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heating_system_2_has_flue_or_chimney', has_flue_or_chimney_choices, false)
     arg.setDisplayName('Heating System 2: Has Flue or Chimney')
     arg.setDescription('Whether the second heating system has a flue or chimney.')
     arg.setDefaultValue(Constants::Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('water_heater_has_flue_or_chimney', true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_has_flue_or_chimney', has_flue_or_chimney_choices, false)
     arg.setDisplayName('Water Heater: Has Flue or Chimney')
     arg.setDescription('Whether the water heater has a flue or chimney.')
     arg.setDefaultValue(Constants::Auto)
@@ -418,7 +404,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     args = runner.getArgumentValues(arguments(model), user_arguments)
-    args = convert_args(args)
+    args = convertArgumentValues(arguments(model), args, false)
 
     # collect arguments for deletion
     arg_names = []
@@ -807,8 +793,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Rim Joist Assembly R-Value
-    rim_joist_assembly_r = 0
-    if args[:geometry_rim_joist_height] > 0
+    if !args[:geometry_rim_joist_height].nil? && args[:geometry_rim_joist_height] > 0
       drywall_assembly_r = 0.9
       uninsulated_wall_assembly_r = 3.4
 
@@ -829,14 +814,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
 
       rim_joist_assembly_r = assembly_exterior_r + assembly_interior_r
+      args[:rim_joist_assembly_r] = rim_joist_assembly_r
     end
-    args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
+    # Register argument/value pairs so they are assigned to BuildResidentialHPXML
     args.each do |arg_name, arg_value|
-      if args_to_delete.include?(arg_name) || (arg_value == Constants::Auto)
-        arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
-      end
-
+      arg_value = '' if args_to_delete.include?(arg_name) # don't assign these
       register_value(runner, arg_name.to_s, arg_value)
     end
 
@@ -885,23 +868,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     month_day = "#{month_names[date.monthOfYear.value - 1]} #{date.dayOfMonth}"
     return month_day
-  end
-
-  def convert_args(args)
-    measure_arguments = @build_residential_hpxml_measure_arguments
-    measure_arguments.each do |arg|
-      arg_name = arg.name.to_sym
-      value = args[arg_name]
-      next if value.nil? || (value == Constants::Auto)
-
-      case arg.type.valueName.downcase
-      when 'double'
-        args[arg_name] = Float(value)
-      when 'integer'
-        args[arg_name] = Integer(value)
-      end
-    end
-    return args
   end
 end
 

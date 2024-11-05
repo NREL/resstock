@@ -56,10 +56,10 @@ class ApplyUpgradeTest < Minitest::Test
     _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, nil, expected_values)
 
     expected_values['heat_pump_backup_type'] = nil
-    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, 'false', expected_values)
+    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, false, expected_values)
 
     expected_values['heat_pump_backup_type'] = nil
-    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, 'true', expected_values)
+    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, true, expected_values)
   end
 
   def test_SFD_1story_UB_UA_GRG_ACV_FuelFurnace_PortableHeater_HPWH
@@ -118,10 +118,10 @@ class ApplyUpgradeTest < Minitest::Test
     _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, nil, expected_values)
 
     expected_values['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
-    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, 'false', expected_values)
+    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, false, expected_values)
 
     expected_values['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
-    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, 'true', expected_values)
+    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, true, expected_values)
   end
 
   def test_SFD_2story_CS_UA_AC2_FuelBoiler_FuelTankWH
@@ -180,10 +180,10 @@ class ApplyUpgradeTest < Minitest::Test
     _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, nil, expected_values)
 
     expected_values['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
-    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, 'false', expected_values)
+    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, false, expected_values)
 
     expected_values['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
-    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, 'true', expected_values)
+    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, true, expected_values)
   end
 
   def test_SFD_2story_FB_UA_GRG_AC1_ElecBaseboard_FuelTankWH
@@ -242,10 +242,10 @@ class ApplyUpgradeTest < Minitest::Test
     _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, nil, expected_values)
 
     expected_values['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
-    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, 'false', expected_values)
+    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, false, expected_values)
 
     expected_values['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeSeparate
-    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, 'true', expected_values)
+    _test_heat_pump_backup(HPXML::HVACTypeHeatPumpMiniSplit, true, expected_values)
   end
 
   private
