@@ -4563,6 +4563,137 @@ In addition, the PVSystem must be connected to an inverter that is entered as a 
 
   .. [#] For homes with multiple inverters, all InverterEfficiency elements must have the same value.
 
+.. _hpxml_electric_panels:
+
+HPXML Electric Panels
+*********************
+
+A single electric panel can be entered as a ``/HPXML/Building/BuildingDetails/Systems/ElectricPanels/ElectricPanel``.
+
+  =======================================================================  =======  =========  =======================  ========  =============  ============================================
+  Element                                                                  Type     Units      Constraints              Required  Default        Notes
+  =======================================================================  =======  =========  =======================  ========  =============  ============================================
+  ``SystemIdentifier``                                                     id                                           Yes                      Unique identifier
+  ``Voltage``                                                              string   V          See [#]_                 No        240
+  ``MaxCurrentRating``                                                     double   A                                   No        150
+  ``extension/HeadroomBreakerSpaces`` or ``extension/TotalBreakerSpaces``  integer                                      No        See [#]_
+  ``extension/PanelLoads``                                                 element                                      No        See [#]_       Individual electric panel loads [#]_
+  =======================================================================  =======  =========  =======================  ========  =============  ============================================
+
+  .. [#] Voltage choices are "120" or "240".
+  .. [#] If neither extension/HeadroomBreakerSpaces nor extension/TotalBreakerSpaces provided, the following default value representing a fully occupied electric panel will be used: extension/HeadroomBreakerSpaces = 0.
+  .. [#] Panel loads for the following panel load types are created if at least one corresponding system exists:
+
+         \- **Heating**: ``HeatingSystem``, ``HeatPump``
+
+         \- **Cooling**: ``CoolingSystem``, ``HeatPump``
+
+         \- **Hot Water**: ``WaterHeatingSystem``
+
+         \- **Clothes Dryer**: ``ClothesDryer``
+
+         \- **Dishwasher**: ``Dishwasher``
+
+         \- **Range/Oven**: ``CookingRange``
+
+         \- **Mech Vent**: ``VentilationFan``
+
+         \- **Permanent Spa Heater**: ``PermanentSpa/Heater``
+
+         \- **Permanent Spa Pump**: ``PermanentSpa/Pumps/Pump``
+
+         \- **Pool Heater**: ``Pool/Heater``
+
+         \- **Pool Pump**: ``Pool/Pumps/Pump``
+
+         \- **Well Pump**: ``PlugLoad[PlugLoadType=”well pump”]``
+
+         \- **Electric Vehicle Charging**: ``PlugLoad[PlugLoadType=”electric vehicle charging”]``
+
+         \- **Other**
+
+         Panel loads for the following panel load types are always created:
+
+         \- **Lighting**
+
+         \- **Kitchen**
+
+         \- **Laundry**
+
+  .. [#] See :ref:`panel_loads`.
+
+.. _panel_loads:
+
+Panel Loads
+~~~~~~~~~~~
+
+Individual panel loads entered in ``extension/PanelLoads/PanelLoad``.
+
+  ==============================================  ========  ==============  ===========  ========  =========  ==========================================
+  Element                                         Type      Units           Constraints  Required  Default    Notes
+  ==============================================  ========  ==============  ===========  ========  =========  ==========================================
+  ``Type``                                        string                    See [#]_     Yes
+  ``Power``                                       double    W                            No        See [#]_
+  ``Voltage``                                     string    V               See [#]_     No        See [#]_
+  ``BreakerSpaces``                               integer                                No        See [#]_
+  ``Addition``                                    boolean                                No        false
+  ``System``                                      idref                     See [#]_     See [#]_  See [#]_   Can reference one or more systems
+  ==============================================  ========  ==============  ===========  ========  =========  ==========================================
+
+  .. [#] Type choices are "Heating", "Cooling", "Hot Water", "Clothes Dryer", "Dishwasher", "Range/Oven", "Mech Vent", "Permanent Spa Heater", "Permanent Spa Pump", "Pool Heater", "Pool Pump", "Well Pump", "Electric Vehicle Charging", "Lighting", "Kitchen", "Laundry", and "Other".
+  .. [#] If Power not provided, defaults as follows:
+
+         \- **Heating**: TODO
+
+         \- **Cooling**: TODO
+
+         \- **Hot Water**: TODO
+
+         \- **Clothes Dryer**: TODO
+
+         \- **Dishwasher**: TODO
+
+         \- **Range/Oven**: TODO
+
+         \- **Mech Vent**: TODO
+
+         \- **Permanent Spa Heater**: TODO
+
+         \- **Permanent Spa Pump**: TODO
+
+         \- **Pool Heater**: TODO
+
+         \- **Pool Pump**: TODO
+
+         \- **Well Pump**: TODO
+
+         \- **Electric Vehicle Charging**: TODO
+
+         \- **Lighting**: 3 * ConditionedFloorArea
+
+         \- **Kitchen**: 3000
+
+         \- **Laundry**: 1500
+
+         \- **Other**: 559 for garage door opener if a garage is present
+
+  .. [#] Voltage choices are "120" or "240".
+  .. [#] If Voltage not provided, defaults as follows:
+
+         \- **Heating, Cooling, Hot Water, Clothes Dryer, Range/Oven, Permanent Spa Heater, Pool Heater**: 240 (120 if Cooling references a room air conditioner)
+
+         \- **Mech Vent**, **Dishwasher, Permanent Spa Pump, Pool Pump, Well Pump, Electric Vehicle Charging, Lighting, Kitchen, Laundry, Other**: 120
+
+  .. [#] If BreakerSpaces not provided, defaults based on Type and Voltage:
+
+         \- **Lighting, Kitchen**: 120=0, 240=0
+
+         \- **Heating, Cooling, Hot Water, Clothes Dryer, Dishwasher, Range/Oven, Mech Vent, Permanent Spa Heater, Permanent Spa Pump, Pool Heater, Pool Pump, Well Pump, Electric Vehicle Charging, Other**: 120=1, 240=2
+
+  .. [#] System must reference a ``HeatingSystem``, ``CoolingSystem``, ``HeatPump``, ``WaterHeatingSystem``, ``ClothesDryer``, ``Dishwasher``, ``CookingRange``, ``VentilationFan``, ``PermanentSpa/Heater``, ``PermanentSpa/Pumps/Pump``, ``Pool/Heater``, ``Pool/Pump``, ``PlugLoad``, or ``VentilationFan``.
+  .. [#] Not required if Type is "Other"; otherwise, required.
+  .. [#] A panel load is created for any system not already referenced by a panel load.
+
 .. _hpxml_batteries:
 
 HPXML Batteries

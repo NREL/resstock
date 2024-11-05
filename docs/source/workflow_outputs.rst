@@ -424,6 +424,46 @@ Resilience outputs are listed below.
          The entire electric load is treated as a "critical load" that would be supported during an outage.
          Resilience hours are set to 0 for any timestep where the battery is not charged, even if there is sufficient PV to power the building.
 
+Electric Panel
+~~~~~~~~~~~~~~
+
+Electric panel loads, capacities, and breaker spaces are listed below.
+Panel loads, load-based capacities, and breaker spaces can also be found in the ``in.xml`` file.
+
+  ====================================================  ====================
+  Type                                                  Notes
+  ====================================================  ====================
+  Electric Panel Load: Heating (W)
+  Electric Panel Load: Cooling (W)
+  Electric Panel Load: Hot Water (W)
+  Electric Panel Load: Clothes Dryer (W)
+  Electric Panel Load: Dishwasher (W)
+  Electric Panel Load: Range/Oven (W)
+  Electric Panel Load: Mech Vent (W)
+  Electric Panel Load: Permanent Spa Heater (W)
+  Electric Panel Load: Permanent Spa Pump (W)
+  Electric Panel Load: Pool Heater (W)
+  Electric Panel Load: Pool Pump (W)
+  Electric Panel Load: Well Pump (W)
+  Electric Panel Load: Electric Vehicle Charging (W)
+  Electric Panel Load: Lighting (W)
+  Electric Panel Load: Other (W)
+  Electric Panel Capacity: Load-Based Total (W)         Calculated per 220.83
+  Electric Panel Capacity: Load-Based Total (A)         Load-Based Total (W) divided by panel voltage
+  Electric Panel Capacity: Load-Based Headroom (A)      Panel max current rating minus Load-Based Total (A)
+  Electric Panel Capacity: Meter-Based Total (W)        Calculated per 220.87
+  Electric Panel Capacity: Meter-Based Total (A)        Meter-Based Total (W) divided by panel voltage
+  Electric Panel Capacity: Meter-Based Headroom (A)     Panel max current rating minus Meter-Based Total (A)
+  Electric Panel Breaker Spaces: Total Count (#)        Total number of breaker spaces on the panel
+  Electric Panel Breaker Spaces: Occupied Count (#)     Number of occupied breaker spaces on the panel
+  Electric Panel Breaker Spaces: Headroom Count (#)     Number of available breaker spaces on the panel
+  ====================================================  ====================
+
+.. note::
+
+  Headroom is calculated as the panel's maximum current rating (or total breaker spaces) minus calculated capacity (or occupied breaker spaces).
+  A positive value indicates panel availability whereas a negative value indicates panel constraint.
+
 HVAC Capacities
 ~~~~~~~~~~~~~~~
 
