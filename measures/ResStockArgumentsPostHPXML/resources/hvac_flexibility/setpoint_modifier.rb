@@ -2,7 +2,7 @@ require 'date'
 require 'csv'
 require 'json'
 require 'openstudio'
-require_relative 'hvac_flexibility_constants'
+
 require 'byebug'
 
 Dir["#{File.dirname(__FILE__)}/../../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/*.rb"].each do |resource_file|
@@ -31,18 +31,17 @@ class HVACScheduleModifier
 
   def modify_setpoints(setpoints, flexibility_inputs)
     log_inputs(flexibility_inputs)
-    heating_setpoints = setpoints[:heating_setpoints].dup
-    cooling_setpoints = setpoints[:cooling_setpoints].dup
-    byebug
-    raise "heating_setpoints.length != cooling_setpoints.length" unless heating_setpoints.length == cooling_setpoints.length
+    heating_setpoint = setpoints[:heating_setpoint].dup
+    cooling_setpoint = setpoints[:cooling_setpoint].dup
+    raise "heating_setpoint.length != cooling_setpoint.length" unless heating_setpoint.length == cooling_setpoint.length
 
-    total_indices = heating_setpoints.length
+    total_indices = heating_setpoint.length
     total_indices.times do |index|
       offset_times = _get_peak_times(index, flexibility_inputs)
-      heating_setpoints[index] += _get_setpoint_offset(index, 'heating', offset_times, flexibility_inputs)
-      cooling_setpoints[index] += _get_setpoint_offset(index, 'cooling', offset_times, flexibility_inputs)
+      heating_setpoint[index] += _get_setpoint_offset(index, 'heating', offset_times, flexibility_inputs)
+      cooling_setpoint[index] += _get_setpoint_offset(index, 'cooling', offset_times, flexibility_inputs)
     end
-    { heating_setpoints: heating_setpoints, cooling_setpoints: cooling_setpoints }
+    { heating_setpoint: heating_setpoint, cooling_setpoint: cooling_setpoint }
   end
 
   def _get_peak_times(index, flexibility_inputs)

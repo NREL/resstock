@@ -35,8 +35,8 @@ class HVACScheduleGenerator
     @runner.registerInfo("Creating heating and cooling setpoint schedules for building #{@hpxml_path}")
     clg_weekday_setpoints, clg_weekend_setpoints, htg_weekday_setpoints, htg_weekend_setpoints = get_heating_cooling_weekday_weekend_setpoints
 
-    heating_setpoints = []
-    cooling_setpoints = []
+    heating_setpoint = []
+    cooling_setpoint = []
 
     @total_days_in_year.times do |day|
       today = @sim_start_day + day
@@ -50,11 +50,11 @@ class HVACScheduleGenerator
       end
       @steps_in_day.times do |step|
         hour = (step * @minutes_per_step) / 60
-        heating_setpoints << heating_setpoint_sch[day][hour]
-        cooling_setpoints << cooling_setpoint_sch[day][hour]
+        heating_setpoint << heating_setpoint_sch[day][hour]
+        cooling_setpoint << cooling_setpoint_sch[day][hour]
       end
     end
-    return {heating_setpoints: heating_setpoints, cooling_setpoints: cooling_setpoints}
+    return {heating_setpoint: heating_setpoint, cooling_setpoint: cooling_setpoint}
   end
 
   def c2f(setpoint_sch)

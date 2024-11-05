@@ -62,12 +62,17 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_random_shift_minutes', false)
     arg.setDisplayName('Load Flexibility: Random Shift (minutes)')
     arg.setDescription('Number of minutes to randomly shift the peak period. If minutes less than timestep, will be assumed to be 0.')
-    arg.setDefaultValue(0)
+    arg.setDefaultValue(30)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('output_csv_path', false)
     arg.setDisplayName('Schedules: Output CSV Path')
     arg.setDescription('Absolute/relative path of the csv file containing user-specified occupancy schedules. Relative paths are relative to the HPXML output path.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('building_id', false)
+    arg.setDisplayName('Building Unit ID')
+    arg.setDescription('The building unit number (between 1 and the number of samples).')
     args << arg
 
     return args
@@ -84,6 +89,10 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     args = runner.getArgumentValues(arguments(model), user_arguments)
+    if skip_load_flexibility?(args)
+      runner.registerInfo('Skipping ResStockArgumentsPostHPXML since load flexibility inputs are 0.')
+      return true
+    end
 
     hpxml_path = args[:hpxml_path]
     unless (Pathname.new hpxml_path).absolute?
@@ -104,16 +113,18 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     doc_buildings.each_with_index do |building, index|
       schedule = create_schedule(hpxml, hpxml_path, runner, index)
       modified_schedule = modify_schedule(hpxml, index, args, runner, schedule)
-      # TODO: Add function to modify the schedule here
       schedules_filepath = write_schedule(modified_schedule, args[:output_csv_path], index)
       update_hpxml_schedule_filepath(building, schedules_filepath)
     end
 
     # Write out the modified hpxml
     XMLHelper.write_file(doc, hpxml_path)
-    runner.registerInfo("Wrote file: #{hpxml_path}")
-
+    runner.registerInfo("Wrote file: #{hpxml_path} with modified schedules.")
     true
+  end
+
+  def skip_load_flexibility?(args)
+    args[:loadflex_peak_duration_hours] == 0 && args[:loadflex_pre_peak_duration_hours] == 0
   end
 
   def create_schedule(hpxml, hpxml_path, runner, building_index)
@@ -122,10 +133,9 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   end
 
   def modify_schedule(hpxml, building_index, args, runner, schedule)
-    byebug
     minutes_per_step = hpxml.header.timestep
     hpxml_bldg = hpxml.buildings[building_index]
-    building_id = hpxml_bldg.building_id
+    building_id = (args[:building_id] or 0).to_i
     state = hpxml_bldg.state_code
     sim_year = hpxml.header.sim_calendar_year
     schedule_modifier = HVACScheduleModifier.new(state: state,
@@ -137,7 +147,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   end
 
   def get_flexibility_inputs(args, minutes_per_step, building_id)
-    srand(10)  # update with building_id
+    srand(building_id)
     max_random_shift_steps = (args[:loadflex_random_shift_minutes] / minutes_per_step).to_i
     random_shift_steps = rand(-max_random_shift_steps..max_random_shift_steps)
     FlexibilityInputs.new(
