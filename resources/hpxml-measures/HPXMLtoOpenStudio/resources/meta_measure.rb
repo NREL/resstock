@@ -647,12 +647,13 @@ def convertArgumentValues(arguments_model, args, delete_auto = true)
       end
     elsif type == 'String'.to_OSArgumentType
       begin
-        args[name] = Integer(value)
-      rescue
-        begin
-          args[name] = Float(value)
-        rescue
+        value = Float(value)
+        if value % 1 == 0
+          args[name] = Integer(value)
+        else
+          args[name] = value
         end
+      rescue
       end
     end
   end

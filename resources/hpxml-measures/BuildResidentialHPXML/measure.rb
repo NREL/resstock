@@ -6259,12 +6259,17 @@ module HPXMLFile
       dst_end_day = end_day
     end
 
+    zip_code = args[:site_zip_code]
+    if !zip_code.nil?
+      zip_code = zip_code.to_s.rjust(5, '0')
+    end
+
     hpxml.buildings.add(building_id: 'MyBuilding',
                         site_id: 'SiteID',
                         event_type: 'proposed workscope',
                         city: args[:site_city],
                         state_code: args[:site_state_code],
-                        zip_code: args[:site_zip_code],
+                        zip_code: zip_code,
                         time_zone_utc_offset: args[:site_time_zone_utc_offset],
                         elevation: args[:site_elevation],
                         latitude: args[:site_latitude],
