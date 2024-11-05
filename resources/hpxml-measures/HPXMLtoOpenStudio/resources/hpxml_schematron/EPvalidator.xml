@@ -264,6 +264,7 @@
       <sch:assert role='ERROR' test='count(h:Systems/h:WaterHeating/h:WaterFixture) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/WaterHeating/WaterFixture</sch:assert> <!-- See [WaterFixture] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:SolarThermal/h:SolarThermalSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Systems/SolarThermal/SolarThermalSystem</sch:assert> <!-- See [SolarThermalSystem] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:Photovoltaics/h:PVSystem) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/Photovoltaics/PVSystem</sch:assert> <!-- See [PVSystem] -->
+      <sch:assert role='ERROR' test='count(h:Systems/h:ElectricPanels/h:ElectricPanel) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Systems/ElectricPanels/ElectricPanel</sch:assert> <!-- See [ElectricPanel] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:Batteries/h:Battery) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Systems/Batteries/Battery</sch:assert> <!-- See [Battery] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:extension/h:Generators/h:Generator) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/extension/Generators/Generator</sch:assert> <!-- See [Generator] -->
       <sch:assert role='ERROR' test='count(h:Appliances/h:ClothesWasher) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Appliances/ClothesWasher</sch:assert> <!-- See [ClothesWasher] -->
@@ -2446,6 +2447,39 @@
     <sch:title>[Inverter]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:Photovoltaics/h:Inverter'>
       <sch:assert role='ERROR' test='count(h:InverterEfficiency) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InverterEfficiency</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[ElectricPanel]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:ElectricPanels/h:ElectricPanel'>
+      <sch:assert role='ERROR' test='count(h:Voltage) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Voltage</sch:assert>
+      <sch:assert role='ERROR' test='h:Voltage[text()="120" or text()="240"] or not(h:Voltage)'>Expected Voltage to be '120' or '240'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:MaxCurrentRating) &lt;= 1'>Expected 0 or 1 element(s) for xpath: MaxCurrentRating</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:HeadroomBreakerSpaces) + count(h:extension/h:TotalBreakerSpaces) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/HeadroomBreakerSpaces | extension/TotalBreakerSpaces</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:PanelLoads) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/PanelLoads</sch:assert> <!-- See [PanelLoads]-->
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[PanelLoads]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:ElectricPanels/*/h:extension/h:PanelLoads'>
+      <sch:assert role='ERROR' test='count(h:PanelLoad) &gt;= 1'>Expected 1 or more element(s) for xpath: PanelLoad</sch:assert>  <!-- See [PanelLoad] -->
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[PanelLoad]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:ElectricPanels/*/h:extension/*/h:PanelLoad'>
+      <sch:assert role='ERROR' test='count(h:Type) = 1'>Expected 1 element(s) for xpath: Type</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Type[text()="Heating" or text()="Cooling" or text()="Hot Water" or text()="Clothes Dryer" or text()="Dishwasher" or text()="Range/Oven" or text()="Mech Vent" or text()="Permanent Spa Heater" or text()="Permanent Spa Pump" or text()="Pool Heater" or text()="Pool Pump" or text()="Well Pump" or text()="Electric Vehicle Charging" or text()="Lighting" or text()="Kitchen" or text()="Laundry" or text()="Other"]) = 1'>Expected Type to be 'Heating' or 'Cooling' or 'Hot Water' or 'Clothes Dryer' or 'Dishwasher' or 'Range/Oven' or 'Mech Vent' or 'Permanent Spa Heater' or 'Permanent Spa Pump' or 'Pool Heater' or 'Pool Pump' or 'Well Pump' or 'Electric Vehicle Charging' or 'Other']</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Power) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Power</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Voltage) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Voltage</sch:assert>
+      <sch:assert role='ERROR' test='h:Voltage[text()="120" or text()="240"] or not(h:Voltage)'>Expected Voltage to be '120' or '240'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Addition) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Addition</sch:assert>
+      <sch:assert role='ERROR' test='h:Addition[text()="false" or text()="true"] or not(h:Addition)'>Expected Addition to be 'false' or 'true'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:System) &gt;= 0'>Expected 0 or more element(s) for xpath: System</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Type[text()="Heating" or text()="Cooling" or text()="Hot Water" or text()="Clothes Dryer" or text()="Dishwasher" or text()="Range/Oven" or text()="Mech Vent" or text()="Permanent Spa Heater" or text()="Permanent Spa Pump" or text()="Pool Heater" or text()="Pool Pump" or text()="Well Pump" or text()="Electric Vehicle Charging"]) + count(h:System) &gt;= 2 or count(h:Type[text()="Lighting" or text()="Kitchen" or text()="Laundry" or text()="Other"]) = 1'>Expected 1 element(s) for xpath: System</sch:assert>
     </sch:rule>
   </sch:pattern>
 

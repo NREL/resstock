@@ -131,6 +131,12 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(true)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_annual_panel_summary', false)
+    arg.setDisplayName('Generate Annual Output: Electric Panel Summary')
+    arg.setDescription('Generates electric panel loads, capacities, and breaker spaces.')
+    arg.setDefaultValue(true)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_annual_resilience', false)
     arg.setDisplayName('Generate Annual Output: Resilience')
     arg.setDescription('Generates annual resilience outputs.')
@@ -1629,6 +1635,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     # Sizing data
     if args[:include_annual_hvac_summary]
       results_out = Outputs.append_sizing_results(@hpxml_bldgs, results_out)
+    end
+
+    # Panel data
+    if args[:include_annual_panel_summary]
+      results_out = Outputs.append_panel_results(@hpxml_bldgs, @peak_fuels, results_out)
     end
 
     Outputs.write_results_out_to_file(results_out, args[:output_format], annual_output_path)
