@@ -350,13 +350,13 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       if whole_sfa_or_mf_building_sim && hpxml.buildings.size > 1
-        measures['BuildResidentialHPXML'][0]['battery_present'] = 'false' # limitation of OS-HPXML
+        measures['BuildResidentialHPXML'][0]['battery_present'] = false # limitation of OS-HPXML
       end
 
       unit_multiplier = hpxml_bldg.building_construction.number_of_units
       measures['BuildResidentialHPXML'][0]['unit_multiplier'] = unit_multiplier
       if unit_multiplier > 1
-        measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = 'none' # limitation of OS-HPXML
+        measures['BuildResidentialHPXML'][0]['dehumidifier_type'] = Constants::None # limitation of OS-HPXML
       end
 
       # Set additional properties
@@ -399,7 +399,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         heat_pump_is_ducted = measures['BuildResidentialHPXML'][0]['heat_pump_is_ducted']
 
         # Only set the backup if the heat pump is applied and there is an existing heating system
-        if (heat_pump_type != 'none') && (not heating_system.nil?)
+        if (heat_pump_type != Constants::None) && (not heating_system.nil?)
           heat_pump_backup_type = get_heat_pump_backup_type(heating_system, heat_pump_type, heat_pump_is_ducted)
           heat_pump_backup_values = get_heat_pump_backup_values(heating_system)
 
@@ -573,7 +573,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
   def get_heat_pump_backup_type(heating_system, heat_pump_type, heat_pump_is_ducted)
     ducted_backup = [HPXML::HVACTypeFurnace].include?(heating_system.heating_system_type)
-    if (ducted_backup && (heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit) && (heat_pump_is_ducted == 'true')) ||
+    if (ducted_backup && (heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit) && heat_pump_is_ducted) ||
        (ducted_backup && [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type))
       return HPXML::HeatPumpBackupTypeIntegrated
     end
