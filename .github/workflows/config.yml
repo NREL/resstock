@@ -22,6 +22,10 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Summary
+        run: |
+          df -h
+
       - name: Format Files
         shell: bash
         run: |
@@ -135,6 +139,10 @@ jobs:
             project_testing/results-PackageUpgrade.csv
           name: run_analysis_results_csvs
 
+      - name: Summary
+        run: |
+          df -h
+
   integration-tests:
     runs-on: ubuntu-22.04
     needs: [unit-tests]
@@ -219,6 +227,10 @@ jobs:
           sudo gem install simplecov
           sudo gem install simplecov-html
           ruby test/test_bsb_analysis.rb
+
+      - name: Summary
+        run: |
+          df -h
 
   compare-tools:
     runs-on: ubuntu-22.04
