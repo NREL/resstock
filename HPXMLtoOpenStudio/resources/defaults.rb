@@ -3274,6 +3274,8 @@ module Defaults
       end
 
       hpxml_bldg.permanent_spas.each do |permanent_spa|
+        next if permanent_spa.type == HPXML::TypeNone
+
         if permanent_spa.pump_panel_loads.nil?
           panel_loads.add(type: HPXML::ElectricPanelLoadTypePermanentSpaPump,
                           type_isdefaulted: true,
@@ -3282,7 +3284,6 @@ module Defaults
         end
 
         next if ![HPXML::HeaterTypeElectricResistance, HPXML::HeaterTypeHeatPump].include?(permanent_spa.heater_type)
-
         next unless permanent_spa.heater_panel_loads.nil?
 
         panel_loads.add(type: HPXML::ElectricPanelLoadTypePermanentSpaHeater,
@@ -3292,6 +3293,8 @@ module Defaults
       end
 
       hpxml_bldg.pools.each do |pool|
+        next if pool.type == HPXML::TypeNone
+
         if pool.pump_panel_loads.nil?
           panel_loads.add(type: HPXML::ElectricPanelLoadTypePoolPump,
                           type_isdefaulted: true,
@@ -3300,7 +3303,6 @@ module Defaults
         end
 
         next if ![HPXML::HeaterTypeElectricResistance, HPXML::HeaterTypeHeatPump].include?(pool.heater_type)
-
         next unless pool.heater_panel_loads.nil?
 
         panel_loads.add(type: HPXML::ElectricPanelLoadTypePoolHeater,
@@ -6119,20 +6121,28 @@ module Defaults
     elsif type == HPXML::ElectricPanelLoadTypeMechVent
       hpxml_bldg.ventilation_fans.each do |ventilation_fan|
         next if !system_ids.include?(ventilation_fan.id)
+        next if ventilation_fan.is_shared_system
 
-        if ventilation_fan.fan_location == HPXML::LocationKitchen
-          watts += 90 * ventilation_fan.count
-        elsif ventilation_fan.fan_location == HPXML::LocationBath
-          watts += 15 * ventilation_fan.count
+        # if ventilation_fan.fan_location == HPXML::LocationKitchen
+        # watts += 90 * ventilation_fan.count
+        # elsif ventilation_fan.fan_location == HPXML::LocationBath
+        # watts += 15 * ventilation_fan.count
+        # end
+        if [HPXML::LocationKitchen, HPXML::LocationBath].include?(ventilation_fan.fan_location)
+          watts += ventilation_fan.count * ventilation_fan.fan_power
+        elsif not ventilation_fan.fan_power.nil?
+          watts += ventilation_fan.fan_power
+        else
+          watts += 3000 # FIXME: base-mechvent-cfis-no-additional-runtime.xml, e.g., has no FanPower defaulted
         end
       end
-      breaker_spaces += 1
+      breaker_spaces += 1 # intentionally outside the ventilation_fans loop
     elsif type == HPXML::ElectricPanelLoadTypePermanentSpaHeater
       hpxml_bldg.permanent_spas.each do |permanent_spa|
         next if !system_ids.include?(permanent_spa.heater_id)
         next if ![HPXML::HeaterTypeElectricResistance, HPXML::HeaterTypeHeatPump].include?(permanent_spa.heater_type)
 
-        watts += 1000
+        watts += 1000 # FIXME
         breaker_spaces += 2
       end
     elsif type == HPXML::ElectricPanelLoadTypePermanentSpaPump
