@@ -497,6 +497,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = values['utility_bill_pv_monthly_grid_connection_fees']
 
       # Electric Panel
+      measures['BuildResidentialHPXML'][0]['electric_panel_service_rating'] = hpxml_bldg.electric_panels[0].max_current_rating
       measures['BuildResidentialHPXML'][0]['electric_panel_breaker_spaces_type'] = 'total'
       measures['BuildResidentialHPXML'][0]['electric_panel_breaker_spaces'] = hpxml_bldg.electric_panels[0].bs_total
 
