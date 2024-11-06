@@ -323,14 +323,12 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       unit_number += 1
 
       hvac_system_upgrades = []
-      panel_system_additions = {}
       options.each do |_option_num, option|
         parameter_name, option_name = option.split('|')
 
         options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
         options_measure_args[option_name].each do |_measure_subdir, args_hash|
           hvac_system_upgrades = get_hvac_system_upgrades(hpxml_bldg, hvac_system_upgrades, args_hash)
-          panel_system_additions = get_panel_system_additions(hpxml_bldg, panel_system_additions, args_hash)
         end
       end
 
@@ -501,6 +499,16 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Electric Panel
       measures['BuildResidentialHPXML'][0]['electric_panel_breaker_spaces_type'] = 'total'
       measures['BuildResidentialHPXML'][0]['electric_panel_breaker_spaces'] = hpxml_bldg.electric_panels[0].bs_total
+
+      panel_system_additions = {}
+      options.each do |_option_num, option|
+        parameter_name, option_name = option.split('|')
+
+        options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
+        options_measure_args[option_name].each do |_measure_subdir, args_hash|
+          panel_system_additions = get_panel_system_additions(panel_system_additions, args_hash)
+        end
+      end
       measures['BuildResidentialHPXML'][0].update(panel_system_additions)
 
       # Specify measures to run
@@ -715,52 +723,50 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     return capacities, autosizing_factors, defect_ratios
   end
 
-  def get_panel_system_additions(_hpxml_bldg, panel_system_additions, args_hash)
-    # FIXME: we need to somehow detect whether the system is new
-    args_hash.each do |arg_name, value|
-      if arg_name.start_with?('heating_system_type') && value != Constants::None
+  def get_panel_system_additions(panel_system_additions, args_hash)
+    args_hash.each do |arg_name, _value|
+      if arg_name.start_with?('heating_system_') && (not arg_name.start_with?('heating_system_2_'))
         panel_system_additions['electric_panel_load_heating_system_addition'] = true
-      elsif arg_name.start_with?('cooling_system_type') && value != Constants::None
+      elsif arg_name.start_with?('cooling_system_')
         panel_system_additions['electric_panel_load_cooling_system_addition'] = true
-      elsif arg_name.start_with?('heat_pump_type') && value != Constants::None
+      elsif arg_name.start_with?('heat_pump_')
         panel_system_additions['electric_panel_load_heat_pump_addition'] = true
-      elsif arg_name.start_with?('heating_system_2_type') && value != Constants::None
+      elsif arg_name.start_with?('heating_system_2_')
         panel_system_additions['electric_panel_load_heating_system_2_addition'] = true
-      elsif arg_name.start_with?('mech_vent_fan_type') && value != Constants::None
+      elsif arg_name.start_with?('mech_vent_') && (not arg_name.start_with?('mech_vent_2_'))
         panel_system_additions['electric_panel_load_mech_vent_fan_addition'] = true
-      elsif arg_name.start_with?('mech_vent_2_fan_type') && value != Constants::None
+      elsif arg_name.start_with?('mech_vent_2_')
         panel_system_additions['electric_panel_load_mech_vent_2_addition'] = true
-      elsif arg_name.start_with?('whole_house_fan_present') && value
+      elsif arg_name.start_with?('whole_house_fan_')
         panel_system_additions['electric_panel_load_whole_house_fan_addition'] = true
-      elsif arg_name.start_with?('kitchen_fans_quantity') && value > 0
+      elsif arg_name.start_with?('kitchen_fans_')
         panel_system_additions['electric_panel_load_kitchen_fans_addition'] = true
-      elsif arg_name.start_with?('bathroom_fans_quantity') && value > 0
+      elsif arg_name.start_with?('bathroom_fans_')
         panel_system_additions['electric_panel_load_bathroom_fans_addition'] = true
-      elsif arg_name.start_with?('water_heater_type') && value != Constants::None
+      elsif arg_name.start_with?('water_heater_')
         panel_system_additions['electric_panel_load_water_heater_addition'] = true
-      elsif arg_name.start_with?('clothes_dryer_present') && value
+      elsif arg_name.start_with?('clothes_dryer_')
         panel_system_additions['electric_panel_load_clothes_dryer_addition'] = true
-      elsif arg_name.start_with?('dishwasher_present') && value
+      elsif arg_name.start_with?('dishwasher_')
         panel_system_additions['electric_panel_load_dishwasher_addition'] = true
-      elsif arg_name.start_with?('cooking_range_oven_present') && value
+      elsif arg_name.start_with?('cooking_range_oven_')
         panel_system_additions['electric_panel_load_cooking_range_addition'] = true
-      elsif arg_name.start_with?('misc_plug_loads_well_pump_present') && value
+      elsif arg_name.start_with?('misc_plug_loads_well_pump_')
         panel_system_additions['electric_panel_load_misc_plug_loads_well_pump_addition'] = true
-      elsif arg_name.start_with?('misc_plug_loads_vehicle_present') && value
+      elsif arg_name.start_with?('misc_plug_loads_vehicle_')
         panel_system_additions['electric_panel_load_misc_plug_loads_vehicle_addition'] = true
-        # elsif arg_name.start_with?('pool_pump_type') && value
-        # panel_system_additions['electric_panel_load_pool_pump_addition'] = true
-      elsif arg_name.start_with?('pool_heater_type') && value != HPXML::TypeNone
+      elsif arg_name.start_with?('pool_pump_')
+        panel_system_additions['electric_panel_load_pool_pump_addition'] = true
+      elsif arg_name.start_with?('pool_heater_')
         panel_system_additions['electric_panel_load_pool_heater_addition'] = true
-        # elsif arg_name.start_with?('permanent_spa_pump_type') && value
-        # panel_system_additions['electric_panel_load_permanent_spa_pump_addition'] = true
-      elsif arg_name.start_with?('permanent_spa_heater_type') && value != HPXML::TypeNone
+      elsif arg_name.start_with?('permanent_spa_pump_')
+        panel_system_additions['electric_panel_load_permanent_spa_pump_addition'] = true
+      elsif arg_name.start_with?('permanent_spa_heater_')
         panel_system_additions['electric_panel_load_permanent_spa_heater_addition'] = true
         # else
         # panel_system_additions['electric_panel_load_other_addition'] = true
       end
     end
-
     return panel_system_additions
   end
 end
