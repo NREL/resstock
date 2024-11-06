@@ -88,6 +88,9 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+
       - name: Install gems
         run: |
           rm -f Gemfile.lock && bundle install
