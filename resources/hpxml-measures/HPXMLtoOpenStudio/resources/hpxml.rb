@@ -6391,12 +6391,12 @@ class HPXML < Object
 
     # TODO
     def heating_input_capacity
-      return if @heating_capacity.nil?
-
       if not @heating_efficiency_afue.nil?
         return @heating_capacity / @heating_efficiency_afue
       elsif not @heating_efficiency_percent.nil?
         return @heating_capacity / @heating_efficiency_percent
+      else
+        return @heating_capacity
       end
     end
 
@@ -6727,19 +6727,17 @@ class HPXML < Object
 
     # TODO
     def cooling_input_capacity
-      return if @cooling_capacity.nil?
-
-      if !@cooling_efficiency_seer.nil?
+      if not @cooling_efficiency_seer.nil?
         return @cooling_capacity / UnitConversions.convert(@cooling_efficiency_seer, 'btu/hr', 'w')
-      elsif !@cooling_efficiency_seer2.nil?
+      elsif not @cooling_efficiency_seer2.nil?
         is_ducted = !@distribution_system_idref.nil?
         return @cooling_capacity / UnitConversions.convert(HVAC.calc_seer_from_seer2(@cooling_efficiency_seer2, is_ducted), 'btu/hr', 'w')
-      elsif !@cooling_efficiency_eer.nil?
+      elsif not @cooling_efficiency_eer.nil?
         ceer = @cooling_efficiency_eer / 1.01
         return @cooling_capacity / UnitConversions.convert(ceer, 'btu/hr', 'w')
-      elsif !@cooling_efficiency_ceer.nil?
+      elsif not @cooling_efficiency_ceer.nil?
         return @cooling_capacity / UnitConversions.convert(@cooling_efficiency_ceer, 'btu/hr', 'w')
-      elsif !@cooling_efficiency_kw_per_ton.nil?
+      elsif not @cooling_efficiency_kw_per_ton.nil?
         # TODO
       else
         return @cooling_capacity # FIXME: evap cooler
@@ -7093,8 +7091,6 @@ class HPXML < Object
 
     # TODO
     def heating_input_capacity
-      return if @heating_capacity.nil?
-
       if not @heating_efficiency_hspf.nil?
         return @heating_capacity / UnitConversions.convert(@heating_efficiency_hspf, 'btu/hr', 'w')
       elsif not @heating_efficiency_hspf2.nil?
@@ -7102,34 +7098,36 @@ class HPXML < Object
         return @heating_capacity / UnitConversions.convert(HVAC.calc_hspf_from_hspf2(@heating_efficiency_hspf2, is_ducted), 'btu/hr', 'w')
       elsif not @heating_efficiency_cop.nil?
         return @heating_capacity / @heating_efficiency_cop
+      else
+        return @heating_capacity
       end
     end
 
     # TODO
     def backup_heating_input_capacity
-      return if @backup_heating_capacity.nil?
-
       if not @backup_heating_efficiency_afue.nil?
         return @backup_heating_capacity / @backup_heating_efficiency_afue
       elsif not @backup_heating_efficiency_percent.nil?
         return @backup_heating_capacity / @backup_heating_efficiency_percent
+      else
+        return @backup_heating_capacity
       end
     end
 
     # TODO
     def cooling_input_capacity
-      return if @cooling_capacity.nil?
-
-      if !@cooling_efficiency_seer.nil?
+      if not @cooling_efficiency_seer.nil?
         return @cooling_capacity / UnitConversions.convert(@cooling_efficiency_seer, 'btu/hr', 'w')
-      elsif !@cooling_efficiency_seer2.nil?
+      elsif not @cooling_efficiency_seer2.nil?
         is_ducted = !@distribution_system_idref.nil?
         return @cooling_capacity / UnitConversions.convert(HVAC.calc_seer_from_seer2(@cooling_efficiency_seer2, is_ducted), 'btu/hr', 'w')
-      elsif !@cooling_efficiency_eer.nil?
+      elsif not @cooling_efficiency_eer.nil?
         ceer = @cooling_efficiency_eer / 1.01
         return @cooling_capacity / UnitConversions.convert(ceer, 'btu/hr', 'w')
-      elsif !@cooling_efficiency_ceer.nil?
+      elsif not @cooling_efficiency_ceer.nil?
         return @cooling_capacity / UnitConversions.convert(@cooling_efficiency_ceer, 'btu/hr', 'w')
+      else
+        return @cooling_capacity
       end
     end
 
@@ -9375,11 +9373,11 @@ class HPXML < Object
       super(hpxml_element, *args, **kwargs)
     end
     CLASS_ATTRS = [:panel_loads]
-    ATTRS = [:id, # [String] SystemIdentifier/@id
-             :voltage,
-             :max_current_rating,
-             :headroom_breaker_spaces,
-             :total_breaker_spaces] +
+    ATTRS = [:id,                      # [String] SystemIdentifier/@id
+             :voltage,                 # [String] Voltage
+             :max_current_rating,      # [Double] MaxCurrentRating
+             :headroom_breaker_spaces, # [Integer] HeadroomBreakerSpaces
+             :total_breaker_spaces] +  # [Integer] TotalBreakerSpaces
             CLB_ATTRS.keys +
             BS_ATTRS.keys
     attr_reader(*CLASS_ATTRS)
@@ -9468,7 +9466,7 @@ class HPXML < Object
              :voltage,        # [String] Voltage
              :breaker_spaces, # [Integer] BreakerSpaces
              :addition,       # [Boolean] Addition
-             :system_idrefs] # [Array<String>] System/@idref
+             :system_idrefs]  # [Array<String>] System/@idref
     attr_accessor(*ATTRS)
 
     # TODO
