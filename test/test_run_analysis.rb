@@ -278,6 +278,7 @@ class TestRunAnalysis < Minitest::Test
     @command += ' -k'
 
     system(@command)
+    system('du -sh testing_baseline')
 
     cli_output_log = File.join(@testing_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
@@ -312,6 +313,7 @@ class TestRunAnalysis < Minitest::Test
     @command += ' -k'
 
     system(@command)
+    system('du -sh national_baseline')
 
     cli_output_log = File.join(@national_baseline, 'cli_output.log')
     assert(File.exist?(cli_output_log))
@@ -347,6 +349,7 @@ class TestRunAnalysis < Minitest::Test
     @command += ' -k'
 
     system(@command)
+    system('du -sh testing_upgrades')
 
     cli_output_log = File.join(@testing_upgrades, 'cli_output.log')
     assert(File.exist?(cli_output_log))
@@ -402,6 +405,7 @@ class TestRunAnalysis < Minitest::Test
     @command += ' -k'
 
     system(@command)
+    system('du -sh national_upgrades')
 
     cli_output_log = File.join(@national_upgrades, 'cli_output.log')
     assert(File.exist?(cli_output_log))
