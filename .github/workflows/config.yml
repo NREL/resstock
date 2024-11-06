@@ -21,6 +21,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
+
+      - name: Summary 1
+        run: |
+          ls
+          df -H
+
       - name: Format Files
         shell: bash
         run: |
@@ -34,6 +40,11 @@ jobs:
           path: resources/options_lookup.tsv
           name: options_lookup
 
+      - name: Summary 2
+        run: |
+          ls
+          df -H
+
   unit-tests:
     runs-on: ubuntu-22.04
     needs: [format-files]
@@ -43,6 +54,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
+
+      - name: Summary 1
+        run: |
+          ls
+          df -H
 
       - name: Install gems
         run: |
@@ -78,6 +94,11 @@ jobs:
           path: coverage
           name: coverage
 
+      - name: Summary 2
+        run: |
+          ls
+          df -H
+
   analysis-tests:
     runs-on: ubuntu-22.04
     needs: [unit-tests]
@@ -88,8 +109,10 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
+      - name: Summary 1
+        run: |
+          ls
+          df -H
 
       - name: Install gems
         run: |
@@ -137,6 +160,11 @@ jobs:
             project_testing/results-PackageUpgrade.csv
           name: run_analysis_results_csvs
 
+      - name: Summary 2
+        run: |
+          ls
+          df -H
+
   integration-tests:
     runs-on: ubuntu-22.04
     needs: [unit-tests]
@@ -148,6 +176,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Summary 1
+        run: |
+          ls
+          df -H
 
       - name: Download and Install OpenStudio
         run: |
@@ -225,6 +258,11 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Summary 1
+        run: |
+          ls
+          df -H
+
       - name: Download buildstockbatch results
         uses: actions/download-artifact@v4
         with:
@@ -244,6 +282,11 @@ jobs:
           sudo gem install simplecov-html
           ruby test/test_analysis_tools.rb
 
+      - name: Summary 2
+        run: |
+          ls
+          df -H
+
   compare-results:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-22.04
@@ -252,6 +295,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Summary 1
+        run: |
+          ls
+          df -H
 
       - name: Upload base results
         uses: actions/upload-artifact@v4
@@ -314,6 +362,11 @@ jobs:
           path: test/base_results/comparisons
           name: comparisons
 
+      - name: Summary 2
+        run: |
+          ls
+          df -H
+
   update-results:
     runs-on: ubuntu-22.04
     needs: [analysis-tests, integration-tests]
@@ -321,6 +374,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
+
+      - name: Summary 1
+        run: |
+          ls
+          df -H
 
       - name: Install software
         run: |
@@ -389,3 +447,8 @@ jobs:
             echo "Pushing to branch: $branch_name"
             git push -u origin $branch_name
           fi
+
+      - name: Summary 2
+        run: |
+          ls
+          df -H
