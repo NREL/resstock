@@ -2456,8 +2456,13 @@
       <sch:assert role='ERROR' test='count(h:Voltage) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Voltage</sch:assert>
       <sch:assert role='ERROR' test='h:Voltage[text()="120" or text()="240"] or not(h:Voltage)'>Expected Voltage to be '120' or '240'</sch:assert>
       <sch:assert role='ERROR' test='count(h:MaxCurrentRating) &lt;= 1'>Expected 0 or 1 element(s) for xpath: MaxCurrentRating</sch:assert>
+      <sch:assert role='ERROR' test='number(h:MaxCurrentRating) &gt;= 0.0 or not(h:MaxCurrentRating)'>Expected MaxCurrentRating to be greater than or equal to 0.0</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:HeadroomBreakerSpaces) + count(h:extension/h:TotalBreakerSpaces) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/HeadroomBreakerSpaces | extension/TotalBreakerSpaces</sch:assert>
+      <sch:assert role='ERROR' test='number(h:extension/h:HeadroomBreakerSpaces) &gt;= 0 or not(h:extension/h:HeadroomBreakerSpaces)'>Expected h:extension/h:HeadroomBreakerSpaces to be greater than or equal to 0</sch:assert>
+      <sch:assert role='ERROR' test='number(h:extension/h:TotalBreakerSpaces) &gt;= 0 or not(h:extension/h:TotalBreakerSpaces)'>Expected h:extension/h:TotalBreakerSpaces to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:PanelLoads) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/PanelLoads</sch:assert> <!-- See [PanelLoads]-->
+      <!-- Warnings -->
+      <sch:report role='WARN' test='number(h:MaxCurrentRating) &gt; 400'>MaxCurrentRating should typically be less than or equal to 400.</sch:report>
     </sch:rule>
   </sch:pattern>
 
@@ -2479,7 +2484,8 @@
       <sch:assert role='ERROR' test='count(h:Addition) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Addition</sch:assert>
       <sch:assert role='ERROR' test='h:Addition[text()="false" or text()="true"] or not(h:Addition)'>Expected Addition to be 'false' or 'true'</sch:assert>
       <sch:assert role='ERROR' test='count(h:System) &gt;= 0'>Expected 0 or more element(s) for xpath: System</sch:assert>
-      <sch:assert role='ERROR' test='count(h:Type[text()="Heating" or text()="Cooling" or text()="Hot Water" or text()="Clothes Dryer" or text()="Dishwasher" or text()="Range/Oven" or text()="Mech Vent" or text()="Permanent Spa Heater" or text()="Permanent Spa Pump" or text()="Pool Heater" or text()="Pool Pump" or text()="Well Pump" or text()="Electric Vehicle Charging"]) + count(h:System) &gt;= 2 or count(h:Type[text()="Lighting" or text()="Kitchen" or text()="Laundry" or text()="Other"]) = 1'>Expected 1 element(s) for xpath: System</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Type[text()="Heating" or text()="Cooling" or text()="Hot Water" or text()="Clothes Dryer" or text()="Dishwasher" or text()="Range/Oven" or text()="Mech Vent" or text()="Permanent Spa Heater" or text()="Permanent Spa Pump" or text()="Pool Heater" or text()="Pool Pump" or text()="Well Pump" or text()="Electric Vehicle Charging"]) + count(h:System) &gt;= 2 or count(h:Type[text()="Lighting" or text()="Kitchen" or text()="Laundry" or text()="Other"]) = 1'>Expected 1 or more element(s) for xpath: System</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Type[text()="Lighting" or text()="Kitchen" or text()="Laundry" or text()="Other"]) + count(h:System) = 1 or count(h:Type[text()="Heating" or text()="Cooling" or text()="Hot Water" or text()="Clothes Dryer" or text()="Dishwasher" or text()="Range/Oven" or text()="Mech Vent" or text()="Permanent Spa Heater" or text()="Permanent Spa Pump" or text()="Pool Heater" or text()="Pool Pump" or text()="Well Pump" or text()="Electric Vehicle Charging"]) = 1'>Expected 0 element(s) for xpath: System</sch:assert>
     </sch:rule>
   </sch:pattern>
 

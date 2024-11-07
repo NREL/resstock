@@ -4610,8 +4610,6 @@ A single electric panel can be entered as a ``/HPXML/Building/BuildingDetails/Sy
 
          \- **Electric Vehicle Charging**: ``PlugLoad[PlugLoadType=”electric vehicle charging”]``
 
-         \- **Other**
-
          Panel loads for the following panel load types are always created:
 
          \- **Lighting**
@@ -4619,6 +4617,8 @@ A single electric panel can be entered as a ``/HPXML/Building/BuildingDetails/Sy
          \- **Kitchen**
 
          \- **Laundry**
+
+         \- **Other**
 
   .. [#] See :ref:`panel_loads`.
 
@@ -4637,7 +4637,7 @@ Individual panel loads entered in ``extension/PanelLoads/PanelLoad``.
   ``Voltage``                                     string    V               See [#]_     No        See [#]_
   ``BreakerSpaces``                               integer                                No        See [#]_
   ``Addition``                                    boolean                                No        false
-  ``System``                                      idref                     See [#]_     See [#]_  See [#]_   Can reference one or more systems
+  ``System``                                      idref                     See [#]_     See [#]_  See [#]_   ID of referenced system; multiple are allowed [#]_
   ==============================================  ========  ==============  ===========  ========  =========  ==========================================
 
   .. [#] Type choices are "Heating", "Cooling", "Hot Water", "Clothes Dryer", "Dishwasher", "Range/Oven", "Mech Vent", "Permanent Spa Heater", "Permanent Spa Pump", "Pool Heater", "Pool Pump", "Well Pump", "Electric Vehicle Charging", "Lighting", "Kitchen", "Laundry", and "Other".
@@ -4682,7 +4682,7 @@ Individual panel loads entered in ``extension/PanelLoads/PanelLoad``.
 
          \- **Heating, Cooling, Hot Water, Clothes Dryer, Range/Oven, Permanent Spa Heater, Pool Heater**: 240 (120 if Cooling references a room air conditioner)
 
-         \- **Mech Vent**, **Dishwasher, Permanent Spa Pump, Pool Pump, Well Pump, Electric Vehicle Charging, Lighting, Kitchen, Laundry, Other**: 120
+         \- **Mech Vent, Dishwasher, Permanent Spa Pump, Pool Pump, Well Pump, Electric Vehicle Charging, Lighting, Kitchen, Laundry, Other**: 120
 
   .. [#] If BreakerSpaces not provided, defaults based on Type and Voltage:
 
@@ -4690,9 +4690,10 @@ Individual panel loads entered in ``extension/PanelLoads/PanelLoad``.
 
          \- **Heating, Cooling, Hot Water, Clothes Dryer, Dishwasher, Range/Oven, Mech Vent, Permanent Spa Heater, Permanent Spa Pump, Pool Heater, Pool Pump, Well Pump, Electric Vehicle Charging, Other**: 120=1, 240=2
 
-  .. [#] System must reference a ``HeatingSystem``, ``CoolingSystem``, ``HeatPump``, ``WaterHeatingSystem``, ``ClothesDryer``, ``Dishwasher``, ``CookingRange``, ``VentilationFan``, ``PermanentSpa/Heater``, ``PermanentSpa/Pumps/Pump``, ``Pool/Heater``, ``Pool/Pump``, ``PlugLoad``, or ``VentilationFan``.
-  .. [#] Not required if Type is "Other"; otherwise, required.
+  .. [#] Depending on the Type, System must reference a ``HeatingSystem``, ``CoolingSystem``, ``HeatPump``, ``WaterHeatingSystem``, ``ClothesDryer``, ``Dishwasher``, ``CookingRange``, ``VentilationFan``, ``PermanentSpa/Heater``, ``PermanentSpa/Pumps/Pump``, ``Pool/Heater``, ``Pool/Pump``, or ``PlugLoad``.
+  .. [#] Not allowed if Type is "Other"; otherwise, required.
   .. [#] A panel load is created for any system not already referenced by a panel load.
+  .. [#] Provide a System element for each referenced system.
 
 .. _hpxml_batteries:
 
