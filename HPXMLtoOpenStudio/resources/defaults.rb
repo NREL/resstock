@@ -3331,7 +3331,6 @@ module Defaults
                         system_idrefs_isdefaulted: true)
       end
 
-      # for garbage disposal and garage door opener
       if panel_loads.count { |pl| pl.type == HPXML::ElectricPanelLoadTypeOther } == 0
         panel_loads.add(type: HPXML::ElectricPanelLoadTypeOther,
                         type_isdefaulted: true)
