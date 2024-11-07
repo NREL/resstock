@@ -9489,51 +9489,51 @@ class HPXML < Object
       plug_load_vehicles = @parent_object.plug_loads.select { |plug_load| @system_idrefs.include?(plug_load.id) && plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging }
 
       if !heating_systems.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeHeating].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeHeating].include?(@type)
       end
       if !cooling_systems.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeCooling].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeCooling].include?(@type)
       end
       if !heat_pumps.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeHeating, HPXML::ElectricPanelLoadTypeCooling].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeHeating, HPXML::ElectricPanelLoadTypeCooling].include?(@type)
       end
       if !water_heating_systems.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeWaterHeater].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeWaterHeater].include?(@type)
       end
       if !clothes_dryers.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeClothesDryer].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeClothesDryer].include?(@type)
       end
       if !dishwashers.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeDishwasher].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeDishwasher].include?(@type)
       end
       if !cooking_ranges.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeRangeOven].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeRangeOven].include?(@type)
       end
       if !ventilation_fans.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeMechVent].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeMechVent].include?(@type)
       end
       if !permanent_spa_pumps.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePermanentSpaPump].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePermanentSpaPump].include?(@type)
       end
       if !permanent_spa_heaters.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePermanentSpaHeater].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePermanentSpaHeater].include?(@type)
       end
       if !pool_pumps.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePoolPump].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePoolPump].include?(@type)
       end
       if !pool_heaters.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePoolHeater].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePoolHeater].include?(@type)
       end
       if !plug_load_well_pumps.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeWellPump].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeWellPump].include?(@type)
       end
       if !plug_load_vehicles.empty?
-        fail "One or more attached systems '#{@system_idrefs} not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeElectricVehicleCharging].include?(@type)
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeElectricVehicleCharging].include?(@type)
       end
 
       list = heating_systems + cooling_systems + heat_pumps + water_heating_systems + clothes_dryers + dishwashers + cooking_ranges + ventilation_fans + permanent_spa_pumps + permanent_spa_heaters + pool_pumps + pool_heaters + plug_load_well_pumps + plug_load_vehicles
       if @system_idrefs.size > list.size
-        fail "One or more systems '#{@system_idrefs}' not found for panel load type '#{@type}'."
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not found for panel load type '#{@type}'."
       end
 
       return list
