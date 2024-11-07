@@ -3,7 +3,7 @@ os_version: 3.7.0
 os_sha: d5269793f1
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /kfs2/projects/panels/ochre/resstock_model/30k/upgrade19
+output_directory: /kfs2/projects/panels/ochre/resstock_model/30k_20240918/upgrade19
 #weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
@@ -11,7 +11,7 @@ weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_2018_FIP
 sampler:
   type: precomputed
   args:
-    sample_file: ../technoeconomic_analysis/Postprocessing/data_/baseline_buildstock_csv/buildstock_30k_19.csv
+    sample_file: ../technoeconomic_analysis/Postprocessing/data_/baseline_buildstock_csv/buildstock_30k_new/buildstock_30k_19.csv
 
 workflow_generator:
   type: residential_hpxml
@@ -194,7 +194,8 @@ references:
         costs: 
         # Source: REMDb for replacing existing boiler to electric boiler
         # then inflated from January 2018 to December 2023 using a 1.24 multiplier.
-          - value: 3844 
+        # then add wiring cost 1384
+          - value: 5228 #3844 + 1384
             multiplier: Fixed (1)
           - value: 0
             multiplier: Size, Heating System Primary (kBtu/h)
@@ -210,7 +211,8 @@ references:
         costs: 
         # Source: REMDb for replacing existing furnace to electric furnace
         # inflated from January 2018 to December 2023) using a 1.24 multiplier.
-          - value: 1984 
+        # then add wiring cost 1384
+          - value: 3368 #1984 + 1384
             multiplier: Fixed (1)
           - value: 350
             multiplier: Size, Heating System Primary (kBtu/h)
@@ -225,7 +227,8 @@ references:
         # TBD
         # cost for the initial run Source: REMDb for replacing existing furnace to electric furnace
         # inflated from January 2018 to December 2023) using a 1.24 multiplier.
-          - value: 1984 
+        # then add wiring cost 1384
+          - value: 3368 #1984 + 1384
             multiplier: Fixed (1)
           - value: 350
             multiplier: Size, Heating System Primary (kBtu/h)
@@ -235,10 +238,10 @@ references:
         apply_logic:
           - HVAC Shared Efficiencies|Boiler Baseboards Heating Only, Fuel
         costs: 
-        # TBD
+        # fixed cost is the wiring cost 1384
         # Assume $3844 cost for an average capacity (in euss results), then use a ratio to get cost 
         # The average heating system size in euss is 45 kBtu/h .
-          - value: 0 
+          - value: 1384 #0 + 1384
             multiplier: Fixed (1)
           - value: 85.42
             multiplier: Size, Heating System Primary (kBtu/h)
@@ -249,11 +252,16 @@ references:
           - HVAC Shared Efficiencies|Fan Coil Heating and Cooling, Fuel
         costs:
         # assume the same as Boiler Baseboards Heating Only, Fuel
+          - value: 1384 #0 + 1384
+            multiplier: Fixed (1)
           - value: 85.42
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 24
 
     #### 1.2 Federal Minimum Heat Pump With Electric Backup, 2 options  ####
+    # Note: HP costs represent typical projects which assumes two 240V wiring (for ODU and IDU with <= 10kW backup)
+    # The cost for HP configuration that require additional wiring (e.g., larger backup) or fewer wiring (e.g., with CAC) is adjusted in post-processing
+    # Source: Regression by Brennan Less that includes CA TECH data. Based on "TEA Cost review and updates by Brennan" sent on 06/11/2024.
       - &fed_min_ashp_ducted
         option: HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, HERS, Supplemental Backup Sizing # same as base option
         apply_logic:
@@ -263,12 +271,10 @@ references:
             - HVAC Cooling Type|None
           - not: HVAC Heating Type And Fuel|Electricity ASHP
         costs: &costs_ashp_ducted_8-82_HSPF
-        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
-        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
-        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
-          - value: 3680.19 # for HSPF 8.82
+       
+          - value: 9989.73
             multiplier: Fixed (1)
-          - value: 167.64
+          - value: 133.16
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: &lifetime_HP 15
 
@@ -281,23 +287,16 @@ references:
             - HVAC Cooling Type|None
           - not: HVAC Heating Type And Fuel|Electricity MSHP
         costs: &costs_mshp_ductless_8-33_HSPF
-        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
-        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
-        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
-        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
-        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
-        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
-        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
-          - value: 2679.52
+          - value: 1474
             multiplier: Fixed (1)
-          - value: 347.97
+          - value: 391.26
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: *lifetime_HP
       
-    #### 1.3 Federal Minimum Level Heat Pump With Existing Heating Backup, 32 options ####
+    #### 1.3 Federal Minimum Level Heat Pump With Existing Heating Backup ####
       ##ASHP non-ducted heating##
       - &fed_min_ashp_exist_backup_no_shared_ducts
-        option: HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, Separate Backup, HERS, Supplemental Backup Sizing
+        option: HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, Separate Backup, HERS, Emergency Backup Sizing
         apply_logic: 
           - HVAC Has Shared System|None
           - HVAC Has Ducts|Yes
@@ -305,102 +304,35 @@ references:
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
 
-      # Set secondary heating fuel type
-      - &secondary_heating_type_fuel_natural_gas
-        option: HVAC Secondary Heating Fuel|Natural Gas
-        apply_logic:
-          - or: 
-            - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
-            - HVAC Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
-      - &secondary_heating_type_fuel_propane
-        option: HVAC Secondary Heating Fuel|Propane
-        apply_logic:
-          - or:
-            - HVAC Heating Type And Fuel|Propane Fuel Boiler
-            - HVAC Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
-      - &secondary_heating_type_fuel_fuel_oil
-        option: HVAC Secondary Heating Fuel|Fuel Oil
-        apply_logic:
-          - or:
-            - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
-            - HVAC Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
-      - &secondary_heating_type_fuel_other_fuel
-        option: HVAC Secondary Heating Fuel|Other Fuel
-        apply_logic:
-          - or:
-            - HVAC Heating Type And Fuel|Other Fuel Fuel Boiler
-            - HVAC Heating Type And Fuel|Other Fuel Fuel Wall/Floor Furnace
-      - &secondary_heating_type_fuel_electricity
-        option: HVAC Secondary Heating Fuel|Electricity
-        apply_logic:
-          - or:
-            - HVAC Heating Type And Fuel|Electricity Baseboard
-            - HVAC Heating Type And Fuel|Electricity Electric Boiler
-            - HVAC Heating Type And Fuel|Electricity Electric Wall Furnace
-
-      # Set secondary fuel boiler efficiency levels
-      - &secondary_boiler_76
-        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-      - &secondary_boiler_80
-        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-      - &secondary_boiler_90
-        option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-      - &secondary_ele_boiler
-        option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-
-      # Set secondary fuel Wall/Floor Furnace efficiency levels
-      - &secondary_wallfloor_furnace_60
-        option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-      - &secondary_wallfloor_furnace_68
-        option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-      - &secondary_ele_wallfloor_furnace
-        option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
-        apply_logic:
-          - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-      
-      # Set secondary electric Wall/Floor Furnace efficiency levels
-      - &secondary_ele_baseboard
-        option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
-        apply_logic:
-          - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
+      # Set existing fuel as backup
+      - &existing_heating_as_backup
+        option: Heat Pump Backup|Use Existing System
 
       ## ASHP ducted heating ##
       # Natural Gas as backup
       - &fed_min_ashp_exist_backup_shared_ducts_60_ng
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 60% AFUE NG, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 60% AFUE NG, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_76_ng
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 76% AFUE NG, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 76% AFUE NG, 0F-40F switchover band
         apply_logic: 
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_80_ng
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 80% AFUE NG, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 80% AFUE NG, 0F-40F switchover band
         apply_logic: 
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_92-5_ng
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 92.5% AFUE NG, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 92.5% AFUE NG, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
@@ -409,28 +341,28 @@ references:
 
         #Fuel Oil as backup
       - &fed_min_ashp_exist_backup_shared_ducts_60_fo
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 60% AFUE Fuel Oil, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 60% AFUE Fuel Oil, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_76_fo
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 76% AFUE Fuel Oil, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 76% AFUE Fuel Oil, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_80_fo
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 80% AFUE Fuel Oil, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 80% AFUE Fuel Oil, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_92-5_fo
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 92.5% AFUE Fuel Oil, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 92.5% AFUE Fuel Oil, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
@@ -439,28 +371,28 @@ references:
 
         # Propane as backup
       - &fed_min_ashp_exist_backup_shared_ducts_60_propane
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 60% AFUE Propane, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 60% AFUE Propane, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_76_propane
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 76% AFUE Propane, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 76% AFUE Propane, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_80_propane
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 80% AFUE Propane, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 80% AFUE Propane, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_92-5_propane
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 92.5% AFUE Propane, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 92.5% AFUE Propane, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
@@ -469,28 +401,28 @@ references:
       
       # Other Fuel as backup
       - &fed_min_ashp_exist_backup_shared_ducts_60_of
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 60% AFUE Other Fuel, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 60% AFUE Other Fuel, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_76_of
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 76% AFUE Other Fuel, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 76% AFUE Other Fuel, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_80_of
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 80% AFUE Other Fuel, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 80% AFUE Other Fuel, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace        
         costs: *costs_ashp_ducted_8-82_HSPF
         lifetime: *lifetime_HP
       - &fed_min_ashp_exist_backup_shared_ducts_92-5_of
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Supplemental Backup Sizing, 92.5% AFUE Other Fuel, 0F-40F switchover band
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15.05, 8.82 HSPF, Integrated Backup, HERS, Emergency Backup Sizing, 92.5% AFUE Other Fuel, 0F-40F switchover band
         apply_logic:
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Other Fuel Fuel Furnace        
@@ -499,7 +431,7 @@ references:
 
       # Electricity as backup
       - &fed_min_ashp_exist_backup_shared_ducts_electricity
-        option: HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, HERS, Supplemental Backup Sizing
+        option: HVAC Heating Efficiency|ASHP, SEER 15.05, 8.82 HSPF, HERS, Emergency Backup Sizing
         apply_logic:
           - HVAC Heating Efficiency|Electric Furnace, 100% AFUE        
         costs: *costs_ashp_ducted_8-82_HSPF
@@ -507,7 +439,7 @@ references:
 
       ## MSHP non-ducted heating ##
       - &fed_min_mshp_exist_backup
-        option: HVAC Heating Efficiency|MSHP, SEER 14.5, 8.33 HSPF, Separate Backup, HERS, Supplemental Backup Sizing 
+        option: HVAC Heating Efficiency|MSHP, SEER 14.5, 8.33 HSPF, Separate Backup, HERS, Emergency Backup Sizing 
         apply_logic: 
           - HVAC Has Shared System|None
           - HVAC Has Ducts|No
@@ -519,6 +451,7 @@ references:
         lifetime: *lifetime_HP
 
     #### 1.4 High-Efficiency Heat Pump With Electric Backup, 2 options  ####
+    # See 1.2 for notes and source
       - &high_eff_ashp_ducted
         option: HVAC Heating Efficiency|ASHP, SEER 20, 11 HSPF, CCHP, Max Load, Supplemental Backup Sizing
         apply_logic:
@@ -528,12 +461,9 @@ references:
             - HVAC Cooling Type|None
           - not: HVAC Heating Type And Fuel|Electricity ASHP
         costs: &costs_ashp_ducted_SEER_20_11_HSPF
-        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
-        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
-        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
-          - value: 10229.58 # for HSPF 11
+          - value: 14405.68
             multiplier: Fixed (1)
-          - value: 167.64
+          - value: 133.16
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: *lifetime_HP
 
@@ -546,16 +476,9 @@ references:
             - HVAC Cooling Type|None
           - not: HVAC Heating Type And Fuel|Electricity MSHP
         costs: &costs_mshp_ductless_SEER_20_11_HSPF
-        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
-        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. January 2019 $ inflated to April 2023 $ using 1.21 factor.
-        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
-        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
-        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
-        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB: 2.2% addition or subtraction per point
-        # according to how many points above or below the HSPF rating is from 10.5 (https://remdb.nrel.gov/).
-          - value: 2844.81
+          - value: 2797.4
             multiplier: Fixed (1)
-          - value: 369.43
+          - value: 391.26
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: *lifetime_HP
 
@@ -570,7 +493,8 @@ references:
         costs: 
         # Source: REMDb for replacing non-electric tank water heater to electric tank water heater (EF=0.95)
         # then inflated from January 2018 to December 2023) using a 1.24 multiplier.
-          - value: 1078.8 # for EF 0.92
+        # then add wiring cost 1384
+          - value: 2462.8 #1078.8 +1384 # for EF 0.92
             multiplier: Fixed (1)
           - value: 2.36
             multiplier: Size, Water Heater (gal)
@@ -587,7 +511,8 @@ references:
         costs: 
         # Source: REMDb for replacing non-electric tank water heater to electric tank water heater (EF=0.95)
         # then inflated from January 2018 to December 2023) using a 1.24 multiplier.
-          - value: 1016.8 # for EF 0.95
+        # then add wiring cost 1384
+          - value: 2400.8 #1016.8 + 1384 # for EF 0.95
             multiplier: Fixed (1)
           - value: 4.34
             multiplier: Size, Water Heater (gal)
@@ -599,42 +524,86 @@ references:
             - Water Heater Efficiency|Natural Gas Tankless
             - Water Heater Efficiency|Propane Tankless
         costs: 
-        # TBD
-          - value: 2356  # REMDb for replacing to tankless natural gas water heater (EF=0.96) and then inflated from January 2018 to December 2023) using a 1.24 multiplier
+        # cost from LBNL brennan 1813
+        # then adds 7% tax and $100 install cost,
+        # then add wiring cost 1384
+          - value: 3423.91 
             multiplier: Fixed (1)
           - value: 0
             multiplier: Size, Water Heater (gal)
         lifetime: 20
 
-    #### 2.2 240V HPWH, 3 options  ####
-      - &240V_hpwh_50_gal
+    #### 2.2 240V HPWH  ####
+      - &240V_hpwh_50_gal_existing_ele
         option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
         apply_logic:
           - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - Water Heater Fuel|Electricity
           - or:
             - Bedrooms|1
             - Bedrooms|2
             - Bedrooms|3
         costs:
-          - value: 2712.82 # Median installed cost for 50 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+        # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+          - value: 3582 #4966-1384
             multiplier: Fixed (1)
         lifetime: &hpwh_lifetime 13
-      - &240V_hpwh_66_gal
+      - &240V_hpwh_50_gal_existing_non_ele
+        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+        apply_logic:
+          - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - not: Water Heater Fuel|Electricity
+          - or:
+            - Bedrooms|1
+            - Bedrooms|2
+            - Bedrooms|3
+        costs:
+        # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+          - value: 4966
+            multiplier: Fixed (1)
+        lifetime: *hpwh_lifetime
+      - &240V_hpwh_66_gal_existing_ele
         option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
         apply_logic:
           - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - Water Heater Fuel|Electricity
           - Bedrooms|4
         costs:
-          - value: 3736.48  # Interpolated between 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+        # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+          - value: 3982 #5366-1384  
             multiplier: Fixed (1)
         lifetime: *hpwh_lifetime
-      - &240V_hpwh_80_gal
+      - &240V_hpwh_66_gal_existing_non_ele
+        option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+        apply_logic:
+          - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - not: Water Heater Fuel|Electricity
+          - Bedrooms|4
+        costs:
+        # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+          - value: 5366
+            multiplier: Fixed (1)
+        lifetime: *hpwh_lifetime
+      - &240V_hpwh_80_gal_existing_ele
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         apply_logic:
           - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - Water Heater Fuel|Electricity
           - Bedrooms|5
         costs:
-          - value: 4631.88 # Median installed cost for 80 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D, inflation adjusted with 1.21 factor
+        # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+          - value: 4696 #6080-1384
+            multiplier: Fixed (1)
+        lifetime: *hpwh_lifetime
+      - &240V_hpwh_80_gal_existing_non_ele
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        apply_logic:
+          - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+          - not: Water Heater Fuel|Electricity
+          - Bedrooms|5
+        costs:
+        # Updated per Brennan feedback, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+          - value: 6080
             multiplier: Fixed (1)
         lifetime: *hpwh_lifetime
 
@@ -645,7 +614,8 @@ references:
           - or:
             - Bedrooms|1
         costs:
-          - value: 2099
+        # Updated as coresponding 240v HPWH cost minus the cost of a 240v branch circuit ($1,384) based on team review 2024-06-10
+          - value: 3582
             multiplier: Fixed (1)
         lifetime: *hpwh_lifetime
       - &120v_hpwh_65_gal
@@ -653,7 +623,8 @@ references:
         apply_logic:
           - Bedrooms|2
         costs:
-          - value: 2499
+        # Updated as coresponding 240v HPWH cost minus the cost of a 240v branch circuit ($1,384) based on team review 2024-06-10
+          - value: 3982
             multiplier: Fixed (1)
         lifetime: *hpwh_lifetime
       - &120v_hpwh_80_gal
@@ -664,11 +635,12 @@ references:
             - Bedrooms|4
             - Bedrooms|5
         costs:
-          - value: 3000
+        # Updated as coresponding 240v HPWH cost minus the cost of a 240v branch circuit ($1,384) based on team review 2024-06-10
+          - value: 4696
             multiplier: Fixed (1)
         lifetime: *hpwh_lifetime
 
-    #### 3 Electric Resistance Cooking, 1 option  ####
+    #### 3 Electric Cooking  ####
       - &electric_resistance_cooking
         option: Cooking Range|Electric Resistance
         apply_logic: &logic_cooking
@@ -676,9 +648,9 @@ references:
             - Cooking Range|Gas
             - Cooking Range|Propane
         costs:
-          - value: 774 # Lowest-priced electric range and oven from wirecutter on 7/7/23, GE Model #JB645DKWW (black is same price)
-                       # https://www.lowes.com/pd/GE-Smooth-Surface-4-Elements-5-3-cu-ft-Self-Cleaning-Freestanding-Electric-Range-White-Common-30-in-Actual-29-875-in/1000014250
-                       # It is $630 at big box stores as of July 2023, $774 = $630 * 1.07 sales tax + $100 delivery/install
+        # Updated per Brennan feedback, adds 7% tax and $100 install cost, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+        # then add wiring cost 1384
+          - value: 2598.94 #1214.94+1384
             multiplier: Fixed (1)
         lifetime: 13 # from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=279&actionId=2204&bcId=6961
                      # 17 from IEA https://www.eia.gov/analysis/studies/buildings/equipcosts/pdf/appendix-a.pdf
@@ -686,11 +658,12 @@ references:
         option: Cooking Range|Electric Induction, 120V, battery powered
         apply_logic: *logic_cooking
         costs:
+        # Updated per Brennan feedback, adds 7% tax and $100 install cost, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
           - value: 5450 
             multiplier: Fixed (1)
         lifetime: 13 
 
-    #### 4 Electric Clothes Dryer, 1 option  ####
+    #### 4 Electric Clothes Dryer  ####
       - &clothes_dryer_electric 
         option: Clothes Dryer|Electric
         apply_logic: &logic_dryer
@@ -698,15 +671,16 @@ references:
             - Clothes Dryer|Gas
             - Clothes Dryer|Propane
         costs:
-          - value: 718 # Cheaper of top-ranked electric dryer on Consumer Reports, is full-size
-                       # https://www.homedepot.com/p/GE-7-4-cu-ft-Electric-Dryer-with-Sensor-Dry-in-White-GTD58EBSVWS/324668239
-                       # It is $578 at big box stores as of Feb 2024, $718 = $578 * 1.07 sales tax + $100 delivery/install
+        # Updated per Brennan feedback, adds 7% tax and $100 install cost, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
+        # then add wiring cost 1384
+          - value: 2374 #990+1384
             multiplier: Fixed (1)
         lifetime: 13 # 13 is from REMDB https://remdb.nrel.gov/measures?group_id=4&component_type_id=374&actionId=1925&bcId=5849
       - &120v_clothes_dryer 
         option: Clothes Dryer|Electric Heat Pump, 120V
         apply_logic: *logic_dryer
         costs:
+        # Updated per Brennan feedback, adds 7% tax and $100 install cost, refer to 05/28/24 "Re: TEA Cost review and updates by Brennan" email
           - value: 1611 
             multiplier: Fixed (1)
         lifetime: 13 
@@ -719,9 +693,7 @@ references:
             - Misc Pool Heater|Natural Gas
             - Misc Pool Heater|Other Fuel
         costs:
-          - value: 4590 # https://lesliespool.com/jacuzzi-127000-btu-pro-grade-electric-pool-heat-pump/85451.html
-                        # installation $310 - varies on state and zip code between 228 and 400 USD
-                        # tax 7%
+          - value: 3381.11 #1997.11+1384
             multiplier: Fixed (1)
         lifetime: 15
       - &electric_spa_heaters 
@@ -731,9 +703,7 @@ references:
             - Misc Hot Tub Spa|Natural Gas
             - Misc Hot Tub Spa|Other Fuel
         costs:
-          - value: 2760 # https://lesliespool.com/raypak-model-0018-e3t-electric-3-series-titanium-pool-spa-heater---18kw---61419-btu-hr/382735.html
-                        # installation $310 - varies on state and zip code between 228 and 400 USD
-                        # tax 7%
+          - value: 3381.11 #1997.11+1384
             multiplier: Fixed (1)
         lifetime: 15
 
@@ -956,7 +926,7 @@ references:
       
 upgrades:
 
-  - upgrade_name: 2.6 High Efficiency and Low-voltage Electrification with Envelope only hpwh and dryer Electrification
+  - upgrade_name: 2.6 High Efficiency and Low-voltage (hpwh, dryer only) Electrification with Envelope
     options:
     #### 1.0 Common Options For Heat Pump with ele backup, 8 options ####
       - *heating_fuel
@@ -974,6 +944,8 @@ upgrades:
       - *120v_hpwh_50_gal
       - *120v_hpwh_65_gal
       - *120v_hpwh_80_gal
+    #### 3 Electric Resistance Cooking, 1 option  ####
+      - *electric_resistance_cooking
     #### 4 120V Clothes Dryer, 1 options  ####
       - *120v_clothes_dryer
     #### 5 Electric Pool Heater And Hot Tub Spa Heater, 2 options  ####
@@ -998,4 +970,7 @@ kestrel:
   account: panels
   sampling:
     time: 10
+  postprocessing:
+    time: 50 
+    n_workers: 2
 
