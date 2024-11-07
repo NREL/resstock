@@ -1,11 +1,15 @@
 Community list: ["louisville", "san_jose", "columbia", "north_birmingham", "jackson_county", "duluth", "lawrence", "hill_district"]
+0. conda environment:
+create a conda environment of resstock-estimation (https://github.com/NREL/resstock-estimation)
 
 1. downsample_buildstock.py
-input data directory: requires results_up00 file
+input data directory: requires results_up00 file, download the file from AWS and revise the path code in downsample_buildstock.py
+run python downsample_buildstock.py in ther terminal
 output data directory:data_/downsampled_buildings_id/euss1_2018_results_up00__downsampled_method1_{community}.csv
+
 # Not available for hill_district as a small EUSS run is done separately with ~2k samples to add XPS for masonry walls.
 
-2. get_community_results_from_euss.ipynb
+2. get_com_euss.ipynb
 Extract raw EUSS files for community informed by downsampled output.
 Note: add_envelope_metrics.py (which can be run independently) is invoked in the notebook to add envelope ratings directly into the raw baseline file.
 input data directory: data_/downsampled_buildings_id/euss1_2018_results_up00__downsampled_method1_{community}.csv 

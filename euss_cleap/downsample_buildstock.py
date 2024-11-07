@@ -666,8 +666,9 @@ n = 1000 # <----
 # EUSS buildstock
 # buildstock_database = Path("/Users/lliu2/Documents/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_buildstock.csv")
 # df_main = pd.read_csv(buildstock_database, dtype=str)
-buildstock_database = Path("/Users/lliu2/Documents/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00.parquet")
+#buildstock_database = Path("/Users/lliu2/Documents/Lab Call 5A - electrical panel constraints/FY23/Panels Estimation/euss1_2018_results_up00.parquet")
 #buildstock_database = Path("data_/euss_res_final_2018_550k_20220901/results_up00.parquet")
+buildstock_database = Path("data_/final_AMY2018_EUSSRR2/results_up00.parquet")
 df_main = pd.read_parquet(buildstock_database)
 
     ## [2] define buildstock to match:

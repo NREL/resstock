@@ -1,231 +1,237 @@
-2023-09-07 19:01:19,079 - INFO - ---------------------------------------------------------
-2023-09-07 19:01:19,079 - INFO - Downsampling buildstock for  columbia  using method 1
-2023-09-07 19:01:19,080 - INFO - ---------------------------------------------------------
-2023-09-07 19:01:19,123 - INFO - Creating n>=1000 buildlstock by downsampling from: bst_to_search (550000 samples) 
-while matching the marginal distribution of 13 key HCs from: bst_to_match (363 samples), 
+2024-11-06 16:11:52,394 - INFO - ---------------------------------------------------------
+2024-11-06 16:11:52,395 - INFO - Downsampling buildstock for  columbia  using method 1
+2024-11-06 16:11:52,397 - INFO - ---------------------------------------------------------
+2024-11-06 16:11:52,401 - INFO - Creating n>=1000 buildlstock by downsampling from: bst_to_search (549999 samples) 
+while matching the marginal distribution of 13 key HCs from: bst_to_match (364 samples), 
 ['Income', 'ASHRAE IECC Climate Zone 2004', 'State', 'Geometry Building Type RECS', 'Heating Fuel', 'HVAC Cooling Type', 'Tenure', 'Water Heater Fuel', 'Vintage ACS', 'Geometry Floor Area Bin', 'HVAC Heating Type', 'Federal Poverty Level', 'Vacancy Status']
-2023-09-07 19:01:19,124 - INFO - 
-2023-09-07 19:01:19,125 - INFO - 
+2024-11-06 16:11:52,402 - INFO - 
+2024-11-06 16:11:52,402 - INFO - 
 ---- Attempt 1: downsample using 13 key HCs: ----
-2023-09-07 19:01:19,235 - INFO -    Located 8930 positively weighted rows in bst_to_search
-2023-09-07 19:01:19,235 - INFO - 
+2024-11-06 16:11:52,641 - INFO -    Located 8980 positively weighted rows in bst_to_search
+2024-11-06 16:11:52,642 - INFO - 
  -> Step 2 : Weight Recalculation
 Method 1A - normalizing to exact joint-prob from bst_to_match ...
-2023-09-07 19:01:19,263 - INFO -    Downsampling FAILED with insufficient rows: Recalculation leads to 928 positively weighted samples 
-retry by relaxing HC_to_search by removing: build_existing_model.vacancy_status...
-2023-09-07 19:01:19,263 - INFO - 
----- Attempt 2: downsample using 12 key HCs: ----
-2023-09-07 19:01:19,268 - INFO -    Located 8930 positively weighted rows in bst_to_search
-2023-09-07 19:01:19,269 - INFO - 
- -> Step 2 : Weight Recalculation
-Method 1A - normalizing to exact joint-prob from bst_to_match ...
-2023-09-07 19:01:19,295 - INFO - 
+2024-11-06 16:11:52,705 - INFO - 
 
-** Downsampled to: 1120 samples, by matching to: ['build_existing_model.income', 'build_existing_model.ashrae_iecc_climate_zone_2004', 'build_existing_model.state', 'build_existing_model.geometry_building_type_recs', 'build_existing_model.heating_fuel', 'build_existing_model.hvac_cooling_type', 'build_existing_model.tenure', 'build_existing_model.water_heater_fuel', 'build_existing_model.vintage_acs', 'build_existing_model.geometry_floor_area_bin', 'build_existing_model.hvac_heating_type', 'build_existing_model.federal_poverty_level']
-2023-09-07 19:01:19,315 - INFO - 
+** Downsampled to: 1323 samples, by matching to: ['build_existing_model.income', 'build_existing_model.ashrae_iecc_climate_zone_2004', 'build_existing_model.state', 'build_existing_model.geometry_building_type_recs', 'build_existing_model.heating_fuel', 'build_existing_model.hvac_cooling_type', 'build_existing_model.tenure', 'build_existing_model.water_heater_fuel', 'build_existing_model.vintage_acs', 'build_existing_model.geometry_floor_area_bin', 'build_existing_model.hvac_heating_type', 'build_existing_model.federal_poverty_level', 'build_existing_model.vacancy_status']
+2024-11-06 16:11:52,706 - INFO - 
  -> Step 3 : Weight Normalization
-2023-09-07 19:01:19,317 - INFO - Checking marginals from weight_map of n=1120...
-2023-09-07 19:01:19,322 - INFO -  [[ build_existing_model.income ]] 
-2023-09-07 19:01:19,326 - INFO - 
+2024-11-06 16:11:52,714 - INFO - Checking marginals from weight_map of n=1323...
+2024-11-06 16:11:52,729 - INFO -  [[ build_existing_model.income ]] 
+2024-11-06 16:11:52,740 - INFO - 
                               matched     truth  pct_diff
 build_existing_model.income                              
-10000-14999                  0.035813  0.035813       0.0
-100000-119999                0.046832  0.046832       0.0
-120000-139999                0.033058  0.033058       0.0
-140000-159999                0.013774  0.013774       0.0
-15000-19999                  0.066116  0.066116       0.0
-160000-179999                0.019284  0.019284       0.0
-180000-199999                0.008264  0.008264       0.0
-20000-24999                  0.066116  0.066116       0.0
-200000+                      0.052342  0.052342       0.0
-25000-29999                  0.049587  0.049587       0.0
-30000-34999                  0.055096  0.055096       0.0
-35000-39999                  0.041322  0.041322       0.0
-40000-44999                  0.049587  0.049587       0.0
-45000-49999                  0.035813  0.035813       0.0
-50000-59999                  0.088154  0.088154       0.0
-60000-69999                  0.055096  0.055096       0.0
-70000-79999                  0.055096  0.055096       0.0
-80000-99999                  0.096419  0.096419       0.0
-<10000                       0.132231  0.132231       0.0
+10000-14999                  0.027473  0.027473      -0.0
+100000-119999                0.035714  0.035714       0.0
+120000-139999                0.027473  0.027473       0.0
+140000-159999                0.013736  0.013736       0.0
+15000-19999                  0.060440  0.060440       0.0
+160000-179999                0.013736  0.013736      -0.0
+180000-199999                0.008242  0.008242      -0.0
+20000-24999                  0.054945  0.054945      -0.0
+200000+                      0.041209  0.041209       0.0
+25000-29999                  0.049451  0.049451      -0.0
+30000-34999                  0.043956  0.043956      -0.0
+35000-39999                  0.027473  0.027473      -0.0
+40000-44999                  0.046703  0.046703       0.0
+45000-49999                  0.030220  0.030220      -0.0
+50000-59999                  0.074176  0.074176       0.0
+60000-69999                  0.046703  0.046703       0.0
+70000-79999                  0.049451  0.049451      -0.0
+80000-99999                  0.090659  0.090659       0.0
+<10000                       0.120879  0.120879       0.0
+Not Available                0.137363  0.137363      -0.0
 
-2023-09-07 19:01:19,330 - INFO -  [[ build_existing_model.ashrae_iecc_climate_zone_2004 ]] 
-2023-09-07 19:01:19,334 - INFO - 
+2024-11-06 16:11:52,747 - INFO -  [[ build_existing_model.ashrae_iecc_climate_zone_2004 ]] 
+2024-11-06 16:11:52,752 - INFO - 
                                                     matched  truth  pct_diff
 build_existing_model.ashrae_iecc_climate_zone_2004                          
 3A                                                      1.0    1.0       0.0
 
-2023-09-07 19:01:19,337 - INFO -  [[ build_existing_model.state ]] 
-2023-09-07 19:01:19,343 - INFO - 
+2024-11-06 16:11:52,759 - INFO -  [[ build_existing_model.state ]] 
+2024-11-06 16:11:52,764 - INFO - 
                             matched  truth  pct_diff
 build_existing_model.state                          
 SC                              1.0    1.0       0.0
 
-2023-09-07 19:01:19,350 - INFO -  [[ build_existing_model.geometry_building_type_recs ]] 
-2023-09-07 19:01:19,355 - INFO - 
+2024-11-06 16:11:52,770 - INFO -  [[ build_existing_model.geometry_building_type_recs ]] 
+2024-11-06 16:11:52,780 - INFO - 
                                                    matched     truth  pct_diff
 build_existing_model.geometry_building_type_recs                              
-Mobile Home                                       0.019284  0.019284       0.0
-Multi-Family with 2 - 4 Units                     0.110193  0.110193       0.0
-Multi-Family with 5+ Units                        0.305785  0.305785       0.0
-Single-Family Attached                            0.030303  0.030303       0.0
-Single-Family Detached                            0.534435  0.534435       0.0
+Mobile Home                                       0.019231  0.019231      -0.0
+Multi-Family with 2 - 4 Units                     0.109890  0.109890      -0.0
+Multi-Family with 5+ Units                        0.307692  0.307692      -0.0
+Single-Family Attached                            0.030220  0.030220      -0.0
+Single-Family Detached                            0.532967  0.532967      -0.0
 
-2023-09-07 19:01:19,359 - INFO -  [[ build_existing_model.heating_fuel ]] 
-2023-09-07 19:01:19,362 - INFO - 
+2024-11-06 16:11:52,792 - INFO -  [[ build_existing_model.heating_fuel ]] 
+2024-11-06 16:11:52,799 - INFO - 
                                     matched     truth  pct_diff
 build_existing_model.heating_fuel                              
-Electricity                        0.754821  0.754821       0.0
-Natural Gas                        0.236915  0.236915      -0.0
-Other Fuel                         0.002755  0.002755      -0.0
-Propane                            0.005510  0.005510      -0.0
+Electricity                        0.755495  0.755495       0.0
+Natural Gas                        0.236264  0.236264       0.0
+Other Fuel                         0.002747  0.002747       0.0
+Propane                            0.005495  0.005495       0.0
 
-2023-09-07 19:01:19,365 - INFO -  [[ build_existing_model.hvac_cooling_type ]] 
-2023-09-07 19:01:19,369 - INFO - 
+2024-11-06 16:11:52,806 - INFO -  [[ build_existing_model.hvac_cooling_type ]] 
+2024-11-06 16:11:52,812 - INFO - 
                                          matched     truth  pct_diff
 build_existing_model.hvac_cooling_type                              
-Central AC                              0.573003  0.573003       0.0
-Heat Pump                               0.269972  0.269972      -0.0
-None                                    0.027548  0.027548      -0.0
-Room AC                                 0.129477  0.129477      -0.0
+Central AC                              0.458791  0.458791      -0.0
+Ducted Heat Pump                        0.417582  0.417582      -0.0
+Non-Ducted Heat Pump                    0.021978  0.021978      -0.0
+None                                    0.041209  0.041209       0.0
+Room AC                                 0.060440  0.060440      -0.0
 
-2023-09-07 19:01:19,372 - INFO -  [[ build_existing_model.tenure ]] 
-2023-09-07 19:01:19,376 - INFO - 
+2024-11-06 16:11:52,822 - INFO -  [[ build_existing_model.tenure ]] 
+2024-11-06 16:11:52,828 - INFO - 
                               matched     truth  pct_diff
 build_existing_model.tenure                              
-Owner                        0.446281  0.446281       0.0
-Renter                       0.553719  0.553719       0.0
+Not Available                0.137363  0.137363      -0.0
+Owner                        0.398352  0.398352       0.0
+Renter                       0.464286  0.464286      -0.0
 
-2023-09-07 19:01:19,379 - INFO -  [[ build_existing_model.water_heater_fuel ]] 
-2023-09-07 19:01:19,382 - INFO - 
+2024-11-06 16:11:52,835 - INFO -  [[ build_existing_model.water_heater_fuel ]] 
+2024-11-06 16:11:52,842 - INFO - 
                                          matched     truth  pct_diff
 build_existing_model.water_heater_fuel                              
-Electricity                             0.746556  0.746556       0.0
-Natural Gas                             0.242424  0.242424      -0.0
-Propane                                 0.011019  0.011019      -0.0
+Electricity                             0.785714  0.785714       0.0
+Natural Gas                             0.203297  0.203297       0.0
+Propane                                 0.010989  0.010989      -0.0
 
-2023-09-07 19:01:19,385 - INFO -  [[ build_existing_model.vintage_acs ]] 
-2023-09-07 19:01:19,388 - INFO - 
+2024-11-06 16:11:52,849 - INFO -  [[ build_existing_model.vintage_acs ]] 
+2024-11-06 16:11:52,856 - INFO - 
                                    matched     truth  pct_diff
 build_existing_model.vintage_acs                              
-1940-59                           0.184573  0.184573       0.0
-1960-79                           0.292011  0.292011       0.0
-1980-99                           0.283747  0.283747       0.0
-2000-09                           0.129477  0.129477       0.0
-2010s                             0.044077  0.044077       0.0
-<1940                             0.066116  0.066116       0.0
+1940-59                           0.184066  0.184066      -0.0
+1960-79                           0.293956  0.293956       0.0
+1980-99                           0.282967  0.282967       0.0
+2000-09                           0.129121  0.129121      -0.0
+2010s                             0.043956  0.043956      -0.0
+<1940                             0.065934  0.065934       0.0
 
-2023-09-07 19:01:19,391 - INFO -  [[ build_existing_model.geometry_floor_area_bin ]] 
-2023-09-07 19:01:19,394 - INFO - 
+2024-11-06 16:11:52,864 - INFO -  [[ build_existing_model.geometry_floor_area_bin ]] 
+2024-11-06 16:11:52,869 - INFO - 
                                                matched     truth  pct_diff
 build_existing_model.geometry_floor_area_bin                              
-0-1499                                        0.573003  0.573003       0.0
-1500-2499                                     0.280992  0.280992       0.0
-2500-3999                                     0.134986  0.134986      -0.0
-4000+                                         0.011019  0.011019      -0.0
+0-1499                                        0.607143  0.607143       0.0
+1500-2499                                     0.313187  0.313187       0.0
+2500-3999                                     0.057692  0.057692       0.0
+4000+                                         0.021978  0.021978       0.0
 
-2023-09-07 19:01:19,397 - INFO -  [[ build_existing_model.hvac_heating_type ]] 
-2023-09-07 19:01:19,399 - INFO - 
+2024-11-06 16:11:52,875 - INFO -  [[ build_existing_model.hvac_heating_type ]] 
+2024-11-06 16:11:52,883 - INFO - 
                                          matched     truth  pct_diff
 build_existing_model.hvac_heating_type                              
-Ducted Heat Pump                        0.269972  0.269972       0.0
-Ducted Heating                          0.561983  0.561983       0.0
-Non-Ducted Heating                      0.168044  0.168044       0.0
+Ducted Heat Pump                        0.417582  0.417582       0.0
+Ducted Heating                          0.412088  0.412088       0.0
+Non-Ducted Heat Pump                    0.021978  0.021978       0.0
+Non-Ducted Heating                      0.148352  0.148352       0.0
 
-2023-09-07 19:01:19,404 - INFO -  [[ build_existing_model.federal_poverty_level ]] 
-2023-09-07 19:01:19,408 - INFO - 
+2024-11-06 16:11:52,891 - INFO -  [[ build_existing_model.federal_poverty_level ]] 
+2024-11-06 16:11:52,898 - INFO - 
                                              matched     truth  pct_diff
 build_existing_model.federal_poverty_level                              
-0-100%                                      0.181818  0.181818       0.0
-100-150%                                    0.126722  0.126722       0.0
-150-200%                                    0.099174  0.099174       0.0
-200-300%                                    0.165289  0.165289       0.0
-300-400%                                    0.129477  0.129477       0.0
-400%+                                       0.297521  0.297521       0.0
+0-100%                                      0.151099  0.151099       0.0
+100-150%                                    0.096154  0.096154      -0.0
+150-200%                                    0.093407  0.093407       0.0
+200-300%                                    0.131868  0.131868       0.0
+300-400%                                    0.115385  0.115385      -0.0
+400%+                                       0.274725  0.274725       0.0
+Not Available                               0.137363  0.137363      -0.0
 
-2023-09-07 19:01:19,408 - INFO - For unmatched HC:
-2023-09-07 19:01:19,409 - INFO - Checking marginals from weight_map of n=1120...
-2023-09-07 19:01:19,413 - INFO -  [[ build_existing_model.vacancy_status ]] 
-2023-09-07 19:01:19,416 - INFO - 
+2024-11-06 16:11:52,903 - INFO -  [[ build_existing_model.vacancy_status ]] 
+2024-11-06 16:11:52,913 - INFO - 
                                       matched     truth  pct_diff
 build_existing_model.vacancy_status                              
-Occupied                             0.858427  0.862259 -0.444395
-Vacant                               0.141573  0.137741  2.781912
+Occupied                             0.862637  0.862637      -0.0
+Vacant                               0.137363  0.137363      -0.0
 
-2023-09-07 19:01:19,424 - INFO - truth vs. matched - per dwelling unit energy:
-2023-09-07 19:01:19,427 - INFO - 
-                                    matched      truth   pct_diff
-energy_use_total_m_btu            61.768399  61.246725   0.851759
-fuel_use_electricity_total_m_btu  48.146330  49.166132  -2.074196
-fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
-fuel_use_natural_gas_total_m_btu  12.991402  11.503653  12.932843
-fuel_use_propane_total_m_btu       0.630659   0.576945   9.310122
+2024-11-06 16:11:52,914 - INFO - No unmatched HC
+2024-11-06 16:11:52,932 - INFO - truth vs. matched - per dwelling unit energy:
+2024-11-06 16:11:52,940 - INFO - 
+                                    matched      truth  pct_diff
+energy_use_total_m_btu            54.951919  53.961239  1.835911
+fuel_use_electricity_total_m_btu  43.195728  43.025426  0.395817
+fuel_use_fuel_oil_total_m_btu      0.000000   0.000000       NaN
+fuel_use_natural_gas_total_m_btu  11.099218  10.303505  7.722735
+fuel_use_propane_total_m_btu       0.607524   0.582863  4.231114
 
-2023-09-07 19:01:19,434 - INFO - truth vs. matched - per dwelling unit energy:
-2023-09-07 19:01:19,437 - INFO - 
+2024-11-06 16:11:52,963 - INFO - truth vs. matched - per dwelling unit energy:
+2024-11-06 16:11:52,972 - INFO - 
                                                                         matched      truth   pct_diff
 build_existing_model.vacancy_status                                                                  
-Occupied                            energy_use_total_m_btu            68.731724  67.776415   1.409500
-                                    fuel_use_electricity_total_m_btu  53.297176  54.250147  -1.756624
+Occupied                            energy_use_total_m_btu            61.038774  59.997943   1.734778
+                                    fuel_use_electricity_total_m_btu  47.706821  47.565675   0.296740
                                     fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
-                                    fuel_use_natural_gas_total_m_btu  14.699877  12.857169  14.332138
-                                    fuel_use_propane_total_m_btu       0.734668   0.669109   9.798059
-Vacant                              energy_use_total_m_btu            19.546280  20.370860  -4.047843
-                                    fuel_use_electricity_total_m_btu  16.914180  17.340200  -2.456837
+                                    fuel_use_natural_gas_total_m_btu  12.570367  11.699274   7.445699
+                                    fuel_use_propane_total_m_btu       0.704264   0.675675   4.231114
+Vacant                              energy_use_total_m_btu            16.726471  16.050740   4.209969
+                                    fuel_use_electricity_total_m_btu  14.866060  14.512660   2.435113
                                     fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
-                                    fuel_use_natural_gas_total_m_btu   2.632068   3.030640 -13.151403
+                                    fuel_use_natural_gas_total_m_btu   1.860404   1.538080  20.956241
                                     fuel_use_propane_total_m_btu       0.000000   0.000000        NaN
 
-2023-09-07 19:01:19,443 - INFO - truth vs. matched - per dwelling unit energy:
-2023-09-07 19:01:19,447 - INFO - 
+2024-11-06 16:11:52,998 - INFO - truth vs. matched - per dwelling unit energy:
+2024-11-06 16:11:53,005 - INFO - 
                                                                 matched      truth   pct_diff
 build_existing_model.tenure                                                                  
-Owner                       energy_use_total_m_btu            82.522096  80.561228   2.434009
-                            fuel_use_electricity_total_m_btu  61.293989  62.877377  -2.518215
+Not Available               energy_use_total_m_btu            16.726471  16.050740   4.209969
+                            fuel_use_electricity_total_m_btu  14.866060  14.512660   2.435113
                             fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
-                            fuel_use_natural_gas_total_m_btu  19.946354  16.528481  20.678687
-                            fuel_use_propane_total_m_btu       1.281728   1.155358  10.937696
-Renter                      energy_use_total_m_btu            45.041539  45.679811  -1.397273
-                            fuel_use_electricity_total_m_btu  37.549710  38.115279  -1.483837
+                            fuel_use_natural_gas_total_m_btu   1.860404   1.538080  20.956241
+                            fuel_use_propane_total_m_btu       0.000000   0.000000        NaN
+Owner                       energy_use_total_m_btu            81.749067  80.236041   1.885718
+                            fuel_use_electricity_total_m_btu  58.988282  59.312538  -0.546690
                             fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
-                            fuel_use_natural_gas_total_m_btu   7.385918   7.453791  -0.910579
-                            fuel_use_propane_total_m_btu       0.105917   0.110761  -4.373113
+                            fuel_use_natural_gas_total_m_btu  21.144102  19.366821   9.176940
+                            fuel_use_propane_total_m_btu       1.492546   1.432552   4.187941
+Renter                      energy_use_total_m_btu            43.269587  42.633893   1.491053
+                            fuel_use_electricity_total_m_btu  38.027462  37.487006   1.441715
+                            fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
+                            fuel_use_natural_gas_total_m_btu   5.214203   5.120609   1.827781
+                            fuel_use_propane_total_m_btu       0.027927   0.026284   6.250000
 
-2023-09-07 19:01:19,455 - INFO - truth vs. matched - per dwelling unit energy:
-2023-09-07 19:01:19,460 - INFO - 
+2024-11-06 16:11:53,036 - INFO - truth vs. matched - per dwelling unit energy:
+2024-11-06 16:11:53,046 - INFO - 
                                                                                matched      truth   pct_diff
 build_existing_model.federal_poverty_level                                                                  
-0-100%                                     energy_use_total_m_btu            47.447132  49.934773  -4.981780
-                                           fuel_use_electricity_total_m_btu  39.953443  42.353970  -5.667771
+0-100%                                     energy_use_total_m_btu            45.341567  44.462164   1.977869
+                                           fuel_use_electricity_total_m_btu  38.835523  38.379218   1.188937
                                            fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
-                                           fuel_use_natural_gas_total_m_btu   7.415457   7.422182  -0.090607
-                                           fuel_use_propane_total_m_btu       0.078253   0.158667 -50.680944
-100-150%                                   energy_use_total_m_btu            57.471187  58.270587  -1.371875
-                                           fuel_use_electricity_total_m_btu  44.481339  46.372283  -4.077745
+                                           fuel_use_natural_gas_total_m_btu   6.487884   6.083000   6.655995
+                                           fuel_use_propane_total_m_btu       0.018167   0.000000        inf
+100-150%                                   energy_use_total_m_btu            57.421550  56.086629   2.380107
+                                           fuel_use_electricity_total_m_btu  42.959989  42.338971   1.466775
                                            fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
-                                           fuel_use_natural_gas_total_m_btu  12.582676  11.507196   9.346152
-                                           fuel_use_propane_total_m_btu       0.407125   0.391043   4.112464
-150-200%                                   energy_use_total_m_btu            51.409309  49.521806   3.811460
-                                           fuel_use_electricity_total_m_btu  41.630888  41.541472   0.215245
+                                           fuel_use_natural_gas_total_m_btu  14.438857  13.747600   5.028200
+                                           fuel_use_propane_total_m_btu       0.022661   0.000000        inf
+150-200%                                   energy_use_total_m_btu            50.057132  50.295559  -0.474050
+                                           fuel_use_electricity_total_m_btu  39.588321  39.916265  -0.821579
                                            fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
-                                           fuel_use_natural_gas_total_m_btu   9.461874   7.663806  23.461823
-                                           fuel_use_propane_total_m_btu       0.316500   0.316500   0.000000
-200-300%                                   energy_use_total_m_btu            57.941978  58.319000  -0.646482
-                                           fuel_use_electricity_total_m_btu  43.906289  45.555567  -3.620365
+                                           fuel_use_natural_gas_total_m_btu  10.261742  10.172206   0.880206
+                                           fuel_use_propane_total_m_btu       0.207118   0.207118  -0.000000
+200-300%                                   energy_use_total_m_btu            60.363338  59.144125   2.061427
+                                           fuel_use_electricity_total_m_btu  49.461608  48.420917   2.149260
                                            fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
-                                           fuel_use_natural_gas_total_m_btu  12.856187  11.596733  10.860413
-                                           fuel_use_propane_total_m_btu       1.179544   1.166783   1.093700
-300-400%                                   energy_use_total_m_btu            70.967019  68.737638   3.243318
-                                           fuel_use_electricity_total_m_btu  53.416127  53.846681  -0.799592
+                                           fuel_use_natural_gas_total_m_btu   9.427933   9.259063   1.823843
+                                           fuel_use_propane_total_m_btu       1.473847   1.464208   0.658300
+300-400%                                   energy_use_total_m_btu            65.405150  65.454690  -0.075687
+                                           fuel_use_electricity_total_m_btu  53.239820  54.009190  -1.424517
                                            fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
-                                           fuel_use_natural_gas_total_m_btu  16.801806  14.092894  19.221830
-                                           fuel_use_propane_total_m_btu       0.749117   0.798128  -6.140702
-400%+                                      energy_use_total_m_btu            73.926294  71.702083   3.102017
-                                           fuel_use_electricity_total_m_btu  56.948164  57.029611  -0.142815
+                                           fuel_use_natural_gas_total_m_btu  11.953057  11.258833   6.166032
+                                           fuel_use_propane_total_m_btu       0.212270   0.186667  13.715986
+400%+                                      energy_use_total_m_btu            73.162355  71.328390   2.571157
+                                           fuel_use_electricity_total_m_btu  53.841560  53.931580  -0.166915
                                            fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
-                                           fuel_use_natural_gas_total_m_btu  16.166410  14.097815  14.673160
-                                           fuel_use_propane_total_m_btu       0.811682   0.574611  41.257651
+                                           fuel_use_natural_gas_total_m_btu  17.814331  15.946800  11.711008
+                                           fuel_use_propane_total_m_btu       1.326445   1.269980   4.446128
+Not Available                              energy_use_total_m_btu            16.726471  16.050740   4.209969
+                                           fuel_use_electricity_total_m_btu  14.866060  14.512660   2.435113
+                                           fuel_use_fuel_oil_total_m_btu      0.000000   0.000000        NaN
+                                           fuel_use_natural_gas_total_m_btu   1.860404   1.538080  20.956241
+                                           fuel_use_propane_total_m_btu       0.000000   0.000000        NaN
 
-2023-09-07 19:01:19,467 - INFO - >> Database down-selected to 1120 buildings, based on input data of 363 buildings, result outputs to: 
+2024-11-06 16:11:53,054 - INFO - >> Database down-selected to 1323 buildings, based on input data of 364 buildings, result outputs to: 
 C:\Users\ylou2\Desktop\resstock\euss_cleap\data_\downsampled_buildings_id\results_up00__downsampled_method1__columbia.csv
 
