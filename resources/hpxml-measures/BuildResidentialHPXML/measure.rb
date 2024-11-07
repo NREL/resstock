@@ -7280,10 +7280,11 @@ module HPXMLFile
       end
     end
 
-    if !args[:electric_panel_load_other_power].nil?
+    if !args[:electric_panel_load_other_power].nil? || !args[:electric_panel_load_other_addition].nil?
       panel_loads.add(type: HPXML::ElectricPanelLoadTypeOther,
                       power: args[:electric_panel_load_other_power],
-                      addition: args[:electric_panel_load_other_addition])
+                      addition: args[:electric_panel_load_other_addition],
+                      system_idrefs: [])
     end
   end
 
