@@ -834,8 +834,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
     # Electric Panel
-    # collect inputs, execute resources/electrical_panel.rb methods, output service rating and available breaker spaces
-
     panel_sampler = ElectricalPanelSampler.new(runner: runner, **args)
     cap_bin, cap_val = panel_sampler.assign_rated_capacity(args: args)
 
@@ -845,6 +843,15 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     breaker_spaces_headroom = panel_sampler.assign_breaker_space_headroom(args: args)
     args[:electric_panel_breaker_spaces_type] = 'headroom'
     args[:electric_panel_breaker_spaces] = breaker_spaces_headroom
+
+    # FIXME
+    if args[:electric_panel_load_other_power].nil?
+      args[:electric_panel_load_other_power] = 0
+    end
+    microwave_power = [0, 100, 200, 300].sample(1, random: Random.new(args[:building_id]))
+    garbage_disposal_power = [0, 200, 400, 600].sample(1, random: Random.new(args[:building_id]))
+    args[:electric_panel_load_other_power] += microwave_power[0]
+    args[:electric_panel_load_other_power] += garbage_disposal_power[0]
 
     # Register values to runner
     args.each do |arg_name, arg_value|
