@@ -24,11 +24,11 @@ Development Changelog
         Assignees: Lixi Liu
 
 
-    .. change::
+      .. change::
         :tags: workflow, infiltration, bugfix
         :pullreq: 1257
 
-        **Date**: 2024-09-04
+        **Date**: 2024-08-20
 
         Title:
         Air leakage type "unit total"
@@ -124,5 +124,3 @@ Development Changelog
 
         Description:
         For ducted HVAC system upgrades, adds the ability to (1) limit the autosized capacity to the maximum of the existing duct system's heating/cooling airflow rates, and (2) adjust the blower fan efficiency to maintain the duct system curve, using only a single option from the lookup.
-
-        Assignees: Joe Robertson
