@@ -1,17 +1,31 @@
 # frozen_string_literal: true
 
-# Collection of methods for adding generator-related OpenStudio objects.
+# Collection of methods related to generators.
 module Generator
+  # Adds any HPXML Generators to the OpenStudio model.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [nil]
+  def self.apply(model, hpxml_bldg)
+    hpxml_bldg.generators.each do |generator|
+      apply_generator(model, hpxml_bldg, generator)
+    end
+  end
+
+  # Adds the HPXML Generator to the OpenStudio model.
+  #
   # Apply a on-site power generator to the model using OpenStudio GeneratorMicroTurbine and ElectricLoadCenterDistribution objects.
   # The system may be shared, in which case annual consumption (kBtu) and output (kWh) are apportioned to the dwelling unit by total number of bedrooms served.
   # A new ElectricLoadCenterDistribution object is created for each generator.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @param nbeds [Integer] Number of bedrooms in the dwelling unit
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param generator [HPXML::Generator] Object that defines a single generator that provides on-site power
-  # @param unit_multiplier [Integer] Number of similar dwelling units
   # @return [nil]
-  def self.apply(model, nbeds, generator, unit_multiplier)
+  def self.apply_generator(model, hpxml_bldg, generator)
+    nbeds = hpxml_bldg.building_construction.number_of_bedrooms
+    unit_multiplier = hpxml_bldg.building_construction.number_of_units
     obj_name = generator.id
 
     # Apply unit multiplier
@@ -31,8 +45,16 @@ module Generator
     efficiency = output_w / input_w
     fail if efficiency > 1.0 # EPvalidator.xml should prevent this
 
-    curve_biquadratic_constant = create_curve_biquadratic_constant(model)
-    curve_cubic_constant = create_curve_cubic_constant(model)
+    curve_biquadratic_constant = Model.add_curve_biquadratic(
+      model,
+      name: 'ConstantBiquadratic',
+      coeff: [1, 0, 0, 0, 0, 0]
+    )
+    curve_cubic_constant = Model.add_curve_cubic(
+      model,
+      name: 'ConstantCubic',
+      coeff: [1, 0, 0, 0]
+    )
 
     gmt = OpenStudio::Model::GeneratorMicroTurbine.new(model)
     gmt.setName("#{obj_name} generator")
@@ -57,41 +79,5 @@ module Generator
     elcd.setGeneratorOperationSchemeType('Baseload')
     elcd.addGenerator(gmt)
     elcd.setElectricalBussType('AlternatingCurrent')
-  end
-
-  # Create a cubic constant curve for electrical efficiency function of temperature and part load ratio.
-  #
-  # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @return [OpenStudio::Model::CurveCubic] OpenStudio CurveCubic object
-  def self.create_curve_cubic_constant(model)
-    constant_cubic = OpenStudio::Model::CurveCubic.new(model)
-    constant_cubic.setName('ConstantCubic')
-    constant_cubic.setCoefficient1Constant(1)
-    constant_cubic.setCoefficient2x(0)
-    constant_cubic.setCoefficient3xPOW2(0)
-    constant_cubic.setCoefficient4xPOW3(0)
-    # constant_cubic.setMinimumValueofx(-100)
-    # constant_cubic.setMaximumValueofx(100)
-    return constant_cubic
-  end
-
-  # Create a biquadratic constant curve for electrical power function of temperature and elevation.
-  #
-  # @param model [OpenStudio::Model::Model] OpenStudio Model object
-  # @return [OpenStudio::Model::CurveBiquadratic] OpenStudio CurveBiquadratic object
-  def self.create_curve_biquadratic_constant(model)
-    const_biquadratic = OpenStudio::Model::CurveBiquadratic.new(model)
-    const_biquadratic.setName('ConstantBiquadratic')
-    const_biquadratic.setCoefficient1Constant(1)
-    const_biquadratic.setCoefficient2x(0)
-    const_biquadratic.setCoefficient3xPOW2(0)
-    const_biquadratic.setCoefficient4y(0)
-    const_biquadratic.setCoefficient5yPOW2(0)
-    const_biquadratic.setCoefficient6xTIMESY(0)
-    # const_biquadratic.setMinimumValueofx(-100)
-    # const_biquadratic.setMaximumValueofx(100)
-    # const_biquadratic.setMinimumValueofy(-100)
-    # const_biquadratic.setMaximumValueofy(100)
-    return const_biquadratic
   end
 end

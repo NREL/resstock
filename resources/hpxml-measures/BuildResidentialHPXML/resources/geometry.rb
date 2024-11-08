@@ -230,7 +230,7 @@ module Geometry
       assign_indexes(model: model, footprint_polygon: conditioned_polygon, space: conditioned_space)
 
       if floor > 0
-        conditioned_space_name = "#{HPXML::LocationConditionedSpace}|story #{floor + 1}"
+        conditioned_space_name = "#{HPXML::LocationConditionedSpace} story #{floor + 1}"
       else
         conditioned_space_name = HPXML::LocationConditionedSpace
       end
@@ -578,7 +578,7 @@ module Geometry
         garage_attic_space.remove
 
         # remove other unused surfaces
-        # TODO: remove this once geometry methods are fixed in openstudio 3.x
+        # FUTURE: remove this once geometry methods are fixed in openstudio 3.x
         attic_space.surfaces.each do |surface1|
           next if surface1.surfaceType != EPlus::SurfaceTypeRoofCeiling
 
@@ -2151,7 +2151,7 @@ module Geometry
     end
 
     # Gable too short?
-    # TODO: super crude safety factor of 1.5
+    # super crude safety factor of 1.5
     if is_gable_wall(surface: surface) && (min_wall_height > get_surface_height(surface: surface) / 1.5)
       return 0.0
     end

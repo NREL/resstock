@@ -58,7 +58,7 @@ Geometry
 HPXML files currently do not include detailed 3D geometry (e.g., surface vertices or positions of surfaces relative to each other).
 Rather, surfaces are defined by area and orientation.
 However, HPXML can still handle the most important aspect of geometry -- shading of solar radiation.
-Geometry inputs that affect solar shading include :ref:`overhangs` and :ref:`neighbor_buildings`.
+Geometry inputs that affect solar shading include :ref:`window_overhangs` and :ref:`neighbor_buildings`.
 
 For example, the image below shows the result of translating a single-family detached HPXML file to an OpenStudio model.
 
