@@ -7,7 +7,6 @@ Development Changelog
     :released: pending
 
     .. change::
-
         :tags: bugfix, characteristics
         :pullreq: 1265
         :tickets: 1236
@@ -24,12 +23,12 @@ Development Changelog
 
         Assignees: Lixi Liu
 
-    .. change::
 
+      .. change::
         :tags: workflow, infiltration, bugfix
         :pullreq: 1257
 
-        **Date**: 2024-09-04
+        **Date**: 2024-08-20
 
         Title:
         Air leakage type "unit total"
@@ -40,6 +39,7 @@ Development Changelog
         Update BuildExistingModel to register adjusted total infiltration ACH50 value.
 
         Assignees: Joe Robertson
+
 
     .. change::
         :tags: characteristics, floor area, bugfix
@@ -57,6 +57,7 @@ Development Changelog
         resstock-estimation: `pull request 424 <https://github.com/NREL/resstock-estimation/pull/424>`_
 
         Assignees: Rajendra Adhikari, Anthony Fontanini
+
 
     .. change::
         :tags: workflow, hot water, feature
@@ -110,6 +111,7 @@ Development Changelog
 
         Assignees: Joe Robertson
 
+
     .. change::
         :tags: workflow, hvac, feature
         :pullreq: 1304
@@ -122,5 +124,3 @@ Development Changelog
 
         Description:
         The purpose of this PR is to set a value in ResStockArguments for apartment units based on the type/size of MF building and where the unit is located (lower, middle, or upper story).
-
-        Assignees: Joe Robertson
