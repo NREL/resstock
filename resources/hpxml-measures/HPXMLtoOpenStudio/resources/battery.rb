@@ -50,6 +50,19 @@ module Battery
       discharging_schedule = schedules_file.create_schedule_file(model, col_name: discharging_col)
     end
 
+    if is_ev && charging_schedule.nil? && discharging_schedule.nil?
+      weekday_charge, weekday_discharge = Schedule.split_signed_charging_schedule(battery.ev_charging_weekday_fractions)
+      weekend_charge, weekend_discharge = Schedule.split_signed_charging_schedule(battery.ev_charging_weekend_fractions)
+      charging_schedule = MonthWeekdayWeekendSchedule.new(model, battery.id + ' charging schedule', weekday_charge, weekend_charge, battery.ev_charging_monthly_multipliers, EPlus::ScheduleTypeLimitsFraction)
+      charging_schedule = charging_schedule.schedule
+      discharging_schedule = MonthWeekdayWeekendSchedule.new(model, battery.id + ' discharging schedule', weekday_discharge, weekend_discharge, battery.ev_charging_monthly_multipliers, EPlus::ScheduleTypeLimitsFraction)
+      discharging_schedule = discharging_schedule.schedule
+    elsif is_ev
+      runner.registerWarning("Both schedule file and weekday fractions provided for '#{charging_col}' and '#{discharging_col}'; weekday fractions will be ignored.") if !battery.ev_charging_weekday_fractions.nil?
+      runner.registerWarning("Both schedule file and weekend fractions provided for '#{charging_col}' and '#{discharging_col}'; weekend fractions will be ignored.") if !battery.ev_charging_weekend_fractions.nil?
+      runner.registerWarning("Both schedule file and monthly multipliers provided for '#{charging_col}' and '#{discharging_col}'; monthly multipliers will be ignored.") if !battery.ev_charging_monthly_multipliers.nil?
+    end
+
     if !is_ev && pv_systems.empty? && charging_schedule.nil? && discharging_schedule.nil?
       runner.registerWarning('Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.')
       return
@@ -104,7 +117,7 @@ module Battery
     charging_power *= unit_multiplier
 
     is_outside = (battery.location == HPXML::LocationOutside)
-    if not is_outside
+    if !is_outside && !is_ev
       frac_sens = 1.0
     else # Internal gains outside unit
       frac_sens = 0.0

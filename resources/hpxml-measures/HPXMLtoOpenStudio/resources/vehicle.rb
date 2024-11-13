@@ -34,6 +34,13 @@ class Vehicle
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
   def self.apply_electric_vehicle(runner, model, spaces, hpxml_bldg, vehicle, schedules_file)
+    model.getElectricEquipments.sort.each do |ee|
+      if ee.endUseSubcategory.start_with? Constants::ObjectTypeMiscElectricVehicleCharging
+        runner.registerWarning('Electric vehicle was specified as a plug load and as a battery, vehicle charging will be modeled as a plug load.')
+        return
+      end
+    end
+
     # Assign charging and vehicle space
     ev_charger = vehicle.ev_charger
     if ev_charger.nil?

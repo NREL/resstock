@@ -1177,8 +1177,8 @@ class ScheduleGenerator
     away_index = 5  # Index of away activity in the markov-chain simulator
     away_schedule = markov_chain_simulation_result[@ev_occupant_number].column(away_index)
     charging_schedule, discharging_schedule = _get_ev_battery_schedule(away_schedule, hours_per_year)
-    agg_charging_schedule = aggregate_array(charging_schedule, @minutes_per_step).map { |val| val / 60.0 }
-    agg_discharging_schedule = aggregate_array(discharging_schedule, @minutes_per_step).map { |val| val / 60.0 }
+    agg_charging_schedule = aggregate_array(charging_schedule, @minutes_per_step).map { |val| val / @minutes_per_step }
+    agg_discharging_schedule = aggregate_array(discharging_schedule, @minutes_per_step).map { |val| val / @minutes_per_step }
     @schedules[SchedulesFile::Columns[:EVBatteryCharging].name] = agg_charging_schedule
     @schedules[SchedulesFile::Columns[:EVBatteryDischarging].name] = agg_discharging_schedule
   end

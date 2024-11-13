@@ -2279,6 +2279,11 @@
 											<xs:documentation>The class as defined by the U.S. Federal Highway Administration.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
+									<xs:element minOccurs="0" name="WeightRating" type="GrossVehicleWeightRating">
+										<xs:annotation>
+											<xs:documentation>The gross vehicle weight rating (GVWR) as defined by the U.S. Federal Highway Administration.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
 									<xs:element minOccurs="0" name="VehicleWeight" type="HPXMLDoubleGreaterThanZero">
 										<xs:annotation>
 											<xs:documentation>[lbs] The weight of the vehicle.</xs:documentation>
@@ -2292,10 +2297,7 @@
 									<xs:element minOccurs="0" name="VehicleType">
 										<xs:complexType>
 											<xs:choice>
-												<xs:element minOccurs="0" name="BEV">
-													<xs:annotation>
-														<xs:documentation>Battery electric vehicle</xs:documentation>
-													</xs:annotation>
+												<xs:element minOccurs="0" name="BatteryElectricVehicle">
 													<xs:complexType>
 														<xs:sequence>
 															<xs:element minOccurs="0" name="Battery" type="VehicleBattery"/>
@@ -2315,15 +2317,22 @@
 																	<xs:attribute name="dataSource" type="DataSource"/>
 																</xs:complexType>
 															</xs:element>
+															<xs:element minOccurs="0" name="GridConnected" type="HPXMLBoolean">
+																<xs:annotation>
+																	<xs:documentation>Has the ability to feed electricity back on to the grid.</xs:documentation>
+																</xs:annotation>
+															</xs:element>
+															<xs:element minOccurs="0" name="BuildingConnected" type="HPXMLBoolean">
+																<xs:annotation>
+																	<xs:documentation>Has the ability to feed electricity to the building.</xs:documentation>
+																</xs:annotation>
+															</xs:element>
 															<xs:element minOccurs="0" name="ConnectedCharger" type="LocalReference"/>
 															<xs:element ref="extension" minOccurs="0"/>
 														</xs:sequence>
 													</xs:complexType>
 												</xs:element>
-												<xs:element minOccurs="0" name="PHEV">
-													<xs:annotation>
-														<xs:documentation>Plug-in hybrid electric vehicle</xs:documentation>
-													</xs:annotation>
+												<xs:element minOccurs="0" name="PlugInHybridElectricVehicle">
 													<xs:complexType>
 														<xs:sequence>
 															<xs:element minOccurs="0" name="Battery" type="VehicleBattery"/>
@@ -2353,10 +2362,16 @@
 														</xs:sequence>
 													</xs:complexType>
 												</xs:element>
-												<xs:element minOccurs="0" name="HEV">
-													<xs:annotation>
-														<xs:documentation>Hybrid electric vehicle</xs:documentation>
-													</xs:annotation>
+												<xs:element minOccurs="0" name="HybridElectricVehicle">
+													<xs:complexType>
+														<xs:sequence>
+															<xs:element minOccurs="0" name="Battery" type="VehicleBattery"/>
+															<xs:element minOccurs="0" name="FuelType" type="VehicleFuelType"/>
+															<xs:element ref="extension" minOccurs="0"/>
+														</xs:sequence>
+													</xs:complexType>
+												</xs:element>
+												<xs:element minOccurs="0" name="InternalCombustionEngine">
 													<xs:complexType>
 														<xs:sequence>
 															<xs:element minOccurs="0" name="FuelType" type="VehicleFuelType"/>
@@ -2364,10 +2379,7 @@
 														</xs:sequence>
 													</xs:complexType>
 												</xs:element>
-												<xs:element minOccurs="0" name="ICE">
-													<xs:annotation>
-														<xs:documentation>Internal combustion engine</xs:documentation>
-													</xs:annotation>
+												<xs:element minOccurs="0" name="FuelCellElectricVehicle">
 													<xs:complexType>
 														<xs:sequence>
 															<xs:element minOccurs="0" name="FuelType" type="VehicleFuelType"/>
@@ -6468,16 +6480,6 @@
 												in to the energy retrieved from storage.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element minOccurs="0" name="GridConnected" type="HPXMLBoolean">
-				<xs:annotation>
-					<xs:documentation>Has the ability to feed electricity back on to the grid.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element minOccurs="0" name="BuildingConnected" type="HPXMLBoolean">
-				<xs:annotation>
-					<xs:documentation>Has the ability to feed electricity to the building.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
 			<xs:element minOccurs="0" name="extension" type="extensionType"/>
 		</xs:sequence>
 		<xs:attribute name="dataSource" type="DataSource"/>
@@ -10350,20 +10352,7 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<xs:simpleType name="VehicleType_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="BEV"/>
-			<xs:enumeration value="PHEV"/>
-			<xs:enumeration value="HEV"/>
-			<xs:enumeration value="ICE"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="VehicleType">
-		<xs:simpleContent>
-			<xs:extension base="VehicleType_simple"/>
-		</xs:simpleContent>
-	</xs:complexType>
-		<xs:simpleType name="VehicleChargingLocation_simple">
+	<xs:simpleType name="VehicleChargingLocation_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="Home"/>
 			<xs:enumeration value="Work"/>
@@ -10373,7 +10362,9 @@
 	</xs:simpleType>
 	<xs:complexType name="VehicleChargingLocation">
 		<xs:simpleContent>
-			<xs:extension base="VehicleChargingLocation_simple"/>
+			<xs:extension base="VehicleChargingLocation_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="VehicleLocation_simple">
@@ -10391,7 +10382,9 @@
 	</xs:simpleType>
 	<xs:complexType name="VehicleLocation">
 		<xs:simpleContent>
-			<xs:extension base="VehicleLocation_simple"/>
+			<xs:extension base="VehicleLocation_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="VehicleFuelType_simple">
@@ -10407,21 +10400,53 @@
 	</xs:simpleType>
 	<xs:complexType name="VehicleFuelType">
 		<xs:simpleContent>
-			<xs:extension base="VehicleFuelType_simple"/>
+			<xs:extension base="VehicleFuelType_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="VehicleClassType_simple">
 		<xs:annotation>
 			<xs:documentation>The class as defined by the U.S. Federal Highway Administration</xs:documentation>
 		</xs:annotation>
-		<xs:restriction base="xs:int">
-			<xs:minExclusive value="1"/>
-			<xs:maxExclusive value="13"/>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="motorcycle"/>
+			<xs:enumeration value="passenger car"/>
+			<xs:enumeration value="two-axle, four-tire single unit vehicle"/>
+			<xs:enumeration value="bus"/>
+			<xs:enumeration value="two-axle, six-tire, single-unit truck"/>
+			<xs:enumeration value="three-axle single-unit truck"/>
+			<xs:enumeration value="four or more axle single-unit truck"/>
+			<xs:enumeration value="four or fewer axle single-trailer truck"/>
+			<xs:enumeration value="five-axle single-trailer truck"/>
+			<xs:enumeration value="six or more axle single-trailer truck"/>
+			<xs:enumeration value="five or fewer axle multi-trailer truck"/>
+			<xs:enumeration value="six-axle multi-trailer truck"/>
+			<xs:enumeration value="seven or more axle multi-trailer truck"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:complexType name="VehicleClassType">
 		<xs:simpleContent>
-			<xs:extension base="VehicleClassType_simple"/>
+			<xs:extension base="VehicleClassType_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="GrossVehicleWeightRating_simple">
+		<xs:annotation>
+			<xs:documentation>The class as defined by the U.S. Federal Highway Administration</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="light duty"/>
+			<xs:enumeration value="medium duty"/>
+			<xs:enumeration value="heavy duty"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="GrossVehicleWeightRating">
+		<xs:simpleContent>
+			<xs:extension base="GrossVehicleWeightRating_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="FuelEconomyUnits_simple">
@@ -10435,7 +10460,9 @@
 	</xs:simpleType>
 	<xs:complexType name="FuelEconomyUnits">
 		<xs:simpleContent>
-			<xs:extension base="FuelEconomyUnits_simple"/>
+			<xs:extension base="FuelEconomyUnits_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="Current_simple">
