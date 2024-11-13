@@ -308,6 +308,11 @@ class HPXML < Object
   ManualJDailyTempRangeHigh = 'high'
   ManualJInfiltrationMethodDefaultTable = 'default infiltration table'
   ManualJInfiltrationMethodBlowerDoor = 'blower door'
+  ManualJDuctLeakageLevelDefaultNotSealed = 'default not sealed'
+  ManualJDuctLeakageLevelPartiallySealed = 'partially sealed'
+  ManualJDuctLeakageLevelDefaultSealed = 'default sealed'
+  ManualJDuctLeakageLevelNotablySealed = 'notably sealed'
+  ManualJDuctLeakageLevelExtremelySealed = 'extremely sealed'
   MechVentTypeBalanced = 'balanced'
   MechVentTypeCFIS = 'central fan integrated supply'
   MechVentTypeERV = 'energy recovery ventilator'
@@ -2174,7 +2179,8 @@ class HPXML < Object
                          :length,
                          :exposed_perimeter,
                          :interior_shading_id,
-                         :exterior_shading_id]
+                         :exterior_shading_id,
+                         :attached_to_space_idref]
 
       # Look for pairs of surfaces that can be collapsed
       like_foundation_walls = {}
@@ -7620,10 +7626,12 @@ class HPXML < Object
     def initialize(hpxml_bldg, *args, **kwargs)
       @duct_leakage_measurements = DuctLeakageMeasurements.new(hpxml_bldg)
       @ducts = Ducts.new(hpxml_bldg)
+      @manualj_duct_loads = ManualJDuctLoads.new(hpxml_bldg)
       super(hpxml_bldg, *args, **kwargs)
     end
     CLASS_ATTRS = [:duct_leakage_measurements, # [HPXML::DuctLeakageMeasurements]
-                   :ducts]                     # [HPXML::Ducts]
+                   :ducts,                     # [HPXML::Ducts]
+                   :manualj_duct_loads]        # [HPXML::ManualJDuctLoads]
     ATTRS = [:id,                            # [String] SystemIdentifier/@id
              :distribution_system_type,      # [String] DistributionSystemType/* (HPXML::HVACDistributionTypeXXX)
              :number_of_return_registers,    # [Integer] DistributionSystemType/AirDistribution/NumberofReturnRegisters
@@ -7633,8 +7641,7 @@ class HPXML < Object
              :manualj_hot_water_piping_btuh, # [Double] DistributionSystemType/HydronicDistribution/extension/ManualJInputs/HotWaterPipingBtuh (Btu/hr)
              :annual_heating_dse,            # [Double] DistributionSystemType/Other/AnnualHeatingDistributionSystemEfficiency (frac)
              :annual_cooling_dse,            # [Double] DistributionSystemType/Other/AnnualCoolingDistributionSystemEfficiency (frac)
-             :conditioned_floor_area_served, # [Double] ConditionedFloorAreaServed (ft2)
-             :duct_system_sealed]            # [Boolean] HVACDistributionImprovement/DuctSystemSealed
+             :conditioned_floor_area_served] # [Double] ConditionedFloorAreaServed (ft2)
     attr_reader(*CLASS_ATTRS)
     attr_accessor(*ATTRS)
 
@@ -7701,6 +7708,7 @@ class HPXML < Object
       begin; hvac_systems; rescue StandardError => e; errors << e.message; end
       errors += @duct_leakage_measurements.check_for_errors
       errors += @ducts.check_for_errors
+      errors += @manualj_duct_loads.check_for_errors
       return errors
     end
 
@@ -7745,11 +7753,7 @@ class HPXML < Object
           manualj_inputs = XMLHelper.create_elements_as_needed(air_distribution, ['extension', 'ManualJInputs'])
           XMLHelper.add_element(manualj_inputs, 'BlowerFanHeatBtuh', @manualj_blower_fan_heat_btuh, :float, @manualj_blower_fan_heat_btuh_isdefaulted)
         end
-      end
-
-      if not @duct_system_sealed.nil?
-        dist_impr_el = XMLHelper.add_element(hvac_distribution, 'HVACDistributionImprovement')
-        XMLHelper.add_element(dist_impr_el, 'DuctSystemSealed', @duct_system_sealed, :boolean)
+        @manualj_duct_loads.to_doc(air_distribution)
       end
     end
 
@@ -7767,7 +7771,6 @@ class HPXML < Object
       end
       @annual_heating_dse = XMLHelper.get_value(hvac_distribution, 'AnnualHeatingDistributionSystemEfficiency', :float)
       @annual_cooling_dse = XMLHelper.get_value(hvac_distribution, 'AnnualCoolingDistributionSystemEfficiency', :float)
-      @duct_system_sealed = XMLHelper.get_value(hvac_distribution, 'HVACDistributionImprovement/DuctSystemSealed', :boolean)
       @conditioned_floor_area_served = XMLHelper.get_value(hvac_distribution, 'ConditionedFloorAreaServed', :float)
 
       air_distribution = XMLHelper.get_element(hvac_distribution, 'DistributionSystemType/AirDistribution')
@@ -7783,6 +7786,7 @@ class HPXML < Object
         @duct_leakage_measurements.from_doc(air_distribution)
         @ducts.from_doc(air_distribution)
         @manualj_blower_fan_heat_btuh = XMLHelper.get_value(air_distribution, 'extension/ManualJInputs/BlowerFanHeatBtuh', :float)
+        @manualj_duct_loads.from_doc(air_distribution)
       end
     end
   end
@@ -7968,6 +7972,94 @@ class HPXML < Object
       @duct_shape = XMLHelper.get_value(duct, 'DuctShape', :string)
       @duct_surface_area_multiplier = XMLHelper.get_value(duct, 'extension/DuctSurfaceAreaMultiplier', :float)
       @duct_fraction_rectangular = XMLHelper.get_value(duct, 'extension/DuctFractionRectangular', :float)
+    end
+  end
+
+  # Array of HPXML::ManualJDuctLoad objects.
+  class ManualJDuctLoads < BaseArrayElement
+    # Adds a new object, with the specified keyword arguments, to the array.
+    #
+    # @return [nil]
+    def add(**kwargs)
+      self << ManualJDuctLoad.new(@parent_object, **kwargs)
+    end
+
+    # Populates the HPXML object(s) from the XML document.
+    #
+    # @param hvac_distribution [Oga::XML::Element] The current HVACDistribution XML element
+    # @return [nil]
+    def from_doc(hvac_distribution)
+      return if hvac_distribution.nil?
+
+      XMLHelper.get_elements(hvac_distribution, 'extension/ManualJInputs/DefaultTableDuctLoad').each do |manualj_duct_load|
+        self << ManualJDuctLoad.new(@parent_object, manualj_duct_load)
+      end
+    end
+  end
+
+  # Object for /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/extension/ManualJInputs/DefaultTableDuctLoad.
+  class ManualJDuctLoad < BaseElement
+    ATTRS = [:table_number,        # [String] TableNumber
+             :lookup_floor_area,   # [Double] LookupFloorArea (ft2)
+             :leakage_level,       # [String] LeakageLevel (HPXML::ManualJDuctLeakageLevelXXX)
+             :insulation_r_value,  # [Double] InsulationRValue (F-ft2-hr/Btu)
+             :supply_surface_area, # [Double] SupplySurfaceArea (ft2)
+             :return_surface_area, # [Double] ReturnSurfaceArea (ft2)
+             :dsf]                 # [Double] DSF (frac)
+    attr_accessor(*ATTRS)
+
+    # Deletes the current object from the array.
+    #
+    # @return [nil]
+    def delete
+      @parent_object.hvac_distributions.each do |hvac_distribution|
+        next unless hvac_distribution.manualj_duct_loads.include? self
+
+        hvac_distribution.manualj_duct_loads.delete(self)
+      end
+    end
+
+    # Additional error-checking beyond what's checked in Schema/Schematron validators.
+    #
+    # @return [Array<String>] List of error messages
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    # Adds this object to the provided Oga XML element.
+    #
+    # @param air_distribution [Oga::XML::Element] Parent XML element
+    # @return [nil]
+    def to_doc(air_distribution)
+      if (not @table_number.nil?) || (not @lookup_floor_area.nil?) || (not @leakage_level.nil?) || (not @insulation_r_value.nil?) || (not @supply_surface_area.nil?) || (not @return_surface_area.nil?) || (not @dsf.nil?)
+        manualj_inputs = XMLHelper.create_elements_as_needed(air_distribution, ['extension', 'ManualJInputs'])
+        duct_load = XMLHelper.add_element(manualj_inputs, 'DefaultTableDuctLoad')
+        XMLHelper.add_element(duct_load, 'TableNumber', @table_number, :string) unless @table_number.nil?
+        XMLHelper.add_element(duct_load, 'LookupFloorArea', @lookup_floor_area, :float) unless @lookup_floor_area.nil?
+        XMLHelper.add_element(duct_load, 'LeakageLevel', @leakage_level, :string) unless @leakage_level.nil?
+        XMLHelper.add_element(duct_load, 'InsulationRValue', @insulation_r_value, :float) unless @insulation_r_value.nil?
+        XMLHelper.add_element(duct_load, 'SupplySurfaceArea', @supply_surface_area, :float) unless @supply_surface_area.nil?
+        XMLHelper.add_element(duct_load, 'ReturnSurfaceArea', @return_surface_area, :float) unless @return_surface_area.nil?
+        XMLHelper.add_element(duct_load, 'DSF', @dsf, :float) unless @dsf.nil?
+      end
+    end
+
+    # Populates the HPXML object(s) from the XML document.
+    #
+    # @param manualj_duct_load [Oga::XML::Element] The current ManualJDuctLoad XML element
+    # @return [nil]
+    def from_doc(manualj_duct_load)
+      return if manualj_duct_load.nil?
+
+      @table_number = XMLHelper.get_value(manualj_duct_load, 'TableNumber', :string)
+      @lookup_floor_area = XMLHelper.get_value(manualj_duct_load, 'LookupFloorArea', :float)
+      @leakage_level = XMLHelper.get_value(manualj_duct_load, 'LeakageLevel', :string)
+      @insulation_r_value = XMLHelper.get_value(manualj_duct_load, 'InsulationRValue', :float)
+      @supply_surface_area = XMLHelper.get_value(manualj_duct_load, 'SupplySurfaceArea', :float)
+      @return_surface_area = XMLHelper.get_value(manualj_duct_load, 'ReturnSurfaceArea', :float)
+      @return_surface_area = XMLHelper.get_value(manualj_duct_load, 'ReturnSurfaceArea', :float)
+      @dsf = XMLHelper.get_value(manualj_duct_load, 'DSF', :float)
     end
   end
 

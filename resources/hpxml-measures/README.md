@@ -41,17 +41,21 @@ This repository contains several OpenStudio measures:
 - `ReportSimulationOutput`: A reporting measure that generates a variety of simulation-based annual/timeseries outputs in CSV/JSON/MessagePack format.
 - `ReportUtilityBills`: A reporting measure that generates utility bill outputs in CSV/JSON/MessagePack format.
 
-## Projects
+## Users
 
-The OpenStudio-HPXML workflow is used by a number of other residential projects, including:
+OpenStudio-HPXML is used by a number of software products or organizations, including:
+
 - [BEopt](https://beopt.nrel.gov)
 - [Energy Rating Index (ERI)](https://github.com/NREL/OpenStudio-ERI)
-- [Home Energy Score](https://betterbuildingssolutioncenter.energy.gov/home-energy-score)
+- [Home Energy Score](https://www.homeenergyscore.gov)
+- [OptiMiser](https://optimiserenergy.com)
+- [Radiant Labs](https://www.radiantlabs.co)
 - [ResStock](https://resstock.nrel.gov/)
 - [URBANopt](https://www.nrel.gov/buildings/urbanopt.html)
+- [VEIC](https://www.veic.org)
 - [Weatherization Assistant](https://weatherization.ornl.gov/softwaredescription/) (pending)
 
-It is also used by several private-sector software tools.
+Are you using OpenStudio-HPXML and want to be mentioned here? [Email us](mailto:scott.horowitz@nrel.gov) or [open a Pull Request](https://github.com/NREL/OpenStudio-HPXML/edit/master/README.md).
 
 ## License
 

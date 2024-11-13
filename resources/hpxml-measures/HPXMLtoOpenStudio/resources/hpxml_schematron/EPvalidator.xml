@@ -1843,9 +1843,29 @@
       <sch:assert role='ERROR' test='count(h:Ducts) &gt;= 0'>Expected 0 or more element(s) for xpath: Ducts</sch:assert> <!-- See [HVACDuct] -->
       <sch:assert role='ERROR' test='count(h:extension/h:ManualJInputs/h:BlowerFanHeatBtuh) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/ManualJInputs/BlowerFanHeatBtuh</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:ManualJInputs/h:BlowerFanHeatBtuh) &gt;= 0 or not(h:extension/h:ManualJInputs/h:BlowerFanHeatBtuh)'>Expected extension/ManualJInputs/BlowerFanHeatBtuh to be greater than or equal to 0</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:ManualJInputs/h:DefaultTableDuctLoad) &gt;= 0'>Expected 0 or more element(s) for xpath: extension/ManualJInputs/DefaultTableDuctLoad</sch:assert> <!-- See ManualJInputs=DefaultTableDuctLoad -->
       <!-- Sum Checks -->
       <sch:assert role='ERROR' test='(sum(h:Ducts[h:DuctType="supply"]/h:FractionDuctArea) &gt;= 0.99 and sum(h:Ducts[h:DuctType="supply"]/h:FractionDuctArea) &lt;= 1.01) or count(h:Ducts[h:DuctType="supply"]/h:FractionDuctArea) = 0'>Expected sum(Ducts/FractionDuctArea) for DuctType="supply" to be 1</sch:assert>
       <sch:assert role='ERROR' test='(sum(h:Ducts[h:DuctType="return"]/h:FractionDuctArea) &gt;= 0.99 and sum(h:Ducts[h:DuctType="return"]/h:FractionDuctArea) &lt;= 1.01) or count(h:Ducts[h:DuctType="return"]/h:FractionDuctArea) = 0'>Expected sum(Ducts/FractionDuctArea) for DuctType="return" to be 1</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+  
+  <sch:pattern>
+    <sch:title>[ManualJInputs=DefaultTableDuctLoad]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACDistribution/h:DistributionSystemType/h:AirDistribution/h:extension/h:ManualJInputs/h:DefaultTableDuctLoad'>
+      <sch:assert role='ERROR' test='count(h:TableNumber) = 1'>Expected 1 element(s) for xpath: TableNumber</sch:assert>
+      <sch:assert role='ERROR' test='h:TableNumber[text()="7A-R" or text()="7A-T" or text()="7B-R" or text()="7B-T" or text()="7A-AE" or text()="7B-AE" or text()="7C-AE" or text()="7C-R" or text()="7C-T" or text()="7D-R" or text()="7D-T" or text()="7E-R" or text()="7E-T" or text()="7F-R" or text()="7F-T" or text()="7G-R" or text()="7G-T" or text()="7H" or text()="7I" or text()="7D-AE" or text()="7J-1" or text()="7J-2" or text()="7K" or text()="7L" or text()="7M" or text()="7N" or text()="7O-1" or text()="7O-2" or text()="7O-3" or text()="7O-4" or text()="7P-1" or text()="7P-2" or text()="7P-3" or text()="7P-4"] or not(h:TableNumber)'>Expected TableNumber to be '7A-R' or '7A-T' or '7B-R' or '7B-T' or '7A-AE' or '7B-AE' or '7C-AE' or '7C-R' or '7C-T' or '7D-R' or '7D-T' or '7E-R' or '7E-T' or '7F-R' or '7F-T' or '7G-R' or '7G-T' or '7H' or '7I' or '7D-AE' or '7J-1' or '7J-2' or '7K' or '7L' or '7M' or '7N' or '7O-1' or '7O-2' or '7O-3' or '7O-4' or '7P-1' or '7P-2' or '7P-3' or '7P-4'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:LookupFloorArea) = 1'>Expected 1 element(s) for xpath: LookupFloorArea</sch:assert>
+      <sch:assert role='ERROR' test='number(h:LookupFloorArea) &gt; 0 or not(h:LookupFloorArea)'>Expected LookupFloorArea to be greater than 0</sch:assert>
+      <sch:assert role='ERROR' test='count(h:LeakageLevel) = 1'>Expected 1 element(s) for xpath: LeakageLevel</sch:assert>
+      <sch:assert role='ERROR' test='h:LeakageLevel[text()="default not sealed" or text()="partially sealed" or text()="default sealed" or text()="notably sealed" or text()="extremely sealed"] or not(h:LeakageLevel)'>Expected LeakageLevel to be 'default not sealed' or 'partially sealed' or 'default sealed' or 'notably sealed' or 'extremely sealed'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:InsulationRValue) = 1'>Expected 1 element(s) for xpath: InsulationRValue</sch:assert>
+      <sch:assert role='ERROR' test='number(h:InsulationRValue) &gt;= 2 or not(h:InsulationRValue)'>Expected InsulationRValue to be greater than 2</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SupplySurfaceArea) + count(h:DSF) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SupplySurfaceArea | DSF</sch:assert>
+      <sch:assert role='ERROR' test='number(h:SupplySurfaceArea) &gt;= 0 or not(h:SupplySurfaceArea)'>Expected SupplySurfaceArea to be greater than 0</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ReturnSurfaceArea) + count(h:DSF) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ReturnSurfaceArea | DSF</sch:assert>
+      <sch:assert role='ERROR' test='number(h:ReturnSurfaceArea) &gt;= 0 or not(h:ReturnSurfaceArea)'>Expected ReturnSurfaceArea to be greater than 0</sch:assert>
+      <sch:assert role='ERROR' test='number(h:DSF) &gt;= 0 or not(h:DSF)'>Expected DSF to be greater than 0</sch:assert>
     </sch:rule>
   </sch:pattern>
   
