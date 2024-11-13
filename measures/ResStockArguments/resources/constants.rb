@@ -2,6 +2,10 @@
 
 module Constants
   Auto = 'auto'
+  Heating = 'heating'
+  Cooling = 'cooling'
+  Weekday = 'weekday'
+  Weekend = 'weekend'
 
   # Exclude these BuildResidentialHPXML arguments as ResStockArguments arguments
   BuildResidentialHPXMLExcludes = ['hpxml_path',
@@ -10,6 +14,9 @@ module Constants
                                    'software_info_program_used',
                                    'software_info_program_version',
                                    'schedules_filepaths',
+                                   'schedules_unavailable_period_types',
+                                   'schedules_unavailable_period_dates',
+                                   'schedules_unavailable_period_window_natvent_availabilities',
                                    'simulation_control_timestep',
                                    'simulation_control_run_period',
                                    'simulation_control_run_period_calendar_year',
@@ -93,10 +100,16 @@ module Constants
                                           'debug',
                                           'building_id']
 
-  # These are ResStockArguments that haven't made their way into options_lookup.tsv yet
-  OtherExcludes = ['heating_system_actual_cfm_per_ton',
+  # Exclude these ResStockArguments from being required in options_lookup.tsv
+  OtherExcludes = ['building_id',
+                   'heating_system_actual_cfm_per_ton',
                    'heating_system_rated_cfm_per_ton']
 
   # List of ResStockArguments arguments; reported as build_existing_model.<argument_name>, ...
-  ArgumentsToRegister = []
+  ArgumentsToRegister = ['heating_unavailable_period',
+                         'cooling_unavailable_period']
+
+  # List of ResStockArguments arguments; will not be passed into BuildResidentialHPXML
+  ArgumentsToExclude = ['heating_unavailable_period',
+                        'cooling_unavailable_period']
 end

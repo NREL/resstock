@@ -2075,7 +2075,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   def get_report_meter_data_timeseries(meter_names, unit_conv, unit_adder, timeseries_frequency)
     return [0.0] * @timestamps.size if meter_names.empty?
 
-    msgpack_timeseries_name = { 'timestep' => 'Timestep',
+    msgpack_timeseries_name = { 'timestep' => 'TimeStep',
                                 'hourly' => 'Hourly',
                                 'daily' => 'Daily',
                                 'monthly' => 'Monthly' }[timeseries_frequency]

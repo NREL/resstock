@@ -323,12 +323,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       print_option_assignment(parameter_name, option_name, runner)
       options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
       options_measure_args[option_name].each do |measure_subdir, args_hash|
-        update_args_hash(measures, measure_subdir, args_hash, false)
+        update_args_hash(measures, measure_subdir, args_hash)
       end
     end
 
     # Run the ResStockArguments measure
     resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
+    measures['ResStockArguments'][0]['building_id'] = args[:building_id]
     if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
       register_logs(runner, resstock_arguments_runner)
       return false
@@ -364,7 +365,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
         register_value(runner, step_value.name, value) if Constants::ArgumentsToRegister.include?(step_value.name)
-        next if value == ''
+        next if value == '' || Constants::ArgumentsToExclude.include?(step_value.name)
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
