@@ -972,6 +972,26 @@ module Schedule
       end
     end
   end
+
+  # Splits a comma seperated schedule string into charging (positive) and discharging (negative) schedules
+  #
+  # @param schedule_str [String] schedule with values seperated by commas
+  def self.split_signed_charging_schedule(schedule_str)
+    charge_schedule, discharge_schedule = [], []
+    schedule_str.split(', ').each do |frac|
+      if frac.to_f > 0
+        charge_schedule.append(frac)
+        discharge_schedule.append(0)
+      elsif frac.to_f < 0
+        charge_schedule.append(0)
+        discharge_schedule.append(frac)
+      else
+        charge_schedule.append(0)
+        discharge_schedule.append(0)
+      end
+    end
+    return charge_schedule.join(', '), discharge_schedule.join(', ')
+  end
 end
 
 # Object that contains information for detailed schedule CSVs.

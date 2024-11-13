@@ -1001,34 +1001,25 @@
     "parent_hpxml": "sample_files/base-battery.xml",
     "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/battery.csv"
   },
-  "sample_files/base-pv-battery-and-ev.xml": {
-    "parent_hpxml": "sample_files/base-pv-battery.xml",
-    "ev_battery_present": true,
-    "ev_battery_capacity": 100,
-    "ev_battery_usable_capacity": 80,
-    "ev_battery_discharge_power": 6000,
-    "ev_miles_per_year": 10000,
-    "ev_hours_per_week": 14,
-    "ev_energy_efficiency": 0.32,
-    "ev_charger_present": true,
-    "ev_charger_power": 7200,
-    "ev_charger_location": "outside",
-    "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/battery-ev.csv"
+  "sample_files/base-battery-scheduled-power-outage.xml": {
+    "parent_hpxml": "sample_files/base-battery-scheduled.xml",
+    "schedules_unavailable_period_types": "Power Outage",
+    "schedules_unavailable_period_dates": "Jul 1 5 - Jul 31 14"
   },
   "sample_files/base-battery-ev-no-charger.xml": {
     "parent_hpxml": "sample_files/base-enclosure-garage.xml",
-    "ev_battery_present": true,
+    "ev_battery_present": true
+  },
+  "sample_files/base-battery-ev.xml": {
+    "parent_hpxml": "sample_files/base-battery-ev-no-charger.xml",
     "ev_battery_capacity": 100,
     "ev_battery_usable_capacity": 80,
     "ev_battery_discharge_power": 6000,
     "ev_miles_per_year": 10000,
     "ev_hours_per_week": 14,
-    "ev_energy_efficiency": 0.32
-  },
-  "sample_files/base-battery-ev.xml": {
-    "parent_hpxml": "sample_files/base-battery-ev-no-charger.xml",
+    "ev_energy_efficiency": 0.25,
     "ev_charger_present": true,
-    "ev_charger_power": 7200,
+    "ev_charger_power": 7000,
     "ev_charger_location": "garage"
   },
   "sample_files/base-battery-ev-scheduled.xml": {
@@ -1038,10 +1029,16 @@
   "sample_files/base-battery-ev-lifetime-model.xml": {
     "parent_hpxml": "sample_files/base-battery-ev-scheduled.xml"
   },
-  "sample_files/base-battery-scheduled-power-outage.xml": {
-    "parent_hpxml": "sample_files/base-battery-scheduled.xml",
-    "schedules_unavailable_period_types": "Power Outage",
-    "schedules_unavailable_period_dates": "Jul 1 5 - Jul 31 14"
+  "sample_files/base-battery-ev-plug-load-ev.xml": {
+    "parent_hpxml": "sample_files/base-battery-ev-scheduled.xml",
+    "misc_plug_loads_vehicle_present": true,
+    "misc_plug_loads_vehicle_annual_kwh": 3000
+  },
+  "sample_files/base-pv-battery-and-ev.xml": {
+    "parent_hpxml": "sample_files/base-pv-battery.xml",
+    "ev_battery_present": true,
+    "ev_charger_location": "outside",
+    "schedules_filepaths": "../../HPXMLtoOpenStudio/resources/schedule_files/battery-ev.csv"
   },
   "sample_files/base-bldgtype-sfa-unit.xml": {
     "parent_hpxml": "sample_files/base.xml",
@@ -2945,6 +2942,16 @@
     "cooling_system_cooling_efficiency": 10.7,
     "cooling_system_cooling_sensible_heat_fraction": 0.65
   },
+  "sample_files/base-hvac-ptac-cfis.xml": {
+    "parent_hpxml": "sample_files/base-hvac-ptac.xml",
+    "mech_vent_fan_type": "central fan integrated supply",
+    "mech_vent_flow_rate": 100,
+    "mech_vent_hours_in_operation": 8,
+    "mech_vent_total_recovery_efficiency": 0.48,
+    "mech_vent_sensible_recovery_efficiency": 0.72,
+    "mech_vent_fan_power": 100,
+    "mech_vent_num_units_served": 1
+  },
   "sample_files/base-hvac-ptac-with-heating-electricity.xml": {
     "parent_hpxml": "sample_files/base-hvac-ptac.xml",
     "cooling_system_integrated_heating_system_fuel": "electricity",
@@ -2969,6 +2976,16 @@
     "heat_pump_backup_type": "integrated",
     "heat_pump_backup_heating_efficiency": 1,
     "heat_pump_backup_heating_capacity": 36000
+  },
+  "sample_files/base-hvac-pthp-cfis.xml": {
+    "parent_hpxml": "sample_files/base-hvac-pthp.xml",
+    "mech_vent_fan_type": "central fan integrated supply",
+    "mech_vent_flow_rate": 100,
+    "mech_vent_hours_in_operation": 8,
+    "mech_vent_total_recovery_efficiency": 0.48,
+    "mech_vent_sensible_recovery_efficiency": 0.72,
+    "mech_vent_fan_power": 100,
+    "mech_vent_num_units_served": 1
   },
   "sample_files/base-hvac-pthp-heating-capacity-17f.xml": {
     "parent_hpxml": "sample_files/base-hvac-pthp.xml"
@@ -3494,6 +3511,7 @@
   "sample_files/base-misc-loads-large-uncommon.xml": {
     "parent_hpxml": "sample_files/base-schedules-simple.xml",
     "hot_water_distribution_system_type": "Standard",
+    "ev_battery_present": false,
     "extra_refrigerator_present": true,
     "extra_refrigerator_rated_annual_kwh": 700,
     "freezer_present": true,
@@ -3768,7 +3786,10 @@
     "hot_water_distribution_recirc_control_type": "no control",
     "hot_water_distribution_recirc_piping_length": 50,
     "hot_water_distribution_recirc_branch_piping_length": 50,
-    "hot_water_distribution_recirc_pump_power": 50
+    "hot_water_distribution_recirc_pump_power": 50,
+    "ev_battery_present": true,
+    "ev_charger_present": true,
+    "misc_plug_loads_vehicle_present": false
   },
   "sample_files/base-schedules-simple-vacancy.xml": {
     "parent_hpxml": "sample_files/base.xml",

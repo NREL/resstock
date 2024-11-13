@@ -331,8 +331,8 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     next if message.include?('WetBulb not converged after') && message.include?('iterations(PsyTwbFnTdbWPb)')
     next if message.include? 'Inside surface heat balance did not converge with Max Temp Difference'
     next if message.include? 'Inside surface heat balance convergence problem continues'
-    next if message.include?('Glycol: Temperature') && message.include?('out of range (too low) for fluid')
-    next if message.include?('Glycol: Temperature') && message.include?('out of range (too high) for fluid')
+    next if message.include?('Glycol') && message.include?('Temperature') && message.include?('out of range (too low) for fluid')
+    next if message.include?('Glycol') && message.include?('Temperature') && message.include?('out of range (too high) for fluid')
     next if message.include? 'Plant loop exceeding upper temperature limit'
     next if message.include? 'Plant loop falling below lower temperature limit'
     next if message.include?('Foundation:Kiva') && message.include?('wall surfaces with more than four vertices') # TODO: Check alternative approach
@@ -416,10 +416,6 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     timestep = hpxml_header.timestep.nil? ? 60 : hpxml_header.timestep
     if timestep > 15
       next if message.include?('Timestep: Requested number') && message.include?('is less than the suggested minimum')
-    end
-    # Location doesn't match EPW station (see https://github.com/NREL/EnergyPlus/issues/10579)
-    if hpxml_path.include? 'base-location-detailed.xml'
-      next if message.include? 'Weather file location will be used rather than entered (IDF) Location object.'
     end
     # Coil speed level EMS
     if hpxml_header.hvac_onoff_thermostat_deadband
