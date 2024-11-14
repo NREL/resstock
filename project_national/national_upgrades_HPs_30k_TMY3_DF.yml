@@ -4,7 +4,7 @@ os_sha: f953b6fcaf
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 # output_directory:  /projects/heatpump/test_runs/n_500_20240530_2007_v1
-output_directory:  /kfs2/projects/heatpump/test_runs/test_tmy_30k_full_run_case_5
+output_directory:  /kfs2/projects/heatpump/test_runs/test_tmy_30k_full_run_case_5d
 # weather_files_url: https://data.nrel.gov/system/files/156/Buildstock_TMY3_FIPS-1678817889.zip
 weather_files_path: /kfs2/shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
@@ -137,25 +137,106 @@ upgrades:
         option: HVAC Detailed Performance Data|High COP Part Load Ducted
         apply_logic: *ducted_ASHP_apply_logic_fossil
 
-  - upgrade_name: Case 5b - New Dual-Fuel System - 18.33F backup lockout
+  # - upgrade_name: Case 5b - New Dual-Fuel System - 18.33F backup lockout
+    
+  #   package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+  #   options:
+  #     - &hvac_heating_efficiency_ashp_case_5b_ng
+  #       option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5b NG, 18.33F
+  #       apply_logic: *ducted_ASHP_apply_logic_ng
+  #       costs: *dummy_cost_values
+  #       lifetime: *dummy_lifetime_value
+
+  #     - &hvac_heating_efficiency_ashp_case_5b_fo
+  #       option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5b FO, 18.33F
+  #       apply_logic: *ducted_ASHP_apply_logic_fo
+  #       costs: *dummy_cost_values
+  #       lifetime: *dummy_lifetime_value
+
+  #     - &hvac_heating_efficiency_ashp_case_5b_propane
+  #       option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5b Propane, 18.33F
+  #       apply_logic: *ducted_ASHP_apply_logic_propane
+  #       costs: *dummy_cost_values
+  #       lifetime: *dummy_lifetime_value
+
+  #     - *hvac_cooling_efficiency_ducted_heat_pump_fossil
+  #     - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve_fossil
+  #     - *hvac_performance_data_ashp_case_13
+
+  # - upgrade_name: Case 5c - New Dual-Fuel System - 35F backup lockout
+    
+  #   package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+  #   options:
+  #     - &hvac_heating_efficiency_ashp_case_5c_ng
+  #       option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5c NG, 35F
+  #       apply_logic: *ducted_ASHP_apply_logic_ng
+  #       costs: *dummy_cost_values
+  #       lifetime: *dummy_lifetime_value
+
+  #     - &hvac_heating_efficiency_ashp_case_5c_fo
+  #       option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5c FO, 35F
+  #       apply_logic: *ducted_ASHP_apply_logic_fo
+  #       costs: *dummy_cost_values
+  #       lifetime: *dummy_lifetime_value
+
+  #     - &hvac_heating_efficiency_ashp_case_5c_propane
+  #       option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5c Propane, 35F
+  #       apply_logic: *ducted_ASHP_apply_logic_propane
+  #       costs: *dummy_cost_values
+  #       lifetime: *dummy_lifetime_value
+
+  #     - *hvac_cooling_efficiency_ducted_heat_pump_fossil
+  #     - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve_fossil
+  #     - *hvac_performance_data_ashp_case_13
+
+  # - upgrade_name: Case 5c - New Dual-Fuel System - 35F backup lockout
+    
+  #   package_apply_logic: *remove_non_fossil_non_elec_fuels
+
+  #   options:
+  #     - &hvac_heating_efficiency_ashp_case_5c_ng
+  #       option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5c NG, 35F
+  #       apply_logic: *ducted_ASHP_apply_logic_ng
+  #       costs: *dummy_cost_values
+  #       lifetime: *dummy_lifetime_value
+
+  #     - &hvac_heating_efficiency_ashp_case_5c_fo
+  #       option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5c FO, 35F
+  #       apply_logic: *ducted_ASHP_apply_logic_fo
+  #       costs: *dummy_cost_values
+  #       lifetime: *dummy_lifetime_value
+
+  #     - &hvac_heating_efficiency_ashp_case_5c_propane
+  #       option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5c Propane, 35F
+  #       apply_logic: *ducted_ASHP_apply_logic_propane
+  #       costs: *dummy_cost_values
+  #       lifetime: *dummy_lifetime_value
+
+  #     - *hvac_cooling_efficiency_ducted_heat_pump_fossil
+  #     - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve_fossil
+  #     - *hvac_performance_data_ashp_case_13
+
+  - upgrade_name: Case 5d - New Dual-Fuel System - -15F backup lockout
     
     package_apply_logic: *remove_non_fossil_non_elec_fuels
-
+  
     options:
-      - &hvac_heating_efficiency_ashp_case_5b_ng
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5b NG, 18.33F
+      - &hvac_heating_efficiency_ashp_case_5d_ng
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5d NG, -15F
         apply_logic: *ducted_ASHP_apply_logic_ng
         costs: *dummy_cost_values
         lifetime: *dummy_lifetime_value
-
-      - &hvac_heating_efficiency_ashp_case_5b_fo
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5b FO, 18.33F
+  
+      - &hvac_heating_efficiency_ashp_case_5d_fo
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5d FO, -15F
         apply_logic: *ducted_ASHP_apply_logic_fo
         costs: *dummy_cost_values
         lifetime: *dummy_lifetime_value
 
-      - &hvac_heating_efficiency_ashp_case_5b_propane
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5b Propane, 18.33F
+      - &hvac_heating_efficiency_ashp_case_5d_propane
+        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5d Propane, -15F
         apply_logic: *ducted_ASHP_apply_logic_propane
         costs: *dummy_cost_values
         lifetime: *dummy_lifetime_value
@@ -163,31 +244,3 @@ upgrades:
       - *hvac_cooling_efficiency_ducted_heat_pump_fossil
       - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve_fossil
       - *hvac_performance_data_ashp_case_13
-
-  - upgrade_name: Case 5c - New Dual-Fuel System - 35F backup lockout
-    
-    package_apply_logic: *remove_non_fossil_non_elec_fuels
-
-    options:
-      - &hvac_heating_efficiency_ashp_case_5c_ng
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5c NG, 35F
-        apply_logic: *ducted_ASHP_apply_logic_ng
-        costs: *dummy_cost_values
-        lifetime: *dummy_lifetime_value
-
-      - &hvac_heating_efficiency_ashp_case_5c_fo
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5c FO, 35F
-        apply_logic: *ducted_ASHP_apply_logic_fo
-        costs: *dummy_cost_values
-        lifetime: *dummy_lifetime_value
-
-      - &hvac_heating_efficiency_ashp_case_5c_propane
-        option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER2 17.3, 8.7 HSPF2, Case 5c Propane, 35F
-        apply_logic: *ducted_ASHP_apply_logic_propane
-        costs: *dummy_cost_values
-        lifetime: *dummy_lifetime_value
-
-      - *hvac_cooling_efficiency_ducted_heat_pump_fossil
-      - *hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve_fossil
-      - *hvac_performance_data_ashp_case_13
-
