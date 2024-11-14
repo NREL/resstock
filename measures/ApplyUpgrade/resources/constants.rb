@@ -27,6 +27,10 @@ module Constants
     'Size, Cooling System Primary (kBtu/h)',
     'Size, Heat Pump Backup Primary (kBtu/h)',
     'Size, Water Heater (gal)',
-    'Flow Rate, Mechanical Ventilation (cfm)'
+    'Flow Rate, Mechanical Ventilation (cfm)',
+    'Air Flow Rate, Heating System Primary (cfm)',
+    'Air Flow Rate, Heating System Secondary (cfm)',
+    'Air Flow Rate, Cooling System Primary (cfm)',
+    'Air Flow Rate, Heat Pump Backup Primary (cfm)'
   ]
 end

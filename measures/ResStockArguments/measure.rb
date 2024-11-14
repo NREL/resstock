@@ -400,8 +400,18 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_backup_use_existing_system', false)
-    arg.setDisplayName('Heat Pump: Backup Use Existing System')
-    arg.setDescription('Whether the heat pump uses the existing system as backup.')
+    arg.setDisplayName('Heat Pump Backup: Use Existing System')
+    arg.setDescription('Whether the heat pump uses the existing heating system as backup.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('hvac_distribution_use_autosizing_limits_and_maintain_duct_system_curve', false)
+    arg.setDisplayName('HVAC Distribution: Use Autosizing Limits and Maintain Duct System Curve')
+    arg.setDescription('Whether to (a) set upper limits for autosized capacities and (b) adjust the blower fan efficiency.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_distribution_min_max_range', false)
+    arg.setDisplayName('HVAC Distribution: Min Max Range')
+    arg.setDescription('Fraction of range between upper limits for autosized capacities and MaxLoad.')
     args << arg
 
     return args
@@ -831,6 +841,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       rim_joist_assembly_r = assembly_exterior_r + assembly_interior_r
     end
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
+
+    # Defrost Model Type
+    args[:simulation_control_defrost_model_type] = HPXML::AdvancedResearchDefrostModelTypeAdvanced
 
     args.each do |arg_name, arg_value|
       if args_to_delete.include?(arg_name) || (arg_value == Constants::Auto)
