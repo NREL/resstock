@@ -117,7 +117,7 @@ Development Changelog
         :pullreq: 1304
         :tickets: 1303
 
-        **Date**: 2024-10-02
+        **Date**: 2024-11-14
 
         Title:
         Assign above-grade height for apartment units
