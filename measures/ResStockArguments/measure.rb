@@ -799,6 +799,22 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    # Height Above Grade
+    if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
+      n_floors = Float(args[:geometry_num_floors_above_grade])
+      avg_ceiling_height = args[:geometry_average_ceiling_height]
+
+      if args[:geometry_unit_level] == 'Top'
+        args[:geometry_unit_height_above_grade] = (n_floors - 1) * avg_ceiling_height
+      elsif args[:geometry_unit_level] == 'Middle'
+        args[:geometry_unit_height_above_grade] = (n_floors - 1) / 2.0 * avg_ceiling_height
+      elsif args[:geometry_unit_level] == 'Bottom'
+        args[:geometry_unit_height_above_grade] = Constants::Auto
+      end
+    else
+      args[:geometry_unit_height_above_grade] = Constants::Auto
+    end
+
     # Wall Assembly R-Value
     args[:wall_assembly_r] += args[:exterior_finish_r]
 
