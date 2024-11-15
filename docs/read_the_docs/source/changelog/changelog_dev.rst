@@ -110,3 +110,17 @@ Development Changelog
         resstock-estimation: `pull request 416 <https://github.com/NREL/resstock-estimation/pull/416>`_
 
         Assignees: Joe Robertson
+
+
+    .. change::
+        :tags: workflow, hvac, feature
+        :pullreq: 1304
+        :tickets: 1303
+
+        **Date**: 2024-11-14
+
+        Title:
+        Assign above-grade height for apartment units
+
+        Description:
+        The purpose of this PR is to set a value in ResStockArguments for apartment units based on the type/size of MF building and where the unit is located (lower, middle, or upper story).
