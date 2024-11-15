@@ -1,7 +1,7 @@
 ## OpenStudio-HPXML v1.9.0
 
 __New Features__
-- Updates to OpenStudio 3.9/EnergyPlus 24.2/HPXML v4.0 final release.
+- Updates to OpenStudio 3.9/EnergyPlus 24.2/HPXML v4.1-rc1.
 - Allows `Site/Address/ZipCode` to be provided instead of `ClimateandRiskZones/WeatherStation/extension/EPWFilePath`, in which case the closest TMY3 weather station will be automatically selected.
 - Allows optional inputs for modeling skylight curbs and/or shafts.
 - Allows modeling exterior horizontal insulation for a slab-on-grade foundation (or basement/crawlspace floor).
