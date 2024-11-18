@@ -57,6 +57,7 @@ __Bugfixes__
 - Fixes default CFIS fan power during ventilation only mode.
 - Fixes a bug that potentially oversizes heat pumps when detailed performance capacity fractions are provided.
 - For a CFIS system with a supplemental fan, fixes supplemental fan runtime when using sub-hourly timesteps.
+- Fixes GSHP rated fan/pump powers in net to gross calculations and improves default modeled pump power (W/ton).
 
 ## OpenStudio-HPXML v1.8.1
 

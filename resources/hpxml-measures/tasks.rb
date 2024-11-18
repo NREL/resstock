@@ -1481,7 +1481,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
 
     hpxml_bldg.heat_pumps.each do |heat_pump|
       if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir
-        heat_pump.pump_watts_per_ton = 30.0
+        heat_pump.pump_watts_per_ton = 100.0
       end
     end
     if hpxml_file.include?('chiller') || hpxml_file.include?('cooling-tower')
@@ -1843,7 +1843,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                                 heating_efficiency_cop: 3.6,
                                 cooling_efficiency_eer: 16.6,
                                 cooling_shr: 0.73,
-                                pump_watts_per_ton: 30.0)
+                                pump_watts_per_ton: 100.0)
       hpxml_bldg.heat_pumps.add(id: "HeatPump#{hpxml_bldg.heat_pumps.size + 1}",
                                 heat_pump_type: HPXML::HVACTypeHeatPumpMiniSplit,
                                 heat_pump_fuel: HPXML::FuelTypeElectricity,
@@ -2739,7 +2739,8 @@ if ARGV[0].to_sym == :create_release_zips
       exit!
     end
 
-    fonts_dir = File.join(File.dirname(__FILE__), 'documentation', '_static', 'fonts')
+    # Remove large fonts dir to keep package smaller
+    fonts_dir = File.join(File.dirname(__FILE__), 'documentation', '_static', 'css', 'fonts')
     if Dir.exist? fonts_dir
       FileUtils.rm_r(fonts_dir)
     end

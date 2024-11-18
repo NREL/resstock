@@ -2306,7 +2306,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.heat_pumps[0].backup_heating_capacity = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_ground_to_air_heat_pump_values(default_hpxml_bldg.heat_pumps[0], 30.0, 0.375, nil, nil, 0, nil, nil, nil)
+    _test_default_ground_to_air_heat_pump_values(default_hpxml_bldg.heat_pumps[0], 80.0, 0.375, nil, nil, 0, nil, nil, nil)
   end
 
   def test_geothermal_loops
