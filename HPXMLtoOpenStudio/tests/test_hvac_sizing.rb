@@ -1678,6 +1678,54 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     end
   end
 
+  def test_foundation_wall_non_integer_values
+    tol = 0.01 # 1%
+
+    # Test wall insulation covering most of above and below-grade portions of wall
+    fwall = HPXML::FoundationWall.new(nil)
+    fwall.height = 5.0
+    fwall.depth_below_grade = 1.5
+    fwall.type = HPXML::FoundationWallTypeSolidConcrete
+    fwall.thickness = 4.0 # in
+    fwall.insulation_interior_r_value = 10.0
+    fwall.insulation_exterior_r_value = 0.0
+    fwall.insulation_interior_distance_to_top = 0.3
+    fwall.insulation_exterior_distance_to_top = 0.0
+    fwall.insulation_interior_distance_to_bottom = 4.9
+    fwall.insulation_exterior_distance_to_bottom = 0.0
+    rvalue = 1.0 / HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, false, nil)
+    assert_in_epsilon(10.25, rvalue, tol)
+    rvalue = 1.0 / HVACSizing.get_foundation_wall_above_grade_ufactor(fwall, true)
+    assert_in_epsilon(9.6, rvalue, tol)
+
+    # Same as above but test exterior wall insulation
+    fwall.insulation_interior_r_value = 0.0
+    fwall.insulation_exterior_r_value = 10.0
+    fwall.insulation_interior_distance_to_top = 0.0
+    fwall.insulation_exterior_distance_to_top = 0.3
+    fwall.insulation_interior_distance_to_bottom = 0.0
+    fwall.insulation_exterior_distance_to_bottom = 4.9
+    rvalue = 1.0 / HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, false, nil)
+    assert_in_epsilon(10.25, rvalue, tol)
+    rvalue = 1.0 / HVACSizing.get_foundation_wall_above_grade_ufactor(fwall, true)
+    assert_in_epsilon(9.6, rvalue, tol)
+
+    # Test small coverage of below-grade portion of wall, no coverage of above-grade
+    fwall.insulation_exterior_distance_to_top = 4.4
+    rvalue = 1.0 / HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, false, nil)
+    assert_in_epsilon(2.7, rvalue, tol)
+    rvalue = 1.0 / HVACSizing.get_foundation_wall_above_grade_ufactor(fwall, true)
+    assert_in_epsilon(1.2, rvalue, tol)
+
+    # Test small coverage of above-grade portion of wall, no coverage of below-grade
+    fwall.insulation_exterior_distance_to_top = 2.3
+    fwall.insulation_exterior_distance_to_bottom = 3.5
+    rvalue = 1.0 / HVACSizing.get_foundation_wall_below_grade_ufactor(fwall, false, nil)
+    assert_in_epsilon(1.0, rvalue, tol)
+    rvalue = 1.0 / HVACSizing.get_foundation_wall_above_grade_ufactor(fwall, true)
+    assert_in_epsilon(2.1, rvalue, tol)
+  end
+
   def test_multiple_zones
     # Run base-zones-spaces-multiple.xml
     args_hash = {}
@@ -1733,7 +1781,7 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _model, _test_hpxml, test_hpxml_bldg = _test_measure(args_hash)
     assert_equal(3, test_hpxml_bldg.geothermal_loops[0].num_bore_holes)
-    assert_in_epsilon(558.0 / 3, test_hpxml_bldg.geothermal_loops[0].bore_length, 0.01)
+    assert_in_epsilon(192.0, test_hpxml_bldg.geothermal_loops[0].bore_length, 0.01)
 
     # Bore depth greater than the max -> increase number of boreholes
     hpxml, hpxml_bldg = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
@@ -1741,7 +1789,7 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _model, _test_hpxml, test_hpxml_bldg = _test_measure(args_hash)
     assert_equal(5, test_hpxml_bldg.geothermal_loops[0].num_bore_holes)
-    assert_in_epsilon(2120.0 / 5, test_hpxml_bldg.geothermal_loops[0].bore_length, 0.01)
+    assert_in_epsilon(439.0, test_hpxml_bldg.geothermal_loops[0].bore_length, 0.01)
 
     # Bore depth greater than the max -> increase number of boreholes until the max, set depth to the max, and issue warning
     hpxml, hpxml_bldg = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
@@ -1757,7 +1805,7 @@ class HPXMLtoOpenStudioHVACSizingTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _model, _test_hpxml, test_hpxml_bldg = _test_measure(args_hash)
     assert_equal(10, test_hpxml_bldg.geothermal_loops[0].num_bore_holes)
-    assert_in_epsilon(2340.0 / 10, test_hpxml_bldg.geothermal_loops[0].bore_length, 0.01)
+    assert_in_epsilon(228.0, test_hpxml_bldg.geothermal_loops[0].bore_length, 0.01)
   end
 
   def test_gshp_g_function_library_linear_interpolation_example

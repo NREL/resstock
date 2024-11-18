@@ -3056,7 +3056,7 @@ Each ground-to-air heat pump is entered as a ``/HPXML/Building/BuildingDetails/S
   .. [#] NumberofUnitsServed only required if IsSharedSystem is true, in which case it must be > 1.
   .. [#] AttachedToGeothermalLoop must reference a ``GeothermalLoop``.
   .. [#] If AttachedToGeothermalLoop not provided, the ground-to-air heat pump will be automatically attached to a geothermal loop that is entirely defaulted.
-  .. [#] If PumpPowerWattsPerTon not provided, defaults to 30 W/ton per `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNET3012019P1>`_ for a closed loop system.
+  .. [#] If PumpPowerWattsPerTon not provided, defaults to 80 W/ton for a closed loop system.
   .. [#] Pump power is calculated using PumpPowerWattsPerTon and the cooling capacity in tons, unless the system only provides heating, in which case the heating capacity in tons is used instead.
          Any pump power that is shared by multiple dwelling units should be included in SharedLoopWatts, *not* PumpPowerWattsPerTon, so that shared loop pump power attributed to the dwelling unit is calculated.
   .. [#] SharedLoopWatts only required if IsSharedSystem is true.
