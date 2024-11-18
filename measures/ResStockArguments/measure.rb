@@ -860,14 +860,45 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:electric_panel_breaker_spaces_type] = 'headroom'
     args[:electric_panel_breaker_spaces] = breaker_spaces_headroom
 
-    # FIXME
+    # Assign miscellaneous permanently connected appliance loads
     if args[:electric_panel_load_other_power].nil?
       args[:electric_panel_load_other_power] = 0
     end
-    microwave_power = [0, 100, 200, 300].sample(1, random: Random.new(args[:building_id]))
-    garbage_disposal_power = [0, 200, 400, 600].sample(1, random: Random.new(args[:building_id]))
-    args[:electric_panel_load_other_power] += microwave_power[0]
-    args[:electric_panel_load_other_power] += garbage_disposal_power[0]
+    # Assume all homes have a microwave
+    if args[:geometry_unit_num_occupants] <= 2
+      microwave_power = 900 # W, small, <= 0.9 cu ft
+    elsif args[:geometry_unit_num_occupants] <= 4
+      microwave_power = 1100 # W, medium, <= 1.6 cu ft
+    else
+      microwave_power = 1250 # W, large, 1.7-2.2 cu ft
+    end
+
+    garbage_disposal_ownership = 0.52 # AHS 2013
+    if Random.new(args[:building_id]).rand > garbage_disposal_ownership
+      garbage_disposal_power = 0
+    else
+      # Power estimated from avg load amp not HP rating, from InSinkErators
+      if args[:geometry_unit_num_occupants] <= 1
+        garbage_disposal_power = 672 # W, 1/3 HP, avg load 5.6A, 1-2 ppl
+      elsif args[:geometry_unit_num_occupants] <= 3
+        garbage_disposal_power = 756 # W, 1/2 HP, avg load 6.3A, 2-4 ppl
+      elsif args[:geometry_unit_num_occupants] <= 5
+        garbage_disposal_power = 1140 # W, 3/4 HP, avg load 9.5A, 3-5 ppl
+      else
+        garbage_disposal_power = 1224 # W, 1 HP, avg load 10.2A, 4+ ppl
+      end
+    end
+
+    if args[:geometry_garage_width] = 0
+      garage_door_power = 0
+    else
+      # Assume one automatic door opener if has garage, regardless of no. garages
+      garage_door_power = 373 # W, 1/2 HP (1 mech HP = 745.7 W)
+    end
+
+    args[:electric_panel_load_other_power] += microwave_power
+    args[:electric_panel_load_other_power] += garbage_disposal_power
+    args[:electric_panel_load_other_power] += garage_door_power
 
     # Register values to runner
     args.each do |arg_name, arg_value|
