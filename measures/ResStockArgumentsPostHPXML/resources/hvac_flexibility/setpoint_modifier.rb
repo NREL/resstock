@@ -13,10 +13,13 @@ DailyPeakIndices = Struct.new(:pre_peak_start_index, :peak_start_index, :peak_en
 
 
 class HVACScheduleModifier
-  def initialize(state:, sim_year:, minutes_per_step:, runner:)
+  def initialize(state:, sim_year:, weather:, epw_path:, minutes_per_step:, runner:)
     @state = state
     @minutes_per_step = minutes_per_step
     @runner = runner
+    @weather = weather
+    @epw_path = epw_path
+    @daily_avg_temps = _get_daily_avg_temps
     @sim_year = Location.get_sim_calendar_year(sim_year, @weather)
     @total_days_in_year = Calendar.num_days_in_year(@sim_year)
     @sim_start_day = DateTime.new(@sim_year, 1, 1)
@@ -36,8 +39,22 @@ class HVACScheduleModifier
     total_indices = heating_setpoint.length
     total_indices.times do |index|
       offset_times = _get_peak_times(index, flexibility_inputs)
-      heating_setpoint[index] += _get_setpoint_offset(index, 'heating', offset_times, flexibility_inputs)
-      cooling_setpoint[index] += _get_setpoint_offset(index, 'cooling', offset_times, flexibility_inputs)
+      day_type = _get_day_type(index)
+      if day_type == 'heating'
+        heating_setpoint[index] += _get_setpoint_offset(index, 'heating', offset_times, flexibility_inputs)
+        # If the offset causes the set points to be inverted, adjust the cooling setpoint to correct it
+        # This can happen during pre-heating if originally the cooling and heating setpoints were the same
+        if heating_setpoint[index] > cooling_setpoint[index]
+          cooling_setpoint[index] = heating_setpoint[index]
+        end
+      else
+        cooling_setpoint[index] += _get_setpoint_offset(index, 'cooling', offset_times, flexibility_inputs)
+        # If the offset causes the set points to be inverted, adjust the heating setpoint to correct it
+        # This can happen during pre-cooling if originally the cooling and heating setpoints were the same
+        if heating_setpoint[index] > cooling_setpoint[index]
+          heating_setpoint[index] = cooling_setpoint[index]
+        end
+      end
     end
     { heating_setpoint: heating_setpoint, cooling_setpoint: cooling_setpoint }
   end
@@ -87,6 +104,34 @@ class HVACScheduleModifier
     else
       return @winter_peak_hours_dict[@state]
     end
+  end
+
+  def _get_day_type(index)
+    day = index % @steps_in_day
+    if @daily_avg_temps[day] < 66.0
+      return 'heating'
+    else
+      return 'cooling'
+    end
+  end
+
+  def _get_daily_avg_temps
+    epw_file = OpenStudio::EpwFile.new(@epw_path, true)
+    daily_avg_temps = []
+    hourly_temps = []
+    epw_file.data.each_with_index do |epwdata, rownum|
+      begin
+        db_temp = epwdata.dryBulbTemperature.get
+      rescue
+        fail "Cannot retrieve dryBulbTemperature from the EPW for hour #{rownum + 1}."
+      end
+      hourly_temps << db_temp
+      if (rownum + 1) % (24 * epw_file.recordsPerHour) == 0
+        daily_avg_temps << hourly_temps.sum / hourly_temps.length
+        hourly_temps = []
+      end
+    end
+    daily_avg_temps.map { |temp| UnitConversions.convert(temp, 'C', 'F') }
   end
 
   def log_inputs(inputs)
