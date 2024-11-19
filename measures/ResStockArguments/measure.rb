@@ -889,7 +889,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    if args[:geometry_garage_width] = 0
+    if args[:geometry_garage_width] == 0
       garage_door_power = 0
     else
       # Assume one automatic door opener if has garage, regardless of no. garages
