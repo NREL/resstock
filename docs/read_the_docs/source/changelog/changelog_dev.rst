@@ -7,6 +7,23 @@ Development Changelog
     :released: pending
 
     .. change::
+        :tags: software, openstudio, feature
+        :pullreq: 1318
+
+        **Date**: 2024-11-19
+
+        Title:
+        Latest OS-HPXML
+
+        Description:
+        Update to OpenStudio-HPXML 1.9/OpenStudio 3.9/EnergyPlus 24.2.
+
+        OpenStudio-HPXML: `pull request 1883 <https://github.com/NREL/OpenStudio-HPXML/pull/1883>`_
+
+        Assignees: Joe Robertson, Scott Horowitz
+
+
+    .. change::
         :tags: bugfix, characteristics
         :pullreq: 1265
         :tickets: 1236
@@ -110,3 +127,17 @@ Development Changelog
         resstock-estimation: `pull request 416 <https://github.com/NREL/resstock-estimation/pull/416>`_
 
         Assignees: Joe Robertson
+
+
+    .. change::
+        :tags: workflow, hvac, feature
+        :pullreq: 1304
+        :tickets: 1303
+
+        **Date**: 2024-11-14
+
+        Title:
+        Assign above-grade height for apartment units
+
+        Description:
+        The purpose of this PR is to set a value in ResStockArguments for apartment units based on the type/size of MF building and where the unit is located (lower, middle, or upper story).

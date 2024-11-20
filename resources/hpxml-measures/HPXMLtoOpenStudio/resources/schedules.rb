@@ -1181,6 +1181,7 @@ class SchedulesFile
         unless valid_num_rows.include? values.length
           fail "Schedule has invalid number of rows (#{values.length}) for column '#{col_name}'. Must be one of: #{valid_num_rows.reverse.join(', ')}. [context: #{@schedules_path}]"
         end
+
         @schedules[col_name] = values
         col2path[col_name] = schedules_path
       end
