@@ -928,7 +928,7 @@ class ScheduleGenerator
   #
   # @param all_simulated_values [TODO] TODO
   def get_ev_occupant_number(all_simulated_values)
-    if @hpxml_bldg.vehicles.nil?
+    if @hpxml_bldg.vehicles.to_a.empty?
       return 0
     end
 
@@ -1168,7 +1168,7 @@ class ScheduleGenerator
   end
 
   def fill_ev_battery_schedule(markov_chain_simulation_result)
-    if @hpxml_bldg.vehicles.nil?
+    if @hpxml_bldg.vehicles.to_a.empty?
       return
     end
 

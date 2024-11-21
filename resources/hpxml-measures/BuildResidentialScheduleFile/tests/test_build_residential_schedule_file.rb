@@ -340,8 +340,8 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
 
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'occupancy-stochastic.csv'))
-    _hpxml, result = _test_measure()
-    sf = SchedulesFile.new(schedules_paths: _hpxml.buildings[0].header.schedules_filepaths,
+    hpxml, _result = _test_measure()
+    sf = SchedulesFile.new(schedules_paths: hpxml.buildings[0].header.schedules_filepaths,
                            year: @year,
                            output_path: @tmp_schedule_file_path)
     assert_in_epsilon(6201, sf.annual_equivalent_full_load_hrs(col_name: SchedulesFile::Columns[:EVBatteryCharging].name, schedules: sf.tmp_schedules), @tol)
