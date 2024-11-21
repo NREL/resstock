@@ -296,11 +296,9 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
   # HPXML Header #
   # ------------ #
 
-  # General logic for all files
   hpxml.header.xml_generated_by = 'tasks.rb'
   hpxml.header.created_date_and_time = Time.new(2000, 1, 1, 0, 0, 0, '-07:00').strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
 
-  # Logic that can only be applied based on the file name
   if ['base-hvac-undersized-allow-increased-fixed-capacities.xml'].include? hpxml_file
     hpxml_bldg.header.allow_increased_fixed_capacities = true
   elsif ['base-misc-emissions.xml'].include? hpxml_file
@@ -323,7 +321,6 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
   end
 
   hpxml.buildings.each do |hpxml_bldg|
-    # Logic that can only be applied based on the file name
     if ['base-misc-emissions.xml'].include? hpxml_file
       hpxml_bldg.egrid_region = 'Western'
       hpxml_bldg.egrid_subregion = 'RMPA'
@@ -334,10 +331,8 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
     # HPXML BuildingSummary #
     # --------------------- #
 
-    # General logic for all files
     hpxml_bldg.site.available_fuels = [HPXML::FuelTypeElectricity, HPXML::FuelTypeNaturalGas]
 
-    # Logic that can only be applied based on the file name
     if ['base-schedules-simple.xml',
         'base-schedules-simple-vacancy.xml',
         'base-schedules-simple-power-outage.xml',
@@ -541,7 +536,6 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
     # HPXML Enclosure #
     # --------------- #
 
-    # General logic for all files
     (hpxml_bldg.roofs + hpxml_bldg.walls + hpxml_bldg.rim_joists).each do |surface|
       surface.solar_absorptance = 0.7
       surface.emittance = 0.92
@@ -592,7 +586,6 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
       skylight.interior_shading_factor_winter = 1.0
     end
 
-    # Logic that can only be applied based on the file name
     if ['base-bldgtype-mf-unit-adjacent-to-multifamily-buffer-space.xml',
         'base-bldgtype-mf-unit-adjacent-to-non-freezing-space.xml',
         'base-bldgtype-mf-unit-adjacent-to-other-heated-space.xml',
@@ -1486,28 +1479,11 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
     # HPXML HVAC #
     # ---------- #
 
-    # General logic
-    hpxml_bldg.heating_systems.each do |heating_system|
-      if heating_system.heating_system_type == HPXML::HVACTypeBoiler &&
-         heating_system.heating_system_fuel == HPXML::FuelTypeNaturalGas &&
-         !heating_system.is_shared_system
-        heating_system.electric_auxiliary_energy = 200
-      elsif [HPXML::HVACTypeFloorFurnace,
-             HPXML::HVACTypeWallFurnace,
-             HPXML::HVACTypeFireplace,
-             HPXML::HVACTypeSpaceHeater].include? heating_system.heating_system_type
-        heating_system.fan_watts = 0
-      elsif [HPXML::HVACTypeStove].include? heating_system.heating_system_type
-        heating_system.fan_watts = 40
-      end
-    end
     hpxml_bldg.heat_pumps.each do |heat_pump|
       if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir
-        heat_pump.pump_watts_per_ton = 30.0
+        heat_pump.pump_watts_per_ton = 100.0
       end
     end
-
-    # Logic that can only be applied based on the file name
     if hpxml_file.include?('chiller') || hpxml_file.include?('cooling-tower')
       # Handle chiller/cooling tower
       if hpxml_file.include? 'chiller'
@@ -1608,9 +1584,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
       hpxml_bldg.heat_pumps[0].number_of_units_served = 6
       hpxml_bldg.heat_pumps[0].pump_watts_per_ton = 0.0
     end
-    if hpxml_file.include? 'eae'
-      hpxml_bldg.heating_systems[0].electric_auxiliary_energy = 500.0
-    else
+    if !hpxml_file.include? 'eae'
       if hpxml_file.include? 'shared-boiler'
         hpxml_bldg.heating_systems[0].shared_loop_watts = 600
       end
@@ -1869,7 +1843,7 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                                 heating_efficiency_cop: 3.6,
                                 cooling_efficiency_eer: 16.6,
                                 cooling_shr: 0.73,
-                                pump_watts_per_ton: 30.0)
+                                pump_watts_per_ton: 100.0)
       hpxml_bldg.heat_pumps.add(id: "HeatPump#{hpxml_bldg.heat_pumps.size + 1}",
                                 heat_pump_type: HPXML::HVACTypeHeatPumpMiniSplit,
                                 heat_pump_fuel: HPXML::FuelTypeElectricity,
@@ -1986,12 +1960,30 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
                                         annual_heating_dse: 1.0,
                                         annual_cooling_dse: 1.0)
     end
+    hpxml_bldg.heating_systems.each do |heating_system|
+      if heating_system.heating_system_type == HPXML::HVACTypeBoiler &&
+         heating_system.heating_system_fuel == HPXML::FuelTypeNaturalGas &&
+         !heating_system.is_shared_system
+        heating_system.electric_auxiliary_energy = 200
+      elsif hpxml_file.include? 'eae'
+        heating_system.electric_auxiliary_energy = 500
+      else
+        heating_system.electric_auxiliary_energy = nil
+      end
+      if [HPXML::HVACTypeFloorFurnace,
+          HPXML::HVACTypeWallFurnace,
+          HPXML::HVACTypeFireplace,
+          HPXML::HVACTypeSpaceHeater].include? heating_system.heating_system_type
+        heating_system.fan_watts = 0
+      elsif [HPXML::HVACTypeStove].include? heating_system.heating_system_type
+        heating_system.fan_watts = 40
+      end
+    end
 
     # ------------------ #
     # HPXML WaterHeating #
     # ------------------ #
 
-    # Logic that can only be applied based on the file name
     if ['base-schedules-simple.xml',
         'base-schedules-simple-vacancy.xml',
         'base-schedules-simple-power-outage.xml',
@@ -2108,7 +2100,6 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
     # HPXML VentilationFan #
     # -------------------- #
 
-    # Logic that can only be applied based on the file name
     if ['base-bldgtype-mf-unit-shared-mechvent-multiple.xml'].include? hpxml_file
       hpxml_bldg.ventilation_fans.add(id: "VentilationFan#{hpxml_bldg.ventilation_fans.size + 1}",
                                       fan_type: HPXML::MechVentTypeSupply,
@@ -2305,7 +2296,6 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
     # HPXML Generation #
     # ---------------- #
 
-    # Logic that can only be applied based on the file name
     if ['base-misc-defaults.xml'].include? hpxml_file
       hpxml_bldg.pv_systems[0].year_modules_manufactured = 2015
     elsif ['base-misc-generators.xml',
@@ -2358,7 +2348,6 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
     # HPXML Appliances #
     # ---------------- #
 
-    # Logic that can only be applied based on the file name
     if ['base-schedules-simple.xml',
         'base-schedules-simple-vacancy.xml',
         'base-schedules-simple-power-outage.xml',
@@ -2448,7 +2437,6 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
     # HPXML Lighting #
     # -------------- #
 
-    # Logic that can only be applied based on the file name
     if ['base-lighting-ceiling-fans.xml',
         'base-lighting-ceiling-fans-label-energy-use.xml'].include? hpxml_file
       hpxml_bldg.ceiling_fans[0].weekday_fractions = '0.057, 0.057, 0.057, 0.057, 0.057, 0.057, 0.057, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.024, 0.057, 0.057, 0.057, 0.057, 0.057, 0.057'
@@ -2506,7 +2494,6 @@ def apply_hpxml_modification_sample_files(hpxml_path, hpxml)
     # HPXML MiscLoads #
     # --------------- #
 
-    # Logic that can only be applied based on the file name
     if ['base-schedules-simple.xml',
         'base-schedules-simple-vacancy.xml',
         'base-schedules-simple-power-outage.xml',
@@ -2760,7 +2747,8 @@ if ARGV[0].to_sym == :create_release_zips
       exit!
     end
 
-    fonts_dir = File.join(File.dirname(__FILE__), 'documentation', '_static', 'fonts')
+    # Remove large fonts dir to keep package smaller
+    fonts_dir = File.join(File.dirname(__FILE__), 'documentation', '_static', 'css', 'fonts')
     if Dir.exist? fonts_dir
       FileUtils.rm_r(fonts_dir)
     end

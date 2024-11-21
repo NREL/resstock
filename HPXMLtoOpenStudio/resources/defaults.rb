@@ -5490,12 +5490,11 @@ module Defaults
     return f_out
   end
 
-  # Gets the default pump power for a ground-source heat pump.
+  # Gets the default pump power for a closed loop ground-source heat pump.
   #
   # @return [Double] Pump power (W/ton)
   def self.get_gshp_pump_power()
-    # ANSI/RESNET/ICC 301-2019 Section 4.4.5 (closed loop)
-    return 30.0
+    return 80.0 # Rough estimate based on a literature review of different studies/websites
   end
 
   # Gets the default Electric Auxiliary Energy (EAE) for a boiler.

@@ -594,7 +594,7 @@ Building occupancy is entered in ``/HPXML/Building/BuildingDetails/BuildingSumma
 
          \- **single-family attached**: NumberofBedrooms = -1.98 + 1.89 * NumberofResidents
 
-         \- **apartment unit or multifamily**: NumberofBedrooms = -1.36 + 1.49 * NumberofResidents
+         \- **apartment unit**: NumberofBedrooms = -1.36 + 1.49 * NumberofResidents
 
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`schedules_detailed` not used), then :ref:`schedules_default` are used.
   .. [#] If MonthlyScheduleMultipliers not provided (and :ref:`schedules_detailed` not used), then :ref:`schedules_default` are used.
@@ -2119,7 +2119,7 @@ Each central furnace is entered as a ``/HPXML/Building/BuildingDetails/Systems/H
   ``SystemIdentifier``                                    id                                   Yes                       Unique identifier
   ``AttachedToZone``                                      idref               See [#]_         See [#]_                  ID of attached zone
   ``UnitLocation``                                        string              See [#]_         No        See [#]_        Location of air handler
-  ``DistributionSystem``                                  idref    See [#]_                    Yes                       ID of attached distribution system
+  ``DistributionSystem``                                  idref               See [#]_         Yes                       ID of attached distribution system
   ``HeatingSystemType/Furnace``                           element                              Yes                       Type of heating system
   ``HeatingSystemType/Furnace/PilotLight``                boolean                              No        false           Presence of standing pilot light (older systems)
   ``HeatingSystemType/Furnace/extension/PilotLightBtuh``  double   Btu/hr     >= 0             No        500             Pilot light burn rate
@@ -2230,7 +2230,7 @@ Each in-unit boiler is entered as a ``/HPXML/Building/BuildingDetails/Systems/HV
   ``SystemIdentifier``                                   id                                   Yes                       Unique identifier
   ``AttachedToZone``                                     idref               See [#]_         See [#]_                  ID of attached zone
   ``UnitLocation``                                       string              See [#]_         No        See [#]_        Location of boiler
-  ``DistributionSystem``                                 idref    See [#]_   Yes                                        ID of attached distribution system
+  ``DistributionSystem``                                 idref               See [#]_         Yes                       ID of attached distribution system
   ``HeatingSystemType/Boiler``                           element                              Yes                       Type of heating system
   ``HeatingSystemType/Boiler/PilotLight``                boolean                              No        false           Presence of standing pilot light (older systems)
   ``HeatingSystemType/Boiler/extension/PilotLightBtuh``  double   Btu/hr     >= 0             No        500             Pilot light burn rate
@@ -2278,7 +2278,7 @@ Each shared boiler (serving multiple dwelling units) is entered as a ``/HPXML/Bu
   ``SystemIdentifier``                                          id                                     Yes                           Unique identifier
   ``AttachedToZone``                                            idref                 See [#]_         See [#]_                      ID of attached zone
   ``UnitLocation``                                              string                See [#]_         No        other heated space  Location of boiler
-  ``DistributionSystem``                                        idref    See [#]_     Yes                                            ID of attached distribution system
+  ``DistributionSystem``                                        idref                 See [#]_         Yes                           ID of attached distribution system
   ``IsSharedSystem``                                            boolean               true             Yes                           Whether it serves multiple dwelling units
   ``NumberofUnitsServed``                                       integer               > 1              Yes                           Number of dwelling units served
   ``HeatingSystemType/Boiler``                                  element                                Yes                           Type of heating system
@@ -3056,7 +3056,7 @@ Each ground-to-air heat pump is entered as a ``/HPXML/Building/BuildingDetails/S
   .. [#] NumberofUnitsServed only required if IsSharedSystem is true, in which case it must be > 1.
   .. [#] AttachedToGeothermalLoop must reference a ``GeothermalLoop``.
   .. [#] If AttachedToGeothermalLoop not provided, the ground-to-air heat pump will be automatically attached to a geothermal loop that is entirely defaulted.
-  .. [#] If PumpPowerWattsPerTon not provided, defaults to 30 W/ton per `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNET3012019P1>`_ for a closed loop system.
+  .. [#] If PumpPowerWattsPerTon not provided, defaults to 80 W/ton for a closed loop system.
   .. [#] Pump power is calculated using PumpPowerWattsPerTon and the cooling capacity in tons, unless the system only provides heating, in which case the heating capacity in tons is used instead.
          Any pump power that is shared by multiple dwelling units should be included in SharedLoopWatts, *not* PumpPowerWattsPerTon, so that shared loop pump power attributed to the dwelling unit is calculated.
   .. [#] SharedLoopWatts only required if IsSharedSystem is true.
@@ -3427,19 +3427,20 @@ Air Distribution
 
 Each air distribution system is entered as a ``/HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution``.
 
-  ====================================================================================  =======  =======  ===========  ========  =========  ==========================
-  Element                                                                               Type     Units    Constraints  Required  Default    Notes
-  ====================================================================================  =======  =======  ===========  ========  =========  ==========================
-  ``SystemIdentifier``                                                                  id                             Yes                  Unique identifier
-  ``DistributionSystemType/AirDistribution``                                            element                        Yes                  Type of distribution system
-  ``DistributionSystemType/AirDistribution/AirDistributionType``                        string            See [#]_     Yes                  Type of air distribution
-  ``DistributionSystemType/AirDistribution/DuctLeakageMeasurement[DuctType="supply"]``  element                        See [#]_             Supply duct leakage value
-  ``DistributionSystemType/AirDistribution/DuctLeakageMeasurement[DuctType="return"]``  element                        See [#]_             Return duct leakage value
-  ``DistributionSystemType/AirDistribution/Ducts``                                      element                        No                   Supply/return ducts; multiple are allowed [#]_
-  ``DistributionSystemType/AirDistribution/NumberofReturnRegisters``                    integer           >= 0         No        See [#]_   Number of return registers
-  ``DistributionSystemType/AirDistribution/extension/ManualJInputs/BlowerFanHeatBtuh``  double   Btu/hr   >= 0         No        0          Blower fan heat for ACCA Manual J design loads [#]_
-  ``ConditionedFloorAreaServed``                                                        double   ft2      > 0          See [#]_             Conditioned floor area served
-  ====================================================================================  =======  =======  ===========  ========  =========  ==========================
+  =======================================================================================  =======  =======  ===========  ========  =========  ==========================
+  Element                                                                                  Type     Units    Constraints  Required  Default    Notes
+  =======================================================================================  =======  =======  ===========  ========  =========  ==========================
+  ``SystemIdentifier``                                                                     id                             Yes                  Unique identifier
+  ``DistributionSystemType/AirDistribution``                                               element                        Yes                  Type of distribution system
+  ``DistributionSystemType/AirDistribution/AirDistributionType``                           string            See [#]_     Yes                  Type of air distribution
+  ``DistributionSystemType/AirDistribution/DuctLeakageMeasurement[DuctType="supply"]``     element                        See [#]_             Supply duct leakage value
+  ``DistributionSystemType/AirDistribution/DuctLeakageMeasurement[DuctType="return"]``     element                        See [#]_             Return duct leakage value
+  ``DistributionSystemType/AirDistribution/Ducts``                                         element                        No                   Supply/return ducts; multiple are allowed [#]_
+  ``DistributionSystemType/AirDistribution/NumberofReturnRegisters``                       integer           >= 0         No        See [#]_   Number of return registers
+  ``DistributionSystemType/AirDistribution/extension/ManualJInputs/BlowerFanHeatBtuh``     double   Btu/hr   >= 0         No        0          Blower fan heat for ACCA Manual J design loads [#]_
+  ``DistributionSystemType/AirDistribution/extension/ManualJInputs/DefaultTableDuctLoad``  element                        No        <none>     Duct Factor Table inputs for ACCA Manual J design loads; multiple are allowed [#]_
+  ``ConditionedFloorAreaServed``                                                           double   ft2      > 0          See [#]_             Conditioned floor area served
+  =======================================================================================  =======  =======  ===========  ========  =========  ==========================
   
   .. [#] AirDistributionType choices are "regular velocity", "gravity", or "fan coil" and are further restricted based on attached HVAC system type (e.g., only "regular velocity" or "gravity" for a furnace, only "fan coil" for a shared boiler, etc.).
   .. [#] Supply duct leakage required if AirDistributionType is "regular velocity" or "gravity" and optional if AirDistributionType is "fan coil".
@@ -3448,6 +3449,8 @@ Each air distribution system is entered as a ``/HPXML/Building/BuildingDetails/S
   .. [#] If NumberofReturnRegisters not provided and return ducts are present, defaults to one return register per conditioned floor per `ASHRAE Standard 152 <https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet>`_, rounded up to the nearest integer if needed.
   .. [#] BlowerFanHeatBtuh should only be provided when calculating design loads for HVAC equipment whose performance data has not been adjusted for blower heat.
          When provided, it can be calculated according to Manual J Section 25 or the default of 1707 Btu/hr (500 W) can be used.
+  .. [#] If one or more DefaultTableDuctLoad are provided, additional inputs are required as described below and are used with the ACCA Manual J Default Duct Factor Tables to calculate duct design loads.
+         If not provided, duct design loads are calculated using distribution system efficiency (DSE) calculations from `ASHRAE Standard 152 <https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet>`_.
   .. [#] ConditionedFloorAreaServed required only when duct surface area is defaulted (i.e., ``AirDistribution/Ducts`` are present without ``DuctSurfaceArea`` child elements).
 
 Additional information is entered in each ``DuctLeakageMeasurement``.
@@ -3514,6 +3517,23 @@ Additional information is entered in each ``Ducts``.
   .. [#] DuctShape choices are "rectangular", "round", "oval", or "other".
   .. [#] If DuctFractionRectangular not provided, defaults to 1.0 if DuctShape is "rectangular" and 0.0 if DuctShape is "round" or "oval".
          If DuctShape is "other" or not provided, DuctFractionRectangular defaults to 0.25 for supply ducts and 1.0 for return ducts.
+
+If using Manual J default duct factor tables, additional information is entered in each ``DistributionSystemType/AirDistribution/extension/ManualJInputs/DefaultTableDuctLoad``.
+
+  ================================  =======  ============  ===========  ========  =========  =========================================================
+  Element                           Type     Units         Constraints  Required  Default    Notes
+  ================================  =======  ============  ===========  ========  =========  =========================================================
+  ``TableNumber``                   string                 See [#]_     Yes                  Manual J Default Duct Factor Table number
+  ``LookupFloorArea``               double   ft2           > 0          Yes                  Lookup floor area value for the Manual J table [#]_
+  ``LeakageLevel``                  string                 See [#]_     Yes                  Leakage tightness value for the Manual J table
+  ``InsulationRValue``              double   F-ft2-hr/Btu  >= 2         Yes                  Insulation R-value for the Manual J table
+  ``SupplySurfaceArea`` or ``DSF``  double   ft2 or frac   >= 0         No        DSF=1      Surface area or estimated fraction of supply ducts in unconditioned space
+  ``ReturnSurfaceArea`` or ``DSF``  double   ft2 or frac   >= 0         No        DSF=1      Surface area or estimated fraction of return ducts in unconditioned space
+  ================================  =======  ============  ===========  ========  =========  =========================================================
+
+  .. [#] TableNumber choices are "7A-R", "7A-T", "7B-R", "7B-T", "7A-AE", "7B-AE", "7C-AE", "7C-R", "7C-T", "7D-R", "7D-T", "7E-R", "7E-T", "7F-R", "7F-T", "7G-R", "7G-T", "7H", "7I", "7D-AE", "7J-1", "7J-2", "7K", "7L", "7M", "7N", "7O-1", "7O-2", "7O-3", "7O-4", "7P-1", "7P-2", "7P-3", or "7P-4".
+  .. [#] The floor area lookup value should follow the Case 1, Case 2, Case 3, or Case 4 rules per ACCA Manual J Section 23-6.
+  .. [#] LeakageLevel choices are "default not sealed", "partially sealed", "default sealed", "notably sealed", or "extremely sealed".
 
 .. _hvac_distribution_hydronic:
 
