@@ -35182,7 +35182,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - None
-     - 24%
+     - 23%
      - Percent
      - 0
      - 0
@@ -35342,7 +35342,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - None
-     - 24%
+     - 23%
      - conditioned space
      - auto
      - auto
@@ -38230,14 +38230,12 @@ The presence and type of primary cooling system in the dwelling unit.
 Created by
 **********
 
-``sources/recs/recs2020/tsv_maker.py and sources/aris/tsv_maker.py``
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
 
 - \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
-
-- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -38248,12 +38246,6 @@ Assumption
 - \1) HVAC Heating type: Non-ducted heating and None2) Geometry building SF: Mobile, Single family attached, Single family detached3) Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units4) Vintage Lump: 20yrs binsHomes having ducted heat pump for heating and electricity fuel is assumed to haveducted heat pump for cooling (seperating from central AC category)
 
 - \Homes having non-ducted heat pump for heating is assumed to have non-ducted heat pumpfor cooling
-
-- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
-
-- \For Alaska, we are not modelling any central and room AC.
-
-- \For Alaska, cooling systems are never shared.
 
 
 Options
@@ -38352,10 +38344,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``hvac_blower_fan_watts_per_cfm``
 
    * - No
-     - 24%
+     - 23%
      - auto
    * - Yes
-     - 76%
+     - 77%
      - auto
    * - Void
      - 0%
@@ -38567,7 +38559,7 @@ The presence and efficiency of the primary heating system in the dwelling unit.
 Created by
 **********
 
-``sources/recs/recs2020/tsv_maker.py and sources/aris/tsv_maker.py``
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
@@ -38577,8 +38569,6 @@ Source
 - \Shipment data based on CAC-ASHP-shipments-table.tsv and furnace-shipments-table.tsv
 
 - \Efficiency data based on expanded_HESC_HVAC_efficiencies.tsv combined with age of equipment data from RECS
-
-- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -38597,16 +38587,6 @@ Assumption
 - \For 'other' heating system types, we assign them to Electric Baseboard if fuel is Electric, and assign them to Wall/Floor Furnace if fuel is natural_gas, fuel_oil or propane.
 
 - \For Other Fuel and Wood, the lowest efficiency systems are assumed.
-
-- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
-
-- \For Alaska, electric space heaters are modelled as electric baseboards.
-
-- \For Alaska, Toyo/monitor direct-vent devices and other fuel space heaters are not modeled.
-
-- \For Alaska, fireplace and stoves are not modeled.
-
-- \For Alaska, heat pumps are assumed to be non-ducted air source heat pumps.
 
 
 Arguments
@@ -39253,7 +39233,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - Fuel Boiler, 76% AFUE
-     - 0.89%
+     - 0.83%
      - Boiler
      - 0.76
      - auto
@@ -39298,7 +39278,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - Fuel Boiler, 80% AFUE
-     - 3.3%
+     - 3.2%
      - Boiler
      - 0.8
      - auto
@@ -39343,7 +39323,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - Fuel Boiler, 90% AFUE
-     - 0.49%
+     - 0.48%
      - Boiler
      - 0.9
      - auto
@@ -39613,7 +39593,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - Fuel Wall/Floor Furnace, 68% AFUE
-     - 2.8%
+     - 2.9%
      - WallFurnace
      - 0.68
      - auto
@@ -39703,7 +39683,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - MSHP, SEER 29.3, 14 HSPF
-     - 0.015%
+     - 0.014%
      - none
      - 0
      - auto
@@ -39896,14 +39876,12 @@ The presence and type of the primary heating system in the dwelling unit.
 Created by
 **********
 
-``sources/recs/recs2020/tsv_maker.py and sources/aris/tsv_maker.py``
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
 
 - \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
-
-- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -39912,8 +39890,6 @@ Assumption
 - \Due to low sample sizes, fallback rules applied with lumping of
 
 - \1) Heating fuel lump: Fuel oil, Propane, Wood and Other Fuel2) Geometry building SF: Mobile, Single family attached, Single family detached3) Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units4) Vintage Lump: 20yrs bins
-
-- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
 
 
 Options
@@ -39993,7 +39969,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Fuel Oil Fuel Furnace
      - 2.8%
    * - Fuel Oil Fuel Wall/Floor Furnace
-     - 0.29%
+     - 0.3%
    * - Fuel Oil Shared Heating
      - 0.51%
    * - Natural Gas Fuel Boiler
@@ -40007,7 +39983,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 1.1%
    * - Other Fuel Fuel Boiler
-     - 0.46%
+     - 0.45%
    * - Other Fuel Fuel Furnace
      - 0.24%
    * - Other Fuel Fuel Wall/Floor Furnace
@@ -40023,7 +39999,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Propane Shared Heating
      - 0.16%
    * - Void
-     - 0.00039%
+     - 0%
 
 .. _hvac_secondary_heating_efficiency:
 
@@ -42236,7 +42212,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1.1%
      - 3
    * - 3 months
-     - 0.36%
+     - 0.35%
      - 90
    * - Never
      - 96%
@@ -47482,6 +47458,16 @@ Source
 
 - \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
+- \the California Energy Commision 2019 Residential Appliance Saturation Study (RASS) microdata.
+
+
+Assumption
+**********
+
+- \Within electric pool heaters, proportion of heat pump electric pool heating vs. non-heat
+
+- \pump electric pool heating was derived from RASS
+
 
 Arguments
 *********
@@ -47538,8 +47524,14 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``pool_heater_annual_therm``
      - ``pool_heater_usage_multiplier``
 
+   * - Electric Heat Pump
+     - 0.13%
+     - heat pump
+     - auto
+     - 0
+     - 1.0
    * - Electricity
-     - 0.7%
+     - 0.57%
      - electric resistance
      - auto
      - 0
@@ -62987,7 +62979,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - FIXME Fuel Oil Indirect
-     - 0.69%
+     - 0.68%
      - storage water heater
      - fuel oil
      - auto
@@ -63025,7 +63017,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - Fuel Oil Standard
-     - 1.4%
+     - 1.3%
      - storage water heater
      - fuel oil
      - auto
@@ -63190,14 +63182,12 @@ The water heater fuel type.
 Created by
 **********
 
-``sources/recs/recs2020/tsv_maker.py and sources/aris/tsv_maker.py``
+``sources/recs/recs2020/tsv_maker.py``
 
 Source
 ******
 
 - \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
-
-- \Alaska specific distribution is based on Alaska Retrofit Information System (2008 to 2022) maintained by Alaska Housing Finance Corpotation.
 
 
 Assumption
@@ -63212,12 +63202,6 @@ Assumption
   - \[3] Geometry building MF: Multi-Family with 2 - 4 Units, Multi-Family with 5+ Units
 
   - \[4] State: Census Region[5] State: National
-
-- \For Alaska, we are using a field in ARIS that lumps muti-family 2-4 units and multi-family 5+ units buildings together. Data from the American Community Survey is used to distribute the between these two building types.
-
-- \For Alaska, wood and coal heating is modeled as other fuel.
-
-- \For Alaska, when a building uses more than one fuel for water heating, the fuel with highest consumption is considered the water heater fuel. Rest of the fuels are ignored.
 
 
 Options
