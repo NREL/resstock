@@ -923,15 +923,15 @@ class ScheduleGenerator
     return sum
   end
 
-
   # Define get_ev_occupant_number function
   # TODO
   #
   # @param all_simulated_values [TODO] TODO
   def get_ev_occupant_number(all_simulated_values)
-    if @hpxml_bldg.vehicles.nil?
+    if @hpxml_bldg.vehicles.to_a.empty?
       return 0
     end
+
     vehicle = @hpxml_bldg.vehicles[0]
     hours_per_year = (vehicle.hours_per_week / 7) * UnitConversions.convert(1, 'yr', 'day')
 
@@ -940,10 +940,10 @@ class ScheduleGenerator
       occupant_away_hours_per_year[i] = all_simulated_values[i].column(5).sum() / 4
     end
     # Only keep occupants whose 80% (the portion available for driving) away hours are sufficent to meet hours_per_year
-    elligible_occupant = occupant_away_hours_per_year.each_with_index.filter{|value, _| value * 0.8 > hours_per_year}
+    elligible_occupant = occupant_away_hours_per_year.each_with_index.filter { |value, _| value * 0.8 > hours_per_year }
     if elligible_occupant.empty?
       # if nobody has enough away hours, find the index of the occupant with the highest away hours
-      _, ev_occupant = occupant_away_hours_per_year.each_with_index.max_by{|value, _| value}
+      _, ev_occupant = occupant_away_hours_per_year.each_with_index.max_by { |value, _| value }
       return ev_occupant
     else
       # return the index of a random elligible occupant
@@ -951,7 +951,6 @@ class ScheduleGenerator
       return ev_occupant
     end
   end
-
 
   # TODO
   #
@@ -1131,8 +1130,8 @@ class ScheduleGenerator
     discharging_schedule = []
     driving_minutes_used = 0
     chunk_counts = expanded_away_schedule.chunk(&:itself).map { |value, elements| [value, elements.size] }
-    total_away_minutes = chunk_counts.map {|value, size| value * size}.sum
-    extra_drive_minutes = 0  # accumulator for keeping track of extra driving minutes used due to ceil to upper integer
+    total_away_minutes = chunk_counts.map { |value, size| value * size }.sum
+    extra_drive_minutes = 0 # accumulator for keeping track of extra driving minutes used due to ceil to upper integer
     chunk_counts.each do |is_away, activity_minutes|
       if is_away == 1
         current_chunk_proportion = (1.0 * activity_minutes) / total_away_minutes
@@ -1169,12 +1168,13 @@ class ScheduleGenerator
   end
 
   def fill_ev_battery_schedule(markov_chain_simulation_result)
-    if @hpxml_bldg.vehicles.nil?
+    if @hpxml_bldg.vehicles.to_a.empty?
       return
     end
+
     vehicle = @hpxml_bldg.vehicles[0]
     hours_per_year = (vehicle.hours_per_week / 7) * UnitConversions.convert(1, 'yr', 'day')
-    away_index = 5  # Index of away activity in the markov-chain simulator
+    away_index = 5 # Index of away activity in the markov-chain simulator
     away_schedule = markov_chain_simulation_result[@ev_occupant_number].column(away_index)
     charging_schedule, discharging_schedule = _get_ev_battery_schedule(away_schedule, hours_per_year)
     agg_charging_schedule = aggregate_array(charging_schedule, @minutes_per_step).map { |val| val.to_f / @minutes_per_step }
