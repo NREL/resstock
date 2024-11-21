@@ -1135,6 +1135,8 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
                             'invalid-holiday-lighting-dates' => ['Exterior Holiday Lighting Begin Day of Month (31) must be one of: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30.'],
                             'invalid-id' => ["Element 'SystemIdentifier', attribute 'id': '' is not a valid value of the atomic type 'xs:ID'."],
                             'invalid-neighbor-shading-azimuth' => ['A neighbor building has an azimuth (145) not equal to the azimuth of any wall.'],
+                            'invalid-ptac-dse' => ["HVAC type 'packaged terminal air conditioner' must have a heating and/or cooling DSE of 1."],
+                            'invalid-pthp-dse' => ["HVAC type 'packaged terminal heat pump' must have a heating and/or cooling DSE of 1."],
                             'invalid-relatedhvac-dhw-indirect' => ["RelatedHVACSystem 'HeatingSystem_bad' not found for water heating system 'WaterHeatingSystem1'"],
                             'invalid-relatedhvac-desuperheater' => ["RelatedHVACSystem 'CoolingSystem_bad' not found for water heating system 'WaterHeatingSystem1'."],
                             'invalid-schema-version' => ["Element 'HPXML', attribute 'schemaVersion'"],
@@ -1458,6 +1460,12 @@ class HPXMLtoOpenStudioValidationTest < Minitest::Test
       elsif ['invalid-neighbor-shading-azimuth'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-misc-neighbor-shading.xml')
         hpxml_bldg.neighbor_buildings[0].azimuth = 145
+      elsif ['invalid-ptac-dse'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-ptac-cfis.xml')
+        hpxml_bldg.hvac_distributions[0].annual_cooling_dse = 0.9
+      elsif ['invalid-pthp-dse'].include? error_case
+        hpxml, hpxml_bldg = _create_hpxml('base-hvac-pthp-cfis.xml')
+        hpxml_bldg.hvac_distributions[0].annual_heating_dse = 0.9
       elsif ['invalid-relatedhvac-dhw-indirect'].include? error_case
         hpxml, hpxml_bldg = _create_hpxml('base-dhw-indirect.xml')
         hpxml_bldg.water_heating_systems[0].related_hvac_idref = 'HeatingSystem_bad'

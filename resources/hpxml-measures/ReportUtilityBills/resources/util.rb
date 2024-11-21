@@ -16,19 +16,7 @@ end
 class UtilityRate
   def initialize()
     @flat_rate = 0.0
-    @real_time_prices = nil
-
-    @fixed_charge_monthly = nil
-    @fixed_charge_daily = nil
-
     @min_charge_monthly = 0.0
-    @min_charge_annual = nil
-
-    @net_metering_excess_sellback_type = nil
-    @net_metering_user_excess_sellback_rate = nil
-
-    @feed_in_tariff_rate = nil
-
     @energy_rate_structure = []
     @energy_weekday_schedule = []
     @energy_weekend_schedule = []
@@ -46,13 +34,12 @@ class UtilityBill
     @annual_energy_charge = 0.0
     @annual_fixed_charge = 0.0
     @annual_total = 0.0
+    @annual_production_credit = 0.0
 
     @monthly_energy_charge = [0.0] * 12
     @monthly_fixed_charge = [0.0] * 12
     @monthly_total = [0.0] * 12
-
     @monthly_production_credit = [0] * 12
-    @annual_production_credit = 0.0
   end
   attr_accessor(:annual_energy_charge, :annual_fixed_charge, :annual_total,
                 :monthly_energy_charge, :monthly_fixed_charge, :monthly_total,

@@ -7,6 +7,23 @@ Development Changelog
     :released: pending
 
     .. change::
+        :tags: software, openstudio, feature
+        :pullreq: 1318
+
+        **Date**: 2024-11-19
+
+        Title:
+        Latest OS-HPXML
+
+        Description:
+        Update to OpenStudio-HPXML 1.9/OpenStudio 3.9/EnergyPlus 24.2.
+
+        OpenStudio-HPXML: `pull request 1883 <https://github.com/NREL/OpenStudio-HPXML/pull/1883>`_
+
+        Assignees: Joe Robertson, Scott Horowitz
+
+
+    .. change::
         :tags: bugfix, characteristics
         :pullreq: 1265
         :tickets: 1236
