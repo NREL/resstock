@@ -4497,6 +4497,143 @@ The round trip efficiency of the lithium ion battery. If not provided, the OS-HP
 
 <br/>
 
+**Electric Vehicle: Present**
+
+Whether there is an electric vehicle battery present. Cannot be included if an electric vehicle is modeled as a plug load as specified by the `misc_plug_loads_vehicle_present` argument.
+
+- **Name:** ``ev_battery_present``
+- **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle: Rated Battery Power Output**
+
+The rated power output of the EV battery. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``ev_battery_discharge_power``
+- **Type:** ``Double``
+
+- **Units:** ``W``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle: Nominal Battery Capacity**
+
+The nominal capacity of the EV battery. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``ev_battery_capacity``
+- **Type:** ``Double``
+
+- **Units:** ``kWh``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle: Usable Battery Capacity**
+
+The usable capacity of the EV battery. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``ev_battery_usable_capacity``
+- **Type:** ``Double``
+
+- **Units:** ``kWh``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle: Energy Efficiency**
+
+The efficiency of the EV. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``ev_energy_efficiency``
+- **Type:** ``Double``
+
+- **Units:** ``kWh/mile``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle: Miles Traveled**
+
+The annual miles traveled by the EV.
+
+- **Name:** ``ev_miles_per_year``
+- **Type:** ``Double``
+
+- **Units:** ``miles``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle: Hours Driven per Week**
+
+The weekly hours traveled by the EV.
+
+- **Name:** ``ev_hours_per_week``
+- **Type:** ``Double``
+
+- **Units:** ``hours``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle: Fraction Charged at Home**
+
+The fraction charging energy provided by the at-home charger.
+
+- **Name:** ``ev_fraction_charged_home``
+- **Type:** ``Double``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle Charger: Present**
+
+Whether there is an electric vehicle charger present.
+
+- **Name:** ``ev_charger_present``
+- **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle Charger: Rated Charger Power Output**
+
+The rated power output of the EV charger. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``ev_charger_power``
+- **Type:** ``Double``
+
+- **Units:** ``W``
+
+- **Required:** ``false``
+
+<br/>
+
+**Electric Vehicle Charger: Location**
+
+The space type for the EV charger. If not provided, the OS-HPXML default is used.
+
+- **Name:** ``ev_charger_location``
+- **Type:** ``Choice``
+
+- **Required:** ``false``
+
+- **Choices:** `garage`, `outside`
+
+<br/>
+
 **Battery: Number of Bedrooms Served**
 
 Number of bedrooms served by the lithium ion battery. Only needed if single-family attached or apartment unit and it is a shared battery serving multiple dwelling units. Used to apportion battery charging/discharging to the unit of a SFA/MF building.
@@ -5517,7 +5654,7 @@ Multiplier on the well pump energy usage that can reflect, e.g., high/low usage 
 
 **Misc Plug Loads: Vehicle Present**
 
-Whether there is an electric vehicle.
+Whether there is an electric vehicle. Cannot be included if an electric vehicle is modeled as a battery as specified by the `ev_battery_present` argument.
 
 - **Name:** ``misc_plug_loads_vehicle_present``
 - **Type:** ``Boolean``

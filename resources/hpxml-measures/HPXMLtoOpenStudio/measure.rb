@@ -371,6 +371,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     PV.apply(model, hpxml_bldg)
     Generator.apply(model, hpxml_bldg)
     Battery.apply(runner, model, spaces, hpxml_bldg, schedules_file)
+    Vehicle.apply(runner, model, spaces, hpxml_bldg, schedules_file)
   end
 
   # Miscellaneous logic that needs to occur upfront.

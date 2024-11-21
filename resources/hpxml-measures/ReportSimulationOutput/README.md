@@ -189,6 +189,17 @@ Generates annual resilience outputs.
 
 <br/>
 
+**Generate Annual Output: Vehicles**
+
+Generates annual vehicle outputs.
+
+- **Name:** ``include_annual_vehicle_outputs``
+- **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
 **Timeseries Reporting Frequency**
 
 The frequency at which to report timeseries output data. Using 'none' will disable timeseries outputs.
@@ -367,6 +378,17 @@ Generates timeseries resilience outputs.
 
 <br/>
 
+**Generate Timeseries Output: Vehicles**
+
+Generates timeseries vehicle outputs.
+
+- **Name:** ``include_timeseries_vehicle_outputs``
+- **Type:** ``Boolean``
+
+- **Required:** ``false``
+
+<br/>
+
 **Generate Timeseries Output: Timestamp Convention**
 
 Determines whether timeseries timestamps use the start-of-period or end-of-period convention. Doesn't apply if the output format is 'csv_dview'.
@@ -524,8 +546,6 @@ All possible measure outputs are listed below. Actual outputs depend on measure 
 
 - ``end_use_electricity_plug_loads_m_btu``
 
-- ``end_use_electricity_electric_vehicle_charging_m_btu``
-
 - ``end_use_electricity_well_pump_m_btu``
 
 - ``end_use_electricity_pool_heater_m_btu``
@@ -541,6 +561,8 @@ All possible measure outputs are listed below. Actual outputs depend on measure 
 - ``end_use_electricity_generator_m_btu``
 
 - ``end_use_electricity_battery_m_btu``
+
+- ``end_use_electricity_electric_vehicle_charging_m_btu``
 
 - ``end_use_natural_gas_heating_m_btu``
 
@@ -783,5 +805,7 @@ All possible measure outputs are listed below. Actual outputs depend on measure 
 - ``hot_water_distribution_waste_gal``
 
 - ``resilience_battery_hr``
+
+- ``vehicle_electric_vehicle_discharging_m_btu``
 
 

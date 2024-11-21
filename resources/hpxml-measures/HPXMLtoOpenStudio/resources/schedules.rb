@@ -972,6 +972,26 @@ module Schedule
       end
     end
   end
+
+  # Splits a comma seperated schedule string into charging (positive) and discharging (negative) schedules
+  #
+  # @param schedule_str [String] schedule with values seperated by commas
+  def self.split_signed_charging_schedule(schedule_str)
+    charge_schedule, discharge_schedule = [], []
+    schedule_str.split(', ').each do |frac|
+      if frac.to_f > 0
+        charge_schedule.append(frac)
+        discharge_schedule.append(0)
+      elsif frac.to_f < 0
+        charge_schedule.append(0)
+        discharge_schedule.append(frac)
+      else
+        charge_schedule.append(0)
+        discharge_schedule.append(0)
+      end
+    end
+    return charge_schedule.join(', '), discharge_schedule.join(', ')
+  end
 end
 
 # Object that contains information for detailed schedule CSVs.
@@ -996,6 +1016,8 @@ class SchedulesFile
   # periods CSV (e.g., heating), and/or C) EnergyPlus-specific schedules (e.g., battery_charging).
   Columns = {
     Occupants: Column.new('occupants', true, true, :frac),
+    EVOccupant: Column.new('ev_occupant', true, true, :int),
+    PresentOccupants: Column.new('present_occupants', true, true, :int),
     LightingInterior: Column.new('lighting_interior', true, true, :frac),
     LightingExterior: Column.new('lighting_exterior', true, false, :frac),
     LightingGarage: Column.new('lighting_garage', true, true, :frac),
@@ -1032,6 +1054,9 @@ class SchedulesFile
     Battery: Column.new('battery', false, false, :neg_one_to_one),
     BatteryCharging: Column.new('battery_charging', true, false, nil),
     BatteryDischarging: Column.new('battery_discharging', true, false, nil),
+    EVBattery: Column.new('ev_battery', false, false, :neg_one_to_one),
+    EVBatteryCharging: Column.new('ev_battery_charging', true, false, nil),
+    EVBatteryDischarging: Column.new('ev_battery_discharging', true, false, nil),
     SpaceHeating: Column.new('space_heating', true, false, nil),
     SpaceCooling: Column.new('space_cooling', true, false, nil),
     HVACMaximumPowerRatio: Column.new('hvac_maximum_power_ratio', false, false, :frac),
@@ -1057,6 +1082,7 @@ class SchedulesFile
     return if schedules_paths.empty?
 
     @year = year
+    @runner = runner
     import(schedules_paths)
     create_battery_charging_discharging_schedules
     expand_schedules
@@ -1099,6 +1125,7 @@ class SchedulesFile
   def import(schedules_paths)
     num_hrs_in_year = Calendar.num_hours_in_year(@year)
     @schedules = {}
+    col2path = {}
     schedules_paths.each do |schedules_path|
       # Note: We don't use the CSV library here because it's slow for large files
       columns = File.readlines(schedules_path).map(&:strip).map { |r| r.split(',') }.transpose
@@ -1115,7 +1142,11 @@ class SchedulesFile
         end
 
         if @schedules.keys.include? col_name
-          fail "Schedule column name '#{col_name}' is duplicated. [context: #{schedules_path}]"
+          if col2path[col_name] == schedules_path
+            fail "Schedule column name '#{col_name}' is duplicated. [context: #{schedules_path}]"
+          else
+            @runner.registerWarning("Schedule column name '#{col_name}' already exist in #{col2path[col_name]}. Overwriting with #{schedules_path}.")
+          end
         end
 
         if column.type == :frac
@@ -1152,6 +1183,7 @@ class SchedulesFile
         end
 
         @schedules[col_name] = values
+        col2path[col_name] = schedules_path
       end
     end
   end
@@ -1491,17 +1523,39 @@ class SchedulesFile
   # @return [nil]
   def create_battery_charging_discharging_schedules
     battery_col_name = Columns[:Battery].name
-    return if !@schedules.keys.include?(battery_col_name)
+    ev_battery_col_name = Columns[:EVBattery].name
 
-    @schedules[SchedulesFile::Columns[:BatteryCharging].name] = Array.new(@schedules[battery_col_name].size, 0)
-    @schedules[SchedulesFile::Columns[:BatteryDischarging].name] = Array.new(@schedules[battery_col_name].size, 0)
-    @schedules[battery_col_name].each_with_index do |_ts, i|
-      if @schedules[battery_col_name][i] > 0
-        @schedules[SchedulesFile::Columns[:BatteryCharging].name][i] = @schedules[battery_col_name][i]
-      elsif @schedules[battery_col_name][i] < 0
-        @schedules[SchedulesFile::Columns[:BatteryDischarging].name][i] = -1 * @schedules[battery_col_name][i]
+    return if !@schedules.keys.include?(battery_col_name) && !@schedules.keys.include?(ev_battery_col_name)
+
+    if @schedules.keys.include?(battery_col_name)
+      charging_col = SchedulesFile::Columns[:BatteryCharging].name
+      discharging_col = SchedulesFile::Columns[:BatteryDischarging].name
+      split_signed_column(battery_col_name, charging_col, discharging_col)
+    end
+    if @schedules.keys.include?(ev_battery_col_name)
+      charging_col = SchedulesFile::Columns[:EVBatteryCharging].name
+      discharging_col = SchedulesFile::Columns[:EVBatteryDischarging].name
+      split_signed_column(ev_battery_col_name, charging_col, discharging_col)
+    end
+  end
+
+  # Splits a single column from the @schedules object into two columns, one populated with the positive values and zeros, and one with the negative values and zeros, then deletes the original column.
+  #
+  # @param column [String] Column name in the @schedules object
+  # @param positive_col [String] Name of new positive column in the @schedules object
+  # @param negative_col [String] Name of new negative column in the @schedules object
+  #
+  # @return [nil]
+  def split_signed_column(column, positive_col, negative_col)
+    @schedules[positive_col] = Array.new(@schedules[column].size, 0)
+    @schedules[negative_col] = Array.new(@schedules[column].size, 0)
+    @schedules[column].each_with_index do |_ts, i|
+      if @schedules[column][i] > 0
+        @schedules[positive_col][i] = @schedules[column][i]
+      elsif @schedules[column][i] < 0
+        @schedules[negative_col][i] = -1 * @schedules[column][i]
       end
     end
-    @schedules.delete(battery_col_name)
+    @schedules.delete(column)
   end
 end

@@ -25,6 +25,14 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
     end
   end
 
+  def get_elcd(model, name)
+    model.getElectricLoadCenterDistributions.each do |elcd|
+      next unless elcd.name.to_s.start_with? "#{name} "
+
+      return elcd
+    end
+  end
+
   def calc_nom_capacity(battery)
     return (battery.numberofCellsinSeries * battery.numberofStringsinParallel *
             battery.cellVoltageatEndofNominalZone * battery.fullyChargedCellCapacity)
@@ -50,9 +58,7 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
       assert_in_epsilon(1.42, battery.batterySurfaceArea, 0.01)
       assert_in_epsilon(10000, calc_nom_capacity(battery), 0.01)
 
-      elcds = model.getElectricLoadCenterDistributions
-      assert_equal(1, elcds.size)
-      elcd = elcds[0]
+      elcd = get_elcd(model, 'PVSystem')
       assert_equal('DirectCurrentWithInverterACStorage', elcd.electricalBussType)
       assert_equal(0.075, elcd.minimumStorageStateofChargeFraction)
       assert_equal(0.975, elcd.maximumStorageStateofChargeFraction)
@@ -70,7 +76,6 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
 
     hpxml_bldg.batteries.each do |hpxml_battery|
       battery = get_battery(model, hpxml_battery.id)
-
       assert_empty(battery)
     end
 
@@ -100,7 +105,7 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
 
       elcds = model.getElectricLoadCenterDistributions
       assert_equal(1, elcds.size)
-      elcd = elcds[0]
+      elcd = get_elcd(model, hpxml_battery.id)
       assert_equal('AlternatingCurrentWithStorage', elcd.electricalBussType)
       assert_equal(0.075, elcd.minimumStorageStateofChargeFraction)
       assert_equal(0.975, elcd.maximumStorageStateofChargeFraction)
@@ -141,7 +146,7 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
 
       elcds = model.getElectricLoadCenterDistributions
       assert_equal(1, elcds.size)
-      elcd = elcds[0]
+      elcd = get_elcd(model, 'PVSystem')
       assert_equal('DirectCurrentWithInverterACStorage', elcd.electricalBussType)
       assert_equal(0.075, elcd.minimumStorageStateofChargeFraction)
       assert_equal(0.975, elcd.maximumStorageStateofChargeFraction)
@@ -177,7 +182,7 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
 
       elcds = model.getElectricLoadCenterDistributions
       assert_equal(1, elcds.size)
-      elcd = elcds[0]
+      elcd = get_elcd(model, 'PVSystem')
       assert_equal('DirectCurrentWithInverterACStorage', elcd.electricalBussType)
       assert_equal(0.075, elcd.minimumStorageStateofChargeFraction)
       assert_equal(0.975, elcd.maximumStorageStateofChargeFraction)
@@ -213,7 +218,7 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
 
       elcds = model.getElectricLoadCenterDistributions
       assert_equal(1, elcds.size)
-      elcd = elcds[0]
+      elcd = get_elcd(model, 'PVSystem')
       assert_equal('DirectCurrentWithInverterACStorage', elcd.electricalBussType)
       assert_equal(0.075, elcd.minimumStorageStateofChargeFraction)
       assert_equal(0.975, elcd.maximumStorageStateofChargeFraction)
@@ -254,7 +259,7 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
 
       elcds = model.getElectricLoadCenterDistributions
       assert_equal(1, elcds.size)
-      elcd = elcds[0]
+      elcd = get_elcd(model, 'PVSystem')
       assert_equal('DirectCurrentWithInverterACStorage', elcd.electricalBussType)
       assert_equal(0.075, elcd.minimumStorageStateofChargeFraction)
       assert_equal(0.975, elcd.maximumStorageStateofChargeFraction)
@@ -291,7 +296,7 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
 
       elcds = model.getElectricLoadCenterDistributions
       assert_equal(1, elcds.size)
-      elcd = elcds[0]
+      elcd = get_elcd(model, 'PVSystem')
       assert_equal('DirectCurrentWithInverterACStorage', elcd.electricalBussType)
       assert_equal(0.075, elcd.minimumStorageStateofChargeFraction)
       assert_equal(0.975, elcd.maximumStorageStateofChargeFraction)
@@ -325,7 +330,7 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
 
       elcds = model.getElectricLoadCenterDistributions
       assert_equal(1, elcds.size)
-      elcd = elcds[0]
+      elcd = get_elcd(model, 'PVSystem')
       assert_equal('DirectCurrentWithInverterACStorage', elcd.electricalBussType)
       assert_equal(0.075, elcd.minimumStorageStateofChargeFraction)
       assert_equal(0.975, elcd.maximumStorageStateofChargeFraction)
@@ -358,7 +363,7 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
 
       elcds = model.getElectricLoadCenterDistributions
       assert_equal(1, elcds.size)
-      elcd = elcds[0]
+      elcd = get_elcd(model, 'PVSystem')
       assert_equal('DirectCurrentWithInverterACStorage', elcd.electricalBussType)
       assert_equal(0.075, elcd.minimumStorageStateofChargeFraction)
       assert_equal(0.975, elcd.maximumStorageStateofChargeFraction)

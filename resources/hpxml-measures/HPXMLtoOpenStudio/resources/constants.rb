@@ -10,6 +10,7 @@ module Constants
   # Object types
   ObjectTypeAirSourceHeatPump = 'air source heat pump'
   ObjectTypeBackupSuppHeat = 'back up supp heat'
+  ObjectTypeBatteryElectricVehicle = 'BatteryElectricVehicle'
   ObjectTypeBatteryLossesAdjustment = 'battery losses adjustment'
   ObjectTypeBoiler = 'boiler'
   ObjectTypeCeilingFan = 'ceiling fan'
@@ -284,4 +285,9 @@ module WT
   WindSpeed = 'Wind Speed'
   DiffuseSolar = 'Diffuse Solar Radiation'
   DirectSolar = 'Direct Solar Radiation'
+end
+
+# Vehicle Types
+module VT
+  VehicleDischarging = 'Electric Vehicle Discharging'
 end
