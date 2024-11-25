@@ -446,6 +446,17 @@ If not provided, defaults to 'results_annual.csv' (or 'results_annual.json' or '
 
 <br/>
 
+**Electric Panel Output File Name**
+
+If not provided, defaults to 'results_panel.csv' (or 'results_panel.json' or 'results_panel.msgpack').
+
+- **Name:** ``electric_panel_output_file_name``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
 **Timeseries Output File Name**
 
 If not provided, defaults to 'results_timeseries.csv' (or 'results_timeseries.json' or 'results_timeseries.msgpack').

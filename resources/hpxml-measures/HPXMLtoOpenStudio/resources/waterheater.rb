@@ -1000,11 +1000,20 @@ module Waterheater
     return coil
   end
 
+  # Get the HPWH compressor COP and set it as an additional property.
+  #
+  # @param water_heating_system [HPXML::WaterHeatingSystem] The HPXML water heating system of interest
+  # @return [nil]
+  def self.set_heat_pump_cop(water_heating_system)
+    cop = get_heat_pump_cop(water_heating_system)
+    water_heating_system.additional_properties.cop = cop
+  end
+
   # Calculates the HPWH compressor COP based on UEF regressions.
   #
   # @param water_heating_system [HPXML::WaterHeatingSystem] The HPXML water heating system of interest
   # return [Double] COP of the HPWH compressor
-  def self.set_heat_pump_cop(water_heating_system)
+  def self.get_heat_pump_cop(water_heating_system)
     # Calculate the COP based on EF
     if not water_heating_system.energy_factor.nil?
       uef = (0.60522 + water_heating_system.energy_factor) / 1.2101
@@ -1021,7 +1030,7 @@ module Waterheater
         cop = 1.1022 * uef - 0.0877
       end
     end
-    water_heating_system.additional_properties.cop = cop
+    return cop
   end
 
   # TODO

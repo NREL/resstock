@@ -4421,6 +4421,17 @@ Maximum power output of the second PV system. For a shared system, this is the t
 
 <br/>
 
+**Electric Panel: Load Calculation Types**
+
+Types of electric panel load calculations. If multiple types, use a comma-separated list. If not provided, no electric panel loads are calculated.
+
+- **Name:** ``electric_panel_load_calculation_types``
+- **Type:** ``String``
+
+- **Required:** ``false``
+
+<br/>
+
 **Electric Panel: Service Voltage**
 
 The service voltage of the electric panel. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-electric-panels'>HPXML Electric Panels</a>) is used.

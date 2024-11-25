@@ -256,15 +256,31 @@ class ReportSimulationOutputTest < Minitest::Test
     'Electric Panel Load: Electric Vehicle Charging (W)',
     'Electric Panel Load: Lighting (W)',
     'Electric Panel Load: Other (W)',
+    'Electric Panel Breaker Spaces: Heating Count',
+    'Electric Panel Breaker Spaces: Cooling Count',
+    'Electric Panel Breaker Spaces: Hot Water Count',
+    'Electric Panel Breaker Spaces: Clothes Dryer Count',
+    'Electric Panel Breaker Spaces: Dishwasher Count',
+    'Electric Panel Breaker Spaces: Range/Oven Count',
+    'Electric Panel Breaker Spaces: Mech Vent Count',
+    'Electric Panel Breaker Spaces: Permanent Spa Heater Count',
+    'Electric Panel Breaker Spaces: Permanent Spa Pump Count',
+    'Electric Panel Breaker Spaces: Pool Heater Count',
+    'Electric Panel Breaker Spaces: Pool Pump Count',
+    'Electric Panel Breaker Spaces: Well Pump Count',
+    'Electric Panel Breaker Spaces: Electric Vehicle Charging Count',
+    'Electric Panel Breaker Spaces: Lighting Count',
+    'Electric Panel Breaker Spaces: Laundry Count',
+    'Electric Panel Breaker Spaces: Other Count',
+    'Electric Panel Breaker Spaces: Total Count',
+    'Electric Panel Breaker Spaces: Occupied Count',
+    'Electric Panel Breaker Spaces: Headroom Count',
     'Electric Panel Capacity: Load-Based Total (W)',
     'Electric Panel Capacity: Load-Based Total (A)',
     'Electric Panel Capacity: Load-Based Headroom (A)',
     'Electric Panel Capacity: Meter-Based Total (W)',
     'Electric Panel Capacity: Meter-Based Total (A)',
     'Electric Panel Capacity: Meter-Based Headroom (A)',
-    'Electric Panel Breaker Spaces: Total Count',
-    'Electric Panel Breaker Spaces: Occupied Count',
-    'Electric Panel Breaker Spaces: Headroom Count',
   ]
 
   BaseHPXMLTimeseriesColsEnergy = [
@@ -1376,19 +1392,18 @@ class ReportSimulationOutputTest < Minitest::Test
 
     args_hash = { 'hpxml_path' => hpxml_path,
                   'skip_validation' => true, }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(!File.exist?(timeseries_csv))
-    actual_annual_rows = _get_annual_values(annual_csv)
-    assert_equal(9738.0, actual_annual_rows['Electric Panel Capacity: Load-Based Total (W)'])
-    assert_equal(41.0, actual_annual_rows['Electric Panel Capacity: Load-Based Total (A)'])
-    assert_equal(100.0 - 41.0, actual_annual_rows['Electric Panel Capacity: Load-Based Headroom (A)'])
-    assert_equal(2581.8, actual_annual_rows['Electric Panel Capacity: Meter-Based Total (W)'])
-    assert_equal(10.8, actual_annual_rows['Electric Panel Capacity: Meter-Based Total (A)'])
-    assert_equal(100.0 - 10.8, actual_annual_rows['Electric Panel Capacity: Meter-Based Headroom (A)'])
-    assert_equal(12, actual_annual_rows['Electric Panel Breaker Spaces: Total Count'])
-    assert_equal(7, actual_annual_rows['Electric Panel Breaker Spaces: Occupied Count'])
-    assert_equal(12 - 7, actual_annual_rows['Electric Panel Breaker Spaces: Headroom Count'])
+    _annual_csv, _timeseries_csv, _run_log, panel_csv = _test_measure(args_hash)
+    assert(File.exist?(panel_csv))
+    actual_panel_rows = _get_annual_values(panel_csv)
+    assert_equal(9738.0, actual_panel_rows['Electric Panel Capacity: 2023 Load-Based: Total (W)'])
+    assert_equal(41.0, actual_panel_rows['Electric Panel Capacity: 2023 Load-Based: Total (A)'])
+    assert_equal(100.0 - 41.0, actual_panel_rows['Electric Panel Capacity: 2023 Load-Based: Headroom (A)'])
+    assert_equal(2581.8, actual_panel_rows['Electric Panel Capacity: 2023 Meter-Based: Total (W)'])
+    assert_equal(10.8, actual_panel_rows['Electric Panel Capacity: 2023 Meter-Based: Total (A)'])
+    assert_equal(100.0 - 10.8, actual_panel_rows['Electric Panel Capacity: 2023 Meter-Based: Headroom (A)'])
+    assert_equal(12, actual_panel_rows['Electric Panel Breaker Spaces: Total Count'])
+    assert_equal(7, actual_panel_rows['Electric Panel Breaker Spaces: Occupied Count'])
+    assert_equal(12 - 7, actual_panel_rows['Electric Panel Breaker Spaces: Headroom Count'])
 
     # Upgrade
     hpxml_bldg = hpxml.buildings[0]
@@ -1431,19 +1446,18 @@ class ReportSimulationOutputTest < Minitest::Test
 
     args_hash = { 'hpxml_path' => @tmp_hpxml_path,
                   'skip_validation' => true, }
-    annual_csv, timeseries_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(!File.exist?(timeseries_csv))
-    actual_annual_rows = _get_annual_values(annual_csv)
-    assert_equal(35827.2, actual_annual_rows['Electric Panel Capacity: Load-Based Total (W)'])
-    assert_equal(149.0, actual_annual_rows['Electric Panel Capacity: Load-Based Total (A)'])
-    assert_equal(100.0 - 149.0, actual_annual_rows['Electric Panel Capacity: Load-Based Headroom (A)'])
-    assert_equal(44671.6, actual_annual_rows['Electric Panel Capacity: Meter-Based Total (W)'])
-    assert_equal(186.1, actual_annual_rows['Electric Panel Capacity: Meter-Based Total (A)'])
-    assert_equal(100.0 - 186.1, actual_annual_rows['Electric Panel Capacity: Meter-Based Headroom (A)'])
-    assert_equal(12, actual_annual_rows['Electric Panel Breaker Spaces: Total Count'])
-    assert_equal(14, actual_annual_rows['Electric Panel Breaker Spaces: Occupied Count'])
-    assert_equal(12 - 14, actual_annual_rows['Electric Panel Breaker Spaces: Headroom Count'])
+    _annual_csv, _timeseries_csv, _run_log, panel_csv = _test_measure(args_hash)
+    assert(File.exist?(panel_csv))
+    actual_panel_rows = _get_annual_values(panel_csv)
+    assert_equal(35827.2, actual_panel_rows['Electric Panel Capacity: 2023 Load-Based: Total (W)'])
+    assert_equal(149.0, actual_panel_rows['Electric Panel Capacity: 2023 Load-Based: Total (A)'])
+    assert_equal(100.0 - 149.0, actual_panel_rows['Electric Panel Capacity: 2023 Load-Based: Headroom (A)'])
+    assert_equal(44671.6, actual_panel_rows['Electric Panel Capacity: 2023 Meter-Based: Total (W)'])
+    assert_equal(186.1, actual_panel_rows['Electric Panel Capacity: 2023 Meter-Based: Total (A)'])
+    assert_equal(100.0 - 186.1, actual_panel_rows['Electric Panel Capacity: 2023 Meter-Based: Headroom (A)'])
+    assert_equal(12, actual_panel_rows['Electric Panel Breaker Spaces: Total Count'])
+    assert_equal(14, actual_panel_rows['Electric Panel Breaker Spaces: Occupied Count'])
+    assert_equal(12 - 14, actual_panel_rows['Electric Panel Breaker Spaces: Headroom Count'])
   end
 
   private
@@ -1490,7 +1504,8 @@ class ReportSimulationOutputTest < Minitest::Test
     annual_csv = File.join(File.dirname(template_osw), 'run', 'results_annual.csv')
     timeseries_csv = File.join(File.dirname(template_osw), 'run', 'results_timeseries.csv')
     run_log = File.join(File.dirname(template_osw), 'run', 'run.log')
-    return annual_csv, timeseries_csv, run_log
+    panel_csv = File.join(File.dirname(template_osw), 'run', 'results_panel.csv')
+    return annual_csv, timeseries_csv, run_log, panel_csv
   end
 
   def _parse_time(ts)

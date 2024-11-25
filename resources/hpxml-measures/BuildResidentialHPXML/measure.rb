@@ -2627,6 +2627,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(4000)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('electric_panel_load_calculation_types', false)
+    arg.setDisplayName('Electric Panel: Load Calculation Types')
+    arg.setDescription('Types of electric panel load calculations. If multiple types, use a comma-separated list. If not provided, no electric panel loads are calculated.')
+    args << arg
+
     electric_panel_voltage_choices = OpenStudio::StringVector.new
     electric_panel_voltage_choices << HPXML::ElectricPanelVoltage120
     electric_panel_voltage_choices << HPXML::ElectricPanelVoltage240
@@ -4829,6 +4834,10 @@ module HPXMLFile
                                                 pv_monthly_grid_connection_fee_dollars_per_kw: pv_monthly_grid_connection_fee_dollars_per_kw,
                                                 pv_monthly_grid_connection_fee_dollars: pv_monthly_grid_connection_fee_dollars)
       end
+    end
+
+    if not args[:electric_panel_load_calculation_types].nil?
+      hpxml.header.panel_calculation_types = args[:electric_panel_load_calculation_types].split(',').map(&:strip)
     end
 
     errors.each do |error|
@@ -7118,7 +7127,7 @@ module HPXMLFile
   # @param args [Hash] Map of :argument_name => value
   # @return [nil]
   def self.set_electric_panel(hpxml_bldg, args)
-    return if args[:electric_panel_service_voltage].nil? && args[:electric_panel_service_rating].nil? && args[:electric_panel_breaker_spaces_headroom].nil? && args[:electric_panel_breaker_spaces_total].nil?
+    return if args[:electric_panel_load_calculation_types].nil?
 
     if args[:electric_panel_breaker_spaces_type] == 'total'
       total_breaker_spaces = args[:electric_panel_breaker_spaces]

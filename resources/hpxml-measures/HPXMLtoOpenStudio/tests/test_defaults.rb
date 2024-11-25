@@ -30,6 +30,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
     FileUtils.rm_rf(@tmp_output_path)
     File.delete(File.join(File.dirname(__FILE__), 'results_annual.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_annual.csv')
+    File.delete(File.join(File.dirname(__FILE__), 'results_panel.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_panel.csv')
     File.delete(File.join(File.dirname(__FILE__), 'results_design_load_details.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_design_load_details.csv')
   end
 
@@ -2306,7 +2307,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     hpxml_bldg.heat_pumps[0].backup_heating_capacity = nil
     XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     _default_hpxml, default_hpxml_bldg = _test_measure()
-    _test_default_ground_to_air_heat_pump_values(default_hpxml_bldg.heat_pumps[0], 80.0, 0.375, nil, nil, 0, nil, nil, nil)
+    _test_default_ground_to_air_heat_pump_values(default_hpxml_bldg.heat_pumps[0], 30.0, 0.375, nil, nil, 0, nil, nil, nil)
   end
 
   def test_geothermal_loops
@@ -3596,7 +3597,7 @@ class HPXMLtoOpenStudioDefaultsTest < Minitest::Test
     _default_hpxml, default_hpxml_bldg = _test_measure()
     _test_default_electric_panel_values(default_hpxml_bldg, HPXML::ElectricPanelVoltage240, 150.0, 0, nil)
     _test_default_panel_load_values(default_hpxml_bldg, HPXML::ElectricPanelLoadTypeHeating, 428.0, HPXML::ElectricPanelVoltage120, 1, false)
-    _test_default_panel_load_values(default_hpxml_bldg, HPXML::ElectricPanelLoadTypeCooling, 2055.0, HPXML::ElectricPanelVoltage240, 3, false)
+    _test_default_panel_load_values(default_hpxml_bldg, HPXML::ElectricPanelLoadTypeCooling, 1320.0, HPXML::ElectricPanelVoltage240, 3, false)
     _test_default_panel_load_values(default_hpxml_bldg, HPXML::ElectricPanelLoadTypeWaterHeater, 0, HPXML::ElectricPanelVoltage240, 0, false)
     _test_default_panel_load_values(default_hpxml_bldg, HPXML::ElectricPanelLoadTypeClothesDryer, 0, HPXML::ElectricPanelVoltage240, 0, false)
     _test_default_panel_load_values(default_hpxml_bldg, HPXML::ElectricPanelLoadTypeDishwasher, 1200, HPXML::ElectricPanelVoltage120, 1, false)
