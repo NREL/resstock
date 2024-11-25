@@ -115,6 +115,29 @@ class HPXML < Object
   DuctTypeSupply = 'supply'
   DWHRFacilitiesConnectedAll = 'all'
   DWHRFacilitiesConnectedOne = 'one'
+  ElectricPanelLoadCalculationType2023LoadBased = '2023 Load-Based'
+  ElectricPanelLoadCalculationType2023MeterBased = '2023 Meter-Based'
+  ElectricPanelLoadCalculationType2026LoadBased = '2026 Load-Based'
+  ElectricPanelLoadCalculationType2026MeterBased = '2026 Meter-Based'
+  ElectricPanelLoadTypeHeating = 'heating'
+  ElectricPanelLoadTypeCooling = 'cooling'
+  ElectricPanelLoadTypeWaterHeater = 'hot water'
+  ElectricPanelLoadTypeClothesDryer = 'clothes dryer'
+  ElectricPanelLoadTypeDishwasher = 'dishwasher'
+  ElectricPanelLoadTypeRangeOven = 'range/oven'
+  ElectricPanelLoadTypeMechVent = 'mech vent'
+  ElectricPanelLoadTypePermanentSpaHeater = 'permanent spa heater'
+  ElectricPanelLoadTypePermanentSpaPump = 'permanent spa pump'
+  ElectricPanelLoadTypePoolHeater = 'pool heater'
+  ElectricPanelLoadTypePoolPump = 'pool pump'
+  ElectricPanelLoadTypeWellPump = 'well pump'
+  ElectricPanelLoadTypeElectricVehicleCharging = 'electric vehicle charging'
+  ElectricPanelLoadTypeLighting = 'lighting'
+  ElectricPanelLoadTypeKitchen = 'kitchen'
+  ElectricPanelLoadTypeLaundry = 'laundry'
+  ElectricPanelLoadTypeOther = 'other'
+  ElectricPanelVoltage120 = '120'
+  ElectricPanelVoltage240 = '240'
   ElectricResistanceDistributionRadiantCeiling = 'radiant ceiling'
   ElectricResistanceDistributionRadiantFloor = 'radiant floor'
   ElectricResistanceDistributionBaseboard = 'baseboard'
@@ -537,6 +560,15 @@ class HPXML < Object
                     cdl_lat_vent: 'Ventilation',
                     cdl_lat_intgains: 'InternalLoads' }
 
+  # Electric panel attributes
+  CLB_ATTRS = { clb_type: 'Type',
+                clb_total_w: 'TotalWatts',
+                clb_total_a: 'TotalAmps',
+                clb_headroom_a: 'HeadroomAmps' }
+  BS_ATTRS = { bs_total: 'Total',
+               bs_occupied: 'Occupied',
+               bs_headroom: 'Headroom' }
+
   def initialize(hpxml_path: nil, schema_validator: nil, schematron_validator: nil, building_id: nil)
     @hpxml_path = hpxml_path
     @errors = []
@@ -858,7 +890,8 @@ class HPXML < Object
              :temperature_capacitance_multiplier,          # [Double] SoftwareInfo/extension/SimulationControl/AdvancedResearchFeatures/TemperatureCapacitanceMultiplier
              :defrost_model_type,                          # [String] SoftwareInfo/extension/SimulationControl/AdvancedResearchFeatures/DefrostModelType (HPXML::AdvancedResearchDefrostModelTypeXXX)
              :hvac_onoff_thermostat_deadband,              # [Double] SoftwareInfo/extension/SimulationControl/AdvancedResearchFeatures/OnOffThermostatDeadbandTemperature (F)
-             :heat_pump_backup_heating_capacity_increment] # [Double] SoftwareInfo/extension/SimulationControl/AdvancedResearchFeatures/HeatPumpBackupCapacityIncrement (Btu/hr)
+             :heat_pump_backup_heating_capacity_increment, # [Double] SoftwareInfo/extension/SimulationControl/AdvancedResearchFeatures/HeatPumpBackupCapacityIncrement (Btu/hr)
+             :panel_calculation_types]                     # [Array<String>] SoftwareInfo/extension/PanelCalculationType
     attr_reader(*CLASS_ATTRS)
     attr_accessor(*ATTRS)
 
@@ -935,6 +968,13 @@ class HPXML < Object
           XMLHelper.add_element(advanced_research_features, 'HeatPumpBackupCapacityIncrement', @heat_pump_backup_heating_capacity_increment, :float, @heat_pump_backup_heating_capacity_increment_isdefaulted) unless @heat_pump_backup_heating_capacity_increment.nil?
         end
       end
+      if (not @panel_calculation_types.nil?) && (not @panel_calculation_types.empty?)
+        extension = XMLHelper.create_elements_as_needed(software_info, ['extension'])
+        panel_calculation_types = XMLHelper.add_element(extension, 'PanelCalculationTypes')
+        @panel_calculation_types.each do |panel_calculation_type|
+          XMLHelper.add_element(panel_calculation_types, 'Type', panel_calculation_type, :string)
+        end
+      end
       @emissions_scenarios.to_doc(hpxml)
       @utility_bill_scenarios.to_doc(hpxml)
       @unavailable_periods.to_doc(hpxml)
@@ -970,6 +1010,7 @@ class HPXML < Object
       @heat_pump_backup_heating_capacity_increment = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/AdvancedResearchFeatures/HeatPumpBackupCapacityIncrement', :float)
       @apply_ashrae140_assumptions = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ApplyASHRAE140Assumptions', :boolean)
       @whole_sfa_or_mf_building_sim = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/WholeSFAorMFBuildingSimulation', :boolean)
+      @panel_calculation_types = XMLHelper.get_values(hpxml, 'SoftwareInfo/extension/PanelCalculationTypes/Type', :string)
       @emissions_scenarios.from_doc(hpxml)
       @utility_bill_scenarios.from_doc(hpxml)
       @unavailable_periods.from_doc(hpxml)
@@ -1420,6 +1461,7 @@ class HPXML < Object
                    :solar_thermal_systems,         # [HPXML::SolarThermalSystems]
                    :pv_systems,                    # [HPXML::PVSystems]
                    :inverters,                     # [HPXML::Inverters]
+                   :electric_panels,               # [HPXML::ElectricPanels]
                    :batteries,                     # [HPXML::Batteries]
                    :generators,                    # [HPXML::Generators]
                    :clothes_washers,               # [HPXML::ClothesWashers]
@@ -1559,6 +1601,7 @@ class HPXML < Object
       @solar_thermal_systems.to_doc(building)
       @pv_systems.to_doc(building)
       @inverters.to_doc(building)
+      @electric_panels.to_doc(building)
       @batteries.to_doc(building)
       @generators.to_doc(building)
       @clothes_washers.to_doc(building)
@@ -1645,6 +1688,7 @@ class HPXML < Object
       @solar_thermal_systems = SolarThermalSystems.new(self, building)
       @pv_systems = PVSystems.new(self, building)
       @inverters = Inverters.new(self, building)
+      @electric_panels = ElectricPanels.new(self, building)
       @batteries = Batteries.new(self, building)
       @generators = Generators.new(self, building)
       @clothes_washers = ClothesWashers.new(self, building)
@@ -6346,6 +6390,27 @@ class HPXML < Object
     attr_reader(*CLASS_ATTRS)
     attr_accessor(*ATTRS)
 
+    # Returns any panel loads that the system may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
+
     # Returns the zone that the heating system serves.
     #
     # @return [HPXML::Zone] Zone served
@@ -6651,6 +6716,52 @@ class HPXML < Object
              :htg_seed_id]                                         # [String] extension/HeatingSeedId
     attr_reader(*CLASS_ATTRS)
     attr_accessor(*ATTRS)
+
+    # Returns any panel loads that the system may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
+
+    # Returns the cooling input capacity, calculated as the output capacity divided by the rated COP.
+    #
+    # @return [Double] The cooling input capacity (Btu/hr)
+    def cooling_input_capacity
+      begin
+        return @cooling_capacity / @additional_properties.cool_rated_cops.min
+      rescue
+        if not @cooling_efficiency_seer.nil?
+          return @cooling_capacity / UnitConversions.convert(@cooling_efficiency_seer, 'btu/hr', 'w')
+        elsif not @cooling_efficiency_seer2.nil?
+          is_ducted = !@distribution_system_idref.nil?
+          return @cooling_capacity / UnitConversions.convert(HVAC.calc_seer_from_seer2(@cooling_efficiency_seer2, is_ducted), 'btu/hr', 'w')
+        elsif not @cooling_efficiency_eer.nil?
+          ceer = @cooling_efficiency_eer / 1.01
+          return @cooling_capacity / UnitConversions.convert(ceer, 'btu/hr', 'w')
+        elsif not @cooling_efficiency_ceer.nil?
+          return @cooling_capacity / UnitConversions.convert(@cooling_efficiency_ceer, 'btu/hr', 'w')
+        elsif not @cooling_efficiency_kw_per_ton.nil?
+          # TODO
+        else
+          return @cooling_capacity # FIXME: evap cooler
+        end
+      end
+    end
 
     # Returns the zone that the cooling system serves.
     #
@@ -6966,6 +7077,83 @@ class HPXML < Object
              :clg_seed_id]                         # [String] extension/CoolingSeedId
     attr_reader(*CLASS_ATTRS)
     attr_accessor(*ATTRS)
+
+    # Returns whether, based on compressor/backup heating lockout temperatures, compressor and backup system can both operate at the same time.
+    #
+    # @return [Boolean] True if backup system can operate at the same time as the compressor
+    def simultaneous_backup
+      if !@compressor_lockout_temp.nil? &&
+         !@backup_heating_lockout_temp.nil? &&
+         (@backup_heating_lockout_temp > @compressor_lockout_temp)
+        return true
+      end
+
+      return false
+    end
+
+    # Returns any panel loads that the system may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
+
+    # Returns the heating input capacity, calculated as the output capacity divided by the rated COP.
+    #
+    # @return [Double] The heating input capacity (Btu/hr)
+    def heating_input_capacity
+      begin
+        return @heating_capacity / @additional_properties.heat_rated_cops.min
+      rescue
+        if not @heating_efficiency_hspf.nil?
+          return @heating_capacity / UnitConversions.convert(@heating_efficiency_hspf, 'btu/hr', 'w')
+        elsif not @heating_efficiency_hspf2.nil?
+          is_ducted = !@distribution_system_idref.nil?
+          return @heating_capacity / UnitConversions.convert(HVAC.calc_hspf_from_hspf2(@heating_efficiency_hspf2, is_ducted), 'btu/hr', 'w')
+        elsif not @heating_efficiency_cop.nil?
+          return @heating_capacity / @heating_efficiency_cop
+        else
+          return @heating_capacity
+        end
+      end
+    end
+
+    # Returns the cooling input capacity, calculated as the output capacity divided by the rated COP.
+    #
+    # @return [Double] The cooling input capacity (Btu/hr)
+    def cooling_input_capacity
+      begin
+        return @cooling_capacity / @additional_properties.cool_rated_cops.min
+      rescue
+        if not @cooling_efficiency_seer.nil?
+          return @cooling_capacity / UnitConversions.convert(@cooling_efficiency_seer, 'btu/hr', 'w')
+        elsif not @cooling_efficiency_seer2.nil?
+          is_ducted = !@distribution_system_idref.nil?
+          return @cooling_capacity / UnitConversions.convert(HVAC.calc_seer_from_seer2(@cooling_efficiency_seer2, is_ducted), 'btu/hr', 'w')
+        elsif not @cooling_efficiency_eer.nil?
+          ceer = @cooling_efficiency_eer / 1.01
+          return @cooling_capacity / UnitConversions.convert(ceer, 'btu/hr', 'w')
+        elsif not @cooling_efficiency_ceer.nil?
+          return @cooling_capacity / UnitConversions.convert(@cooling_efficiency_ceer, 'btu/hr', 'w')
+        else
+          return @cooling_capacity
+        end
+      end
+    end
 
     # Returns the zone that the heat pump serves.
     #
@@ -8126,6 +8314,27 @@ class HPXML < Object
              :cfis_vent_mode_airflow_fraction]                 # [Double] extension/VentilationOnlyModeAirflowFraction (frac)
     attr_accessor(*ATTRS)
 
+    # Returns any panel loads that the system may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
+
     # Returns the HVAC distribution system for the ventilation fan.
     #
     # @return [HPXML::HVACDistribution] The attached HVAC distribution system
@@ -8493,6 +8702,46 @@ class HPXML < Object
              :tank_model_type,           # [String] extension/TankModelType (HPXML::WaterHeaterTankModelTypeXXX)
              :number_of_bedrooms_served] # [Integer] extension/NumberofBedroomsServed
     attr_accessor(*ATTRS)
+
+    # Returns any panel loads that the system may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
+
+    # Returns the heating input capacity, calculated as the output capacity divided by the rated COP.
+    #
+    # @return [Double] The heating input capacity (Btu/hr)
+    def heating_input_capacity
+      if @water_heater_type == HPXML::WaterHeaterTypeHeatPump
+        cop = Waterheater.get_heat_pump_cop(self)
+        return @heating_capacity / UnitConversions.convert(cop, 'btu/hr', 'w')
+      else
+        return @heating_capacity # FIXME
+      end
+    end
+
+    # Returns the backup heating input capacity.
+    #
+    # @return [Double] The backup heating input capacity (Btu/hr)
+    def backup_heating_input_capacity
+      return @backup_heating_capacity
+    end
 
     # Returns the HVAC system related to this water heating system (e.g., for
     # a combination boiler that provides both water heating and space heating).
@@ -9228,6 +9477,289 @@ class HPXML < Object
     end
   end
 
+  # Array of HPXML::ElectricPanel objects.
+  class ElectricPanels < BaseArrayElement
+    # Adds a new object, with the specified keyword arguments, to the array.
+    #
+    # @return [nil]
+    def add(**kwargs)
+      self << ElectricPanel.new(@parent_object, **kwargs)
+    end
+
+    # Populates the HPXML object(s) from the XML document.
+    #
+    # @param building [Oga::XML::Element] The current Building XML element
+    # @return [nil]
+    def from_doc(building)
+      return if building.nil?
+
+      XMLHelper.get_elements(building, 'BuildingDetails/Systems/ElectricPanels/ElectricPanel').each do |electric_panel|
+        self << ElectricPanel.new(@parent_object, electric_panel)
+      end
+    end
+  end
+
+  # Object for /HPXML/Building/BuildingDetails/Systems/ElectricPanels/ElectricPanel.
+  class ElectricPanel < BaseElement
+    def initialize(hpxml_element, *args, **kwargs)
+      @panel_loads = PanelLoads.new(hpxml_element)
+      super(hpxml_element, *args, **kwargs)
+    end
+    CLASS_ATTRS = [:panel_loads]
+    ATTRS = [:id,                      # [String] SystemIdentifier/@id
+             :voltage,                 # [String] Voltage
+             :max_current_rating,      # [Double] MaxCurrentRating
+             :headroom_breaker_spaces, # [Integer] extension/HeadroomBreakerSpaces
+             :total_breaker_spaces,    # [Integer] extension/TotalBreakerSpaces
+             :capacity_types,          # [Array<String>] extension/Outputs/Capacity/Type
+             :capacity_total_watts,    # [Array<Double>] extension/Outputs/Capacity/TotalWatts
+             :capacity_total_amps,     # [Array<Double>] extension/Outputs/Capacity/TotalAmps
+             :capacity_headroom_amps,  # [Array<Double>] extension/Outputs/Capacity/HeadroomAmps
+             :breaker_spaces_total,    # [Integer] extension/Outputs/BreakerSpaces/Total
+             :breaker_spaces_occupied, # [Integer] extension/Outputs/BreakerSpaces/Occupied
+             :breaker_spaces_headroom] # [Integer] extension/Outputs/BreakerSpaces/Headroom
+    attr_reader(*CLASS_ATTRS)
+    attr_accessor(*ATTRS)
+
+    # Deletes the current object from the array.
+    #
+    # @return [nil]
+    def delete
+      @parent_object.electric_panels.delete(self)
+    end
+
+    # Additional error-checking beyond what's checked in Schema/Schematron validators.
+    #
+    # @return [Array<String>] List of error messages
+    def check_for_errors
+      errors = []
+      errors += @panel_loads.check_for_errors
+      return errors
+    end
+
+    # Adds this object to the provided Oga XML element.
+    #
+    # @param building [Oga::XML::Element] The current Building XML element
+    # @return [nil]
+    def to_doc(building)
+      return if nil?
+
+      electric_panels = XMLHelper.create_elements_as_needed(building, ['BuildingDetails', 'Systems', 'ElectricPanels'])
+      electric_panel = XMLHelper.add_element(electric_panels, 'ElectricPanel')
+      sys_id = XMLHelper.add_element(electric_panel, 'SystemIdentifier')
+      XMLHelper.add_attribute(sys_id, 'id', @id)
+      XMLHelper.add_element(electric_panel, 'Voltage', @voltage, :string, @voltage_isdefaulted) unless @voltage.nil?
+      XMLHelper.add_element(electric_panel, 'MaxCurrentRating', @max_current_rating, :float, @max_current_rating_isdefaulted) unless @max_current_rating.nil?
+      XMLHelper.add_extension(electric_panel, 'HeadroomBreakerSpaces', @headroom_breaker_spaces, :integer, @headroom_breaker_spaces_isdefaulted) unless @headroom_breaker_spaces.nil?
+      XMLHelper.add_extension(electric_panel, 'TotalBreakerSpaces', @total_breaker_spaces, :integer, @total_breaker_spaces_isdefaulted) unless @total_breaker_spaces.nil?
+      @panel_loads.to_doc(electric_panel)
+      if (not @capacity_types.nil?) && (not @capacity_types.empty?)
+        outputs = XMLHelper.create_elements_as_needed(electric_panel, ['extension', 'Outputs'])
+        XMLHelper.add_attribute(outputs, 'dataSource', 'software')
+        capacities = @capacity_types.zip(@capacity_total_watts, @capacity_total_amps, @capacity_headroom_amps)
+        capacities.each do |capacity|
+          capacity_type, capacity_total_watt, capacity_total_amp, capacity_headroom_amp = capacity
+          capacity = XMLHelper.add_element(outputs, 'Capacity')
+          XMLHelper.add_element(capacity, 'Type', capacity_type, :string)
+          XMLHelper.add_element(capacity, 'TotalWatts', capacity_total_watt, :float)
+          XMLHelper.add_element(capacity, 'TotalAmps', capacity_total_amp, :float)
+          XMLHelper.add_element(capacity, 'HeadroomAmps', capacity_headroom_amp, :float)
+        end
+      end
+      if not @breaker_spaces_total.nil?
+        outputs = XMLHelper.create_elements_as_needed(electric_panel, ['extension', 'Outputs'])
+        XMLHelper.add_attribute(outputs, 'dataSource', 'software')
+        breaker_spaces = XMLHelper.add_element(outputs, 'BreakerSpaces')
+        XMLHelper.add_element(breaker_spaces, 'Total', @breaker_spaces_total, :integer)
+        XMLHelper.add_element(breaker_spaces, 'Occupied', @breaker_spaces_occupied, :integer)
+        XMLHelper.add_element(breaker_spaces, 'Headroom', @breaker_spaces_headroom, :integer)
+      end
+    end
+
+    # Populates the HPXML object(s) from the XML document.
+    #
+    # @param electric_panel [Oga::XML::Element] The current ElectricPanel XML element
+    # @return [nil]
+    def from_doc(electric_panel)
+      return if electric_panel.nil?
+
+      @id = HPXML::get_id(electric_panel)
+      @voltage = XMLHelper.get_value(electric_panel, 'Voltage', :string)
+      @max_current_rating = XMLHelper.get_value(electric_panel, 'MaxCurrentRating', :float)
+      @headroom_breaker_spaces = XMLHelper.get_value(electric_panel, 'extension/HeadroomBreakerSpaces', :integer)
+      @total_breaker_spaces = XMLHelper.get_value(electric_panel, 'extension/TotalBreakerSpaces', :integer)
+      @panel_loads.from_doc(electric_panel)
+      @capacity_types = XMLHelper.get_values(electric_panel, 'extension/Outputs/Capacity/Type', :string)
+      @capacity_total_watts = XMLHelper.get_values(electric_panel, 'extension/Outputs/Capacity/TotalWatts', :float)
+      @capacity_total_amps = XMLHelper.get_values(electric_panel, 'extension/Outputs/Capacity/TotalAmps', :float)
+      @capacity_headroom_amps = XMLHelper.get_values(electric_panel, 'extension/Outputs/Capacity/HeadroomAmps', :float)
+      @breaker_spaces_total = XMLHelper.get_value(electric_panel, 'extension/Outputs/BreakerSpaces/Total', :integer)
+      @breaker_spaces_occupied = XMLHelper.get_value(electric_panel, 'extension/Outputs/BreakerSpaces/Occupied', :integer)
+      @breaker_spaces_headroom = XMLHelper.get_value(electric_panel, 'extension/Outputs/BreakerSpaces/Headroom', :integer)
+    end
+  end
+
+  # Array of HPXML::PanelLoad objects.
+  class PanelLoads < BaseArrayElement
+    # Adds a new object, with the specified keyword arguments, to the array.
+    #
+    # @return [nil]
+    def add(**kwargs)
+      self << PanelLoad.new(@parent_object, **kwargs)
+    end
+
+    # Populates the HPXML object(s) from the XML document.
+    #
+    # @param electric_panel [Oga::XML::Element] The current Electric panel XML element
+    # @return [nil]
+    def from_doc(electric_panel)
+      return if electric_panel.nil?
+
+      XMLHelper.get_elements(electric_panel, 'extension/PanelLoads/PanelLoad').each do |panel_load|
+        self << PanelLoad.new(@parent_object, panel_load)
+      end
+    end
+  end
+
+  # Object for /HPXML/Building/BuildingDetails/Systems/ElectricPanels/ElectricPanel/extension/PanelLoads/PanelLoad.
+  class PanelLoad < BaseElement
+    ATTRS = [:type,           # [String] LoadType
+             :power,          # [Double] PowerRating
+             :voltage,        # [String] Voltage
+             :breaker_spaces, # [Integer] BreakerSpaces
+             :addition,       # [Boolean] NewLoad
+             :system_idrefs]  # [Array<String>] AttachedToSystem/@idref
+    attr_accessor(*ATTRS)
+
+    # Returns the systems attached to the panel load.
+    #
+    # @return [Array<HPXML::XXX>] The attached systems
+    def systems
+      return [] if @system_idrefs.nil?
+
+      heating_systems = @parent_object.heating_systems.select { |heating_system| @system_idrefs.include? heating_system.id }
+      cooling_systems = @parent_object.cooling_systems.select { |cooling_system| @system_idrefs.include? cooling_system.id }
+      heat_pumps = @parent_object.heat_pumps.select { |heat_pump| @system_idrefs.include? heat_pump.id }
+      water_heating_systems = @parent_object.water_heating_systems.select { |water_heating_system| @system_idrefs.include? water_heating_system.id }
+      clothes_dryers = @parent_object.clothes_dryers.select { |clothes_dryer| @system_idrefs.include? clothes_dryer.id }
+      dishwashers = @parent_object.dishwashers.select { |dishwasher| @system_idrefs.include? dishwasher.id }
+      cooking_ranges = @parent_object.cooking_ranges.select { |cooking_range| @system_idrefs.include? cooking_range.id }
+      ventilation_fans = @parent_object.ventilation_fans.select { |ventilation_fan| @system_idrefs.include? ventilation_fan.id }
+      permanent_spa_pumps = @parent_object.permanent_spas.select { |permanent_spa| @system_idrefs.include? permanent_spa.pump_id }
+      permanent_spa_heaters = @parent_object.permanent_spas.select { |permanent_spa| @system_idrefs.include? permanent_spa.heater_id }
+      pool_pumps = @parent_object.pools.select { |pool| @system_idrefs.include? pool.pump_id }
+      pool_heaters = @parent_object.pools.select { |pool| @system_idrefs.include? pool.heater_id }
+      plug_load_well_pumps = @parent_object.plug_loads.select { |plug_load| @system_idrefs.include?(plug_load.id) && plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump }
+      plug_load_vehicles = @parent_object.plug_loads.select { |plug_load| @system_idrefs.include?(plug_load.id) && plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging }
+
+      if !heating_systems.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeHeating].include?(@type)
+      end
+      if !cooling_systems.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeCooling].include?(@type)
+      end
+      if !heat_pumps.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeHeating, HPXML::ElectricPanelLoadTypeCooling].include?(@type)
+      end
+      if !water_heating_systems.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeWaterHeater].include?(@type)
+      end
+      if !clothes_dryers.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeClothesDryer].include?(@type)
+      end
+      if !dishwashers.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeDishwasher].include?(@type)
+      end
+      if !cooking_ranges.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeRangeOven].include?(@type)
+      end
+      if !ventilation_fans.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeMechVent].include?(@type)
+      end
+      if !permanent_spa_pumps.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePermanentSpaPump].include?(@type)
+      end
+      if !permanent_spa_heaters.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePermanentSpaHeater].include?(@type)
+      end
+      if !pool_pumps.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePoolPump].include?(@type)
+      end
+      if !pool_heaters.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypePoolHeater].include?(@type)
+      end
+      if !plug_load_well_pumps.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeWellPump].include?(@type)
+      end
+      if !plug_load_vehicles.empty?
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not valid for panel load type '#{@type}'" if ![HPXML::ElectricPanelLoadTypeElectricVehicleCharging].include?(@type)
+      end
+
+      list = heating_systems + cooling_systems + heat_pumps + water_heating_systems + clothes_dryers + dishwashers + cooking_ranges + ventilation_fans + permanent_spa_pumps + permanent_spa_heaters + pool_pumps + pool_heaters + plug_load_well_pumps + plug_load_vehicles
+      if @system_idrefs.size > list.size
+        fail "One or more referenced systems '#{@system_idrefs.join("', '")}' not found for panel load type '#{@type}'."
+      end
+
+      return list
+    end
+
+    # Deletes the current object from the array.
+    #
+    # @return [nil]
+    def delete
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.delete(self)
+      end
+    end
+
+    # Additional error-checking beyond what's checked in Schema/Schematron validators.
+    #
+    # @return [Array<String>] List of error messages
+    def check_for_errors
+      errors = []
+      begin; systems; rescue StandardError => e; errors << e.message; end
+      return errors
+    end
+
+    # Adds this object to the provided Oga XML element.
+    #
+    # @param building [Oga::XML::Element] The current Building XML element
+    # @return [nil]
+    def to_doc(electric_panel)
+      return if nil?
+
+      panel_loads = XMLHelper.create_elements_as_needed(electric_panel, ['extension', 'PanelLoads'])
+      panel_load = XMLHelper.add_element(panel_loads, 'PanelLoad')
+      XMLHelper.add_element(panel_load, 'LoadType', @type, :string, @type_isdefaulted) unless @type.nil?
+      XMLHelper.add_element(panel_load, 'PowerRating', @power, :float, @power_isdefaulted) unless @power.nil?
+      XMLHelper.add_element(panel_load, 'Voltage', @voltage, :string, @voltage_isdefaulted) unless @voltage.nil?
+      XMLHelper.add_element(panel_load, 'BreakerSpaces', @breaker_spaces, :integer, @breaker_spaces_isdefaulted) unless @breaker_spaces.nil?
+      XMLHelper.add_element(panel_load, 'NewLoad', @addition, :boolean, @addition_isdefaulted) unless @addition.nil?
+      if (not @system_idrefs.nil?) && (not @system_idrefs.empty?)
+        @system_idrefs.each do |system_idref|
+          system = XMLHelper.add_element(panel_load, 'AttachedToSystem')
+          XMLHelper.add_attribute(system, 'idref', system_idref)
+          XMLHelper.add_attribute(system, 'dataSource', 'software') if @system_idrefs_isdefaulted
+        end
+      end
+    end
+
+    # Populates the HPXML object(s) from the XML document.
+    #
+    # @param panel_load [Oga::XML::Element] The current PanelLoad XML element
+    # @return [nil]
+    def from_doc(panel_load)
+      return if panel_load.nil?
+
+      @type = XMLHelper.get_value(panel_load, 'LoadType', :string)
+      @power = XMLHelper.get_value(panel_load, 'PowerRating', :float)
+      @voltage = XMLHelper.get_value(panel_load, 'Voltage', :string)
+      @breaker_spaces = XMLHelper.get_value(panel_load, 'BreakerSpaces', :integer)
+      @addition = XMLHelper.get_value(panel_load, 'NewLoad', :boolean)
+      @system_idrefs = HPXML::get_idrefs(panel_load, 'AttachedToSystem')
+    end
+  end
+
   # Array of HPXML::Battery objects.
   class Batteries < BaseArrayElement
     # Adds a new object, with the specified keyword arguments, to the array.
@@ -9623,6 +10155,27 @@ class HPXML < Object
              :monthly_multipliers]    # [String] extension/MonthlyScheduleMultipliers
     attr_accessor(*ATTRS)
 
+    # Returns any panel loads that the system may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
+
     # Deletes the current object from the array.
     #
     # @return [nil]
@@ -9731,6 +10284,27 @@ class HPXML < Object
              :weekend_fractions,            # [String] extension/WeekendScheduleFractions
              :monthly_multipliers]          # [String] extension/MonthlyScheduleMultipliers
     attr_accessor(*ATTRS)
+
+    # Returns any panel loads that the system may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
 
     # Returns the water heating system connected to the dishwasher.
     #
@@ -10139,6 +10713,27 @@ class HPXML < Object
              :weekend_fractions,   # [String] WeekendScheduleFractions
              :monthly_multipliers] # [String] MonthlyScheduleMultipliers
     attr_accessor(*ATTRS)
+
+    # Returns any panel loads that the system may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
 
     # Deletes the current object from the array.
     #
@@ -10582,6 +11177,48 @@ class HPXML < Object
              :heater_monthly_multipliers] # [String] Heater/MonthlyScheduleMultipliers
     attr_accessor(*ATTRS)
 
+    # Returns any panel loads that the pool pump may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def pump_panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@pump_id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
+
+    # Returns any panel loads that the pool heater may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def heater_panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@heater_id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
+
     # Deletes the current object from the array.
     #
     # @return [nil]
@@ -10725,6 +11362,48 @@ class HPXML < Object
              :heater_weekend_fractions,   # [String] Heater/WeekendScheduleFractions
              :heater_monthly_multipliers] # [String] Heater/MonthlyScheduleMultipliers
     attr_accessor(*ATTRS)
+
+    # Returns any panel loads that the permanent spa pump may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def pump_panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@pump_id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
+
+    # Returns any panel loads that the permanent spa heater may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def heater_panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@heater_id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
 
     # Deletes the current object from the array.
     #
@@ -10925,6 +11604,27 @@ class HPXML < Object
              :weekend_fractions,   # [String] WeekendScheduleFractions
              :monthly_multipliers] # [String] MonthlyScheduleMultipliers
     attr_accessor(*ATTRS)
+
+    # Returns any panel loads that the system may be attached to.
+    #
+    # @return [Array<HPXML::PanelLoad>] List of panel load objects
+    def panel_loads
+      list = []
+      @parent_object.electric_panels.each do |electric_panel|
+        electric_panel.panel_loads.each do |panel_load|
+          next if panel_load.system_idrefs.empty?
+          next unless panel_load.system_idrefs.include?(@id)
+
+          list << panel_load
+        end
+      end
+
+      if list.size == 0
+        return
+      end
+
+      return list
+    end
 
     # Deletes the current object from the array.
     #
@@ -11458,6 +12158,19 @@ class HPXML < Object
   # @return [String] The element IDREF attribute
   def self.get_idref(element)
     return XMLHelper.get_attribute_value(element, 'idref')
+  end
+
+  # Gets the IDREF attribute for all instances of the given element.
+  #
+  # @param parent [Oga::XML::Element] The parent HPXML element
+  # @param element [Oga::XML::Element] The HPXML element
+  # @return [String] The element IDREF attribute
+  def self.get_idrefs(parent, element_name)
+    idrefs = []
+    parent.xpath(element_name).each do |value|
+      idrefs << XMLHelper.get_attribute_value(value, 'idref')
+    end
+    return idrefs
   end
 
   # Checks whether a given date is valid (e.g., Sep 31 is invalid).

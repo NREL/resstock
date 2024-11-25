@@ -365,6 +365,28 @@ You can create an additional column in the CSV file to define another unavailabl
 
   It is not possible to eliminate all HVAC/DHW energy use (e.g. crankcase/defrost energy, water heater parasitics) in EnergyPlus during an unavailable period.
 
+HPXML Electric Panel Calculations
+*********************************
+
+One or more electric panel calculation types (e.g., 2023 NEC 220.83) can be entered as an ``/HPXML/SoftwareInfo/extension/PanelCalculationTypes/Type``.
+If not entered, electric panel loads will not be calculated.
+
+  ====================================  ========  =======  =============  ========  ================  ===========
+  Element                               Type      Units    Constraints    Required  Default           Description
+  ====================================  ========  =======  =============  ========  ================  ===========
+  ``Type``                              string             See [#]_       Yes                         Panel calculation type
+  ====================================  ========  =======  =============  ========  ================  ===========
+
+  .. [#] Type choices are '2023 Load-Based', '2023 Meter-Based', '2026 Load-Based', and '2026 Meter-Based', and are described as follows:
+
+         \- **2023 Load-Based**: Using a load summing method based on Section 220.83 of the 2023 National Electrical Code.
+
+         \- **2023 Meter-Based**: Using a maximum demand method based on Section 220.87 of the 2023 National Electrical Code.
+
+         \- **2026 Load-Based**: TODO
+
+         \- **2026 Meter-Based**: TODO
+
 .. _hpxml_building:
 
 HPXML Building
@@ -3056,7 +3078,7 @@ Each ground-to-air heat pump is entered as a ``/HPXML/Building/BuildingDetails/S
   .. [#] NumberofUnitsServed only required if IsSharedSystem is true, in which case it must be > 1.
   .. [#] AttachedToGeothermalLoop must reference a ``GeothermalLoop``.
   .. [#] If AttachedToGeothermalLoop not provided, the ground-to-air heat pump will be automatically attached to a geothermal loop that is entirely defaulted.
-  .. [#] If PumpPowerWattsPerTon not provided, defaults to 80 W/ton for a closed loop system.
+  .. [#] If PumpPowerWattsPerTon not provided, defaults to 30 W/ton per `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNET3012019P1>`_ for a closed loop system.
   .. [#] Pump power is calculated using PumpPowerWattsPerTon and the cooling capacity in tons, unless the system only provides heating, in which case the heating capacity in tons is used instead.
          Any pump power that is shared by multiple dwelling units should be included in SharedLoopWatts, *not* PumpPowerWattsPerTon, so that shared loop pump power attributed to the dwelling unit is calculated.
   .. [#] SharedLoopWatts only required if IsSharedSystem is true.
@@ -4582,6 +4604,147 @@ In addition, the PVSystem must be connected to an inverter that is entered as a 
   =======================================================  =================  ================  ===================  ========  ========  ============================================
 
   .. [#] For homes with multiple inverters, all InverterEfficiency elements must have the same value.
+
+.. _hpxml_electric_panels:
+
+HPXML Electric Panels
+*********************
+
+A single electric panel can be entered as a ``/HPXML/Building/BuildingDetails/Systems/ElectricPanels/ElectricPanel``.
+
+  =======================================================================  =======  =========  =======================  ========  =============  ============================================
+  Element                                                                  Type     Units      Constraints              Required  Default        Notes
+  =======================================================================  =======  =========  =======================  ========  =============  ============================================
+  ``SystemIdentifier``                                                     id                                           Yes                      Unique identifier
+  ``Voltage``                                                              string   V          See [#]_                 No        240
+  ``MaxCurrentRating``                                                     double   A                                   No        150
+  ``extension/HeadroomBreakerSpaces`` or ``extension/TotalBreakerSpaces``  integer                                      No        See [#]_
+  ``extension/PanelLoads``                                                 element                                      No        See [#]_       Individual electric panel loads
+  =======================================================================  =======  =========  =======================  ========  =============  ============================================
+
+  .. [#] Voltage choices are "120" or "240".
+  .. [#] If neither extension/HeadroomBreakerSpaces nor extension/TotalBreakerSpaces provided, the following default value representing a fully occupied electric panel will be used: extension/HeadroomBreakerSpaces = 0.
+  .. [#] See :ref:`panel_loads`.
+
+See :ref:`annual_outputs` for descriptions of how the calculated capacities and breaker spaces appear in the output files.
+
+.. _panel_loads:
+
+Panel Loads
+~~~~~~~~~~~
+
+Individual electric panel loads entered in ``extension/PanelLoads/PanelLoad``.
+
+  ==============================================  ========  ==============  ===========  ========  =========  ==========================================
+  Element                                         Type      Units           Constraints  Required  Default    Notes
+  ==============================================  ========  ==============  ===========  ========  =========  ==========================================
+  ``LoadType``                                    string                    See [#]_     Yes
+  ``PowerRating``                                 double    W                            No        See [#]_
+  ``Voltage``                                     string    V               See [#]_     No        See [#]_
+  ``BreakerSpaces``                               integer                                No        See [#]_
+  ``NewLoad``                                     boolean                                No        false      Whether, in the context of NEC calculations, the panel load is new
+  ``AttachedToSystem``                            idref                     See [#]_     See [#]_  See [#]_   ID of attached system; multiple are allowed [#]_
+  ==============================================  ========  ==============  ===========  ========  =========  ==========================================
+
+  .. [#] LoadType choices are "heating", "cooling", "hot Water", "clothes dryer", "dishwasher", "range/oven", "mech vent", "permanent spa heater", "permanent spa pump", "pool heater", "pool pump", "well pump", "electric vehicle charging", "lighting", "kitchen", "laundry", and "other".
+  .. [#] If PowerRating not provided, defaults based on LoadType, Voltage, and AttachedToSystem as follows:
+
+         \- **heating**: TODO
+
+         \- **cooling**: TODO
+
+         \- **hot water** (electric storage water heater): HeatingCapacity,
+
+         \- **hot water** (electric instantaneous water heater): NumberofBathrooms is 1=18,000, NumberofBathrooms is 2=24,000, NumberofBathrooms is 3 or greater=36,000
+
+         \- **hot water** (heat pump): 120=1,000, 240=max(HeatingCapacity, BackupHeatingCapacity)
+
+         \- **clothes dryer** (electric): Vented=5,760, Unvented=2,640
+
+         \- **clothes dryer** (heat pump): 120=996, 240=860
+
+         \- **dishwasher**: 1,200
+
+         \- **range/oven** (electric): 120=1,800, 240=12,000
+
+         \- **mech vent** (local ventilation): Count * FanPower
+
+         \- **mech vent** (other): FanPower
+
+         \- **permanent spa heater** (electric): 1,000
+
+         \- **permanent spa pump**: 1,491
+
+         \- **pool heater** (electric): 27,000
+
+         \- **pool pump**: 1,491
+
+         \- **well pump**: NumberofBedrooms is 3 or less= 746, NumberofBedrooms is greater than 3=1,119
+
+         \- **electric vehicle charging**: 120=1,650, 240=7,680
+
+         \- **lighting**: 3 * ConditionedFloorArea
+
+         \- **kitchen**: 3,000
+
+         \- **laundry**: 1,500
+
+         \- **other**: 373 for garage door opener if a garage is present
+
+  .. [#] Voltage choices are "120" or "240".
+  .. [#] If Voltage not provided, defaults as follows:
+
+         \- **heating, Cooling, hot water, clothes dryer, range/oven, permanent spa heater, pool heater**: 240 (120 if Cooling references a room air conditioner)
+
+         \- **mech vent, dishwasher, permanent spa pump, pool pump, well pump, electric vehicle charging, lighting, kitchen, laundry, other**: 120
+
+  .. [#] If BreakerSpaces not provided, defaults based on LoadType and Voltage:
+
+         \- **lighting, kitchen**: 120: 0, 240: 0
+
+         \- **heating, cooling, hot water, clothes dryer, dishwasher, range/oven, mech vent, permanent spa heater, permanent spa pump, pool heater, pool pump, well pump, electric vehicle charging, laundry, other**: 120: 1, 240: 2
+
+  .. [#] Depending on the LoadType, AttachedToSystem must reference:
+
+         \- **heating**: ``HeatingSystem`` or ``HeatPump``
+
+         \- **cooling**: ``CoolingSystem`` or ``HeatPump``
+
+         \- **hot qater**: ``WaterHeatingSystem``
+
+         \- **clothes dryer**: ``ClothesDryer``
+
+         \- **dishwasher**: ``Dishwasher``
+
+         \- **range/oven**: ``CookingRange``
+
+         \- **mech vent**: ``VentilationFan``
+
+         \- **permanent spa heater**: ``PermanentSpa/Heater``
+
+         \- **permanent spa pump**: ``PermanentSpa/Pumps/Pump``
+
+         \- **pool heater**: ``Pool/Heater``
+
+         \- **pool pump**: ``Pool/Pumps/Pump``
+
+         \- **well pump**: ``PlugLoad[PlugLoadType=”well pump”]``
+
+         \- **electric vehicle charging**: ``PlugLoad[PlugLoadType=”electric vehicle charging”]``
+
+  .. [#] Not allowed if LoadType is "lighting", "kitchen", "laundry", or "other"; otherwise, required.
+  .. [#] A panel load is created for any system not already referenced by a panel load.
+         Panel loads for the following panel load types are always created if they don't already exist:
+
+         \- **lighting**
+
+         \- **kitchen**
+
+         \- **laundry**
+
+         \- **other**
+  
+  .. [#] Provide a AttachedToSystem element for each referenced system.
 
 .. _hpxml_batteries:
 

@@ -4795,36 +4795,15 @@ module HVACSizing
 
     assembly_r = Material.FoundationWallMaterial(foundation_wall.type, foundation_wall.thickness).rvalue
     assembly_r += Material.AirFilmVertical.rvalue + Material.AirFilmOutside.rvalue
-    if not include_insulation_layers
-      return 1.0 / assembly_r
+    if include_insulation_layers
+      if foundation_wall.insulation_interior_distance_to_top == 0 && foundation_wall.insulation_interior_distance_to_bottom > 0
+        assembly_r += foundation_wall.insulation_interior_r_value
+      end
+      if foundation_wall.insulation_exterior_distance_to_top == 0 && foundation_wall.insulation_exterior_distance_to_bottom > 0
+        assembly_r += foundation_wall.insulation_exterior_r_value
+      end
     end
-
-    ag_depth = foundation_wall.height - foundation_wall.depth_below_grade
-    wall_ins_dist_bottom_to_grade_int = ag_depth - foundation_wall.insulation_interior_distance_to_bottom
-    wall_ins_dist_top_to_grade_int = ag_depth - foundation_wall.insulation_interior_distance_to_top
-    wall_ins_dist_bottom_to_grade_ext = ag_depth - foundation_wall.insulation_exterior_distance_to_bottom
-    wall_ins_dist_top_to_grade_ext = ag_depth - foundation_wall.insulation_exterior_distance_to_top
-    # Perform calculation for each 1ft bin of above grade depth
-    sum_u_wall = 0.0
-    for distance_to_grade in 1..ag_depth.ceil
-      r_wall = assembly_r
-
-      bin_dist_top_to_grade = [distance_to_grade, ag_depth].min
-      bin_dist_bottom_to_grade = distance_to_grade - 1
-      bin_size = bin_dist_top_to_grade - bin_dist_bottom_to_grade # Last bin may be less than 1 ft
-
-      # Add interior insulation R-value at this depth?
-      bin_frac_insulated_int = MathTools.overlap(bin_dist_bottom_to_grade, bin_dist_top_to_grade, wall_ins_dist_bottom_to_grade_int, wall_ins_dist_top_to_grade_int) / bin_size
-      r_wall += foundation_wall.insulation_interior_r_value * bin_frac_insulated_int # Interior insulation at this depth, add R-value
-
-      # Add exterior insulation R-value at this depth?
-      bin_frac_insulated_ext = MathTools.overlap(bin_dist_bottom_to_grade, bin_dist_top_to_grade, wall_ins_dist_bottom_to_grade_ext, wall_ins_dist_top_to_grade_ext) / bin_size
-      r_wall += foundation_wall.insulation_exterior_r_value * bin_frac_insulated_ext # Exterior insulation at this depth, add R-value
-
-      sum_u_wall += (1.0 / r_wall) * bin_size
-    end
-    u_wall = sum_u_wall / ag_depth
-    return u_wall
+    return 1.0 / assembly_r
   end
 
   # Calculates the foundation wall below grade effective U-factor according to Manual J Section A12-4.
@@ -4853,27 +4832,22 @@ module HVACSizing
 
     # Perform calculation for each 1ft bin of below grade depth
     sum_u_wall = 0.0
-    for distance_to_grade in 1..foundation_wall.depth_below_grade.ceil
+    wall_depth_above_grade = foundation_wall.depth_below_grade.ceil
+    for distance_to_grade in 1..wall_depth_above_grade
       # Calculate R-wall at this depth
       r_wall = wall_constr_rvalue - Material.AirFilmOutside.rvalue
-      bin_dist_top_to_grade = distance_to_grade - 1
-      bin_dist_bottom_to_grade = [distance_to_grade, foundation_wall.depth_below_grade].min
-      bin_size = bin_dist_bottom_to_grade - bin_dist_top_to_grade # Last bin may be less than 1 ft
-      bin_avg_dist_to_grade = (bin_dist_top_to_grade + bin_dist_bottom_to_grade) / 2.0
-
-      # Add interior insulation R-value at this depth?
-      bin_frac_insulated_int = MathTools.overlap(bin_dist_top_to_grade, bin_dist_bottom_to_grade, wall_ins_dist_top_to_grade_int, wall_ins_dist_bottom_to_grade_int) / bin_size
-      r_wall += wall_ins_rvalue_int * bin_frac_insulated_int
-
-      # Add exterior insulation R-value at this depth?
-      bin_frac_insulated_ext = MathTools.overlap(bin_dist_top_to_grade, bin_dist_bottom_to_grade, wall_ins_dist_top_to_grade_ext, wall_ins_dist_bottom_to_grade_ext) / bin_size
-      r_wall += wall_ins_rvalue_ext * bin_frac_insulated_ext # Exterior insulation at this depth, add R-value
-
+      bin_distance_to_grade = distance_to_grade - 0.5 # Use e.g. 2.5 ft for the 2ft-3ft bin
+      r_soil = (Math::PI * bin_distance_to_grade / 2.0) / ground_conductivity
+      if (distance_to_grade > wall_ins_dist_top_to_grade_int) && (distance_to_grade <= wall_ins_dist_bottom_to_grade_int)
+        r_wall += wall_ins_rvalue_int # Interior insulation at this depth, add R-value
+      end
+      if (distance_to_grade > wall_ins_dist_top_to_grade_ext) && (distance_to_grade <= wall_ins_dist_bottom_to_grade_ext)
+        r_wall += wall_ins_rvalue_ext # Exterior insulation at this depth, add R-value
+      end
       if include_soil
-        r_soil = (Math::PI * bin_avg_dist_to_grade / 2.0) / ground_conductivity
-        sum_u_wall += (1.0 / (r_soil + r_wall)) * bin_size
+        sum_u_wall += 1.0 / (r_soil + r_wall)
       else
-        sum_u_wall += (1.0 / r_wall) * bin_size
+        sum_u_wall += 1.0 / r_wall
       end
     end
     u_wall = sum_u_wall / foundation_wall.depth_below_grade

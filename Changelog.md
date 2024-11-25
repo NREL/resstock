@@ -1,7 +1,7 @@
 ## OpenStudio-HPXML v1.9.0
 
 __New Features__
-- Updates to OpenStudio 3.9/EnergyPlus 24.2/HPXML v4.1-rc1.
+- Updates to OpenStudio 3.9/EnergyPlus 24.2/HPXML v4.0 final release.
 - Allows `Site/Address/ZipCode` to be provided instead of `ClimateandRiskZones/WeatherStation/extension/EPWFilePath`, in which case the closest TMY3 weather station will be automatically selected.
 - Allows optional inputs for modeling skylight curbs and/or shafts.
 - Allows modeling exterior horizontal insulation for a slab-on-grade foundation (or basement/crawlspace floor).
@@ -57,7 +57,6 @@ __Bugfixes__
 - Fixes default CFIS fan power during ventilation only mode.
 - Fixes a bug that potentially oversizes heat pumps when detailed performance capacity fractions are provided.
 - For a CFIS system with a supplemental fan, fixes supplemental fan runtime when using sub-hourly timesteps.
-- Fixes GSHP rated fan/pump powers in net to gross calculations and improves default modeled pump power (W/ton).
 
 ## OpenStudio-HPXML v1.8.1
 
