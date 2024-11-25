@@ -7,12 +7,28 @@ Development Changelog
     :released: pending
 
     .. change::
+        :tags: software, openstudio, feature
+        :pullreq: 1318
 
+        **Date**: 2024-11-19
+
+        Title:
+        Latest OS-HPXML
+
+        Description:
+        Update to OpenStudio-HPXML 1.9/OpenStudio 3.9/EnergyPlus 24.2.
+
+        OpenStudio-HPXML: `pull request 1883 <https://github.com/NREL/OpenStudio-HPXML/pull/1883>`_
+
+        Assignees: Joe Robertson, Scott Horowitz
+
+
+    .. change::
         :tags: bugfix, characteristics
         :pullreq: 1265
         :tickets: 1236
 
-        **Date**: 2024-08-06
+        **Date**: 2024-09-24
 
         Title:
         Fix Hot Water Fixtures multipliers
@@ -20,8 +36,12 @@ Development Changelog
         Description:
         Mean-shift hot water usage multipliers distribution by increasing weighted average from 0.8 to 1.0 in Hot Water Fixtures.tsv.
 
+        resstock-estimation: `pull request 420 <https://github.com/NREL/resstock-estimation/pull/420>`_
+
         Assignees: Lixi Liu
 
+
+    .. change::
         :tags: workflow, infiltration, bugfix
         :pullreq: 1257
 
@@ -37,11 +57,13 @@ Development Changelog
 
         Assignees: Joe Robertson
 
+
     .. change::
         :tags: characteristics, floor area, bugfix
         :pullreq: 1301
+        :tickets: 1273
 
-        **Date**: 2024-09-18
+        **Date**: 2024-09-23
 
         Title:
         Fix RECS floor area bins
@@ -49,7 +71,10 @@ Development Changelog
         Description:
         RECS have been using incorrect floor area bins when assigning some characteristics due to a bug on how floor area bin is calculated. This PR fixes the issue.
 
+        resstock-estimation: `pull request 424 <https://github.com/NREL/resstock-estimation/pull/424>`_
+
         Assignees: Rajendra Adhikari, Anthony Fontanini
+
 
     .. change::
         :tags: workflow, hot water, feature
@@ -72,7 +97,7 @@ Development Changelog
         :tags: workflow, plug loads, feature
         :pullreq: 1298
 
-        **Date**: 2024-09-24
+        **Date**: 2024-09-26
 
         Title:
         Latest OS-HPXML
@@ -90,7 +115,7 @@ Development Changelog
         :tags: workflow, hvac, feature
         :pullreq: 1254
 
-        **Date**: 2024-09-218
+        **Date**: 2024-09-27
 
         Title:
         Heating and Cooling Unavailable Days
@@ -99,7 +124,23 @@ Development Changelog
         The purpose of this PR is to account for dwelling units whose HVAC system (heating/cooling) is unavailable for some number of days during the year (per RECS 2020).
         Specifically, this PR modifies HVAC heating/cooling seasons using number of unavailable days and BAHSP definition for heating/cooling months.
 
+        resstock-estimation: `pull request 416 <https://github.com/NREL/resstock-estimation/pull/416>`_
+
         Assignees: Joe Robertson
+
+
+    .. change::
+        :tags: workflow, hvac, feature
+        :pullreq: 1304
+        :tickets: 1303
+
+        **Date**: 2024-11-14
+
+        Title:
+        Assign above-grade height for apartment units
+
+        Description:
+        The purpose of this PR is to set a value in ResStockArguments for apartment units based on the type/size of MF building and where the unit is located (lower, middle, or upper story).
 
     .. change::
         :tags: workflow, feature

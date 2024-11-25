@@ -36439,12 +36439,6 @@ Arguments
      - Double
      -
      - Average distance from the floor to the ceiling.
-   * - ``geometry_unit_height_above_grade``
-     - false
-     - ft
-     - Double
-     - auto
-     - Describes the above-grade height of apartment units on upper floors or homes above ambient or belly-and-wing foundations. It is defined as the height of the lowest conditioned floor above grade and is used to calculate the wind speed for the infiltration model. If not provided, the OS-HPXML default (see `HPXML Building Construction <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-building-construction>`_) is used.
 
 Options
 *******
@@ -36461,38 +36455,32 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``geometry_unit_type``
      - ``geometry_unit_aspect_ratio``
      - ``geometry_average_ceiling_height``
-     - ``geometry_unit_height_above_grade``
 
    * - Mobile Home
      - 6.2%
      - manufactured home
      - 1.8
      - 8
-     - auto
    * - Multi-Family with 2 - 4 Units
      - 8%
      - apartment unit
      - 0.5556
      - 8
-     - auto
    * - Multi-Family with 5+ Units
      - 18%
      - apartment unit
      - 0.5556
      - 8
-     - auto
    * - Single-Family Attached
      - 5.9%
      - single-family attached
      - 0.5556
      - 8
-     - auto
    * - Single-Family Detached
      - 61%
      - single-family detached
      - 1.8
      - 8
-     - auto
 
 .. _geometry_floor_area:
 
@@ -62768,7 +62756,7 @@ Arguments
      - gal
      - Double
      - auto
-     - Nominal volume of water heater tank. Only applies to storage water heater, heat pump water heater, and space-heating boiler with storage tank. If not provided, the OS-HPXML default (see `Conventional Storage <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage>`_, `Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump>`_, `Combi Boiler w/ Storage <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#combi-boiler-w-storage>`_) is used.
+     - Nominal volume of water heater tank. If not provided, the OS-HPXML default (see `Conventional Storage <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage>`_, `Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump>`_, `Combi Boiler w/ Storage <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#combi-boiler-w-storage>`_) is used.
    * - ``water_heater_efficiency_type``
      - true
      - 
@@ -62798,7 +62786,13 @@ Arguments
      - Btu/hr
      - Double
      - auto
-     - Heating capacity. Only applies to storage water heater. If not provided, the OS-HPXML default (see `Conventional Storage <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage>`_) is used.
+     - Heating capacity. Only applies to storage water heater and heat pump water heater (compressor). If not provided, the OS-HPXML default (see `Conventional Storage <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage>`_, `Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump>`_) is used.
+   * - ``water_heater_backup_heating_capacity``
+     - false
+     - Btu/hr
+     - Double
+     - auto
+     - Backup heating capacity for a heat pump water heater. If not provided, the OS-HPXML default (see `Heat Pump <https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump>`_) is used.
    * - ``water_heater_standby_loss``
      - false
      - F/hr
@@ -62868,6 +62862,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``water_heater_usage_bin``
      - ``water_heater_recovery_efficiency``
      - ``water_heater_heating_capacity``
+     - ``water_heater_backup_heating_capacity``
      - ``water_heater_standby_loss``
      - ``water_heater_jacket_rvalue``
      - ``water_heater_setpoint_temperature``
@@ -62887,6 +62882,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0
      - auto
+     - auto
      - 0
      - 0
      - 125
@@ -62904,6 +62900,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 3.35
      - auto
      - 0
+     - auto
      - auto
      - 0
      - 0
@@ -62923,6 +62920,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0
      - auto
+     - auto
      - 0
      - 0
      - 125
@@ -62940,6 +62938,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0.95
      - auto
      - 0
+     - auto
      - auto
      - 0
      - 0
@@ -62959,6 +62958,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0
      - auto
+     - auto
      - 0
      - 0
      - 125
@@ -62976,6 +62976,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0.99
      - auto
      - 0
+     - auto
      - auto
      - 0
      - 0
@@ -62995,6 +62996,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.78
      - auto
+     - auto
      - 0
      - 0
      - 125
@@ -63012,6 +63014,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0.68
      - auto
      - 0.9
+     - auto
      - auto
      - 0
      - 0
@@ -63031,6 +63034,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.78
      - auto
+     - auto
      - 0
      - 0
      - 125
@@ -63048,6 +63052,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0.67
      - auto
      - 0.78
+     - auto
      - auto
      - 0
      - 0
@@ -63067,6 +63072,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.76
      - auto
+     - auto
      - 0
      - 0
      - 125
@@ -63084,6 +63090,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0.82
      - auto
      - 0
+     - auto
      - auto
      - 0
      - 0
@@ -63103,6 +63110,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.76
      - auto
+     - auto
      - 0
      - 0
      - 125
@@ -63120,6 +63128,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0.67
      - auto
      - 0.78
+     - auto
      - auto
      - 0
      - 0
@@ -63139,6 +63148,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - 0.76
      - auto
+     - auto
      - 0
      - 0
      - 125
@@ -63156,6 +63166,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 0.82
      - auto
      - 0
+     - auto
      - auto
      - 0
      - 0
