@@ -850,6 +850,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args[:rim_joist_assembly_r] = rim_joist_assembly_r
 
     # Electric Panel
+    args[:electric_panel_load_calculation_types] = "#{HPXML::ElectricPanelLoadCalculationType2023LoadBased}, #{HPXML::ElectricPanelLoadCalculationType2023MeterBased}"
+
     panel_sampler = ElectricalPanelSampler.new(runner: runner, **args)
     cap_bin, cap_val = panel_sampler.assign_rated_capacity(args: args)
 

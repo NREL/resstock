@@ -206,11 +206,8 @@ module XMLHelper
   # @param attr_name [String] Name of the attribute
   # @param attr_val [*] Value for the attribute
   # @return [nil]
-  def self.add_attribute(element, attr_name, attr_val, defaulted = false)
+  def self.add_attribute(element, attr_name, attr_val)
     element.set(attr_name, attr_val)
-    if defaulted
-      XMLHelper.add_attribute(element, 'dataSource', 'software')
-    end
   end
 
   # Gets the value of the specified attribute for the given element.

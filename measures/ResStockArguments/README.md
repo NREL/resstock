@@ -3795,11 +3795,11 @@ Maximum power output of the second PV system. For a shared system, this is the t
 
 <br/>
 
-**Electric Panel: Load Calculation Types**
+**Electric Panel: Cooking Range/Oven Power**
 
-Types of electric panel load calculations. If multiple types, use a comma-separated list. If not provided, no electric panel loads are calculated.
+Specifies the panel load cooking range/oven power. If not provided, the OS-HPXML default (see <a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#panel-loads'>Panel Loads</a>) is used.
 
-- **Name:** ``electric_panel_load_calculation_types``
+- **Name:** ``electric_panel_load_cooking_range_power``
 - **Type:** ``String``
 
 - **Required:** ``false``
