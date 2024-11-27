@@ -107,7 +107,7 @@ class HVACScheduleModifier
   end
 
   def _get_day_type(index)
-    day = index % @steps_in_day
+    day = index / @steps_in_day
     if @daily_avg_temps[day] < 66.0
       return 'heating'
     else
