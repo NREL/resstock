@@ -865,12 +865,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args[:electric_panel_load_other_power] = 0
     end
     # Assume all homes have a microwave
-    if args[:geometry_unit_num_occupants] <= 2
-      microwave_power = 900 # W, small, <= 0.9 cu ft
-    elsif args[:geometry_unit_num_occupants] <= 4
-      microwave_power = 1100 # W, medium, <= 1.6 cu ft
+    if args[:geometry_unit_num_bedrooms] <= 2
+      microwave_power = 900 # W, small, <= 0.9 cu ft, 1-2 ppl
+    elsif args[:geometry_unit_num_bedrooms] <= 4
+      microwave_power = 1100 # W, medium, <= 1.6 cu ft, 3-4 ppl
     else
-      microwave_power = 1250 # W, large, 1.7-2.2 cu ft
+      microwave_power = 1250 # W, large, 1.7-2.2 cu ft, 5+ ppl
     end
 
     garbage_disposal_ownership = 0.52 # AHS 2013
@@ -878,11 +878,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       garbage_disposal_power = 0
     else
       # Power estimated from avg load amp not HP rating, from InSinkErators
-      if args[:geometry_unit_num_occupants] <= 1
+      if args[:geometry_unit_num_bedrooms] <= 1
         garbage_disposal_power = 672 # W, 1/3 HP, avg load 5.6A, 1-2 ppl
-      elsif args[:geometry_unit_num_occupants] <= 3
+      elsif args[:geometry_unit_num_bedrooms] <= 3
         garbage_disposal_power = 756 # W, 1/2 HP, avg load 6.3A, 2-4 ppl
-      elsif args[:geometry_unit_num_occupants] <= 5
+      elsif args[:geometry_unit_num_bedrooms] <= 4
         garbage_disposal_power = 1140 # W, 3/4 HP, avg load 9.5A, 3-5 ppl
       else
         garbage_disposal_power = 1224 # W, 1 HP, avg load 10.2A, 4+ ppl
