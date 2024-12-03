@@ -323,12 +323,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       print_option_assignment(parameter_name, option_name, runner)
       options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
       options_measure_args[option_name].each do |measure_subdir, args_hash|
-        update_args_hash(measures, measure_subdir, args_hash, false)
+        update_args_hash(measures, measure_subdir, args_hash)
       end
     end
 
     # Run the ResStockArguments measure
     resstock_arguments_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
+    measures['ResStockArguments'][0]['building_id'] = args[:building_id]
     if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
       register_logs(runner, resstock_arguments_runner)
       return false
@@ -363,8 +364,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       # Assign ResStockArgument's runner arguments to BuildResidentialHPXML
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
-        register_value(runner, step_value.name, value) if Constants.arguments_to_register.include?(step_value.name)
-        next if value == ''
+        register_value(runner, step_value.name, value) if Constants::ArgumentsToRegister.include?(step_value.name)
+        next if value == '' || Constants::ArgumentsToExclude.include?(step_value.name)
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
@@ -771,7 +772,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # Report some additional location and model characteristics
+    # Report additional characteristics
     if File.exist?(hpxml_path)
       hpxml = HPXML.new(hpxml_path: hpxml_path)
     else
@@ -780,12 +781,25 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     hpxml_bldg = hpxml.buildings[0]
+
+    # height above grade
+    unit_height_above_grade = hpxml_bldg.building_construction.unit_height_above_grade
+    register_value(runner, 'unit_height_above_grade', unit_height_above_grade)
+
+    # infiltration
+    air_infiltration_measurement = hpxml_bldg.air_infiltration_measurements[0]
+    a_ext = 1.0
+    a_ext = air_infiltration_measurement.a_ext if !air_infiltration_measurement.a_ext.nil?
+    register_value(runner, 'air_leakage_to_outside_ach_50', air_infiltration_measurement.air_leakage * a_ext)
+
+    # weather file
     epw_path = Location.get_epw_path(hpxml_bldg, hpxml_path)
     epw_file = OpenStudio::EpwFile.new(epw_path)
     register_value(runner, 'weather_file_city', epw_file.city)
     register_value(runner, 'weather_file_latitude', epw_file.latitude)
     register_value(runner, 'weather_file_longitude', epw_file.longitude)
 
+    # sample weight
     if bldg_data.keys.include?('sample_weight')
       sample_weight = bldg_data['sample_weight']
       register_value(runner, 'sample_weight', sample_weight.to_s)

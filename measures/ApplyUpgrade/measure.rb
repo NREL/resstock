@@ -25,15 +25,15 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   end
 
   def num_options
-    return Constants.NumApplyUpgradeOptions # Synced with UpgradeCosts measure
+    return Constants::NumApplyUpgradeOptions # Synced with UpgradeCosts measure
   end
 
   def num_costs_per_option
-    return Constants.NumApplyUpgradesCostsPerOption # Synced with UpgradeCosts measure
+    return Constants::NumApplyUpgradesCostsPerOption # Synced with UpgradeCosts measure
   end
 
   def cost_multiplier_choices
-    return Constants.CostMultiplierChoices # Synced with UpgradeCosts measure
+    return Constants::CostMultiplierChoices # Synced with UpgradeCosts measure
   end
 
   # define the arguments that the user will input
@@ -263,7 +263,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         # Get measure name and arguments associated with the option
         options_measure_args, _errors = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
         options_measure_args[option_name].each do |measure_subdir, args_hash|
-          update_args_hash(measures, measure_subdir, args_hash, false)
+          update_args_hash(measures, measure_subdir, args_hash)
         end
       end
 
@@ -271,7 +271,9 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         return false
       end
 
-      measures['ResStockArguments'] = [{}] if !measures.keys.include?('ResStockArguments') # upgrade is via another measure
+      if !measures.keys.include?('ResStockArguments') # upgrade is via another measure
+        measures['ResStockArguments'] = [{}]
+      end
 
       # Add measure arguments from existing building if needed
       parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
@@ -290,13 +292,15 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
               new_args_hash[k] = v
             end
-            update_args_hash(measures, measure_subdir, new_args_hash, false)
+            update_args_hash(measures, measure_subdir, new_args_hash)
           end
         end
       end
 
       # Run the ResStockArguments measure
+      measures['ResStockArguments'][0]['building_id'] = values['building_id']
       if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, resstock_arguments_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+        register_logs(runner, resstock_arguments_runner)
         return false
       end
     end # apply_package_upgrade
@@ -333,7 +337,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Assign ResStockArgument's runner arguments to BuildResidentialHPXML
       resstock_arguments_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
-        next if value == ''
+        next if value == '' || Constants::ArgumentsToExclude.include?(step_value.name)
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end

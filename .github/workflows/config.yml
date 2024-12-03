@@ -8,15 +8,15 @@ on:
   workflow_dispatch:
 
 env:
-  OPENSTUDIO_VER: "3.8.0"
-  OPENSTUDIO_SHA: "f953b6fcaf"
-  OPENSTUDIO_PLATFORM: "Ubuntu-20.04-x86_64"
-  OPENSTUDIO_EXT: "deb"
-  OPENSTUDIO_URL: "https://github.com/NREL/OpenStudio/releases/download/v3.8.0"
+  OPENSTUDIO_VER: 3.9.0
+  OPENSTUDIO_SHA: c77fbb9569
+  OPENSTUDIO_PLATFORM: Ubuntu-22.04-x86_64
+  OPENSTUDIO_EXT: deb
+  OPENSTUDIO_URL: https://github.com/NREL/OpenStudio/releases/download/v3.9.0
 
 jobs:
   format-files:
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,10 +35,10 @@ jobs:
           name: options_lookup
 
   unit-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [format-files]
     container:
-      image: docker://nrel/openstudio:3.8.0
+      image: docker://nrel/openstudio:3.9.0
     steps:
       - uses: actions/checkout@v4
         with:
@@ -79,10 +79,10 @@ jobs:
           name: coverage
 
   analysis-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [unit-tests]
     container:
-      image: docker://nrel/openstudio:3.8.0
+      image: docker://nrel/openstudio:3.9.0
     steps:
       - uses: actions/checkout@v4
         with:
@@ -135,12 +135,16 @@ jobs:
           name: run_analysis_results_csvs
 
   integration-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [unit-tests]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
       - name: Download and Install OpenStudio
         run: |
@@ -211,7 +215,7 @@ jobs:
           ruby test/test_bsb_analysis.rb
 
   compare-tools:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [analysis-tests, integration-tests]
     steps:
       - uses: actions/checkout@v4
@@ -239,7 +243,7 @@ jobs:
 
   compare-results:
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [integration-tests]
     steps:
       - uses: actions/checkout@v4
@@ -281,37 +285,25 @@ jobs:
           pip install plotly
           pip install kaleido
           
-          mkdir test/base_results/comparisons
+          # baseline annual
+          mkdir -p test/base_results/comparisons/baseline/annual
+          python test/compare.py -a samples -b base_results/baseline/annual -f samples -e test/base_results/comparisons/baseline/annual # base_samples.csv, feature_samples.csv
+          python test/compare.py -a results -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual # results_characteristics.csv, results_output.csv
+          python test/compare.py -a results -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual # results_output_building_type_sum.csv
+          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -x results_output_building_type.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual # *.html
           
-          mkdir test/base_results/comparisons/baseline
-          
-          mkdir test/base_results/comparisons/baseline/annual
-          
-          python test/compare.py -a samples -b base_results/baseline/annual -f samples -e test/base_results/comparisons/baseline/annual
-                    
-          python test/compare.py -a results -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a results -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          
-          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -x results_output_building_type.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          # python test/compare.py -a visualize -dc build_existing_model.geometry_foundation_type -x results_output_foundation_type.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          # python test/compare.py -a visualize -dc build_existing_model.census_region -x results_output_cr.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          # python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.census_region -af sum -x results_output_cr_sum.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          
+          # baseline timeseries
           mkdir test/base_results/comparisons/baseline/timeseries
-                    
-          python test/compare.py -a timeseries -b base_results/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
+          python test/compare.py -a timeseries -b base_results/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries # cvrmse_nmbe_*.csv
           
-          mkdir test/base_results/comparisons/upgrades
+          # upgrades annual
+          mkdir -p test/base_results/comparisons/upgrades/annual
+          python test/compare.py -a results -b base_results/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual # results_output.csv
+          python test/compare.py -a visualize -x results_output.html -b base_results/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual # *.html
           
-          mkdir test/base_results/comparisons/upgrades/annual
-                    
-          python test/compare.py -a results -b base_results/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
-          
-          python test/compare.py -a visualize -x results_output.html -b base_results/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
-          
+          # upgrades timeseries
           mkdir test/base_results/comparisons/upgrades/timeseries
-                    
-          python test/compare.py -a timeseries -b base_results/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries
+          python test/compare.py -a timeseries -b base_results/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries # cvrmse_nmbe_*.csv
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v4
@@ -320,7 +312,7 @@ jobs:
           name: comparisons
 
   update-results:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [analysis-tests, integration-tests]
     steps:
       - uses: actions/checkout@v4

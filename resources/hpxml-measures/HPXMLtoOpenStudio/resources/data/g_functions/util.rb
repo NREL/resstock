@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
+# Downselect jsons found at https://gdr.openei.org/files/1325/g-function_library_1.0.zip.
+#
+# @param filepath [String] temporary file path to store downloaded g-function config json files
+# @return [Integer] total number of g-function config json files generated
 def process_g_functions(filepath)
-  # Downselect jsons found at https://gdr.openei.org/files/1325/g-function_library_1.0.zip
   require 'json'
   require 'zip'
 
@@ -12,7 +15,7 @@ def process_g_functions(filepath)
     puts "Processing #{config_json}..."
     json = JSON.load(file)
 
-    # It's possible that multiple m_n keys exist for a given config/borehole combo.
+    # It's possible that multiple m_n keys exist for a given config/boreholes combo.
     # So, we are choosing the "most square" m_n for each config/boreholes combo.
     json2 = {}
     case config_json
@@ -73,6 +76,14 @@ def process_g_functions(filepath)
   return num_configs_actual
 end
 
+# Update a json hash with configurations of interest and check that number of boreholes are what we'd expect.
+#
+# @param json [Hash] the downloaded g-function config hash
+# @param json2 [Hash] the hash being populated with configurations of interest
+# @param expected_num_boreholes [Integer] expected number of boreholes for a config/boreholes combo
+# @param m_n [String] keys from the config files where m is borehole "columns" and n is borehole "rows"
+# @param key2 [String] additional key some configs use to access specific configurations
+# @return [nil]
 def add_m_n(json, json2, expected_num_boreholes, m_n, key2 = nil)
   if key2.nil?
     actual_num_boreholes = json[m_n]['bore_locations'].size

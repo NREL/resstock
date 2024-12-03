@@ -1,470 +1,287 @@
 # frozen_string_literal: true
 
-class Constants
-  # Numbers --------------------
-
-  def self.AssumedInsideTemp
-    return 73.5 # deg-F
-  end
-
-  def self.g
-    return 32.174 # gravity (ft/s2)
-  end
-
-  def self.small
-    return 1e-9
-  end
-
-  def self.NumDaysInMonths(year)
-    num_days_in_months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    num_days_in_months[1] += 1 if Date.leap?(year)
-    return num_days_in_months
-  end
-
-  def self.NumDaysInYear(year)
-    num_days_in_months = NumDaysInMonths(year)
-    num_days_in_year = num_days_in_months.sum
-    return num_days_in_year
-  end
-
-  def self.NumHoursInYear(year)
-    num_days_in_year = NumDaysInYear(year)
-    num_hours_in_year = num_days_in_year * 24
-    return num_hours_in_year
-  end
-
-  # Strings --------------------
-
-  def self.AirFilm
-    return 'AirFilm'
-  end
-
-  def self.AutomaticallyAdded
-    return 'AutomaticallyAdded'
-  end
-
-  def self.ERIVersions
-    return ['2014', '2014A', '2014AE', '2014AEG', '2019', '2019A',
-            '2019AB', '2019ABC', '2019ABCD', '2022', '2022C']
-  end
-
-  def self.FacadeFront
-    return 'front'
-  end
-
-  def self.FacadeBack
-    return 'back'
-  end
-
-  def self.FacadeLeft
-    return 'left'
-  end
-
-  def self.FacadeRight
-    return 'right'
-  end
-
-  def self.FluidWater
-    return 'water'
-  end
-
-  def self.FluidPropyleneGlycol
-    return 'propylene-glycol'
-  end
-
-  def self.FluidEthyleneGlycol
-    return 'ethylene-glycol'
-  end
-
-  def self.FossilFuels
-    return [HPXML::FuelTypeNaturalGas,
-            HPXML::FuelTypePropane,
-            HPXML::FuelTypeOil,
-            HPXML::FuelTypeCoal,
-            HPXML::FuelTypeWoodCord,
-            HPXML::FuelTypeWoodPellets]
-  end
-
-  def self.IECCZones
-    return ['1A', '1B', '1C', '2A', '2B', '2C', '3A', '3B', '3C',
-            '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8']
-  end
-
-  def self.MoistureTypes
-    return [HPXML::SiteSoilMoistureTypeDry,
-            HPXML::SiteSoilMoistureTypeMixed,
-            HPXML::SiteSoilMoistureTypeWet]
-  end
-
-  def self.ObjectNameAirSourceHeatPump
-    return 'air source heat pump'
-  end
-
-  def self.ObjectNameBatteryLossesAdjustment
-    return 'battery losses adjustment'
-  end
-
-  def self.ObjectNameBoiler
-    return 'boiler'
-  end
-
-  def self.ObjectNameCeilingFan
-    return 'ceiling fan'
-  end
-
-  def self.ObjectNameCentralAirConditioner
-    return 'central ac'
-  end
-
-  def self.ObjectNameCentralAirConditionerAndFurnace
-    return 'central ac and furnace'
-  end
-
-  def self.ObjectNameClothesWasher
-    return 'clothes washer'
-  end
-
-  def self.ObjectNameClothesDryer
-    return 'clothes dryer'
-  end
-
-  def self.ObjectNameComponentLoadsProgram
-    return 'component loads program'
-  end
-
-  def self.ObjectNameCookingRange
-    return 'cooking range'
-  end
-
-  def self.ObjectNameDehumidifier
-    return 'dehumidifier'
-  end
-
-  def self.ObjectNameDishwasher
-    return 'dishwasher'
-  end
-
-  def self.ObjectNameDistributionWaste
-    return 'dhw distribution waste'
-  end
-
-  def self.ObjectNameDuctLoad
-    return 'duct load'
-  end
-
-  def self.ObjectNameElectricBaseboard
-    return 'electric baseboard'
-  end
-
-  def self.ObjectNameEvaporativeCooler
-    return 'evap cooler'
-  end
-
-  def self.ObjectNameFanPumpDisaggregateCool
-    return 'disaggregate clg'
-  end
-
-  def self.ObjectNameFanPumpDisaggregatePrimaryHeat
-    return 'disaggregate htg primary'
-  end
-
-  def self.ObjectNameFanPumpDisaggregateBackupHeat
-    return 'disaggregate htg backup'
-  end
-
-  def self.ObjectNameFixtures
-    return 'dhw fixtures'
-  end
-
-  def self.ObjectNameFreezer
-    return 'freezer'
-  end
-
-  def self.ObjectNameFurnace
-    return 'furnace'
-  end
-
-  def self.ObjectNameGeneralWaterUse
-    return 'general water use'
-  end
-
-  def self.ObjectNameGeneralWaterUseLatent
-    return 'general water use latent'
-  end
-
-  def self.ObjectNameGeneralWaterUseSensible
-    return 'general water use sensible'
-  end
-
-  def self.ObjectNameGroundSourceHeatPump
-    return 'ground source heat pump'
-  end
-
-  def self.ObjectNameGSHPSharedPump
-    return 'gshp shared loop pump'
-  end
-
-  def self.ObjectNameHotWaterRecircPump
-    return 'dhw recirc pump'
-  end
-
-  def self.ObjectNameHVACAvailabilitySensor
-    return 'hvac availability sensor'
-  end
-
-  def self.ObjectNameIdealAirSystem
-    return 'ideal air system'
-  end
-
-  def self.ObjectNameInfiltration
-    return 'infil'
-  end
-
-  def self.ObjectNameLightingExterior
-    return 'exterior lighting'
-  end
-
-  def self.ObjectNameLightingExteriorHoliday
-    return 'exterior holiday lighting'
-  end
-
-  def self.ObjectNameLightingGarage
-    return 'garage lighting'
-  end
-
-  def self.ObjectNameLightingInterior
-    return 'interior lighting'
-  end
-
-  def self.ObjectNameMechanicalVentilation
-    return 'mech vent'
-  end
-
-  def self.ObjectNameMechanicalVentilationPrecooling
-    return 'mech vent precooling'
-  end
-
-  def self.ObjectNameMechanicalVentilationPreheating
-    return 'mech vent preheating'
-  end
-
-  def self.ObjectNameMechanicalVentilationHouseFan
-    return 'mech vent house fan'
-  end
-
-  def self.ObjectNameMechanicalVentilationHouseFanCFIS
-    return 'mech vent house fan cfis'
-  end
-
-  def self.ObjectNameMechanicalVentilationHouseFanCFISSupplFan
-    return 'mech vent house fan cfis suppl'
-  end
-
-  def self.ObjectNameMechanicalVentilationBathFan
-    return 'mech vent bath fan'
-  end
-
-  def self.ObjectNameMechanicalVentilationRangeFan
-    return 'mech vent range fan'
-  end
-
-  def self.ObjectNameMiniSplitAirConditioner
-    return 'mini split air conditioner'
-  end
-
-  def self.ObjectNameMiniSplitHeatPump
-    return 'mini split heat pump'
-  end
-
-  def self.ObjectNamePTHP
-    return 'packaged terminal heat pump'
-  end
-
-  def self.ObjectNameRoomHP
-    return 'room ac with reverse cycle'
-  end
-
-  def self.ObjectNamePTAC
-    return 'packaged terminal air conditioner'
-  end
-
-  def self.ObjectNameBackupSuppHeat
-    return 'back up supp heat'
-  end
-
-  def self.ObjectNameMiscGrill
-    return 'misc grill'
-  end
-
-  def self.ObjectNameMiscLighting
-    return 'misc lighting'
-  end
-
-  def self.ObjectNameMiscFireplace
-    return 'misc fireplace'
-  end
-
-  def self.ObjectNameMiscPoolHeater
-    return 'misc pool heater'
-  end
-
-  def self.ObjectNameMiscPoolPump
-    return 'misc pool pump'
-  end
-
-  def self.ObjectNameMiscPermanentSpaHeater
-    return 'misc permanent spa heater'
-  end
-
-  def self.ObjectNameMiscPermanentSpaPump
-    return 'misc permanent spa pump'
-  end
-
-  def self.ObjectNameMiscPlugLoads
-    return 'misc plug loads'
-  end
-
-  def self.ObjectNameMiscTelevision
-    return 'misc tv'
-  end
-
-  def self.ObjectNameMiscElectricVehicleCharging
-    return 'misc electric vehicle charging'
-  end
-
-  def self.ObjectNameMiscWellPump
-    return 'misc well pump'
-  end
-
-  def self.ObjectNameNaturalVentilation
-    return 'natural vent'
-  end
-
-  def self.ObjectNameNeighbors
-    return 'neighbors'
-  end
-
-  def self.ObjectNameOccupants
-    return 'occupants'
-  end
-
-  def self.ObjectNameRefrigerator
-    return 'fridge'
-  end
-
-  def self.ObjectNameRoomAirConditioner
-    return 'room ac'
-  end
-
-  def self.ObjectNameSolarHotWater
-    return 'solar hot water'
-  end
-
-  def self.ObjectNameTotalLoadsProgram
-    return 'total loads program'
-  end
-
-  def self.ObjectNameUnitHeater
-    return 'unit heater'
-  end
-
-  def self.ObjectNameUnmetHoursProgram
-    return 'unmet hours program'
-  end
-
-  def self.ObjectNameWaterHeater
-    return 'water heater'
-  end
-
-  def self.ObjectNameWaterHeaterSetpoint
-    return 'water heater setpoint'
-  end
-
-  def self.ObjectNameWaterHeaterAdjustment
-    return 'water heater energy adjustment'
-  end
-
-  def self.ObjectNameWaterLoopHeatPump
-    return 'water loop heat pump'
-  end
-
-  def self.ObjectNameWholeHouseFan
-    return 'whole house fan'
-  end
-
-  def self.ScheduleTypeLimitsFraction
-    return 'Fractional'
-  end
-
-  def self.ScheduleTypeLimitsOnOff
-    return 'OnOff'
-  end
-
-  def self.ScheduleTypeLimitsTemperature
-    return 'Temperature'
-  end
-
-  def self.SoilTypes
-    return [HPXML::SiteSoilTypeClay,
-            HPXML::SiteSoilTypeGravel,
-            HPXML::SiteSoilTypeLoam,
-            # HPXML::SiteSoilTypeOther,
-            HPXML::SiteSoilTypeSand,
-            HPXML::SiteSoilTypeSilt,
-            HPXML::SiteSoilTypeUnknown]
-  end
-
-  def self.StateCodesMap
-    return { 'AK' => 'Alaska',
-             'AL' => 'Alabama',
-             'AR' => 'Arkansas',
-             'AZ' => 'Arizona',
-             'CA' => 'California',
-             'CO' => 'Colorado',
-             'CT' => 'Connecticut',
-             'DC' => 'District of Columbia',
-             'DE' => 'Delaware',
-             'FL' => 'Florida',
-             'GA' => 'Georgia',
-             'HI' => 'Hawaii',
-             'IA' => 'Iowa',
-             'ID' => 'Idaho',
-             'IL' => 'Illinois',
-             'IN' => 'Indiana',
-             'KS' => 'Kansas',
-             'KY' => 'Kentucky',
-             'LA' => 'Louisiana',
-             'MA' => 'Massachusetts',
-             'MD' => 'Maryland',
-             'ME' => 'Maine',
-             'MI' => 'Michigan',
-             'MN' => 'Minnesota',
-             'MO' => 'Missouri',
-             'MS' => 'Mississippi',
-             'MT' => 'Montana',
-             'NC' => 'North Carolina',
-             'ND' => 'North Dakota',
-             'NE' => 'Nebraska',
-             'NH' => 'New Hampshire',
-             'NJ' => 'New Jersey',
-             'NM' => 'New Mexico',
-             'NV' => 'Nevada',
-             'NY' => 'New York',
-             'OH' => 'Ohio',
-             'OK' => 'Oklahoma',
-             'OR' => 'Oregon',
-             'PA' => 'Pennsylvania',
-             'RI' => 'Rhode Island',
-             'SC' => 'South Carolina',
-             'SD' => 'South Dakota',
-             'TN' => 'Tennessee',
-             'TX' => 'Texas',
-             'UT' => 'Utah',
-             'VA' => 'Virginia',
-             'VT' => 'Vermont',
-             'WA' => 'Washington',
-             'WI' => 'Wisconsin',
-             'WV' => 'West Virginia',
-             'WY' => 'Wyoming' }
-  end
+# Collection of constants used across the code.
+module Constants
+  # Strings/Numbers
+  AirFilm = 'AirFilm'
+  AutomaticallyAdded = 'AutomaticallyAdded'
+  Small = 1e-9
+
+  # Object types
+  ObjectTypeAirSourceHeatPump = 'air source heat pump'
+  ObjectTypeBackupSuppHeat = 'back up supp heat'
+  ObjectTypeBatteryLossesAdjustment = 'battery losses adjustment'
+  ObjectTypeBoiler = 'boiler'
+  ObjectTypeCeilingFan = 'ceiling fan'
+  ObjectTypeCentralAirConditioner = 'central ac'
+  ObjectTypeCentralAirConditionerAndFurnace = 'central ac and furnace'
+  ObjectTypeClothesWasher = 'clothes washer'
+  ObjectTypeClothesDryer = 'clothes dryer'
+  ObjectTypeComponentLoadsProgram = 'component loads program'
+  ObjectTypeCookingRange = 'cooking range'
+  ObjectTypeDehumidifier = 'dehumidifier'
+  ObjectTypeDishwasher = 'dishwasher'
+  ObjectTypeDistributionWaste = 'dhw distribution waste'
+  ObjectTypeDuctLoad = 'duct load'
+  ObjectTypeElectricBaseboard = 'electric baseboard'
+  ObjectTypeEvaporativeCooler = 'evap cooler'
+  ObjectTypeFanPumpDisaggregateCool = 'disaggregate clg'
+  ObjectTypeFanPumpDisaggregatePrimaryHeat = 'disaggregate htg primary'
+  ObjectTypeFanPumpDisaggregateBackupHeat = 'disaggregate htg backup'
+  ObjectTypeFixtures = 'dhw fixtures'
+  ObjectTypeFreezer = 'freezer'
+  ObjectTypeFurnace = 'furnace'
+  ObjectTypeGeneralWaterUse = 'general water use'
+  ObjectTypeGeneralWaterUseLatent = 'general water use latent'
+  ObjectTypeGeneralWaterUseSensible = 'general water use sensible'
+  ObjectTypeGroundSourceHeatPump = 'ground source heat pump'
+  ObjectTypeGSHPSharedPump = 'gshp shared loop pump'
+  ObjectTypeHotWaterRecircPump = 'dhw recirc pump'
+  ObjectTypeHVACAvailabilitySensor = 'hvac availability sensor'
+  ObjectTypeIdealAirSystem = 'ideal air system'
+  ObjectTypeInfiltration = 'infil'
+  ObjectTypeLightingExterior = 'exterior lighting'
+  ObjectTypeLightingExteriorHoliday = 'exterior holiday lighting'
+  ObjectTypeLightingGarage = 'garage lighting'
+  ObjectTypeLightingInterior = 'interior lighting'
+  ObjectTypeMechanicalVentilation = 'mech vent'
+  ObjectTypeMechanicalVentilationPrecooling = 'mech vent precooling'
+  ObjectTypeMechanicalVentilationPreheating = 'mech vent preheating'
+  ObjectTypeMechanicalVentilationHouseFan = 'mech vent house fan'
+  ObjectTypeMechanicalVentilationHouseFanCFIS = 'mech vent house fan cfis'
+  ObjectTypeMechanicalVentilationHouseFanCFISSupplFan = 'mech vent house fan cfis suppl'
+  ObjectTypeMechanicalVentilationBathFan = 'mech vent bath fan'
+  ObjectTypeMechanicalVentilationRangeFan = 'mech vent range fan'
+  ObjectTypeMiniSplitAirConditioner = 'mini split air conditioner'
+  ObjectTypeMiniSplitHeatPump = 'mini split heat pump'
+  ObjectTypeMiscGrill = 'misc grill'
+  ObjectTypeMiscLighting = 'misc lighting'
+  ObjectTypeMiscFireplace = 'misc fireplace'
+  ObjectTypeMiscPoolHeater = 'misc pool heater'
+  ObjectTypeMiscPoolPump = 'misc pool pump'
+  ObjectTypeMiscPermanentSpaHeater = 'misc permanent spa heater'
+  ObjectTypeMiscPermanentSpaPump = 'misc permanent spa pump'
+  ObjectTypeMiscPlugLoads = 'misc plug loads'
+  ObjectTypeMiscTelevision = 'misc tv'
+  ObjectTypeMiscElectricVehicleCharging = 'misc electric vehicle charging'
+  ObjectTypeMiscWellPump = 'misc well pump'
+  ObjectTypeNaturalVentilation = 'natural vent'
+  ObjectTypeNeighbors = 'neighbors'
+  ObjectTypeOccupants = 'occupants'
+  ObjectTypePTAC = 'packaged terminal air conditioner'
+  ObjectTypePTHP = 'packaged terminal heat pump'
+  ObjectTypeRefrigerator = 'fridge'
+  ObjectTypeRoomAC = 'room ac'
+  ObjectTypeRoomHP = 'room ac with reverse cycle'
+  ObjectTypeSolarHotWater = 'solar hot water'
+  ObjectTypeTotalAirflowsProgram = 'total airflows program'
+  ObjectTypeTotalLoadsProgram = 'total loads program'
+  ObjectTypeUnitHeater = 'unit heater'
+  ObjectTypeUnmetHoursProgram = 'unmet hours program'
+  ObjectTypeWaterHeater = 'water heater'
+  ObjectTypeWaterHeaterSetpoint = 'water heater setpoint'
+  ObjectTypeWaterHeaterAdjustment = 'water heater energy adjustment'
+  ObjectTypeWaterLoopHeatPump = 'water loop heat pump'
+  ObjectTypeWholeHouseFan = 'whole house fan'
+
+  # Arrays/Maps
+  ERIVersions = ['2014', '2014A', '2014AE', '2014AEG', '2019', '2019A',
+                 '2019AB', '2019ABC', '2019ABCD', '2022', '2022C', '2022CE']
+  IECCZones = ['1A', '1B', '1C', '2A', '2B', '2C', '3A', '3B', '3C',
+               '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8']
+  StateCodesMap = { 'AK' => 'Alaska',
+                    'AL' => 'Alabama',
+                    'AR' => 'Arkansas',
+                    'AZ' => 'Arizona',
+                    'CA' => 'California',
+                    'CO' => 'Colorado',
+                    'CT' => 'Connecticut',
+                    'DC' => 'District of Columbia',
+                    'DE' => 'Delaware',
+                    'FL' => 'Florida',
+                    'GA' => 'Georgia',
+                    'HI' => 'Hawaii',
+                    'IA' => 'Iowa',
+                    'ID' => 'Idaho',
+                    'IL' => 'Illinois',
+                    'IN' => 'Indiana',
+                    'KS' => 'Kansas',
+                    'KY' => 'Kentucky',
+                    'LA' => 'Louisiana',
+                    'MA' => 'Massachusetts',
+                    'MD' => 'Maryland',
+                    'ME' => 'Maine',
+                    'MI' => 'Michigan',
+                    'MN' => 'Minnesota',
+                    'MO' => 'Missouri',
+                    'MS' => 'Mississippi',
+                    'MT' => 'Montana',
+                    'NC' => 'North Carolina',
+                    'ND' => 'North Dakota',
+                    'NE' => 'Nebraska',
+                    'NH' => 'New Hampshire',
+                    'NJ' => 'New Jersey',
+                    'NM' => 'New Mexico',
+                    'NV' => 'Nevada',
+                    'NY' => 'New York',
+                    'OH' => 'Ohio',
+                    'OK' => 'Oklahoma',
+                    'OR' => 'Oregon',
+                    'PA' => 'Pennsylvania',
+                    'RI' => 'Rhode Island',
+                    'SC' => 'South Carolina',
+                    'SD' => 'South Dakota',
+                    'TN' => 'Tennessee',
+                    'TX' => 'Texas',
+                    'UT' => 'Utah',
+                    'VA' => 'Virginia',
+                    'VT' => 'Vermont',
+                    'WA' => 'Washington',
+                    'WI' => 'Wisconsin',
+                    'WV' => 'West Virginia',
+                    'WY' => 'Wyoming' }
+end
+
+# Total Energy (Constants for output reporting)
+module TE
+  Total = 'Total'
+  Net = 'Net'
+end
+
+# Fuel Types (Constants for output reporting)
+module FT
+  Elec = 'Electricity'
+  Gas = 'Natural Gas'
+  Oil = 'Fuel Oil'
+  Propane = 'Propane'
+  WoodCord = 'Wood Cord'
+  WoodPellets = 'Wood Pellets'
+  Coal = 'Coal'
+end
+
+# End Use Types (Constants for output reporting)
+module EUT
+  Heating = 'Heating'
+  HeatingFanPump = 'Heating Fans/Pumps'
+  HeatingHeatPumpBackup = 'Heating Heat Pump Backup'
+  HeatingHeatPumpBackupFanPump = 'Heating Heat Pump Backup Fans/Pumps'
+  Cooling = 'Cooling'
+  CoolingFanPump = 'Cooling Fans/Pumps'
+  HotWater = 'Hot Water'
+  HotWaterRecircPump = 'Hot Water Recirc Pump'
+  HotWaterSolarThermalPump = 'Hot Water Solar Thermal Pump'
+  LightsInterior = 'Lighting Interior'
+  LightsGarage = 'Lighting Garage'
+  LightsExterior = 'Lighting Exterior'
+  MechVent = 'Mech Vent'
+  MechVentPreheat = 'Mech Vent Preheating'
+  MechVentPrecool = 'Mech Vent Precooling'
+  WholeHouseFan = 'Whole House Fan'
+  Refrigerator = 'Refrigerator'
+  Freezer = 'Freezer'
+  Dehumidifier = 'Dehumidifier'
+  Dishwasher = 'Dishwasher'
+  ClothesWasher = 'Clothes Washer'
+  ClothesDryer = 'Clothes Dryer'
+  RangeOven = 'Range/Oven'
+  CeilingFan = 'Ceiling Fan'
+  Television = 'Television'
+  PlugLoads = 'Plug Loads'
+  Vehicle = 'Electric Vehicle Charging'
+  WellPump = 'Well Pump'
+  PoolHeater = 'Pool Heater'
+  PoolPump = 'Pool Pump'
+  PermanentSpaHeater = 'Permanent Spa Heater'
+  PermanentSpaPump = 'Permanent Spa Pump'
+  Grill = 'Grill'
+  Lighting = 'Lighting'
+  Fireplace = 'Fireplace'
+  PV = 'PV'
+  Generator = 'Generator'
+  Battery = 'Battery'
+end
+
+# Hot Water Types (Constants for output reporting)
+module HWT
+  ClothesWasher = 'Clothes Washer'
+  Dishwasher = 'Dishwasher'
+  Fixtures = 'Fixtures'
+  DistributionWaste = 'Distribution Waste'
+end
+
+# Load Types (Constants for output reporting)
+module LT
+  Heating = 'Heating: Delivered'
+  HeatingHeatPumpBackup = 'Heating: Heat Pump Backup' # Needed for ERI calculation for dual-fuel heat pumps
+  Cooling = 'Cooling: Delivered'
+  HotWaterDelivered = 'Hot Water: Delivered'
+  HotWaterTankLosses = 'Hot Water: Tank Losses'
+  HotWaterDesuperheater = 'Hot Water: Desuperheater'
+  HotWaterSolarThermal = 'Hot Water: Solar Thermal'
+end
+
+# Component Load Types (Constants for output reporting)
+module CLT
+  Roofs = 'Roofs'
+  Ceilings = 'Ceilings'
+  Walls = 'Walls'
+  RimJoists = 'Rim Joists'
+  FoundationWalls = 'Foundation Walls'
+  Doors = 'Doors'
+  WindowsConduction = 'Windows Conduction'
+  WindowsSolar = 'Windows Solar'
+  SkylightsConduction = 'Skylights Conduction'
+  SkylightsSolar = 'Skylights Solar'
+  Floors = 'Floors'
+  Slabs = 'Slabs'
+  InternalMass = 'Internal Mass'
+  Infiltration = 'Infiltration'
+  NaturalVentilation = 'Natural Ventilation'
+  MechanicalVentilation = 'Mechanical Ventilation'
+  WholeHouseFan = 'Whole House Fan'
+  Ducts = 'Ducts'
+  InternalGains = 'Internal Gains'
+  Lighting = 'Lighting'
+end
+
+# Unmet Hours Types (Constants for output reporting)
+module UHT
+  Heating = 'Heating'
+  Cooling = 'Cooling'
+end
+
+# Resilience Types (Constants for output reporting)
+module RT
+  Battery = 'Battery'
+end
+
+# Peak Load Types (Constants for output reporting)
+module PLT
+  Heating = 'Heating: Delivered'
+  Cooling = 'Cooling: Delivered'
+end
+
+# Peak Fuel Types (Constants for output reporting)
+module PFT
+  Summer = 'Summer'
+  Winter = 'Winter'
+  Annual = 'Annual'
+end
+
+# Airflow Types (Constants for output reporting)
+module AFT
+  Infiltration = 'Infiltration'
+  MechanicalVentilation = 'Mechanical Ventilation'
+  NaturalVentilation = 'Natural Ventilation'
+  WholeHouseFan = 'Whole House Fan'
+end
+
+# Weather Types (Constants for output reporting)
+module WT
+  DrybulbTemp = 'Drybulb Temperature'
+  WetbulbTemp = 'Wetbulb Temperature'
+  RelativeHumidity = 'Relative Humidity'
+  WindSpeed = 'Wind Speed'
+  DiffuseSolar = 'Diffuse Solar Radiation'
+  DirectSolar = 'Direct Solar Radiation'
 end

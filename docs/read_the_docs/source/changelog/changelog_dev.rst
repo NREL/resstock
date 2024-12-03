@@ -3,5 +3,5 @@ Development Changelog
 =====================
 
 .. changelog::
-    :version: v3.4.0
+    :version: v3.5.0
     :released: pending

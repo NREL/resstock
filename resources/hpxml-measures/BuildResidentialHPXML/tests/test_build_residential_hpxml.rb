@@ -186,8 +186,9 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'error-sfd-with-shared-system.xml' => 'base-sfd.xml',
       'error-rim-joist-height-but-no-assembly-r.xml' => 'base-sfd.xml',
       'error-rim-joist-assembly-r-but-no-height.xml' => 'base-sfd.xml',
-      'error-power-outage-args-not-all-same-size.xml' => 'base-sfd.xml',
-      'error-power-outage-window-natvent-invalid.xml' => 'base-sfd.xml',
+      'error-unavailable-period-args-not-all-specified' => 'base-sfd.xml',
+      'error-unavailable-period-args-not-all-same-size.xml' => 'base-sfd.xml',
+      'error-unavailable-period-window-natvent-invalid.xml' => 'base-sfd.xml',
       'error-heating-perf-data-not-all-specified.xml' => 'base-sfd.xml',
       'error-heating-perf-data-not-all-same-size.xml' => 'base-sfd.xml',
       'error-cooling-perf-data-not-all-specified.xml' => 'base-sfd.xml',
@@ -251,8 +252,9 @@ class BuildResidentialHPXMLTest < Minitest::Test
       'error-sfd-with-shared-system.xml' => ['Specified a shared system for a single-family detached unit.'],
       'error-rim-joist-height-but-no-assembly-r.xml' => ['Specified a rim joist height but no rim joist assembly R-value.'],
       'error-rim-joist-assembly-r-but-no-height.xml' => ['Specified a rim joist assembly R-value but no rim joist height.'],
-      'error-power-outage-args-not-all-same-size.xml' => ['One power outage periods schedule argument does not have enough comma-separated elements specified.'],
-      'error-power-outage-window-natvent-invalid.xml' => ["Window natural ventilation availability 'invalid' during a power outage is invalid."],
+      'error-unavailable-period-args-not-all-specified' => ['Did not specify all required unavailable period arguments.'],
+      'error-unavailable-period-args-not-all-same-size.xml' => ['One or more unavailable period arguments does not have enough comma-separated elements specified.'],
+      'error-unavailable-period-window-natvent-invalid.xml' => ["Window natural ventilation availability 'invalid' during an unavailable period is invalid."],
       'error-heating-perf-data-not-all-specified.xml' => ['Did not specify all required heating detailed performance data arguments.'],
       'error-heating-perf-data-not-all-same-size.xml' => ['One or more detailed heating performance data arguments does not have enough comma-separated elements specified.'],
       'error-cooling-perf-data-not-all-specified.xml' => ['Did not specify all required cooling detailed performance data arguments.'],
@@ -300,7 +302,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
     }
 
     schema_path = File.join(File.dirname(__FILE__), '../..', 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXML.xsd')
-    schema_validator = XMLValidator.get_schema_validator(schema_path)
+    schema_validator = XMLValidator.get_xml_validator(schema_path)
 
     puts "Generating #{hpxmls_files.size} HPXML files..."
 
@@ -409,12 +411,12 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['geometry_garage_width'] = 0.0
       args['geometry_garage_depth'] = 20.0
       args['geometry_garage_protrusion'] = 0.0
-      args['geometry_garage_position'] = 'Right'
+      args['geometry_garage_position'] = Constants::PositionRight
       args['geometry_foundation_type'] = HPXML::FoundationTypeBasementConditioned
       args['geometry_foundation_height'] = 8.0
       args['geometry_foundation_height_above_grade'] = 1.0
       args['geometry_rim_joist_height'] = 9.25
-      args['geometry_roof_type'] = 'gable'
+      args['geometry_roof_type'] = Constants::RoofTypeGable
       args['geometry_roof_pitch'] = '6:12'
       args['geometry_attic_type'] = HPXML::AtticTypeUnvented
       args['geometry_eaves_depth'] = 0
@@ -430,9 +432,12 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['foundation_wall_insulation_distance_to_bottom'] = 8.0
       args['rim_joist_assembly_r'] = 23.0
       args['slab_perimeter_insulation_r'] = 0
-      args['slab_perimeter_depth'] = 0
+      args['slab_perimeter_insulation_depth'] = 0
       args['slab_under_insulation_r'] = 0
-      args['slab_under_width'] = 0
+      args['slab_under_insulation_width'] = 0
+      args['slab_exterior_horizontal_insulation_r'] = 0
+      args['slab_exterior_horizontal_insulation_width'] = 0
+      args['slab_exterior_horizontal_insulation_depth_below_grade'] = 0
       args['slab_thickness'] = 4.0
       args['slab_carpet_fraction'] = 0.0
       args['slab_carpet_r'] = 0.0
@@ -440,7 +445,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['roof_material_type'] = HPXML::RoofTypeAsphaltShingles
       args['roof_color'] = HPXML::ColorMedium
       args['roof_assembly_r'] = 2.3
-      args['radiant_barrier_attic_location'] = 'none'
+      args['radiant_barrier_attic_location'] = Constants::None
       args['radiant_barrier_grade'] = 1
       args['neighbor_front_distance'] = 0
       args['neighbor_back_distance'] = 0
@@ -500,7 +505,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['cooling_system_cooling_capacity'] = 24000.0
       args['cooling_system_fraction_cool_load_served'] = 1
       args['cooling_system_is_ducted'] = false
-      args['heat_pump_type'] = 'none'
+      args['heat_pump_type'] = Constants::None
       args['heat_pump_heating_efficiency_type'] = HPXML::UnitsHSPF
       args['heat_pump_heating_efficiency'] = 7.7
       args['heat_pump_cooling_efficiency_type'] = HPXML::UnitsSEER
@@ -515,7 +520,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
       args['heat_pump_backup_heating_efficiency'] = 1
       args['heat_pump_backup_heating_capacity'] = 36000.0
-      args['geothermal_loop_configuration'] = 'none'
+      args['geothermal_loop_configuration'] = Constants::None
       args['hvac_control_heating_weekday_setpoint'] = 68
       args['hvac_control_heating_weekend_setpoint'] = 68
       args['hvac_control_cooling_weekday_setpoint'] = 78
@@ -530,11 +535,11 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['ducts_supply_surface_area'] = 150.0
       args['ducts_return_surface_area'] = 50.0
       args['ducts_number_of_return_registers'] = 2
-      args['heating_system_2_type'] = 'none'
+      args['heating_system_2_type'] = Constants::None
       args['heating_system_2_fuel'] = HPXML::FuelTypeElectricity
       args['heating_system_2_heating_efficiency'] = 1.0
       args['heating_system_2_fraction_heat_load_served'] = 0.25
-      args['mech_vent_fan_type'] = 'none'
+      args['mech_vent_fan_type'] = Constants::None
       args['mech_vent_flow_rate'] = 110
       args['mech_vent_hours_in_operation'] = 24
       args['mech_vent_recovery_efficiency_type'] = 'Unadjusted'
@@ -542,7 +547,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['mech_vent_sensible_recovery_efficiency'] = 0.72
       args['mech_vent_fan_power'] = 30
       args['mech_vent_num_units_served'] = 1
-      args['mech_vent_2_fan_type'] = 'none'
+      args['mech_vent_2_fan_type'] = Constants::None
       args['mech_vent_2_flow_rate'] = 110
       args['mech_vent_2_hours_in_operation'] = 24
       args['mech_vent_2_recovery_efficiency_type'] = 'Unadjusted'
@@ -571,15 +576,15 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['hot_water_distribution_recirc_branch_piping_length'] = 50
       args['hot_water_distribution_recirc_pump_power'] = 50
       args['hot_water_distribution_pipe_r'] = 0.0
-      args['dwhr_facilities_connected'] = 'none'
+      args['dwhr_facilities_connected'] = Constants::None
       args['dwhr_equal_flow'] = true
       args['dwhr_efficiency'] = 0.55
       args['water_fixtures_shower_low_flow'] = true
       args['water_fixtures_sink_low_flow'] = false
-      args['solar_thermal_system_type'] = 'none'
+      args['solar_thermal_system_type'] = Constants::None
       args['solar_thermal_collector_area'] = 40.0
       args['solar_thermal_collector_loop_type'] = HPXML::SolarThermalLoopTypeDirect
-      args['solar_thermal_collector_type'] = HPXML::SolarThermalTypeEvacuatedTube
+      args['solar_thermal_collector_type'] = HPXML::SolarThermalCollectorTypeEvacuatedTube
       args['solar_thermal_collector_azimuth'] = 180
       args['solar_thermal_collector_tilt'] = 20
       args['solar_thermal_collector_rated_optical_efficiency'] = 0.5
@@ -605,7 +610,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['lighting_garage_fraction_lfl'] = 0.1
       args['lighting_garage_fraction_led'] = 0.25
       args['holiday_lighting_present'] = false
-      args['dehumidifier_type'] = 'none'
+      args['dehumidifier_type'] = Constants::None
       args['dehumidifier_efficiency_type'] = 'EnergyFactor'
       args['dehumidifier_efficiency'] = 1.8
       args['dehumidifier_capacity'] = 40
@@ -724,9 +729,9 @@ class BuildResidentialHPXMLTest < Minitest::Test
     elsif ['base-sfd-header.xml'].include? hpxml_file
       args['software_info_program_used'] = 'Program'
       args['software_info_program_version'] = '1'
-      args['schedules_vacancy_periods'] = 'Jan 2 - Jan 5'
-      args['schedules_power_outage_periods'] = 'Feb 10 - Feb 12'
-      args['schedules_power_outage_periods_window_natvent_availability'] = HPXML::ScheduleAvailable
+      args['schedules_unavailable_period_types'] = 'Vacancy, Power Outage'
+      args['schedules_unavailable_period_dates'] = 'Jan 2 - Jan 5, Feb 10 - Feb 12'
+      args['schedules_unavailable_period_window_natvent_availabilities'] = "#{HPXML::ScheduleUnavailable}, #{HPXML::ScheduleAvailable}"
       args['simulation_control_run_period'] = 'Jan 1 - Dec 31'
       args['simulation_control_run_period_calendar_year'] = 2007
       args['simulation_control_temperature_capacitance_multiplier'] = 1.0
@@ -764,8 +769,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['pv_system_array_tilt'] = 'roofpitch'
       args['pv_system_2_array_tilt'] = 'roofpitch+15'
     elsif ['extra-dhw-solar-latitude.xml'].include? hpxml_file
-      args['solar_thermal_system_type'] = HPXML::SolarThermalSystemType
-      args['solar_thermal_collector_tilt'] = 'latitude-15'
+      args['solar_thermal_system_type'] = HPXML::SolarThermalSystemTypeHotWater
+      args['solar_thermal_collector_tilt'] = 'Latitude-15'
     elsif ['extra-second-refrigerator.xml'].include? hpxml_file
       args['extra_refrigerator_location'] = HPXML::LocationConditionedSpace
     elsif ['extra-second-heating-system-portable-heater-to-heating-system.xml'].include? hpxml_file
@@ -784,7 +789,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['heating_system_heating_efficiency'] = 1.0
       args['heating_system_heating_capacity'] = 48000.0
       args['heating_system_fraction_heat_load_served'] = 0.75
-      args['cooling_system_type'] = 'none'
+      args['cooling_system_type'] = Constants::None
       args['heating_system_2_type'] = HPXML::HVACTypeFireplace
       args['heating_system_2_heating_capacity'] = 16000.0
     elsif ['extra-second-heating-system-boiler-to-heating-system.xml'].include? hpxml_file
@@ -792,8 +797,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['heating_system_fraction_heat_load_served'] = 0.75
       args['heating_system_2_type'] = HPXML::HVACTypeBoiler
     elsif ['extra-second-heating-system-portable-heater-to-heat-pump.xml'].include? hpxml_file
-      args['heating_system_type'] = 'none'
-      args['cooling_system_type'] = 'none'
+      args['heating_system_type'] = Constants::None
+      args['cooling_system_type'] = Constants::None
       args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
       args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
       args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
@@ -806,8 +811,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['heating_system_2_type'] = HPXML::HVACTypeSpaceHeater
       args['heating_system_2_heating_capacity'] = 16000.0
     elsif ['extra-second-heating-system-fireplace-to-heat-pump.xml'].include? hpxml_file
-      args['heating_system_type'] = 'none'
-      args['cooling_system_type'] = 'none'
+      args['heating_system_type'] = Constants::None
+      args['cooling_system_type'] = Constants::None
       args['heat_pump_type'] = HPXML::HVACTypeHeatPumpMiniSplit
       args.delete('heat_pump_cooling_compressor_type')
       args['heat_pump_heating_efficiency'] = 10.0
@@ -818,8 +823,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['heating_system_2_type'] = HPXML::HVACTypeFireplace
       args['heating_system_2_heating_capacity'] = 16000.0
     elsif ['extra-second-heating-system-boiler-to-heat-pump.xml'].include? hpxml_file
-      args['heating_system_type'] = 'none'
-      args['cooling_system_type'] = 'none'
+      args['heating_system_type'] = Constants::None
+      args['cooling_system_type'] = Constants::None
       args['heat_pump_type'] = HPXML::HVACTypeHeatPumpGroundToAir
       args['heat_pump_heating_efficiency_type'] = HPXML::UnitsCOP
       args['heat_pump_heating_efficiency'] = 3.6
@@ -860,7 +865,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['ducts_supply_location'] = HPXML::LocationUnderSlab
       args['ducts_return_location'] = HPXML::LocationUnderSlab
     elsif ['extra-enclosure-atticroof-conditioned-eaves-hip.xml'].include? hpxml_file
-      args['geometry_roof_type'] = 'hip'
+      args['geometry_roof_type'] = Constants::RoofTypeHip
     elsif ['extra-gas-pool-heater-with-zero-kwh.xml'].include? hpxml_file
       args['pool_present'] = true
       args['pool_heater_type'] = HPXML::HeaterTypeGas
@@ -902,8 +907,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['utility_bill_wood_pellets_fixed_charges'] = '16, 17'
       args['utility_bill_wood_pellets_marginal_rates'] = '18, 19'
     elsif ['extra-seasons-building-america.xml'].include? hpxml_file
-      args['hvac_control_heating_season_period'] = HPXML::BuildingAmerica
-      args['hvac_control_cooling_season_period'] = HPXML::BuildingAmerica
+      args['hvac_control_heating_season_period'] = Constants::BuildingAmerica
+      args['hvac_control_cooling_season_period'] = Constants::BuildingAmerica
     elsif ['extra-ducts-crawlspace.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceUnvented
       args['geometry_foundation_height'] = 4
@@ -933,8 +938,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['battery_present'] = true
       args['battery_location'] = HPXML::LocationAttic
     elsif ['extra-detailed-performance-autosize.xml'].include? hpxml_file
-      args['heating_system_type'] = 'none'
-      args['cooling_system_type'] = 'none'
+      args['heating_system_type'] = Constants::None
+      args['cooling_system_type'] = Constants::None
       args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
       args['heat_pump_heating_efficiency'] = 10.0
       args['heat_pump_cooling_efficiency'] = 17.25
@@ -954,8 +959,8 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['hvac_perf_data_cooling_min_speed_cops'] = '4.47, 6.34'
       args['hvac_perf_data_cooling_max_speed_cops'] = '2.71, 3.53'
     elsif ['extra-power-outage-periods.xml'].include? hpxml_file
-      args['schedules_power_outage_periods'] = 'Jan 1 - Jan 5, Jan 7 - Jan 9'
-      args['schedules_power_outage_periods_window_natvent_availability'] = "#{HPXML::ScheduleRegular}, #{HPXML::ScheduleAvailable}"
+      args['schedules_unavailable_period_types'] = 'Power Outage, Power Outage'
+      args['schedules_unavailable_period_dates'] = 'Jan 1 - Jan 5, Jan 7 - Jan 9'
     elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
       args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
       args['ducts_supply_leakage_to_outside_value'] = 0.0
@@ -969,7 +974,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['ducts_supply_location'] = HPXML::LocationConditionedSpace
       args['ducts_return_location'] = HPXML::LocationConditionedSpace
     elsif ['extra-sfa-atticroof-conditioned-eaves-hip.xml'].include? hpxml_file
-      args['geometry_roof_type'] = 'hip'
+      args['geometry_roof_type'] = Constants::RoofTypeHip
     elsif ['extra-mf-eaves.xml'].include? hpxml_file
       args['geometry_eaves_depth'] = 2
     elsif ['extra-sfa-slab.xml'].include? hpxml_file
@@ -1138,10 +1143,10 @@ class BuildResidentialHPXMLTest < Minitest::Test
 
     # Error
     if ['error-heating-system-and-heat-pump.xml'].include? hpxml_file
-      args['cooling_system_type'] = 'none'
+      args['cooling_system_type'] = Constants::None
       args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
     elsif ['error-cooling-system-and-heat-pump.xml'].include? hpxml_file
-      args['heating_system_type'] = 'none'
+      args['heating_system_type'] = Constants::None
       args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
     elsif ['error-sfd-conditioned-basement-zero-foundation-height.xml'].include? hpxml_file
       args['geometry_foundation_height'] = 0.0
@@ -1158,11 +1163,11 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
       args.delete('foundation_wall_insulation_distance_to_bottom')
     elsif ['error-second-heating-system-but-no-primary-heating.xml'].include? hpxml_file
-      args['heating_system_type'] = 'none'
+      args['heating_system_type'] = Constants::None
       args['heating_system_2_type'] = HPXML::HVACTypeFireplace
     elsif ['error-second-heating-system-ducted-with-ducted-primary-heating.xml'].include? hpxml_file
-      args['heating_system_type'] = 'none'
-      args['cooling_system_type'] = 'none'
+      args['heating_system_type'] = Constants::None
+      args['cooling_system_type'] = Constants::None
       args['heat_pump_type'] = HPXML::HVACTypeHeatPumpMiniSplit
       args.delete('heat_pump_cooling_compressor_type')
       args['heat_pump_is_ducted'] = true
@@ -1201,11 +1206,16 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args.delete('rim_joist_assembly_r')
     elsif ['error-rim-joist-assembly-r-but-no-height.xml'].include? hpxml_file
       args.delete('geometry_rim_joist_height')
-    elsif ['error-power-outage-args-not-all-same-size.xml'].include? hpxml_file
-      args['schedules_power_outage_periods'] = 'Jan 1 - Jan 5, Jan 7 - Jan 9'
-      args['schedules_power_outage_periods_window_natvent_availability'] = HPXML::ScheduleRegular
-    elsif ['error-power-outage-window-natvent-invalid.xml'].include? hpxml_file
-      args['schedules_power_outage_periods_window_natvent_availability'] = 'invalid'
+    elsif ['error-unavailable-period-args-not-all-specified'].include? hpxml_file
+      args['schedules_unavailable_period_types'] = 'Vacancy'
+    elsif ['error-unavailable-period-args-not-all-same-size.xml'].include? hpxml_file
+      args['schedules_unavailable_period_types'] = 'Vacancy, Power Outage'
+      args['schedules_unavailable_period_dates'] = 'Jan 1 - Jan 5, Jan 7 - Jan 9'
+      args['schedules_unavailable_period_window_natvent_availabilities'] = HPXML::ScheduleRegular
+    elsif ['error-unavailable-period-window-natvent-invalid.xml'].include? hpxml_file
+      args['schedules_unavailable_period_types'] = 'Power Outage'
+      args['schedules_unavailable_period_dates'] = 'Jan 7 - Jan 9'
+      args['schedules_unavailable_period_window_natvent_availabilities'] = 'invalid'
     elsif ['error-heating-perf-data-not-all-specified.xml'].include? hpxml_file
       args['hvac_perf_data_heating_outdoor_temperatures'] = '47.0'
     elsif ['error-heating-perf-data-not-all-same-size.xml'].include? hpxml_file
@@ -1248,7 +1258,7 @@ class BuildResidentialHPXMLTest < Minitest::Test
       args['geometry_unit_front_wall_is_adiabatic'] = true
       args['geometry_unit_back_wall_is_adiabatic'] = true
     elsif ['error-hip-roof-and-protruding-garage.xml'].include? hpxml_file
-      args['geometry_roof_type'] = 'hip'
+      args['geometry_roof_type'] = Constants::RoofTypeHip
       args['geometry_garage_width'] = 12
       args['geometry_garage_protrusion'] = 0.5
     elsif ['error-protruding-garage-under-gable-roof.xml'].include? hpxml_file
@@ -1348,22 +1358,22 @@ class BuildResidentialHPXMLTest < Minitest::Test
     # check warnings/errors
     if not expected_errors.nil?
       expected_errors.each do |expected_error|
-        if runner.result.stepErrors.select { |s| s.include?(expected_error) }.size <= 0
+        if runner.result.stepErrors.count { |s| s.include?(expected_error) } <= 0
           runner.result.stepErrors.each do |s|
             puts "ERROR: #{s}"
           end
         end
-        assert(runner.result.stepErrors.select { |s| s.include?(expected_error) }.size > 0)
+        assert(runner.result.stepErrors.count { |s| s.include?(expected_error) } > 0)
       end
     end
     if not expected_warnings.nil?
       expected_warnings.each do |expected_warning|
-        if runner.result.stepWarnings.select { |s| s.include?(expected_warning) }.size <= 0
+        if runner.result.stepWarnings.count { |s| s.include?(expected_warning) } <= 0
           runner.result.stepWarnings.each do |s|
             puts "WARNING: #{s}"
           end
         end
-        assert(runner.result.stepWarnings.select { |s| s.include?(expected_warning) }.size > 0)
+        assert(runner.result.stepWarnings.count { |s| s.include?(expected_warning) } > 0)
       end
     end
   end

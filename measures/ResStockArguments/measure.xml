@@ -3,41 +3,14 @@
   <schema_version>3.1</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>85aff5db-d723-41d8-a206-807e42e14586</version_id>
-  <version_modified>2024-07-19T19:54:41Z</version_modified>
+  <version_id>34d420bd-393b-4bb8-9671-5a919054d3e2</version_id>
+  <version_modified>2024-11-08T15:53:02Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
   <description>Measure that pre-processes the arguments passed to the BuildResidentialHPXML and BuildResidentialScheduleFile measures.</description>
   <modeler_description>Passes in all arguments from the options lookup, processes them, and then registers values to the runner to be used by other measures.</modeler_description>
   <arguments>
-    <argument>
-      <name>schedules_vacancy_periods</name>
-      <display_name>Schedules: Vacancy Periods</display_name>
-      <description>Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.</description>
-      <type>String</type>
-      <units></units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>schedules_power_outage_periods</name>
-      <display_name>Schedules: Power Outage Periods</display_name>
-      <description>Specifies the power outage periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.</description>
-      <type>String</type>
-      <units></units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>schedules_power_outage_periods_window_natvent_availability</name>
-      <display_name>Schedules: Power Outage Periods Window Natural Ventilation Availability</display_name>
-      <description>The availability of the natural ventilation schedule during the power outage periods. Valid choices are 'regular schedule', 'always available', 'always unavailable'. If multiple periods, use a comma-separated list.</description>
-      <type>String</type>
-      <units></units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
     <argument>
       <name>simulation_control_daylight_saving_enabled</name>
       <display_name>Simulation Control: Daylight Saving Enabled</display_name>
@@ -546,7 +519,7 @@
     <argument>
       <name>site_zip_code</name>
       <display_name>Site: Zip Code</display_name>
-      <description>Zip code of the home address.</description>
+      <description>Zip code of the home address. Either this or the Weather Station: EnergyPlus Weather (EPW) Filepath input below must be provided.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
@@ -591,11 +564,11 @@
     <argument>
       <name>weather_station_epw_filepath</name>
       <display_name>Weather Station: EnergyPlus Weather (EPW) Filepath</display_name>
-      <description>Path of the EPW file.</description>
+      <description>Path of the EPW file. Either this or the Site: Zip Code input above must be provided.</description>
       <type>String</type>
-      <required>true</required>
+      <units></units>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>USA_CO_Denver.Intl.AP.725650_TMY3.epw</default_value>
     </argument>
     <argument>
       <name>year_built</name>
@@ -991,7 +964,7 @@
     <argument>
       <name>neighbor_front_height</name>
       <display_name>Neighbor: Front Height</display_name>
-      <description>The height of the neighboring building to the front. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
+      <description>The height of the neighboring building to the front. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings'&gt;HPXML Neighbor Building&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>ft</units>
       <required>false</required>
@@ -1000,7 +973,7 @@
     <argument>
       <name>neighbor_back_height</name>
       <display_name>Neighbor: Back Height</display_name>
-      <description>The height of the neighboring building to the back. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
+      <description>The height of the neighboring building to the back. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings'&gt;HPXML Neighbor Building&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>ft</units>
       <required>false</required>
@@ -1009,7 +982,7 @@
     <argument>
       <name>neighbor_left_height</name>
       <display_name>Neighbor: Left Height</display_name>
-      <description>The height of the neighboring building to the left. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
+      <description>The height of the neighboring building to the left. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings'&gt;HPXML Neighbor Building&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>ft</units>
       <required>false</required>
@@ -1018,7 +991,7 @@
     <argument>
       <name>neighbor_right_height</name>
       <display_name>Neighbor: Right Height</display_name>
-      <description>The height of the neighboring building to the right. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-site'&gt;HPXML Site&lt;/a&gt;) is used.</description>
+      <description>The height of the neighboring building to the right. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-neighbor-buildings'&gt;HPXML Neighbor Building&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>ft</units>
       <required>false</required>
@@ -1207,7 +1180,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>slab_perimeter_depth</name>
+      <name>slab_perimeter_insulation_depth</name>
       <display_name>Slab: Perimeter Insulation Depth</display_name>
       <description>Depth from grade to bottom of vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.</description>
       <type>Double</type>
@@ -1215,6 +1188,33 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>slab_exterior_horizontal_insulation_r</name>
+      <display_name>Slab: Exterior Horizontal Insulation Nominal R-value</display_name>
+      <description>Nominal R-value of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.</description>
+      <type>String</type>
+      <units>h-ft^2-R/Btu</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>slab_exterior_horizontal_insulation_width</name>
+      <display_name>Slab: Exterior Horizontal Insulation Width</display_name>
+      <description>Width of the slab exterior horizontal insulation measured from the exterior surface of the vertical slab perimeter insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.</description>
+      <type>String</type>
+      <units>ft</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>slab_exterior_horizontal_insulation_depth_below_grade</name>
+      <display_name>Slab: Exterior Horizontal Insulation Depth Below Grade</display_name>
+      <description>Depth of the slab exterior horizontal insulation measured from the top surface of the slab exterior horizontal insulation. Applies to slab-on-grade foundations and basement/crawlspace floors.</description>
+      <type>String</type>
+      <units>ft</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>slab_under_insulation_r</name>
@@ -1227,7 +1227,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>slab_under_width</name>
+      <name>slab_under_insulation_width</name>
       <display_name>Slab: Under Slab Insulation Width</display_name>
       <description>Width from slab edge inward of horizontal under-slab insulation. Enter 999 to specify that the under slab insulation spans the entire slab. Applies to slab-on-grade foundations and basement/crawlspace floors.</description>
       <type>Double</type>
@@ -1589,7 +1589,7 @@
     <argument>
       <name>window_front_wwr</name>
       <display_name>Windows: Front Window-to-Wall Ratio</display_name>
-      <description>The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.</description>
+      <description>The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead. If the front wall is adiabatic, the value will be ignored.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -1599,7 +1599,7 @@
     <argument>
       <name>window_back_wwr</name>
       <display_name>Windows: Back Window-to-Wall Ratio</display_name>
-      <description>The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.</description>
+      <description>The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead. If the back wall is adiabatic, the value will be ignored.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -1609,7 +1609,7 @@
     <argument>
       <name>window_left_wwr</name>
       <display_name>Windows: Left Window-to-Wall Ratio</display_name>
-      <description>The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.</description>
+      <description>The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead. If the left wall is adiabatic, the value will be ignored.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -1619,7 +1619,7 @@
     <argument>
       <name>window_right_wwr</name>
       <display_name>Windows: Right Window-to-Wall Ratio</display_name>
-      <description>The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.</description>
+      <description>The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead. If the right wall is adiabatic, the value will be ignored.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -1629,7 +1629,7 @@
     <argument>
       <name>window_area_front</name>
       <display_name>Windows: Front Window Area</display_name>
-      <description>The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.</description>
+      <description>The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead. If the front wall is adiabatic, the value will be ignored.</description>
       <type>Double</type>
       <units>ft^2</units>
       <required>true</required>
@@ -1639,7 +1639,7 @@
     <argument>
       <name>window_area_back</name>
       <display_name>Windows: Back Window Area</display_name>
-      <description>The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.</description>
+      <description>The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead. If the back wall is adiabatic, the value will be ignored.</description>
       <type>Double</type>
       <units>ft^2</units>
       <required>true</required>
@@ -1649,7 +1649,7 @@
     <argument>
       <name>window_area_left</name>
       <display_name>Windows: Left Window Area</display_name>
-      <description>The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead.</description>
+      <description>The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead. If the left wall is adiabatic, the value will be ignored.</description>
       <type>Double</type>
       <units>ft^2</units>
       <required>true</required>
@@ -1659,7 +1659,7 @@
     <argument>
       <name>window_area_right</name>
       <display_name>Windows: Right Window Area</display_name>
-      <description>The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead.</description>
+      <description>The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead. If the right wall is adiabatic, the value will be ignored.</description>
       <type>Double</type>
       <units>ft^2</units>
       <required>true</required>
@@ -1714,9 +1714,64 @@
       <default_value>0.3</default_value>
     </argument>
     <argument>
+      <name>window_interior_shading_type</name>
+      <display_name>Windows: Interior Shading Type</display_name>
+      <description>Type of window interior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'&gt;HPXML Interior Shading&lt;/a&gt;) is used.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>light curtains</value>
+          <display_name>light curtains</display_name>
+        </choice>
+        <choice>
+          <value>light shades</value>
+          <display_name>light shades</display_name>
+        </choice>
+        <choice>
+          <value>light blinds</value>
+          <display_name>light blinds</display_name>
+        </choice>
+        <choice>
+          <value>medium curtains</value>
+          <display_name>medium curtains</display_name>
+        </choice>
+        <choice>
+          <value>medium shades</value>
+          <display_name>medium shades</display_name>
+        </choice>
+        <choice>
+          <value>medium blinds</value>
+          <display_name>medium blinds</display_name>
+        </choice>
+        <choice>
+          <value>dark curtains</value>
+          <display_name>dark curtains</display_name>
+        </choice>
+        <choice>
+          <value>dark shades</value>
+          <display_name>dark shades</display_name>
+        </choice>
+        <choice>
+          <value>dark blinds</value>
+          <display_name>dark blinds</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>window_interior_shading_winter</name>
-      <display_name>Windows: Winter Interior Shading</display_name>
-      <description>Interior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'&gt;HPXML Windows&lt;/a&gt;) is used.</description>
+      <display_name>Windows: Winter Interior Shading Coefficient</display_name>
+      <description>Interior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'&gt;HPXML Interior Shading&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Frac</units>
       <required>false</required>
@@ -1724,17 +1779,44 @@
     </argument>
     <argument>
       <name>window_interior_shading_summer</name>
-      <display_name>Windows: Summer Interior Shading</display_name>
-      <description>Interior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'&gt;HPXML Windows&lt;/a&gt;) is used.</description>
+      <display_name>Windows: Summer Interior Shading Coefficient</display_name>
+      <description>Interior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-interior-shading'&gt;HPXML Interior Shading&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>window_exterior_shading_type</name>
+      <display_name>Windows: Exterior Shading Type</display_name>
+      <description>Type of window exterior shading. Summer/winter shading coefficients can be provided below instead. If neither is provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'&gt;HPXML Exterior Shading&lt;/a&gt;) is used.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>solar film</value>
+          <display_name>solar film</display_name>
+        </choice>
+        <choice>
+          <value>solar screens</value>
+          <display_name>solar screens</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>window_exterior_shading_winter</name>
-      <display_name>Windows: Winter Exterior Shading</display_name>
-      <description>Exterior shading coefficient for the winter season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'&gt;HPXML Windows&lt;/a&gt;) is used.</description>
+      <display_name>Windows: Winter Exterior Shading Coefficient</display_name>
+      <description>Exterior shading coefficient for the winter season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'&gt;HPXML Exterior Shading&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Frac</units>
       <required>false</required>
@@ -1742,8 +1824,8 @@
     </argument>
     <argument>
       <name>window_exterior_shading_summer</name>
-      <display_name>Windows: Summer Exterior Shading</display_name>
-      <description>Exterior shading coefficient for the summer season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'&gt;HPXML Windows&lt;/a&gt;) is used.</description>
+      <display_name>Windows: Summer Exterior Shading Coefficient</display_name>
+      <description>Exterior shading coefficient for the summer season, which if provided overrides the shading type input. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-exterior-shading'&gt;HPXML Exterior Shading&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Frac</units>
       <required>false</required>
@@ -1752,11 +1834,38 @@
     <argument>
       <name>window_shading_summer_season</name>
       <display_name>Windows: Shading Summer Season</display_name>
-      <description>Enter a date like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'&gt;HPXML Windows&lt;/a&gt;) is used.</description>
+      <description>Enter a date range like 'May 1 - Sep 30'. Defines the summer season for purposes of shading coefficients; the rest of the year is assumed to be winter. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-windows'&gt;HPXML Windows&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>window_insect_screens</name>
+      <display_name>Windows: Insect Screens</display_name>
+      <description>The type of insect screens, if present. If not provided, assumes there are no insect screens.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+        <choice>
+          <value>exterior</value>
+          <display_name>exterior</display_name>
+        </choice>
+        <choice>
+          <value>interior</value>
+          <display_name>interior</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>window_storm_type</name>
@@ -2004,14 +2113,53 @@
       <default_value>4.4</default_value>
     </argument>
     <argument>
+      <name>air_leakage_leakiness_description</name>
+      <display_name>Air Leakage: Leakiness Description</display_name>
+      <description>Qualitative description of infiltration. If provided, the Year Built of the home is required. Either provide this input or provide a numeric air leakage value below.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>very tight</value>
+          <display_name>very tight</display_name>
+        </choice>
+        <choice>
+          <value>tight</value>
+          <display_name>tight</display_name>
+        </choice>
+        <choice>
+          <value>average</value>
+          <display_name>average</display_name>
+        </choice>
+        <choice>
+          <value>leaky</value>
+          <display_name>leaky</display_name>
+        </choice>
+        <choice>
+          <value>very leaky</value>
+          <display_name>very leaky</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>air_leakage_units</name>
       <display_name>Air Leakage: Units</display_name>
-      <description>The unit of measure for the air leakage.</description>
+      <description>The unit of measure for the air leakage if providing a numeric air leakage value.</description>
       <type>Choice</type>
-      <required>true</required>
+      <units></units>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>ACH</default_value>
       <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
         <choice>
           <value>ACH</value>
           <display_name>ACH</display_name>
@@ -2037,26 +2185,25 @@
     <argument>
       <name>air_leakage_house_pressure</name>
       <display_name>Air Leakage: House Pressure</display_name>
-      <description>The house pressure relative to outside. Required when units are ACH or CFM.</description>
-      <type>Double</type>
+      <description>The house pressure relative to outside if providing a numeric air leakage value. Required when units are ACH or CFM.</description>
+      <type>String</type>
       <units>Pa</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>50</default_value>
     </argument>
     <argument>
       <name>air_leakage_value</name>
       <display_name>Air Leakage: Value</display_name>
-      <description>Air exchange rate value. For 'EffectiveLeakageArea', provide value in sq. in.</description>
-      <type>Double</type>
-      <required>true</required>
+      <description>Numeric air leakage value. For 'EffectiveLeakageArea', provide value in sq. in. If provided, overrides Leakiness Description input.</description>
+      <type>String</type>
+      <units></units>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>3</default_value>
     </argument>
     <argument>
       <name>air_leakage_type</name>
       <display_name>Air Leakage: Type</display_name>
-      <description>Type of air leakage. If 'unit total', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'unit exterior only', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is single-family attached or apartment unit.</description>
+      <description>Type of air leakage if providing a numeric air leakage value. If 'unit total', represents the total infiltration to the unit as measured by a compartmentalization test, in which case the air leakage value will be adjusted by the ratio of exterior envelope surface area to total envelope surface area. Otherwise, if 'unit exterior only', represents the infiltration to the unit from outside only as measured by a guarded test. Required when unit type is single-family attached or apartment unit.</description>
       <type>Choice</type>
       <units></units>
       <required>false</required>
@@ -2652,7 +2799,7 @@
       <display_name>Heat Pump: Heating Capacity Retention Temperature</display_name>
       <description>The user-specified temperature (e.g., 17F or 5F) for the above heating capacity retention fraction. Applies to all heat pump types except ground-to-air. Required if the Heating Capacity Retention Fraction is provided.</description>
       <type>String</type>
-      <units>deg-F</units>
+      <units>F</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2708,7 +2855,7 @@
       <display_name>Heat Pump: Compressor Lockout Temperature</display_name>
       <description>The temperature below which the heat pump compressor is disabled. If both this and Backup Heating Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies to all heat pump types other than ground-to-air. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#air-to-air-heat-pump'&gt;Air-to-Air Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#mini-split-heat-pump'&gt;Mini-Split Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#packaged-terminal-heat-pump'&gt;Packaged Terminal Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#room-air-conditioner-w-reverse-cycle'&gt;Room Air Conditioner w/ Reverse Cycle&lt;/a&gt;) is used.</description>
       <type>String</type>
-      <units>deg-F</units>
+      <units>F</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2803,7 +2950,7 @@
       <display_name>Heat Pump: Backup Heating Lockout Temperature</display_name>
       <description>The temperature above which the heat pump backup system is disabled. If both this and Compressor Lockout Temperature are provided and use the same value, it essentially defines a switchover temperature (for, e.g., a dual-fuel heat pump). Applies for both Backup Type of 'integrated' and 'separate'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#backup'&gt;Backup&lt;/a&gt;) is used.</description>
       <type>String</type>
-      <units>deg-F</units>
+      <units>F</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2915,9 +3062,9 @@
     <argument>
       <name>hvac_perf_data_heating_outdoor_temperatures</name>
       <display_name>HVAC Detailed Performance Data: Heating Outdoor Temperatures</display_name>
-      <description>Outdoor temperatures of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). One of the outdoor temperatures must be 47 deg-F. At least two performance data points are required using a comma-separated list.</description>
+      <description>Outdoor temperatures of heating detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). One of the outdoor temperatures must be 47 F. At least two performance data points are required using a comma-separated list.</description>
       <type>String</type>
-      <units>deg-F</units>
+      <units>F</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2960,9 +3107,9 @@
     <argument>
       <name>hvac_perf_data_cooling_outdoor_temperatures</name>
       <display_name>HVAC Detailed Performance Data: Cooling Outdoor Temperatures</display_name>
-      <description>Outdoor temperatures of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). One of the outdoor temperatures must be 95 deg-F. At least two performance data points are required using a comma-separated list.</description>
+      <description>Outdoor temperatures of cooling detailed performance data if available. Applies only to variable-speed air-source HVAC systems (central air conditioners, mini-split air conditioners, air-to-air heat pumps, and mini-split heat pumps). One of the outdoor temperatures must be 95 F. At least two performance data points are required using a comma-separated list.</description>
       <type>String</type>
-      <units>deg-F</units>
+      <units>F</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -3185,7 +3332,7 @@
     <argument>
       <name>heating_system_2_type</name>
       <display_name>Heating System 2: Type</display_name>
-      <description>The type of the second heating system.</description>
+      <description>The type of the second heating system. If a heat pump is specified and the backup type is 'separate', this heating system represents 'separate' backup heating. For ducted heat pumps where the backup heating system is a 'Furnace', the backup would typically be characterized as 'integrated' in that the furnace and heat pump share the same distribution system and blower fan; a 'Furnace' as 'separate' backup to a ducted heat pump is not supported.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -3318,7 +3465,7 @@
     <argument>
       <name>hvac_control_heating_season_period</name>
       <display_name>HVAC Control: Heating Season Period</display_name>
-      <description>Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control'&gt;HPXML HVAC Control&lt;/a&gt;) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.</description>
+      <description>Enter a date range like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control'&gt;HPXML HVAC Control&lt;/a&gt;) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
@@ -3327,7 +3474,7 @@
     <argument>
       <name>hvac_control_cooling_season_period</name>
       <display_name>HVAC Control: Cooling Season Period</display_name>
-      <description>Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control'&gt;HPXML HVAC Control&lt;/a&gt;) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.</description>
+      <description>Enter a date range like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-hvac-control'&gt;HPXML HVAC Control&lt;/a&gt;) is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
@@ -4323,7 +4470,7 @@
     <argument>
       <name>water_heater_tank_volume</name>
       <display_name>Water Heater: Tank Volume</display_name>
-      <description>Nominal volume of water heater tank. Only applies to storage water heater, heat pump water heater, and space-heating boiler with storage tank. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage'&gt;Conventional Storage&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump'&gt;Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#combi-boiler-w-storage'&gt;Combi Boiler w/ Storage&lt;/a&gt;) is used.</description>
+      <description>Nominal volume of water heater tank. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage'&gt;Conventional Storage&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump'&gt;Heat Pump&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#combi-boiler-w-storage'&gt;Combi Boiler w/ Storage&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>gal</units>
       <required>false</required>
@@ -4400,7 +4547,16 @@
     <argument>
       <name>water_heater_heating_capacity</name>
       <display_name>Water Heater: Heating Capacity</display_name>
-      <description>Heating capacity. Only applies to storage water heater. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage'&gt;Conventional Storage&lt;/a&gt;) is used.</description>
+      <description>Heating capacity. Only applies to storage water heater and heat pump water heater (compressor). If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#conventional-storage'&gt;Conventional Storage&lt;/a&gt;, &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump'&gt;Heat Pump&lt;/a&gt;) is used.</description>
+      <type>String</type>
+      <units>Btu/hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>water_heater_backup_heating_capacity</name>
+      <display_name>Water Heater: Backup Heating Capacity</display_name>
+      <description>Backup heating capacity for a heat pump water heater. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#heat-pump'&gt;Heat Pump&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>Btu/hr</units>
       <required>false</required>
@@ -4411,7 +4567,7 @@
       <display_name>Water Heater: Standby Loss</display_name>
       <description>The standby loss of water heater. Only applies to space-heating boilers. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#combi-boiler-w-storage'&gt;Combi Boiler w/ Storage&lt;/a&gt;) is used.</description>
       <type>String</type>
-      <units>deg-F/hr</units>
+      <units>F/hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -4429,7 +4585,7 @@
       <display_name>Water Heater: Setpoint Temperature</display_name>
       <description>The setpoint temperature of water heater. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-water-heating-systems'&gt;HPXML Water Heating Systems&lt;/a&gt;) is used.</description>
       <type>String</type>
-      <units>deg-F</units>
+      <units>F</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -5413,7 +5569,7 @@
     <argument>
       <name>holiday_lighting_period</name>
       <display_name>Holiday Lighting: Period</display_name>
-      <description>Enter a date like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-lighting'&gt;HPXML Lighting&lt;/a&gt;) is used.</description>
+      <description>Enter a date range like 'Nov 25 - Jan 5'. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-lighting'&gt;HPXML Lighting&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units></units>
       <required>false</required>
@@ -6106,7 +6262,7 @@
     <argument>
       <name>extra_refrigerator_rated_annual_kwh</name>
       <display_name>Extra Refrigerator: Rated Annual Consumption</display_name>
-      <description>The EnergyGuide rated annual energy consumption for an extra rrefrigerator. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-refrigerators'&gt;HPXML Refrigerators&lt;/a&gt;) is used.</description>
+      <description>The EnergyGuide rated annual energy consumption for an extra refrigerator. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-refrigerators'&gt;HPXML Refrigerators&lt;/a&gt;) is used.</description>
       <type>String</type>
       <units>kWh/yr</units>
       <required>false</required>
@@ -6412,7 +6568,7 @@
       <display_name>Ceiling Fan: Cooling Setpoint Temperature Offset</display_name>
       <description>The cooling setpoint temperature offset during months when the ceiling fans are operating. Only applies if ceiling fan quantity is greater than zero. If not provided, the OS-HPXML default (see &lt;a href='https://openstudio-hpxml.readthedocs.io/en/v1.8.1/workflow_inputs.html#hpxml-ceiling-fans'&gt;HPXML Ceiling Fans&lt;/a&gt;) is used.</description>
       <type>String</type>
-      <units>deg-F</units>
+      <units>F</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -6968,6 +7124,54 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>building_id</name>
+      <display_name>Building Unit ID</display_name>
+      <description>The building unit number (between 1 and the number of samples).</description>
+      <type>Integer</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_vacancy_periods</name>
+      <display_name>Schedules: Vacancy Periods</display_name>
+      <description>Specifies the vacancy periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_power_outage_periods</name>
+      <display_name>Schedules: Power Outage Periods</display_name>
+      <description>Specifies the power outage periods. Enter a date like "Dec 15 - Jan 15". Optionally, can enter hour of the day like "Dec 15 2 - Jan 15 20" (start hour can be 0 through 23 and end hour can be 1 through 24). If multiple periods, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_power_outage_periods_window_natvent_availability</name>
+      <display_name>Schedules: Power Outage Periods Window Natural Ventilation Availability</display_name>
+      <description>The availability of the natural ventilation schedule during the power outage periods. Valid choices are 'regular schedule', 'always available', 'always unavailable'. If multiple periods, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_space_heating_unavailable_days</name>
+      <display_name>Schedules: Space Heating Unavailability</display_name>
+      <description>Number of days space heating equipment is unavailable.</description>
+      <type>Integer</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_space_cooling_unavailable_days</name>
+      <display_name>Schedules: Space Cooling Unavailability</display_name>
+      <description>Number of days space cooling equipment is unavailable.</description>
+      <type>Integer</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>geometry_unit_cfa_bin</name>
       <display_name>Geometry: Unit Conditioned Floor Area Bin</display_name>
       <description>E.g., '2000-2499'.</description>
@@ -7480,7 +7684,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>5E670AFF</checksum>
+      <checksum>44A63A00</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -7497,19 +7701,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>4D84A86B</checksum>
+      <checksum>C85AA9D8</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>AB1AADDC</checksum>
+      <checksum>67C6AB5F</checksum>
     </file>
     <file>
       <filename>resstock_arguments_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>A224A54B</checksum>
+      <checksum>7E6D3230</checksum>
     </file>
   </files>
 </measure>

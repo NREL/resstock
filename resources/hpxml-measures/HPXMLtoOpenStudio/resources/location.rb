@@ -1,15 +1,38 @@
 # frozen_string_literal: true
 
-class Location
-  def self.apply(model, weather, epw_file, hpxml_header, hpxml_bldg)
-    apply_year(model, hpxml_header, epw_file)
+# Collection of methods for applying site, year, daylight saving time, and ground temperature properties.
+# Also includes some helper methods for getting IECC climate zone based on WMO, EPW file path, and simulation calendar year.
+module Location
+  # This method calls individual methods for applying site, year, daylight saving time, and ground temperature properties on OpenStudio objects.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param epw_path [String] Path to the EPW weather file
+  # @return [nil]
+  def self.apply(model, weather, hpxml_bldg, hpxml_header, epw_path)
+    apply_weather_file(model, epw_path)
+    apply_year(model, hpxml_header, weather)
     apply_site(model, hpxml_bldg)
     apply_dst(model, hpxml_bldg)
     apply_ground_temps(model, weather, hpxml_bldg)
   end
 
-  private
+  # Sets the OpenStudio WeatherFile object.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param epw_path [String] Path to the EPW weather file
+  # @return [nil]
+  def self.apply_weather_file(model, epw_path)
+    OpenStudio::Model::WeatherFile.setWeatherFile(model, OpenStudio::EpwFile.new(epw_path))
+  end
 
+  # Set latitude, longitude, time zone, and elevation on the OpenStudio Site object.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [nil]
   def self.apply_site(model, hpxml_bldg)
     site = model.getSite
     site.setName("#{hpxml_bldg.city}_#{hpxml_bldg.state_code}")
@@ -17,11 +40,21 @@ class Location
     site.setLongitude(hpxml_bldg.longitude)
     site.setTimeZone(hpxml_bldg.time_zone_utc_offset)
     site.setElevation(UnitConversions.convert(hpxml_bldg.elevation, 'ft', 'm').round)
+
+    # Tell EnergyPlus to use these values, not what's in the weather station (which
+    # may be at a very different, e.g., elevation)
+    site.setKeepSiteLocationInformation(true)
   end
 
-  def self.apply_year(model, hpxml_header, epw_file)
+  # Set calendar year on the OpenStudio YearDescription object.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param hpxml_header [HPXML::Header] HPXML Header object (one per HPXML file)
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @return [nil]
+  def self.apply_year(model, hpxml_header, weather)
     if Date.leap?(hpxml_header.sim_calendar_year)
-      n_hours = epw_file.data.size
+      n_hours = weather.header.NumRecords
       if n_hours != 8784
         fail "Specified a leap year (#{hpxml_header.sim_calendar_year}) but weather data has #{n_hours} hours."
       end
@@ -31,6 +64,11 @@ class Location
     year_description.setCalendarYear(hpxml_header.sim_calendar_year)
   end
 
+  # If enabled, set daylight saving time start and end dates on the OpenStudio RunPeriodControlDaylightSavingTime object.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [nil]
   def self.apply_dst(model, hpxml_bldg)
     return unless hpxml_bldg.dst_enabled
 
@@ -43,13 +81,19 @@ class Location
     run_period_control_daylight_saving_time.setEndDate(dst_end_date)
   end
 
+  # Set monthly shallow (varies by month) and monthly deep (constant) ground temperatures on the OpenStudio SiteGroundTemperatureShallow and SiteGroundTemperatureDeep objects, respectively.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @return [nil]
   def self.apply_ground_temps(model, weather, hpxml_bldg)
     # Shallow ground temperatures only currently used for ducts located under slab
     sgts = model.getSiteGroundTemperatureShallow
     sgts.resetAllMonths
     sgts.setAllMonthlyTemperatures(weather.data.ShallowGroundMonthlyTemps.map { |t| UnitConversions.convert(t, 'F', 'C') })
 
-    if hpxml_bldg.heat_pumps.select { |h| h.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }.size > 0
+    if hpxml_bldg.heat_pumps.count { |h| h.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir } > 0
       # Deep ground temperatures used by GSHP setpoint manager
       dgts = model.getSiteGroundTemperatureDeep
       dgts.resetAllMonths
@@ -57,28 +101,17 @@ class Location
     end
   end
 
-  def self.get_climate_zones
-    zones_csv = File.join(File.dirname(__FILE__), 'data', 'climate_zones.csv')
-    if not File.exist?(zones_csv)
-      fail 'Could not find climate_zones.csv'
-    end
-
-    return zones_csv
-  end
-
-  def self.get_climate_zone_iecc(wmo)
-    zones_csv = get_climate_zones
-
-    require 'csv'
-    CSV.foreach(zones_csv) do |row|
-      return row[6].to_s if row[0].to_s == wmo.to_s
-    end
-
-    return
-  end
-
+  # Get (find) the absolute path to the EPW file.
+  #
+  # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
+  # @param hpxml_path [String] Path to the HPXML file
+  # @return [String] Path to the EnergyPlus weather file (EPW)
   def self.get_epw_path(hpxml_bldg, hpxml_path)
-    epw_filepath = hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath
+    if hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath.nil?
+      epw_filepath = Defaults.lookup_weather_data_from_zipcode(hpxml_bldg.zip_code)[:station_filename]
+    else
+      epw_filepath = hpxml_bldg.climate_and_risk_zones.weather_station_epw_filepath
+    end
     abs_epw_path = File.absolute_path(epw_filepath)
 
     if not File.exist? abs_epw_path
@@ -108,13 +141,19 @@ class Location
     return abs_epw_path
   end
 
-  def self.get_sim_calendar_year(sim_calendar_year, epw_file)
-    if (not epw_file.nil?) && epw_file.startDateActualYear.is_initialized # AMY
-      sim_calendar_year = epw_file.startDateActualYear.get
+  # Get the simulation calendar year.
+  #
+  # @param sim_calendar_year [Integer] nil if EPW is AMY or using 2007 default
+  # @param weather [WeatherFile] Weather object containing EPW information
+  # @return [Integer] the simulation calendar year
+  def self.get_sim_calendar_year(sim_calendar_year, weather)
+    if (not weather.nil?) && (not weather.header.ActualYear.nil?) # AMY
+      sim_calendar_year = weather.header.ActualYear
     end
     if sim_calendar_year.nil?
-      sim_calendar_year = 2007 # For consistency with SAM utility bill calculations
+      sim_calendar_year = 2007
     end
+
     return sim_calendar_year
   end
 end

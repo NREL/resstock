@@ -7,6 +7,11 @@ require 'fileutils'
 require_relative '../measure.rb'
 
 class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
+  def teardown
+    File.delete(File.join(File.dirname(__FILE__), 'results_annual.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_annual.csv')
+    File.delete(File.join(File.dirname(__FILE__), 'results_design_load_details.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_design_load_details.csv')
+  end
+
   def sample_files_dir
     return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
   end
@@ -488,7 +493,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     ther_eff = 1.0
     iam_coeff2 = 0.3023
     iam_coeff3 = -0.3057
-    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
+    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_rated_thermal_losses, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = 0.2271
     storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
@@ -519,7 +524,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     collector = model.getSolarCollectorFlatPlateWaters[0]
     collector_performance = collector.solarCollectorPerformance
     assert_in_epsilon(collector_area, collector_performance.grossArea, 0.001)
-    assert_in_epsilon(solar_thermal_system.collector_frta, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
+    assert_in_epsilon(solar_thermal_system.collector_rated_optical_efficiency, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
     assert_in_epsilon(collector_coeff_2, collector_performance.coefficient2ofEfficiencyEquation, 0.001)
     assert_in_epsilon(-iam_coeff2, collector_performance.coefficient2ofIncidentAngleModifier.get, 0.001)
     assert_in_epsilon(iam_coeff3, collector_performance.coefficient3ofIncidentAngleModifier.get, 0.001)
@@ -531,7 +536,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'Water')
+      assert_equal(plant_loop.fluidType, EPlus::FluidWater)
       loop = plant_loop
     end
     pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
@@ -561,7 +566,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     ther_eff = 1.0
     iam_coeff2 = 0.1
     iam_coeff3 = 0
-    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
+    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_rated_thermal_losses, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = 0.2271
     storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
@@ -592,7 +597,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     collector = model.getSolarCollectorFlatPlateWaters[0]
     collector_performance = collector.solarCollectorPerformance
     assert_in_epsilon(collector_area, collector_performance.grossArea, 0.001)
-    assert_in_epsilon(solar_thermal_system.collector_frta, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
+    assert_in_epsilon(solar_thermal_system.collector_rated_optical_efficiency, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
     assert_in_epsilon(collector_coeff_2, collector_performance.coefficient2ofEfficiencyEquation, 0.001)
     assert_in_epsilon(-iam_coeff2, collector_performance.coefficient2ofIncidentAngleModifier.get, 0.001)
     assert_in_epsilon(iam_coeff3, collector_performance.coefficient3ofIncidentAngleModifier.get, 0.001)
@@ -604,7 +609,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'Water')
+      assert_equal(plant_loop.fluidType, EPlus::FluidWater)
       loop = plant_loop
     end
     pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
@@ -634,7 +639,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     ther_eff = 1.0
     iam_coeff2 = 0.1
     iam_coeff3 = 0
-    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
+    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_rated_thermal_losses, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = UnitConversions.convert(solar_thermal_system.storage_volume, 'gal', 'm^3')
     storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = UnitConversions.convert(0.1, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
@@ -665,7 +670,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     collector = model.getSolarCollectorFlatPlateWaters[0]
     collector_performance = collector.solarCollectorPerformance
     assert_in_epsilon(collector_area, collector_performance.grossArea, 0.001)
-    assert_in_epsilon(solar_thermal_system.collector_frta, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
+    assert_in_epsilon(solar_thermal_system.collector_rated_optical_efficiency, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
     assert_in_epsilon(collector_coeff_2, collector_performance.coefficient2ofEfficiencyEquation, 0.001)
     assert_in_epsilon(-iam_coeff2, collector_performance.coefficient2ofIncidentAngleModifier.get, 0.001)
     assert_in_epsilon(iam_coeff3, collector_performance.coefficient3ofIncidentAngleModifier.get, 0.001)
@@ -677,7 +682,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'PropyleneGlycol')
+      assert_equal(plant_loop.fluidType, EPlus::FluidPropyleneGlycol)
       loop = plant_loop
     end
     pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
@@ -707,7 +712,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     ther_eff = 1.0
     iam_coeff2 = 0.1
     iam_coeff3 = 0
-    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_frul, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
+    collector_coeff_2 = -UnitConversions.convert(solar_thermal_system.collector_rated_thermal_losses, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')
     storage_tank_volume = 0.2271
     storage_tank_height = UnitConversions.convert(4.5, 'ft', 'm')
     storage_tank_u = 0.0
@@ -738,7 +743,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     collector = model.getSolarCollectorFlatPlateWaters[0]
     collector_performance = collector.solarCollectorPerformance
     assert_in_epsilon(collector_area, collector_performance.grossArea, 0.001)
-    assert_in_epsilon(solar_thermal_system.collector_frta, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
+    assert_in_epsilon(solar_thermal_system.collector_rated_optical_efficiency, collector_performance.coefficient1ofEfficiencyEquation, 0.001)
     assert_in_epsilon(collector_coeff_2, collector_performance.coefficient2ofEfficiencyEquation, 0.001)
     assert_in_epsilon(-iam_coeff2, collector_performance.coefficient2ofIncidentAngleModifier.get, 0.001)
     assert_in_epsilon(iam_coeff3, collector_performance.coefficient3ofIncidentAngleModifier.get, 0.001)
@@ -750,7 +755,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'Water')
+      assert_equal(plant_loop.fluidType, EPlus::FluidWater)
       loop = plant_loop
     end
     pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
@@ -818,7 +823,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
       next if plant_loop.demandComponents.select { |comp| comp == preheat_tank }.empty?
 
       collector_attached_to_tank = true
-      assert_equal(plant_loop.fluidType, 'Water')
+      assert_equal(plant_loop.fluidType, EPlus::FluidWater)
       loop = plant_loop
     end
     pump = loop.supplyComponents.find { |comp| comp.to_PumpConstantSpeed.is_initialized }
@@ -945,6 +950,8 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     ther_eff = 1.0
     cop = 2.820
     tank_height = 1.598
+    cap = 500.0 * cop # W
+    backup_cap = 4500.0 # W
 
     # Check water heater
     assert_equal(1, model.getWaterHeaterHeatPumpWrappedCondensers.size)
@@ -956,13 +963,14 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     assert_equal('Schedule', wh.ambientTemperatureIndicator)
     assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
     assert_in_epsilon(tank_height, wh.tankHeight.get, 0.001)
-    assert_in_epsilon(4500.0, wh.heater1Capacity.get, 0.001)
-    assert_in_epsilon(4500.0, wh.heater2Capacity, 0.001)
+    assert_in_epsilon(backup_cap, wh.heater1Capacity.get, 0.001)
+    assert_in_epsilon(backup_cap, wh.heater2Capacity, 0.001)
     assert_in_epsilon(u, wh.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, 0.001)
     assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency, 0.001)
 
     # Check heat pump cooling coil cop
     assert_in_epsilon(cop, coil.ratedCOP, 0.001)
+    assert_in_epsilon(cap, coil.ratedHeatingCapacity, 0.001)
   end
 
   def test_tank_heat_pump_uef
@@ -980,6 +988,8 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     ther_eff = 1.0
     cop = 4.004
     tank_height = 1.0335
+    cap = 500.0 * cop # W
+    backup_cap = 4500.0 # W
 
     # Check water heater
     assert_equal(1, model.getWaterHeaterHeatPumpWrappedCondensers.size)
@@ -991,13 +1001,52 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     assert_equal('Schedule', wh.ambientTemperatureIndicator)
     assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
     assert_in_epsilon(tank_height, wh.tankHeight.get, 0.001)
-    assert_in_epsilon(4500.0, wh.heater1Capacity.get, 0.001)
-    assert_in_epsilon(4500.0, wh.heater2Capacity, 0.001)
+    assert_in_epsilon(backup_cap, wh.heater1Capacity.get, 0.001)
+    assert_in_epsilon(backup_cap, wh.heater2Capacity, 0.001)
     assert_in_epsilon(u, wh.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, 0.001)
     assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency, 0.001)
 
     # Check heat pump cooling coil cop
     assert_in_epsilon(cop, coil.ratedCOP, 0.001)
+    assert_in_epsilon(cap, coil.ratedHeatingCapacity, 0.001)
+  end
+
+  def test_tank_heat_pump_capacities
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-heat-pump-capacities.xml'))
+    model, _hpxml, hpxml_bldg = _test_measure(args_hash)
+
+    # Get HPXML values
+    water_heating_system = hpxml_bldg.water_heating_systems[0]
+
+    # Expected value
+    tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
+    fuel = EPlus.fuel_type(water_heating_system.fuel_type)
+    u =  0.925
+    ther_eff = 1.0
+    cop = 2.820
+    tank_height = 1.598
+    cap = UnitConversions.convert(water_heating_system.heating_capacity, 'Btu/hr', 'W') # W
+    backup_cap = UnitConversions.convert(water_heating_system.backup_heating_capacity, 'Btu/hr', 'W') # W
+
+    # Check water heater
+    assert_equal(1, model.getWaterHeaterHeatPumpWrappedCondensers.size)
+    assert_equal(1, model.getWaterHeaterStratifieds.size)
+    hpwh = model.getWaterHeaterHeatPumpWrappedCondensers[0]
+    wh = hpwh.tank.to_WaterHeaterStratified.get
+    coil = hpwh.dXCoil.to_CoilWaterHeatingAirToWaterHeatPumpWrapped.get
+    assert_equal(fuel, wh.heaterFuelType)
+    assert_equal('Schedule', wh.ambientTemperatureIndicator)
+    assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
+    assert_in_epsilon(tank_height, wh.tankHeight.get, 0.001)
+    assert_in_epsilon(backup_cap, wh.heater1Capacity.get, 0.001)
+    assert_in_epsilon(backup_cap, wh.heater2Capacity, 0.001)
+    assert_in_epsilon(u, wh.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, 0.001)
+    assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency, 0.001)
+
+    # Check heat pump cooling coil cop
+    assert_in_epsilon(cop, coil.ratedCOP, 0.001)
+    assert_in_epsilon(cap, coil.ratedHeatingCapacity, 0.001)
   end
 
   def test_tank_jacket
@@ -1093,6 +1142,8 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     ther_eff = 1.0
     cop = 2.820
     tank_height = 2.3495
+    cap = 500.0 * cop # W
+    backup_cap = 4500.0 # W
 
     # Check water heater
     assert_equal(1, model.getWaterHeaterHeatPumpWrappedCondensers.size)
@@ -1104,13 +1155,14 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     assert_equal('Schedule', wh.ambientTemperatureIndicator)
     assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
     assert_in_epsilon(tank_height, wh.tankHeight.get, 0.001)
-    assert_in_epsilon(4500.0, wh.heater1Capacity.get, 0.001)
-    assert_in_epsilon(4500.0, wh.heater2Capacity, 0.001)
+    assert_in_epsilon(backup_cap, wh.heater1Capacity.get, 0.001)
+    assert_in_epsilon(backup_cap, wh.heater2Capacity, 0.001)
     assert_in_epsilon(u, wh.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, 0.001)
     assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency, 0.001)
 
     # Check heat pump cooling coil cop
     assert_in_epsilon(cop, coil.ratedCOP, 0.001)
+    assert_in_epsilon(cap, coil.ratedHeatingCapacity, 0.001)
   end
 
   def test_shared_laundry_room
@@ -1158,6 +1210,8 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     ther_eff = 1.0
     cop = 4.004
     tank_height = 1.0335
+    cap = 500.0 * cop # W
+    backup_cap = 4500.0 # W
 
     # Check water heater
     assert_equal(1, model.getWaterHeaterHeatPumpWrappedCondensers.size)
@@ -1169,13 +1223,14 @@ class HPXMLtoOpenStudioWaterHeaterTest < Minitest::Test
     assert_equal('Schedule', wh.ambientTemperatureIndicator)
     assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
     assert_in_epsilon(tank_height, wh.tankHeight.get, 0.001)
-    assert_in_epsilon(4500.0, wh.heater1Capacity.get, 0.001)
-    assert_in_epsilon(4500.0, wh.heater2Capacity, 0.001)
+    assert_in_epsilon(backup_cap, wh.heater1Capacity.get, 0.001)
+    assert_in_epsilon(backup_cap, wh.heater2Capacity, 0.001)
     assert_in_epsilon(u, wh.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, 0.001)
     assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency, 0.001)
 
     # Check heat pump cooling coil cop
     assert_in_epsilon(cop, coil.ratedCOP, 0.001)
+    assert_in_epsilon(cap, coil.ratedHeatingCapacity, 0.001)
   end
 
   def test_tank_stratified

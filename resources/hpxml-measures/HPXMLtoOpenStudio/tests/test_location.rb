@@ -8,6 +8,11 @@ require_relative '../measure.rb'
 require_relative '../resources/util.rb'
 
 class HPXMLtoOpenStudioLocationTest < Minitest::Test
+  def teardown
+    File.delete(File.join(File.dirname(__FILE__), 'results_annual.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_annual.csv')
+    File.delete(File.join(File.dirname(__FILE__), 'results_design_load_details.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_design_load_details.csv')
+  end
+
   def sample_files_dir
     return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
   end
@@ -62,7 +67,7 @@ class HPXMLtoOpenStudioLocationTest < Minitest::Test
 
     # denver
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    weather = WeatherProcess.new(epw_path: File.join(weather_dir, 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'), runner: runner)
+    weather = WeatherFile.new(epw_path: File.join(weather_dir, 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'), runner: runner)
 
     assert_equal(UnitConversions.convert(12.5, 'deltac', 'deltaf'), weather.data.DeepGroundSurfTempAmp1)
     assert_equal(UnitConversions.convert(-1.3, 'deltac', 'deltaf'), weather.data.DeepGroundSurfTempAmp2)
@@ -72,7 +77,7 @@ class HPXMLtoOpenStudioLocationTest < Minitest::Test
 
     # honolulu
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    weather = WeatherProcess.new(epw_path: File.join(weather_dir, 'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw'), runner: runner)
+    weather = WeatherFile.new(epw_path: File.join(weather_dir, 'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw'), runner: runner)
 
     assert_equal(UnitConversions.convert(2.6, 'deltac', 'deltaf'), weather.data.DeepGroundSurfTempAmp1)
     assert_equal(UnitConversions.convert(0.1, 'deltac', 'deltaf'), weather.data.DeepGroundSurfTempAmp2)
@@ -82,7 +87,7 @@ class HPXMLtoOpenStudioLocationTest < Minitest::Test
 
     # cape town
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    weather = WeatherProcess.new(epw_path: File.join(weather_dir, 'ZAF_Cape.Town.688160_IWEC.epw'), runner: runner)
+    weather = WeatherFile.new(epw_path: File.join(weather_dir, 'ZAF_Cape.Town.688160_IWEC.epw'), runner: runner)
 
     assert_equal(UnitConversions.convert(-5.2, 'deltac', 'deltaf'), weather.data.DeepGroundSurfTempAmp1)
     assert_equal(UnitConversions.convert(0.1, 'deltac', 'deltaf'), weather.data.DeepGroundSurfTempAmp2)
@@ -92,14 +97,14 @@ class HPXMLtoOpenStudioLocationTest < Minitest::Test
 
     # boulder
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    weather = WeatherProcess.new(epw_path: File.join(weather_dir, 'US_CO_Boulder_AMY_2012.epw'), runner: runner)
+    weather = WeatherFile.new(epw_path: File.join(weather_dir, 'US_CO_Boulder_AMY_2012.epw'), runner: runner)
 
     assert_equal(UnitConversions.convert(12.3, 'deltac', 'deltaf'), weather.data.DeepGroundSurfTempAmp1)
     assert_equal(UnitConversions.convert(1.1, 'deltac', 'deltaf'), weather.data.DeepGroundSurfTempAmp2)
     assert_equal(19, weather.data.DeepGroundPhaseShiftTempAmp1)
     assert_equal(-34, weather.data.DeepGroundPhaseShiftTempAmp2)
     assert_equal(1, runner.result.stepWarnings.size)
-    assert_equal(1, runner.result.stepWarnings.select { |w| w == 'No design condition info found; calculating design conditions from EPW weather data.' }.size)
+    assert_equal(1, runner.result.stepWarnings.count { |w| w == 'No design condition info found; calculating design conditions from EPW weather data.' })
   end
 
   def _test_measure(args_hash)
