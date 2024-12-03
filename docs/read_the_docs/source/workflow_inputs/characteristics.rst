@@ -35182,7 +35182,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - None
-     - 24%
+     - 23%
      - Percent
      - 0
      - 0
@@ -35342,7 +35342,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - None
-     - 24%
+     - 23%
      - conditioned space
      - auto
      - auto
@@ -38352,10 +38352,10 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``hvac_blower_fan_watts_per_cfm``
 
    * - No
-     - 24%
+     - 23%
      - auto
    * - Yes
-     - 76%
+     - 77%
      - auto
    * - Void
      - 0%
@@ -39253,7 +39253,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - Fuel Boiler, 76% AFUE
-     - 0.89%
+     - 0.83%
      - Boiler
      - 0.76
      - auto
@@ -39298,7 +39298,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - Fuel Boiler, 80% AFUE
-     - 3.3%
+     - 3.2%
      - Boiler
      - 0.8
      - auto
@@ -39343,7 +39343,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - Fuel Boiler, 90% AFUE
-     - 0.49%
+     - 0.48%
      - Boiler
      - 0.9
      - auto
@@ -39613,7 +39613,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - Fuel Wall/Floor Furnace, 68% AFUE
-     - 2.8%
+     - 2.9%
      - WallFurnace
      - 0.68
      - auto
@@ -39703,7 +39703,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - MSHP, SEER 29.3, 14 HSPF
-     - 0.015%
+     - 0.014%
      - none
      - 0
      - auto
@@ -39993,7 +39993,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Fuel Oil Fuel Furnace
      - 2.8%
    * - Fuel Oil Fuel Wall/Floor Furnace
-     - 0.29%
+     - 0.3%
    * - Fuel Oil Shared Heating
      - 0.51%
    * - Natural Gas Fuel Boiler
@@ -40007,7 +40007,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - None
      - 1.1%
    * - Other Fuel Fuel Boiler
-     - 0.46%
+     - 0.45%
    * - Other Fuel Fuel Furnace
      - 0.24%
    * - Other Fuel Fuel Wall/Floor Furnace
@@ -40023,7 +40023,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
    * - Propane Shared Heating
      - 0.16%
    * - Void
-     - 0.00039%
+     - 0%
 
 .. _hvac_secondary_heating_efficiency:
 
@@ -42236,7 +42236,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - 1.1%
      - 3
    * - 3 months
-     - 0.36%
+     - 0.35%
      - 90
    * - Never
      - 96%
@@ -47482,6 +47482,14 @@ Source
 
 - \U.S. EIA 2020 Residential Energy Consumption Survey (RECS) microdata.
 
+- \the California Energy Commision 2019 Residential Appliance Saturation Study (RASS) microdata.
+
+
+Assumption
+**********
+
+- \Within electric pool heaters, proportion of heat pump electric pool heating vs. non-heat pump electric pool heating was derived from RASS 2019.
+
 
 Arguments
 *********
@@ -47538,8 +47546,14 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - ``pool_heater_annual_therm``
      - ``pool_heater_usage_multiplier``
 
+   * - Electric Heat Pump
+     - 0.13%
+     - heat pump
+     - auto
+     - 0
+     - 1.0
    * - Electricity
-     - 0.7%
+     - 0.57%
      - electric resistance
      - auto
      - 0
@@ -62987,7 +63001,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - FIXME Fuel Oil Indirect
-     - 0.69%
+     - 0.68%
      - storage water heater
      - fuel oil
      - auto
@@ -63025,7 +63039,7 @@ From ``project_national`` the list of options, option stock sturation, and optio
      - auto
      - auto
    * - Fuel Oil Standard
-     - 1.4%
+     - 1.3%
      - storage water heater
      - fuel oil
      - auto
