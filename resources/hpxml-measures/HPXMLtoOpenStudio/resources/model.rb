@@ -859,6 +859,8 @@ module Model
   # @return [nil]
   def self.merge_unit_models(model, hpxml_osm_map)
     # Map of OpenStudio IDD objects => OSM class names
+    # Note: ZoneCapacitanceMultiplierResearchSpecial is not actually unique, but we don't assign it to
+    # individual thermal zones, so we'll treat it as unique here.
     unique_object_map = { 'OS:ConvergenceLimits' => 'ConvergenceLimits',
                           'OS:Foundation:Kiva:Settings' => 'FoundationKivaSettings',
                           'OS:OutputControl:Files' => 'OutputControlFiles',
@@ -875,7 +877,8 @@ module Model
                           'OS:Site:WaterMainsTemperature' => 'SiteWaterMainsTemperature',
                           'OS:SurfaceConvectionAlgorithm:Inside' => 'InsideSurfaceConvectionAlgorithm',
                           'OS:SurfaceConvectionAlgorithm:Outside' => 'OutsideSurfaceConvectionAlgorithm',
-                          'OS:Timestep' => 'Timestep' }
+                          'OS:Timestep' => 'Timestep',
+                          'OS:ZoneCapacitanceMultiplier:ResearchSpecial' => 'ZoneCapacitanceMultiplierResearchSpecial' }
 
     # Handle unique objects first: Grab one from the first model we find the
     # object on (may not be the first unit).
