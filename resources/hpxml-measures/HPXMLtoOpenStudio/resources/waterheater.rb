@@ -1037,6 +1037,15 @@ module Waterheater
     return cop
   end
 
+  # Returns the heating input capacity, calculated as the heating rated (output) capacity divided by the rated efficiency.
+  #
+  # @param heating_capacity [Double]
+  # @param heating_efficiency_cop [Double] Rated efficiency [COP]
+  # @return [Double] The heating input capacity [Btu/hr]
+  def self.get_heating_input_capacity(heating_capacity, heating_efficiency_cop)
+    return heating_capacity / UnitConversions.convert(heating_efficiency_cop, 'btu/hr', 'w')
+  end
+
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object

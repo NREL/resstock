@@ -6760,31 +6760,6 @@ class HPXML < Object
       return list
     end
 
-    # Returns the cooling input capacity, calculated as the output capacity divided by the rated COP.
-    #
-    # @return [Double] The cooling input capacity (Btu/hr)
-    def cooling_input_capacity
-      begin
-        return @cooling_capacity / @additional_properties.cool_rated_cops.min
-      rescue
-        if not @cooling_efficiency_seer.nil?
-          return @cooling_capacity / UnitConversions.convert(@cooling_efficiency_seer, 'btu/hr', 'w')
-        elsif not @cooling_efficiency_seer2.nil?
-          is_ducted = !@distribution_system_idref.nil?
-          return @cooling_capacity / UnitConversions.convert(HVAC.calc_seer_from_seer2(@cooling_efficiency_seer2, is_ducted), 'btu/hr', 'w')
-        elsif not @cooling_efficiency_eer.nil?
-          ceer = @cooling_efficiency_eer / 1.01
-          return @cooling_capacity / UnitConversions.convert(ceer, 'btu/hr', 'w')
-        elsif not @cooling_efficiency_ceer.nil?
-          return @cooling_capacity / UnitConversions.convert(@cooling_efficiency_ceer, 'btu/hr', 'w')
-        elsif not @cooling_efficiency_kw_per_ton.nil?
-          # TODO
-        else
-          return @cooling_capacity # FIXME: evap cooler
-        end
-      end
-    end
-
     # Returns the zone that the cooling system serves.
     #
     # @return [HPXML::Zone] Zone served
@@ -7132,49 +7107,6 @@ class HPXML < Object
       end
 
       return list
-    end
-
-    # Returns the heating input capacity, calculated as the output capacity divided by the rated COP.
-    #
-    # @return [Double] The heating input capacity (Btu/hr)
-    def heating_input_capacity
-      begin
-        return @heating_capacity / @additional_properties.heat_rated_cops.min
-      rescue
-        if not @heating_efficiency_hspf.nil?
-          return @heating_capacity / UnitConversions.convert(@heating_efficiency_hspf, 'btu/hr', 'w')
-        elsif not @heating_efficiency_hspf2.nil?
-          is_ducted = !@distribution_system_idref.nil?
-          return @heating_capacity / UnitConversions.convert(HVAC.calc_hspf_from_hspf2(@heating_efficiency_hspf2, is_ducted), 'btu/hr', 'w')
-        elsif not @heating_efficiency_cop.nil?
-          return @heating_capacity / @heating_efficiency_cop
-        else
-          return @heating_capacity
-        end
-      end
-    end
-
-    # Returns the cooling input capacity, calculated as the output capacity divided by the rated COP.
-    #
-    # @return [Double] The cooling input capacity (Btu/hr)
-    def cooling_input_capacity
-      begin
-        return @cooling_capacity / @additional_properties.cool_rated_cops.min
-      rescue
-        if not @cooling_efficiency_seer.nil?
-          return @cooling_capacity / UnitConversions.convert(@cooling_efficiency_seer, 'btu/hr', 'w')
-        elsif not @cooling_efficiency_seer2.nil?
-          is_ducted = !@distribution_system_idref.nil?
-          return @cooling_capacity / UnitConversions.convert(HVAC.calc_seer_from_seer2(@cooling_efficiency_seer2, is_ducted), 'btu/hr', 'w')
-        elsif not @cooling_efficiency_eer.nil?
-          ceer = @cooling_efficiency_eer / 1.01
-          return @cooling_capacity / UnitConversions.convert(ceer, 'btu/hr', 'w')
-        elsif not @cooling_efficiency_ceer.nil?
-          return @cooling_capacity / UnitConversions.convert(@cooling_efficiency_ceer, 'btu/hr', 'w')
-        else
-          return @cooling_capacity
-        end
-      end
     end
 
     # Returns the zone that the heat pump serves.
@@ -8745,25 +8677,6 @@ class HPXML < Object
       end
 
       return list
-    end
-
-    # Returns the heating input capacity, calculated as the output capacity divided by the rated COP.
-    #
-    # @return [Double] The heating input capacity (Btu/hr)
-    def heating_input_capacity
-      if @water_heater_type == HPXML::WaterHeaterTypeHeatPump
-        cop = Waterheater.get_heat_pump_cop(self)
-        return @heating_capacity / UnitConversions.convert(cop, 'btu/hr', 'w')
-      else
-        return @heating_capacity # FIXME
-      end
-    end
-
-    # Returns the backup heating input capacity.
-    #
-    # @return [Double] The backup heating input capacity (Btu/hr)
-    def backup_heating_input_capacity
-      return @backup_heating_capacity
     end
 
     # Returns the HVAC system related to this water heating system (e.g., for

@@ -172,9 +172,11 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       HVACSizing.write_detailed_output(design_loads_results_out, args[:output_format], args[:design_load_details_output_file_path])
 
       # Write electric panel load output file
-      electric_panel_results_out = []
-      Outputs.append_panel_results(hpxml.header, hpxml.buildings, nil, electric_panel_results_out)
-      Outputs.write_results_out_to_file(electric_panel_results_out, args[:output_format], args[:electric_panel_output_file_path])
+      if hpxml.buildings.map { |hpxml_bldg| hpxml_bldg.electric_panels.size }.sum > 0
+        electric_panel_results_out = []
+        Outputs.append_panel_results(hpxml.header, hpxml.buildings, nil, electric_panel_results_out)
+        Outputs.write_results_out_to_file(electric_panel_results_out, args[:output_format], args[:electric_panel_output_file_path])
+      end
     rescue Exception => e
       runner.registerError("#{e.message}\n#{e.backtrace.join("\n")}")
       return false

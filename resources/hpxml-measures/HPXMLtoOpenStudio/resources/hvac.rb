@@ -813,12 +813,21 @@ module HVAC
   end
 
   # FIXME
-  # Get the outdoor unit (compressor) power (W) using regression based on rated capacity.
+  # Get the outdoor unit (compressor) power (W) using regression based on heating rated (output) capacity.
   #
-  # @param capacity [Double] Direct expansion coil rated (output) capacity [kBtu/hr].
-  # @return [Double] DX coil rated (input) capacity (W)
-  def self.get_dx_coil_power_watts_from_capacity(capacity)
-    return 240 * (0.626 * capacity + 1.634)
+  # @param heating_capacity [Double] Direct expansion coil heating rated (output) capacity [kBtu/hr].
+  # @return [Double] Direct expansion coil rated (input) capacity (W)
+  def self.get_dx_heating_coil_power_watts_from_capacity(heating_capacity)
+    return 240 * (0.626 * heating_capacity + 1.634)
+  end
+
+  # FIXME
+  # Get the outdoor unit (compressor) power (W) using regression based on cooling rated (output) capacity.
+  #
+  # @param cooling_capacity [Double] Direct expansion coil cooling rated (output) capacity [kBtu/hr].
+  # @return [Double] Direct expansion coil rated (input) capacity (W)
+  def self.get_dx_cooling_coil_power_watts_from_capacity(cooling_capacity)
+    return 240 * (0.626 * cooling_capacity + 1.634)
   end
 
   # FIXME
@@ -844,11 +853,11 @@ module HVAC
   end
 
   # FIXME
-  # Returns the heating input capacity, calculated as the rated (output) capacity divided by the rated efficiency.
+  # Returns the heating input capacity, calculated as the heating rated (output) capacity divided by the rated efficiency.
   #
-  # @param heating_capacity [Double]
-  # @param heating_efficiency_afue [Double]
-  # @param heating_efficiency_percent [Double]
+  # @param heating_capacity [Double] Heating output capacity
+  # @param heating_efficiency_afue [Double] Rated efficiency [AFUE]
+  # @param heating_efficiency_percent [Double] Rated efficiency [Percent]
   # @return [Double] The heating input capacity [Btu/hr]
   def self.get_heating_input_capacity(heating_capacity, heating_efficiency_afue, heating_efficiency_percent)
     if not heating_efficiency_afue.nil?
@@ -2059,11 +2068,14 @@ module HVAC
     hp_ap.heat_power_curve_spec = [[-8.4754723813072, 8.10952801956388, 1.38771494628738, -0.33766445915032, 0.0223085217874051]]
 
     # Fan/pump adjustments calculations
-    power_f = heat_pump.fan_watts_per_cfm * 400.0 / UnitConversions.convert(1.0, 'ton', 'Btu/hr') * UnitConversions.convert(1.0, 'W', 'kW') # 400 cfm/ton, result is in kW per Btu/hr of capacity
-    power_p = heat_pump.pump_watts_per_ton / UnitConversions.convert(1.0, 'ton', 'Btu/hr') * UnitConversions.convert(1.0, 'W', 'kW') # result is in kW per Btu/hr of capacity
+    # Fan power to overcome the static pressure adjustment
+    rated_fan_watts_per_cfm = 0.5 * heat_pump.fan_watts_per_cfm # Calculate rated fan power by assuming the power to overcome the ductwork is approximately 50% of the total fan power (ANSI/RESNET/ICC 301 says 0.2 W/cfm is the fan power associated with ductwork, but we don't know if that was a PSC or BPM fan)
+    power_f = rated_fan_watts_per_cfm * 400.0 / UnitConversions.convert(1.0, 'ton', 'Btu/hr') # 400 cfm/ton, result is in W per Btu/hr of capacity
+    rated_pump_watts_per_ton = 30.0 # ANSI/RESNET/ICC 301, estimated pump power required to overcome the internal resistance of the ground-water heat exchanger under AHRI test conditions for a closed loop system
+    power_p = rated_pump_watts_per_ton / UnitConversions.convert(1.0, 'ton', 'Btu/hr') # result is in W per Btu/hr of capacity
 
-    cool_eir = (1 - UnitConversions.convert(power_f, 'Wh', 'Btu')) / UnitConversions.convert(heat_pump.cooling_efficiency_eer, 'Btu', 'Wh') - power_f - power_p
-    heat_eir = (1 + UnitConversions.convert(power_f, 'Wh', 'Btu')) / heat_pump.heating_efficiency_cop - power_f - power_p
+    cool_eir = UnitConversions.convert(((1 - UnitConversions.convert(power_f, 'Wh', 'Btu')) / heat_pump.cooling_efficiency_eer - power_f - power_p), 'Wh', 'Btu')
+    heat_eir = (1 + UnitConversions.convert(power_f, 'Wh', 'Btu')) / heat_pump.heating_efficiency_cop - UnitConversions.convert(power_f + power_p, 'Wh', 'Btu')
 
     hp_ap.cool_rated_cops = [1.0 / cool_eir]
     hp_ap.heat_rated_cops = [1.0 / heat_eir]

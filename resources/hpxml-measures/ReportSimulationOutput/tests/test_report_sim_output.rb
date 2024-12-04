@@ -241,46 +241,52 @@ class ReportSimulationOutputTest < Minitest::Test
     'HVAC Design Load: Cooling Latent: Internal Gains (Btu/h)',
     'HVAC Geothermal Loop: Borehole/Trench Count',
     'HVAC Geothermal Loop: Borehole/Trench Length (ft)',
-    'Electric Panel Load: Heating (W)',
-    'Electric Panel Load: Cooling (W)',
-    'Electric Panel Load: Hot Water (W)',
-    'Electric Panel Load: Clothes Dryer (W)',
-    'Electric Panel Load: Dishwasher (W)',
-    'Electric Panel Load: Range/Oven (W)',
-    'Electric Panel Load: Mech Vent (W)',
-    'Electric Panel Load: Permanent Spa Heater (W)',
-    'Electric Panel Load: Permanent Spa Pump (W)',
-    'Electric Panel Load: Pool Heater (W)',
-    'Electric Panel Load: Pool Pump (W)',
-    'Electric Panel Load: Well Pump (W)',
-    'Electric Panel Load: Electric Vehicle Charging (W)',
-    'Electric Panel Load: Lighting (W)',
-    'Electric Panel Load: Other (W)',
-    'Electric Panel Breaker Spaces: Heating Count',
-    'Electric Panel Breaker Spaces: Cooling Count',
-    'Electric Panel Breaker Spaces: Hot Water Count',
-    'Electric Panel Breaker Spaces: Clothes Dryer Count',
-    'Electric Panel Breaker Spaces: Dishwasher Count',
-    'Electric Panel Breaker Spaces: Range/Oven Count',
-    'Electric Panel Breaker Spaces: Mech Vent Count',
-    'Electric Panel Breaker Spaces: Permanent Spa Heater Count',
-    'Electric Panel Breaker Spaces: Permanent Spa Pump Count',
-    'Electric Panel Breaker Spaces: Pool Heater Count',
-    'Electric Panel Breaker Spaces: Pool Pump Count',
-    'Electric Panel Breaker Spaces: Well Pump Count',
-    'Electric Panel Breaker Spaces: Electric Vehicle Charging Count',
-    'Electric Panel Breaker Spaces: Lighting Count',
-    'Electric Panel Breaker Spaces: Laundry Count',
-    'Electric Panel Breaker Spaces: Other Count',
-    'Electric Panel Breaker Spaces: Total Count',
-    'Electric Panel Breaker Spaces: Occupied Count',
-    'Electric Panel Breaker Spaces: Headroom Count',
-    'Electric Panel Capacity: Load-Based Total (W)',
-    'Electric Panel Capacity: Load-Based Total (A)',
-    'Electric Panel Capacity: Load-Based Headroom (A)',
-    'Electric Panel Capacity: Meter-Based Total (W)',
-    'Electric Panel Capacity: Meter-Based Total (A)',
-    'Electric Panel Capacity: Meter-Based Headroom (A)',
+    # 'Electric Panel Load: Heating (W)',
+    # 'Electric Panel Load: Cooling (W)',
+    # 'Electric Panel Load: Hot Water (W)',
+    # 'Electric Panel Load: Clothes Dryer (W)',
+    # 'Electric Panel Load: Dishwasher (W)',
+    # 'Electric Panel Load: Range/Oven (W)',
+    # 'Electric Panel Load: Mech Vent (W)',
+    # 'Electric Panel Load: Permanent Spa Heater (W)',
+    # 'Electric Panel Load: Permanent Spa Pump (W)',
+    # 'Electric Panel Load: Pool Heater (W)',
+    # 'Electric Panel Load: Pool Pump (W)',
+    # 'Electric Panel Load: Well Pump (W)',
+    # 'Electric Panel Load: Electric Vehicle Charging (W)',
+    # 'Electric Panel Load: Lighting (W)',
+    # 'Electric Panel Load: Other (W)',
+    # 'Electric Panel Breaker Spaces: Heating Count',
+    # 'Electric Panel Breaker Spaces: Cooling Count',
+    # 'Electric Panel Breaker Spaces: Hot Water Count',
+    # 'Electric Panel Breaker Spaces: Clothes Dryer Count',
+    # 'Electric Panel Breaker Spaces: Dishwasher Count',
+    # 'Electric Panel Breaker Spaces: Range/Oven Count',
+    # 'Electric Panel Breaker Spaces: Mech Vent Count',
+    # 'Electric Panel Breaker Spaces: Permanent Spa Heater Count',
+    # 'Electric Panel Breaker Spaces: Permanent Spa Pump Count',
+    # 'Electric Panel Breaker Spaces: Pool Heater Count',
+    # 'Electric Panel Breaker Spaces: Pool Pump Count',
+    # 'Electric Panel Breaker Spaces: Well Pump Count',
+    # 'Electric Panel Breaker Spaces: Electric Vehicle Charging Count',
+    # 'Electric Panel Breaker Spaces: Lighting Count',
+    # 'Electric Panel Breaker Spaces: Laundry Count',
+    # 'Electric Panel Breaker Spaces: Other Count',
+    # 'Electric Panel Breaker Spaces: Total Count',
+    # 'Electric Panel Breaker Spaces: Occupied Count',
+    # 'Electric Panel Breaker Spaces: Headroom Count',
+    # 'Electric Panel Capacity: 2023 Load-Based: Total (W)',
+    # 'Electric Panel Capacity: 2023 Load-Based: Total (A)',
+    # 'Electric Panel Capacity: 2023 Load-Based: Headroom (A)',
+    # 'Electric Panel Capacity: 2026 Load-Based: Total (W)',
+    # 'Electric Panel Capacity: 2026 Load-Based: Total (A)',
+    # 'Electric Panel Capacity: 2026 Load-Based: Headroom (A)',
+    # 'Electric Panel Capacity: 2023 Meter-Based: Total (W)',
+    # 'Electric Panel Capacity: 2023 Meter-Based: Total (A)',
+    # 'Electric Panel Capacity: 2023 Meter-Based: Headroom (A)',
+    # 'Electric Panel Capacity: 2026 Meter-Based: Total (W)',
+    # 'Electric Panel Capacity: 2026 Meter-Based: Total (A)',
+    # 'Electric Panel Capacity: 2026 Meter-Based: Headroom (A)',
   ]
 
   BaseHPXMLTimeseriesColsEnergy = [
@@ -1401,9 +1407,9 @@ class ReportSimulationOutputTest < Minitest::Test
     assert_equal(2581.8, actual_panel_rows['Electric Panel Capacity: 2023 Meter-Based: Total (W)'])
     assert_equal(10.8, actual_panel_rows['Electric Panel Capacity: 2023 Meter-Based: Total (A)'])
     assert_equal(100.0 - 10.8, actual_panel_rows['Electric Panel Capacity: 2023 Meter-Based: Headroom (A)'])
-    assert_equal(12, actual_panel_rows['Electric Panel Breaker Spaces: Total Count'])
-    assert_equal(7, actual_panel_rows['Electric Panel Breaker Spaces: Occupied Count'])
-    assert_equal(12 - 7, actual_panel_rows['Electric Panel Breaker Spaces: Headroom Count'])
+    assert_equal(11, actual_panel_rows['Electric Panel Breaker Spaces: Total Count'])
+    assert_equal(6, actual_panel_rows['Electric Panel Breaker Spaces: Occupied Count'])
+    assert_equal(11 - 6, actual_panel_rows['Electric Panel Breaker Spaces: Headroom Count'])
 
     # Upgrade
     hpxml_bldg = hpxml.buildings[0]
@@ -1456,8 +1462,8 @@ class ReportSimulationOutputTest < Minitest::Test
     assert_equal(186.1, actual_panel_rows['Electric Panel Capacity: 2023 Meter-Based: Total (A)'])
     assert_equal(100.0 - 186.1, actual_panel_rows['Electric Panel Capacity: 2023 Meter-Based: Headroom (A)'])
     assert_equal(12, actual_panel_rows['Electric Panel Breaker Spaces: Total Count'])
-    assert_equal(14, actual_panel_rows['Electric Panel Breaker Spaces: Occupied Count'])
-    assert_equal(12 - 14, actual_panel_rows['Electric Panel Breaker Spaces: Headroom Count'])
+    assert_equal(13, actual_panel_rows['Electric Panel Breaker Spaces: Occupied Count'])
+    assert_equal(12 - 13, actual_panel_rows['Electric Panel Breaker Spaces: Headroom Count'])
   end
 
   private
