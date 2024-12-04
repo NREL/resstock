@@ -812,6 +812,63 @@ module HVAC
     return air_loop
   end
 
+  # FIXME
+  # Get the outdoor unit (compressor) power (W) using regression based on heating rated (output) capacity.
+  #
+  # @param heating_capacity [Double] Direct expansion coil heating rated (output) capacity [kBtu/hr].
+  # @return [Double] Direct expansion coil rated (input) capacity (W)
+  def self.get_dx_heating_coil_power_watts_from_capacity(heating_capacity)
+    return 240 * (0.626 * heating_capacity + 1.634)
+  end
+
+  # FIXME
+  # Get the outdoor unit (compressor) power (W) using regression based on cooling rated (output) capacity.
+  #
+  # @param cooling_capacity [Double] Direct expansion coil cooling rated (output) capacity [kBtu/hr].
+  # @return [Double] Direct expansion coil rated (input) capacity (W)
+  def self.get_dx_cooling_coil_power_watts_from_capacity(cooling_capacity)
+    return 240 * (0.626 * cooling_capacity + 1.634)
+  end
+
+  # FIXME
+  # Get the indoor unit (air handler) power (W).
+  #
+  # @param fan_watts_per_cfm [Double] Blower fan watts per cfm [W/cfm]
+  # @param airflow_cfm [Double] HVAC system airflow rate [cfm]
+  # @return [Double] Blower fan power [W]
+  def self.get_blower_fan_power_watts(fan_watts_per_cfm, airflow_cfm)
+    return 0.0 if fan_watts_per_cfm.nil? || airflow_cfm.nil?
+
+    return fan_watts_per_cfm * airflow_cfm
+  end
+
+  # Get the boiler pump power (W).
+  #
+  # @param electric_auxiliary_energy [Double] Boiler electric auxiliary energy [kWh/yr]
+  # @return [Double] Boiler pump power [W]
+  def self.get_pump_power_watts(electric_auxiliary_energy)
+    return 0.0 if electric_auxiliary_energy.nil?
+
+    return electric_auxiliary_energy / 2.08
+  end
+
+  # FIXME
+  # Returns the heating input capacity, calculated as the heating rated (output) capacity divided by the rated efficiency.
+  #
+  # @param heating_capacity [Double] Heating output capacity
+  # @param heating_efficiency_afue [Double] Rated efficiency [AFUE]
+  # @param heating_efficiency_percent [Double] Rated efficiency [Percent]
+  # @return [Double] The heating input capacity [Btu/hr]
+  def self.get_heating_input_capacity(heating_capacity, heating_efficiency_afue, heating_efficiency_percent)
+    if not heating_efficiency_afue.nil?
+      return heating_capacity / heating_efficiency_afue
+    elsif not heating_efficiency_percent.nil?
+      return heating_capacity / heating_efficiency_percent
+    else
+      return
+    end
+  end
+
   # TODO
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object
@@ -853,7 +910,7 @@ module HVAC
     loop_sizing.setLoopDesignTemperatureDifference(UnitConversions.convert(20.0, 'deltaF', 'deltaC'))
 
     # Pump
-    pump_w = heating_system.electric_auxiliary_energy / 2.08
+    pump_w = get_pump_power_watts(heating_system.electric_auxiliary_energy)
     pump_w = [pump_w, 1.0].max # prevent error if zero
     pump = Model.add_pump_variable_speed(
       model,
