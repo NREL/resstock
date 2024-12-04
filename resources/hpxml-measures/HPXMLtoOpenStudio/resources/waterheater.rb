@@ -19,13 +19,14 @@ module Waterheater
 
     plantloop_map = {}
     hpxml_bldg.water_heating_systems.each do |dhw_system|
-      if dhw_system.water_heater_type == HPXML::WaterHeaterTypeStorage
+      case dhw_system.water_heater_type
+      when HPXML::WaterHeaterTypeStorage
         apply_tank(model, runner, spaces, hpxml_bldg, hpxml_header, dhw_system, schedules_file, unavailable_periods, plantloop_map)
-      elsif dhw_system.water_heater_type == HPXML::WaterHeaterTypeTankless
+      when HPXML::WaterHeaterTypeTankless
         apply_tankless(model, runner, spaces, hpxml_bldg, hpxml_header, dhw_system, schedules_file, unavailable_periods, plantloop_map)
-      elsif dhw_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
+      when HPXML::WaterHeaterTypeHeatPump
         apply_heatpump(model, runner, spaces, hpxml_bldg, hpxml_header, dhw_system, schedules_file, unavailable_periods, plantloop_map)
-      elsif [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? dhw_system.water_heater_type
+      when HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless
         apply_combi(model, runner, spaces, hpxml_bldg, hpxml_header, dhw_system, schedules_file, unavailable_periods, plantloop_map)
       else
         fail "Unhandled water heater (#{dhw_system.water_heater_type})."
@@ -386,26 +387,26 @@ module Waterheater
     # Amendment on Domestic Hot Water (DHW) Systems
     # Table 4.2.2.5.2.11(6) Hot water distribution system relative annual energy waste factors
     if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
-      if (hot_water_distribution.recirculation_control_type == HPXML::DHWRecircControlTypeNone) ||
-         (hot_water_distribution.recirculation_control_type == HPXML::DHWRecircControlTypeTimer)
+      case hot_water_distribution.recirculation_control_type
+      when HPXML::DHWRecircControlTypeNone, HPXML::DHWRecircControlTypeTimer
         if hot_water_distribution.pipe_r_value < 3.0
           return 500.0
         else
           return 250.0
         end
-      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecircControlTypeTemperature
+      when HPXML::DHWRecircControlTypeTemperature
         if hot_water_distribution.pipe_r_value < 3.0
           return 375.0
         else
           return 187.5
         end
-      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecircControlTypeSensor
+      when HPXML::DHWRecircControlTypeSensor
         if hot_water_distribution.pipe_r_value < 3.0
           return 64.8
         else
           return 43.2
         end
-      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecircControlTypeManual
+      when HPXML::DHWRecircControlTypeManual
         if hot_water_distribution.pipe_r_value < 3.0
           return 43.2
         else
@@ -620,21 +621,23 @@ module Waterheater
 
     obj_name = Constants::ObjectTypeSolarHotWater
 
-    if [HPXML::SolarThermalCollectorTypeEvacuatedTube].include? solar_thermal_system.collector_type
+    case solar_thermal_system.collector_type
+    when HPXML::SolarThermalCollectorTypeEvacuatedTube
       iam_coeff2 = 0.3023 # IAM coeff1=1 by definition, values based on a system listed by SRCC with values close to the average
       iam_coeff3 = -0.3057
-    elsif [HPXML::SolarThermalCollectorTypeSingleGlazing, HPXML::SolarThermalCollectorTypeDoubleGlazing].include? solar_thermal_system.collector_type
+    when HPXML::SolarThermalCollectorTypeSingleGlazing, HPXML::SolarThermalCollectorTypeDoubleGlazing
       iam_coeff2 = 0.1
       iam_coeff3 = 0
-    elsif [HPXML::SolarThermalCollectorTypeICS].include? solar_thermal_system.collector_type
+    when HPXML::SolarThermalCollectorTypeICS
       iam_coeff2 = 0.1
       iam_coeff3 = 0
     end
 
-    if [HPXML::SolarThermalLoopTypeIndirect].include? solar_thermal_system.collector_loop_type
+    case solar_thermal_system.collector_loop_type
+    when HPXML::SolarThermalLoopTypeIndirect
       fluid_type = EPlus::FluidPropyleneGlycol
       heat_ex_eff = 0.7
-    elsif [HPXML::SolarThermalLoopTypeDirect, HPXML::SolarThermalLoopTypeThermosyphon].include? solar_thermal_system.collector_loop_type
+    when HPXML::SolarThermalLoopTypeDirect, HPXML::SolarThermalLoopTypeThermosyphon
       fluid_type = EPlus::FluidWater
       heat_ex_eff = 1.0
     end
@@ -1011,13 +1014,14 @@ module Waterheater
       cop = 1.174536058 * uef # Based on simulation of the UEF test procedure at varying COPs
     elsif not water_heating_system.uniform_energy_factor.nil?
       uef = water_heating_system.uniform_energy_factor
-      if water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinVerySmall
+      case water_heating_system.usage_bin
+      when HPXML::WaterHeaterUsageBinVerySmall
         fail 'It is unlikely that a heat pump water heater falls into the very small bin of the First Hour Rating (FHR) test. Double check input.'
-      elsif water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinLow
+      when HPXML::WaterHeaterUsageBinLow
         cop = 1.0005 * uef - 0.0789
-      elsif water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinMedium
+      when HPXML::WaterHeaterUsageBinMedium
         cop = 1.0909 * uef - 0.0868
-      elsif water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinHigh
+      when HPXML::WaterHeaterUsageBinHigh
         cop = 1.1022 * uef - 0.0877
       end
     end
@@ -1571,17 +1575,19 @@ module Waterheater
   def self.calc_ef_from_uef(water_heating_system)
     # Interpretation on Water Heater UEF
     if water_heating_system.fuel_type == HPXML::FuelTypeElectricity
-      if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage
+      case water_heating_system.water_heater_type
+      when HPXML::WaterHeaterTypeStorage
         return [2.4029 * water_heating_system.uniform_energy_factor - 1.2844, 0.96].min
-      elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeTankless
+      when HPXML::WaterHeaterTypeTankless
         return water_heating_system.uniform_energy_factor
-      elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
+      when HPXML::WaterHeaterTypeHeatPump
         return 1.2101 * water_heating_system.uniform_energy_factor - 0.6052
       end
     else # Fuel
-      if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage
+      case water_heating_system.water_heater_type
+      when HPXML::WaterHeaterTypeStorage
         return 0.9066 * water_heating_system.uniform_energy_factor + 0.0711
-      elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeTankless
+      when HPXML::WaterHeaterTypeTankless
         return water_heating_system.uniform_energy_factor
       end
     end
@@ -1835,13 +1841,14 @@ module Waterheater
         volume_drawn = 64.3 # gal/day
       elsif not water_heating_system.uniform_energy_factor.nil?
         t = 125.0 # F
-        if water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinVerySmall
+        case water_heating_system.usage_bin
+        when HPXML::WaterHeaterUsageBinVerySmall
           volume_drawn = 10.0 # gal
-        elsif water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinLow
+        when HPXML::WaterHeaterUsageBinLow
           volume_drawn = 38.0 # gal
-        elsif water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinMedium
+        when HPXML::WaterHeaterUsageBinMedium
           volume_drawn = 55.0 # gal
-        elsif water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinHigh
+        when HPXML::WaterHeaterUsageBinHigh
           volume_drawn = 84.0 # gal
         end
       end

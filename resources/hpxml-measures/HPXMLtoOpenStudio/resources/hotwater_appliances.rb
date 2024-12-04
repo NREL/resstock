@@ -1093,14 +1093,14 @@ module HotWaterAndAppliances
     # Annual electricity consumption factor for hot water recirculation system pumps
     # Assume the fixtures_usage_multiplier only applies for Sensor/Manual control type.
     if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
-      if [HPXML::DHWRecircControlTypeNone,
-          HPXML::DHWRecircControlTypeTimer].include? hot_water_distribution.recirculation_control_type
+      case hot_water_distribution.recirculation_control_type
+      when HPXML::DHWRecircControlTypeNone, HPXML::DHWRecircControlTypeTimer
         dist_pump_annual_kwh += (8.76 * hot_water_distribution.recirculation_pump_power)
-      elsif [HPXML::DHWRecircControlTypeTemperature].include? hot_water_distribution.recirculation_control_type
+      when HPXML::DHWRecircControlTypeTemperature
         dist_pump_annual_kwh += (1.46 * hot_water_distribution.recirculation_pump_power)
-      elsif [HPXML::DHWRecircControlTypeSensor].include? hot_water_distribution.recirculation_control_type
+      when HPXML::DHWRecircControlTypeSensor
         dist_pump_annual_kwh += (0.15 * hot_water_distribution.recirculation_pump_power * fixtures_usage_multiplier)
-      elsif [HPXML::DHWRecircControlTypeManual].include? hot_water_distribution.recirculation_control_type
+      when HPXML::DHWRecircControlTypeManual
         dist_pump_annual_kwh += (0.10 * hot_water_distribution.recirculation_pump_power * fixtures_usage_multiplier)
       else
         fail "Unexpected hot water distribution system recirculation type: '#{hot_water_distribution.recirculation_control_type}'."
@@ -1115,12 +1115,10 @@ module HotWaterAndAppliances
     # Assume the fixtures_usage_multiplier only applies for Sensor/Manual control type.
     if hot_water_distribution.has_shared_recirculation
       n_bdeq = hot_water_distribution.shared_recirculation_number_of_bedrooms_served
-      if [HPXML::DHWRecircControlTypeNone,
-          HPXML::DHWRecircControlTypeTimer,
-          HPXML::DHWRecircControlTypeTemperature].include? hot_water_distribution.shared_recirculation_control_type
+      case hot_water_distribution.shared_recirculation_control_type
+      when HPXML::DHWRecircControlTypeNone, HPXML::DHWRecircControlTypeTimer, HPXML::DHWRecircControlTypeTemperature
         op_hrs = 8760.0
-      elsif [HPXML::DHWRecircControlTypeSensor,
-             HPXML::DHWRecircControlTypeManual].include? hot_water_distribution.shared_recirculation_control_type
+      when HPXML::DHWRecircControlTypeSensor, HPXML::DHWRecircControlTypeManual
         op_hrs = 730.0 * fixtures_usage_multiplier
       else
         fail "Unexpected hot water distribution system shared recirculation type: '#{hot_water_distribution.shared_recirculation_control_type}'."
@@ -1195,14 +1193,19 @@ module HotWaterAndAppliances
 
     # Table 4.2.2.5.2.11(2) Hot Water Distribution System Insulation Factors
     sys_factor = nil
-    if (hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc) && (hot_water_distribution.pipe_r_value < 3.0)
-      sys_factor = 1.11
-    elsif (hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc) && (hot_water_distribution.pipe_r_value >= 3.0)
-      sys_factor = 1.0
-    elsif (hot_water_distribution.system_type == HPXML::DHWDistTypeStandard) && (hot_water_distribution.pipe_r_value >= 3.0)
-      sys_factor = 0.90
-    elsif (hot_water_distribution.system_type == HPXML::DHWDistTypeStandard) && (hot_water_distribution.pipe_r_value < 3.0)
-      sys_factor = 1.0
+    case hot_water_distribution.system_type
+    when HPXML::DHWDistTypeRecirc
+      if hot_water_distribution.pipe_r_value < 3.0
+        sys_factor = 1.11
+      elsif hot_water_distribution.pipe_r_value >= 3.0
+        sys_factor = 1.0
+      end
+    when HPXML::DHWDistTypeStandard
+      if hot_water_distribution.pipe_r_value >= 3.0
+        sys_factor = 0.90
+      elsif hot_water_distribution.pipe_r_value < 3.0
+        sys_factor = 1.0
+      end
     end
 
     if n_occ.nil? # Asset calculation
@@ -1213,9 +1216,10 @@ module HotWaterAndAppliances
     o_frac = 0.25
     o_cd_eff = 0.0
 
-    if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
+    case hot_water_distribution.system_type
+    when HPXML::DHWDistTypeRecirc
       p_ratio = hot_water_distribution.recirculation_branch_piping_length / 10.0
-    elsif hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
+    when HPXML::DHWDistTypeStandard
       ref_pipe_l = Defaults.get_std_pipe_length(has_uncond_bsmnt, has_cond_bsmnt, cfa, ncfl)
       p_ratio = hot_water_distribution.standard_piping_length / ref_pipe_l
     end
@@ -1224,9 +1228,10 @@ module HotWaterAndAppliances
     s_w_gpd = (ref_w_gpd - ref_w_gpd * o_frac) * p_ratio * sys_factor # Eq. 4.2-13
 
     # Table 4.2.2.5.2.11(3) Distribution system water use effectiveness
-    if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
+    case hot_water_distribution.system_type
+    when HPXML::DHWDistTypeRecirc
       wd_eff = 0.1
-    elsif hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
+    when HPXML::DHWDistTypeStandard
       wd_eff = 1.0
     end
 

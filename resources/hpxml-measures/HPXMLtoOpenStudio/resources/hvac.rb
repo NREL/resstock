@@ -89,16 +89,12 @@ module HVAC
       end
 
       sys_id = cooling_system.id
-      if [HPXML::HVACTypeCentralAirConditioner,
-          HPXML::HVACTypeRoomAirConditioner,
-          HPXML::HVACTypeMiniSplitAirConditioner,
-          HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type
-
+      case cooling_system.cooling_system_type
+      when HPXML::HVACTypeCentralAirConditioner, HPXML::HVACTypeRoomAirConditioner,
+           HPXML::HVACTypeMiniSplitAirConditioner, HPXML::HVACTypePTAC
         airloop_map[sys_id] = apply_air_source_hvac_systems(model, runner, weather, cooling_system, heating_system, hvac_sequential_load_fracs,
                                                             conditioned_zone, hvac_unavailable_periods, schedules_file, hpxml_bldg, hpxml_header)
-
-      elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
-
+      when HPXML::HVACTypeEvaporativeCooler
         airloop_map[sys_id] = apply_evaporative_cooler(model, cooling_system, hvac_sequential_load_fracs, conditioned_zone, hvac_unavailable_periods,
                                                        hpxml_bldg.building_construction.number_of_units)
       end
@@ -154,25 +150,16 @@ module HVAC
       end
 
       sys_id = heating_system.id
-      if [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
-
+      case heating_system.heating_system_type
+      when HPXML::HVACTypeFurnace
         airloop_map[sys_id] = apply_air_source_hvac_systems(model, runner, weather, nil, heating_system, hvac_sequential_load_fracs,
                                                             conditioned_zone, hvac_unavailable_periods, schedules_file, hpxml_bldg, hpxml_header)
-
-      elsif [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
-
+      when HPXML::HVACTypeBoiler
         airloop_map[sys_id] = apply_boiler(model, runner, heating_system, hvac_sequential_load_fracs, conditioned_zone, hvac_unavailable_periods)
-
-      elsif [HPXML::HVACTypeElectricResistance].include? heating_system.heating_system_type
-
+      when HPXML::HVACTypeElectricResistance
         apply_electric_baseboard(model, heating_system, hvac_sequential_load_fracs, conditioned_zone, hvac_unavailable_periods)
-
-      elsif [HPXML::HVACTypeStove,
-             HPXML::HVACTypeSpaceHeater,
-             HPXML::HVACTypeWallFurnace,
-             HPXML::HVACTypeFloorFurnace,
-             HPXML::HVACTypeFireplace].include? heating_system.heating_system_type
-
+      when HPXML::HVACTypeStove, HPXML::HVACTypeSpaceHeater, HPXML::HVACTypeWallFurnace,
+           HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeFireplace
         apply_unit_heater(model, heating_system, hvac_sequential_load_fracs, conditioned_zone, hvac_unavailable_periods)
       end
 
@@ -223,24 +210,17 @@ module HVAC
       hvac_remaining_load_fracs[:clg] -= heat_pump.fraction_cool_load_served
 
       sys_id = heat_pump.id
-      if [HPXML::HVACTypeHeatPumpWaterLoopToAir].include? heat_pump.heat_pump_type
-
+      case heat_pump.heat_pump_type
+      when HPXML::HVACTypeHeatPumpWaterLoopToAir
         airloop_map[sys_id] = apply_water_loop_to_air_heat_pump(model, heat_pump, hvac_sequential_load_fracs, conditioned_zone, hvac_unavailable_periods)
-
-      elsif [HPXML::HVACTypeHeatPumpAirToAir,
-             HPXML::HVACTypeHeatPumpMiniSplit,
-             HPXML::HVACTypeHeatPumpPTHP,
-             HPXML::HVACTypeHeatPumpRoom].include? heat_pump.heat_pump_type
-
+      when HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit,
+           HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom
         airloop_map[sys_id] = apply_air_source_hvac_systems(model, runner, weather, heat_pump, heat_pump, hvac_sequential_load_fracs,
                                                             conditioned_zone, hvac_unavailable_periods, schedules_file, hpxml_bldg, hpxml_header)
-
-      elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
-
+      when HPXML::HVACTypeHeatPumpGroundToAir
         airloop_map[sys_id] = apply_ground_to_air_heat_pump(model, runner, weather, heat_pump, hvac_sequential_load_fracs,
                                                             conditioned_zone, hpxml_bldg.site.ground_conductivity, hpxml_bldg.site.ground_diffusivity,
                                                             hvac_unavailable_periods, hpxml_bldg.building_construction.number_of_units)
-
       end
 
       next if heat_pump.backup_system.nil?
@@ -291,21 +271,23 @@ module HVAC
     if not cooling_system.nil?
       if cooling_system.is_a? HPXML::HeatPump
         is_heatpump = true
-        if cooling_system.heat_pump_type == HPXML::HVACTypeHeatPumpAirToAir
+        case cooling_system.heat_pump_type
+        when HPXML::HVACTypeHeatPumpAirToAir
           obj_name = Constants::ObjectTypeAirSourceHeatPump
-        elsif cooling_system.heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit
+        when HPXML::HVACTypeHeatPumpMiniSplit
           obj_name = Constants::ObjectTypeMiniSplitHeatPump
-        elsif cooling_system.heat_pump_type == HPXML::HVACTypeHeatPumpPTHP
+        when HPXML::HVACTypeHeatPumpPTHP
           obj_name = Constants::ObjectTypePTHP
           fan_watts_per_cfm = 0.0
-        elsif cooling_system.heat_pump_type == HPXML::HVACTypeHeatPumpRoom
+        when HPXML::HVACTypeHeatPumpRoom
           obj_name = Constants::ObjectTypeRoomHP
           fan_watts_per_cfm = 0.0
         else
           fail "Unexpected heat pump type: #{cooling_system.heat_pump_type}."
         end
       elsif cooling_system.is_a? HPXML::CoolingSystem
-        if cooling_system.cooling_system_type == HPXML::HVACTypeCentralAirConditioner
+        case cooling_system.cooling_system_type
+        when HPXML::HVACTypeCentralAirConditioner
           if heating_system.nil?
             obj_name = Constants::ObjectTypeCentralAirConditioner
           else
@@ -315,14 +297,14 @@ module HVAC
               fail "Fan powers for heating system '#{heating_system.id}' and cooling system '#{cooling_system.id}' are attached to a single distribution system and therefore must be the same."
             end
           end
-        elsif [HPXML::HVACTypeRoomAirConditioner, HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type
+        when HPXML::HVACTypeRoomAirConditioner, HPXML::HVACTypePTAC
           fan_watts_per_cfm = 0.0
           if cooling_system.cooling_system_type == HPXML::HVACTypeRoomAirConditioner
             obj_name = Constants::ObjectTypeRoomAC
           else
             obj_name = Constants::ObjectTypePTAC
           end
-        elsif cooling_system.cooling_system_type == HPXML::HVACTypeMiniSplitAirConditioner
+        when HPXML::HVACTypeMiniSplitAirConditioner
           obj_name = Constants::ObjectTypeMiniSplitAirConditioner
         else
           fail "Unexpected cooling system type: #{cooling_system.cooling_system_type}."
@@ -1593,10 +1575,11 @@ module HVAC
   # @param compressor_type [TODO] TODO
   # @return [TODO] TODO
   def self.get_cool_cap_eir_ft_spec(compressor_type)
-    if compressor_type == HPXML::HVACCompressorTypeSingleStage
+    case compressor_type
+    when HPXML::HVACCompressorTypeSingleStage
       cap_ft_spec = [[3.68637657, -0.098352478, 0.000956357, 0.005838141, -0.0000127, -0.000131702]]
       eir_ft_spec = [[-3.437356399, 0.136656369, -0.001049231, -0.0079378, 0.000185435, -0.0001441]]
-    elsif compressor_type == HPXML::HVACCompressorTypeTwoStage
+    when HPXML::HVACCompressorTypeTwoStage
       cap_ft_spec = [[3.998418659, -0.108728222, 0.001056818, 0.007512314, -0.0000139, -0.000164716],
                      [3.466810106, -0.091476056, 0.000901205, 0.004163355, -0.00000919, -0.000110829]]
       eir_ft_spec = [[-4.282911381, 0.181023691, -0.001357391, -0.026310378, 0.000333282, -0.000197405],
@@ -1610,17 +1593,18 @@ module HVAC
   # @param compressor_type [TODO] TODO
   # @return [TODO] TODO
   def self.get_cool_cap_eir_fflow_spec(compressor_type)
-    if compressor_type == HPXML::HVACCompressorTypeSingleStage
+    case compressor_type
+    when HPXML::HVACCompressorTypeSingleStage
       # Single stage systems have PSC or constant torque ECM blowers, so the airflow rate is affected by the static pressure losses.
       cap_fflow_spec = [[0.718664047, 0.41797409, -0.136638137]]
       eir_fflow_spec = [[1.143487507, -0.13943972, -0.004047787]]
-    elsif compressor_type == HPXML::HVACCompressorTypeTwoStage
+    when HPXML::HVACCompressorTypeTwoStage
       # Most two stage systems have PSC or constant torque ECM blowers, so the airflow rate is affected by the static pressure losses.
       cap_fflow_spec = [[0.655239515, 0.511655216, -0.166894731],
                         [0.618281092, 0.569060264, -0.187341356]]
       eir_fflow_spec = [[1.639108268, -0.998953996, 0.359845728],
                         [1.570774717, -0.914152018, 0.343377302]]
-    elsif compressor_type == HPXML::HVACCompressorTypeVariableSpeed
+    when HPXML::HVACCompressorTypeVariableSpeed
       # Variable speed systems have constant flow ECM blowers, so the air handler can always achieve the design airflow rate by sacrificing blower power.
       # So we assume that there is only one corresponding airflow rate for each compressor speed.
       eir_fflow_spec = [[1, 0, 0]] * 2
@@ -1655,17 +1639,18 @@ module HVAC
   # @param compressor_type [TODO] TODO
   # @return [TODO] TODO
   def self.get_heat_cap_eir_fflow_spec(compressor_type)
-    if compressor_type == HPXML::HVACCompressorTypeSingleStage
+    case compressor_type
+    when HPXML::HVACCompressorTypeSingleStage
       # Single stage systems have PSC or constant torque ECM blowers, so the airflow rate is affected by the static pressure losses.
       cap_fflow_spec = [[0.694045465, 0.474207981, -0.168253446]]
       eir_fflow_spec = [[2.185418751, -1.942827919, 0.757409168]]
-    elsif compressor_type == HPXML::HVACCompressorTypeTwoStage
+    when HPXML::HVACCompressorTypeTwoStage
       # Most two stage systems have PSC or constant torque ECM blowers, so the airflow rate is affected by the static pressure losses.
       cap_fflow_spec = [[0.741466907, 0.378645444, -0.119754733],
                         [0.76634609, 0.32840943, -0.094701495]]
       eir_fflow_spec = [[2.153618211, -1.737190609, 0.584269478],
                         [2.001041353, -1.58869128, 0.587593517]]
-    elsif compressor_type == HPXML::HVACCompressorTypeVariableSpeed
+    when HPXML::HVACCompressorTypeVariableSpeed
       # Variable speed systems have constant flow ECM blowers, so the air handler can always achieve the design airflow rate by sacrificing blower power.
       # So we assume that there is only one corresponding airflow rate for each compressor speed.
       cap_fflow_spec = [[1, 0, 0]] * 3
@@ -1686,7 +1671,8 @@ module HVAC
     set_cool_c_d(cooling_system)
 
     seer = cooling_system.cooling_efficiency_seer
-    if cooling_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
+    case cooling_system.compressor_type
+    when HPXML::HVACCompressorTypeSingleStage
       clg_ap.cool_cap_ft_spec, clg_ap.cool_eir_ft_spec = get_cool_cap_eir_ft_spec(cooling_system.compressor_type)
       if not use_eer
         clg_ap.cool_rated_airflow_rate = clg_ap.cool_rated_cfm_per_ton[0]
@@ -1699,7 +1685,7 @@ module HVAC
         clg_ap.cool_eir_fflow_spec = [[1.0, 0.0, 0.0]]
       end
 
-    elsif cooling_system.compressor_type == HPXML::HVACCompressorTypeTwoStage
+    when HPXML::HVACCompressorTypeTwoStage
       clg_ap.cool_rated_airflow_rate = clg_ap.cool_rated_cfm_per_ton[-1]
       clg_ap.cool_fan_speed_ratios = calc_fan_speed_ratios(clg_ap.cool_capacity_ratios, clg_ap.cool_rated_cfm_per_ton, clg_ap.cool_rated_airflow_rate)
       clg_ap.cool_cap_ft_spec, clg_ap.cool_eir_ft_spec = get_cool_cap_eir_ft_spec(cooling_system.compressor_type)
@@ -1707,7 +1693,7 @@ module HVAC
       clg_ap.cool_rated_cops = [0.2773 * seer - 0.0018] # Regression based on inverse model
       clg_ap.cool_rated_cops << clg_ap.cool_rated_cops[0] * 0.91 # COP ratio based on Dylan's data as seen in BEopt 2.8 options
 
-    elsif cooling_system.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
+    when HPXML::HVACCompressorTypeVariableSpeed
       clg_ap.cooling_capacity_retention_temperature = 82.0
       clg_ap.cooling_capacity_retention_fraction = 1.033 # From NEEP data
       clg_ap.cool_rated_airflow_rate = clg_ap.cool_rated_cfm_per_ton[-1]
@@ -1724,11 +1710,12 @@ module HVAC
   # @return [TODO] TODO
   def self.get_cool_capacity_ratios(hvac_system)
     # For each speed, ratio of capacity to nominal capacity
-    if hvac_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
+    case hvac_system.compressor_type
+    when HPXML::HVACCompressorTypeSingleStage
       return [1.0]
-    elsif hvac_system.compressor_type == HPXML::HVACCompressorTypeTwoStage
+    when HPXML::HVACCompressorTypeTwoStage
       return [0.72, 1.0]
-    elsif hvac_system.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
+    when HPXML::HVACCompressorTypeVariableSpeed
       is_ducted = !hvac_system.distribution_system_idref.nil?
       if is_ducted
         return [0.394, 1.0]
@@ -1753,7 +1740,8 @@ module HVAC
     set_heat_c_d(heating_system)
 
     hspf = heating_system.heating_efficiency_hspf
-    if heating_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
+    case heating_system.compressor_type
+    when HPXML::HVACCompressorTypeSingleStage
       heating_capacity_retention_temp, heating_capacity_retention_fraction = get_heating_capacity_retention(heating_system)
       htg_ap.heat_cap_ft_spec, htg_ap.heat_eir_ft_spec = get_heat_cap_eir_ft_spec(heating_system.compressor_type, heating_capacity_retention_temp, heating_capacity_retention_fraction)
       if not use_cop
@@ -1764,7 +1752,7 @@ module HVAC
         htg_ap.heat_fan_speed_ratios = [1.0]
       end
 
-    elsif heating_system.compressor_type == HPXML::HVACCompressorTypeTwoStage
+    when HPXML::HVACCompressorTypeTwoStage
       heating_capacity_retention_temp, heating_capacity_retention_fraction = get_heating_capacity_retention(heating_system)
       htg_ap.heat_cap_ft_spec, htg_ap.heat_eir_ft_spec = get_heat_cap_eir_ft_spec(heating_system.compressor_type, heating_capacity_retention_temp, heating_capacity_retention_fraction)
       htg_ap.heat_rated_airflow_rate = htg_ap.heat_rated_cfm_per_ton[-1]
@@ -1772,7 +1760,7 @@ module HVAC
       htg_ap.heat_rated_cops = [0.0426 * hspf**2 - 0.0747 * hspf + 1.5374] # Regression based on inverse model
       htg_ap.heat_rated_cops << htg_ap.heat_rated_cops[0] * 0.87 # COP ratio based on Dylan's data as seen in BEopt 2.8 options
 
-    elsif heating_system.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
+    when HPXML::HVACCompressorTypeVariableSpeed
       htg_ap.heat_rated_airflow_rate = htg_ap.heat_rated_cfm_per_ton[-1]
       htg_ap.heat_capacity_ratios = get_heat_capacity_ratios(heating_system)
       htg_ap.heat_fan_speed_ratios = calc_fan_speed_ratios(htg_ap.heat_capacity_ratios, htg_ap.heat_rated_cfm_per_ton, htg_ap.heat_rated_airflow_rate)
@@ -1889,11 +1877,12 @@ module HVAC
   # @return [TODO] TODO
   def self.get_heat_capacity_ratios(heat_pump)
     # For each speed, ratio of capacity to nominal capacity
-    if heat_pump.compressor_type == HPXML::HVACCompressorTypeSingleStage
+    case heat_pump.compressor_type
+    when HPXML::HVACCompressorTypeSingleStage
       return [1.0]
-    elsif heat_pump.compressor_type == HPXML::HVACCompressorTypeTwoStage
+    when HPXML::HVACCompressorTypeTwoStage
       return [0.72, 1.0]
-    elsif heat_pump.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
+    when HPXML::HVACCompressorTypeVariableSpeed
       is_ducted = !heat_pump.distribution_system_idref.nil?
       if is_ducted
         nominal_to_max_ratio = 0.972
@@ -1975,15 +1964,16 @@ module HVAC
   # @return [TODO] TODO
   def self.get_heat_cfm_per_ton(compressor_type, use_cop_or_htg_sys = false)
     # cfm/ton of rated capacity
-    if compressor_type == HPXML::HVACCompressorTypeSingleStage
+    case compressor_type
+    when HPXML::HVACCompressorTypeSingleStage
       if not use_cop_or_htg_sys
         return [384.1]
       else
         return [350]
       end
-    elsif compressor_type == HPXML::HVACCompressorTypeTwoStage
+    when HPXML::HVACCompressorTypeTwoStage
       return [391.3333, 352.2]
-    elsif compressor_type == HPXML::HVACCompressorTypeVariableSpeed
+    when HPXML::HVACCompressorTypeVariableSpeed
       return [400.0, 400.0, 400.0]
     else
       fail 'Compressor type not supported.'
@@ -4430,16 +4420,19 @@ module HVAC
     if ((cooling_system.is_a? HPXML::CoolingSystem) && ([HPXML::HVACTypeRoomAirConditioner, HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type)) ||
        ((cooling_system.is_a? HPXML::HeatPump) && ([HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include? cooling_system.heat_pump_type))
       clg_ap.cool_c_d = 0.22
-    elsif cooling_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
-      if cooling_system.cooling_efficiency_seer < 13.0
-        clg_ap.cool_c_d = 0.20
-      else
-        clg_ap.cool_c_d = 0.07
+    else
+      case cooling_system.compressor_type
+      when HPXML::HVACCompressorTypeSingleStage
+        if cooling_system.cooling_efficiency_seer < 13.0
+          clg_ap.cool_c_d = 0.20
+        else
+          clg_ap.cool_c_d = 0.07
+        end
+      when HPXML::HVACCompressorTypeTwoStage
+        clg_ap.cool_c_d = 0.11
+      when HPXML::HVACCompressorTypeVariableSpeed
+        clg_ap.cool_c_d = 0.25
       end
-    elsif cooling_system.compressor_type == HPXML::HVACCompressorTypeTwoStage
-      clg_ap.cool_c_d = 0.11
-    elsif cooling_system.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
-      clg_ap.cool_c_d = 0.25
     end
 
     # PLF curve
@@ -4457,16 +4450,19 @@ module HVAC
     # Degradation coefficient for heating
     if (heating_system.is_a? HPXML::HeatPump) && ([HPXML::HVACTypeHeatPumpPTHP, HPXML::HVACTypeHeatPumpRoom].include? heating_system.heat_pump_type)
       htg_ap.heat_c_d = 0.22
-    elsif heating_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
-      if heating_system.heating_efficiency_hspf < 7.0
-        htg_ap.heat_c_d =  0.20
-      else
+    else
+      case heating_system.compressor_type
+      when HPXML::HVACCompressorTypeSingleStage
+        if heating_system.heating_efficiency_hspf < 7.0
+          htg_ap.heat_c_d =  0.20
+        else
+          htg_ap.heat_c_d =  0.11
+        end
+      when HPXML::HVACCompressorTypeTwoStage
         htg_ap.heat_c_d =  0.11
+      when HPXML::HVACCompressorTypeVariableSpeed
+        htg_ap.heat_c_d =  0.25
       end
-    elsif heating_system.compressor_type == HPXML::HVACCompressorTypeTwoStage
-      htg_ap.heat_c_d =  0.11
-    elsif heating_system.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
-      htg_ap.heat_c_d =  0.25
     end
 
     # PLF curve
@@ -4544,14 +4540,15 @@ module HVAC
     end
     pipe_diameter = geothermal_loop.pipe_diameter
     # Pipe nominal size conversion to pipe outside diameter and inside diameter,
-    # only pipe sizes <= 2" are used here with DR11 (dimension ratio),
-    if pipe_diameter == 0.75 # 3/4" pipe
+    # only pipe sizes <= 2" are used here with DR11 (dimension ratio)
+    case pipe_diameter
+    when 0.75 # 3/4" pipe
       hp_ap.pipe_od = 1.050 # in
       hp_ap.pipe_id = 0.859 # in
-    elsif pipe_diameter == 1.0 # 1" pipe
+    when 1.0 # 1" pipe
       hp_ap.pipe_od = 1.315 # in
       hp_ap.pipe_id = 1.076 # in
-    elsif pipe_diameter == 1.25 # 1-1/4" pipe
+    when 1.25 # 1-1/4" pipe
       hp_ap.pipe_od = 1.660 # in
       hp_ap.pipe_id = 1.358 # in
     else
@@ -4559,13 +4556,14 @@ module HVAC
     end
     hp_ap.u_tube_spacing_type = 'b'
     # Calculate distance between pipes
-    if hp_ap.u_tube_spacing_type == 'as'
+    case hp_ap.u_tube_spacing_type
+    when 'as'
       # Two tubes, spaced 1/8” apart at the center of the borehole
       hp_ap.u_tube_spacing = 0.125
-    elsif hp_ap.u_tube_spacing_type == 'b'
+    when 'b'
       # Two tubes equally spaced between the borehole edges
       hp_ap.u_tube_spacing = 0.9661
-    elsif hp_ap.u_tube_spacing_type == 'c'
+    when 'c'
       # Both tubes placed against outer edge of borehole
       hp_ap.u_tube_spacing = geothermal_loop.bore_diameter - 2 * hp_ap.pipe_od
     end
