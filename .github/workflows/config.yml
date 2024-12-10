@@ -177,12 +177,14 @@ jobs:
           gunzip -v project_testing/testing_baseline/results_csvs/*.csv.gz
           
           gunzip -v project_national/national_upgrades/results_csvs/*.csv.gz
+          gunzip -v project_national/sdr_upgrades_tmy3/results_csvs/*.csv.gz
           gunzip -v project_testing/testing_upgrades/results_csvs/*.csv.gz
           
           tar -xvf project_national/national_baseline/simulation_output/*.tar.gz -C project_national/national_baseline/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw'
           tar -xvf project_testing/testing_baseline/simulation_output/*.tar.gz -C project_testing/testing_baseline/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw' --wildcards '*in.osm' --wildcards '*in.idf'
           
           tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw'
+          tar -xvf project_national/sdr_upgrades_tmy3/simulation_output/*.tar.gz -C project_national/sdr_upgrades_tmy3/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw'
           tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output --wildcards '*results_timeseries.csv' --wildcards '*.xml' --wildcards '*data_point_out.json' --wildcards '*.osw' --wildcards '*in.osm' --wildcards '*in.idf'
 
       - name: Process results
@@ -205,6 +207,7 @@ jobs:
             project_national/national_baseline/results_csvs/results_up00.csv
             project_testing/testing_baseline/results_csvs/results_up00.csv
             project_national/national_upgrades/results_csvs/results_up17.csv
+            project_national/sdr_upgrades_tmy3/results_csvs/results_up02.csv
             project_testing/testing_upgrades/results_csvs/results_up17.csv
           name: buildstockbatch_results_csvs
 
