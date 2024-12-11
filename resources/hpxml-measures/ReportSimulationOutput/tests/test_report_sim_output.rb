@@ -66,7 +66,6 @@ class ReportSimulationOutputTest < Minitest::Test
     "End Use: #{FT::Elec}: #{EUT::CeilingFan} (MBtu)",
     "End Use: #{FT::Elec}: #{EUT::Television} (MBtu)",
     "End Use: #{FT::Elec}: #{EUT::PlugLoads} (MBtu)",
-    "End Use: #{FT::Elec}: #{EUT::Vehicle} (MBtu)",
     "End Use: #{FT::Elec}: #{EUT::WellPump} (MBtu)",
     "End Use: #{FT::Elec}: #{EUT::PoolHeater} (MBtu)",
     "End Use: #{FT::Elec}: #{EUT::PoolPump} (MBtu)",
@@ -75,6 +74,7 @@ class ReportSimulationOutputTest < Minitest::Test
     "End Use: #{FT::Elec}: #{EUT::PV} (MBtu)",
     "End Use: #{FT::Elec}: #{EUT::Generator} (MBtu)",
     "End Use: #{FT::Elec}: #{EUT::Battery} (MBtu)",
+    "End Use: #{FT::Elec}: #{EUT::Vehicle} (MBtu)",
     "End Use: #{FT::Gas}: #{EUT::Heating} (MBtu)",
     "End Use: #{FT::Gas}: #{EUT::HeatingHeatPumpBackup} (MBtu)",
     "End Use: #{FT::Gas}: #{EUT::HotWater} (MBtu)",
@@ -201,6 +201,8 @@ class ReportSimulationOutputTest < Minitest::Test
     "Hot Water: #{HWT::Fixtures} (gal)",
     "Hot Water: #{HWT::DistributionWaste} (gal)",
     'Resilience: Battery (hr)',
+    "Vehicle: #{VT::VehicleDischarging} (MBtu)",
+    "Vehicle: #{VT::UnmetDrivingHours} (hr)",
     'HVAC Capacity: Cooling (Btu/h)',
     'HVAC Capacity: Heating (Btu/h)',
     'HVAC Capacity: Heat Pump Backup (Btu/h)',
@@ -288,6 +290,11 @@ class ReportSimulationOutputTest < Minitest::Test
 
   BaseHPXMLTimeseriesColsResilience = [
     'Resilience: Battery'
+  ]
+
+  BaseHPXMLTimeseriesColsVehicles = [
+    "Vehicle: #{VT::VehicleDischarging}",
+    # "Vehicle: #{VT::UnmetDrivingHours}", FIXME: Zero in all the tests below, so it doesn't end up in the timeseries outputs
   ]
 
   BaseHPXMLTimeseriesColsTotalLoads = [
@@ -461,7 +468,6 @@ class ReportSimulationOutputTest < Minitest::Test
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::CeilingFan} (lb)",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::Television} (lb)",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::PlugLoads} (lb)",
-               "Emissions: #{scenario}: #{FT::Elec}: #{EUT::Vehicle} (lb)",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::WellPump} (lb)",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::PoolHeater} (lb)",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::PoolPump} (lb)",
@@ -470,6 +476,7 @@ class ReportSimulationOutputTest < Minitest::Test
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::PV} (lb)",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::Generator} (lb)",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::Battery} (lb)",
+               "Emissions: #{scenario}: #{FT::Elec}: #{EUT::Vehicle} (lb)",
                "Emissions: #{scenario}: #{FT::Gas}: #{EUT::Heating} (lb)",
                "Emissions: #{scenario}: #{FT::Gas}: #{EUT::HeatingHeatPumpBackup} (lb)",
                "Emissions: #{scenario}: #{FT::Gas}: #{EUT::HotWater} (lb)",
@@ -573,6 +580,7 @@ class ReportSimulationOutputTest < Minitest::Test
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::PlugLoads}",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::PV}",
                "Emissions: #{scenario}: #{FT::Elec}: #{EUT::Battery}",
+               "Emissions: #{scenario}: #{FT::Elec}: #{EUT::Vehicle}",
                "Emissions: #{scenario}: #{FT::Gas}: #{EUT::Heating}"]
     end
     return cols
@@ -580,7 +588,8 @@ class ReportSimulationOutputTest < Minitest::Test
 
   def pv_battery_timeseries_cols
     return ["End Use: #{FT::Elec}: #{EUT::PV}",
-            "End Use: #{FT::Elec}: #{EUT::Battery}"]
+            "End Use: #{FT::Elec}: #{EUT::Battery}",
+            "End Use: #{FT::Elec}: #{EUT::Vehicle}"]
   end
 
   def test_annual_only
@@ -602,7 +611,8 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_zone_temperatures' => false,
                   'include_timeseries_airflows' => false,
                   'include_timeseries_weather' => false,
-                  'include_timeseries_resilience' => false }
+                  'include_timeseries_resilience' => false,
+                  'include_timeseries_vehicle_outputs' => false }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(!File.exist?(timeseries_csv))
@@ -637,7 +647,8 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_airflows' => true,
                   'include_timeseries_weather' => true,
-                  'include_timeseries_resilience' => true }
+                  'include_timeseries_resilience' => true,
+                  'include_timeseries_vehicle_outputs' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(!File.exist?(timeseries_csv))
@@ -664,7 +675,8 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_annual_component_loads' => false,
                   'include_annual_hot_water_uses' => false,
                   'include_annual_hvac_summary' => false,
-                  'include_annual_resilience' => false }
+                  'include_annual_resilience' => false,
+                  'include_annual_vehicle_outputs' => false }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(!File.exist?(timeseries_csv))
@@ -1036,7 +1048,8 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_airflows' => true,
                   'include_timeseries_weather' => true,
-                  'include_timeseries_resilience' => true }
+                  'include_timeseries_resilience' => true,
+                  'include_timeseries_vehicle_outputs' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
@@ -1046,7 +1059,8 @@ class ReportSimulationOutputTest < Minitest::Test
                                emission_fuels_timeseries_cols +
                                emission_end_uses_timeseries_cols +
                                pv_battery_timeseries_cols +
-                               BaseHPXMLTimeseriesColsResilience
+                               BaseHPXMLTimeseriesColsResilience +
+                               BaseHPXMLTimeseriesColsVehicles
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
@@ -1079,7 +1093,8 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_airflows' => true,
                   'include_timeseries_weather' => true,
-                  'include_timeseries_resilience' => true }
+                  'include_timeseries_resilience' => true,
+                  'include_timeseries_vehicle_outputs' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
@@ -1089,7 +1104,8 @@ class ReportSimulationOutputTest < Minitest::Test
                                emission_fuels_timeseries_cols +
                                emission_end_uses_timeseries_cols +
                                pv_battery_timeseries_cols +
-                               BaseHPXMLTimeseriesColsResilience
+                               BaseHPXMLTimeseriesColsResilience +
+                               BaseHPXMLTimeseriesColsVehicles
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
@@ -1118,7 +1134,8 @@ class ReportSimulationOutputTest < Minitest::Test
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_airflows' => true,
                   'include_timeseries_weather' => true,
-                  'include_timeseries_resilience' => true }
+                  'include_timeseries_resilience' => true,
+                  'include_timeseries_vehicle_outputs' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
@@ -1128,7 +1145,8 @@ class ReportSimulationOutputTest < Minitest::Test
                                emission_fuels_timeseries_cols +
                                emission_end_uses_timeseries_cols +
                                pv_battery_timeseries_cols +
-                               BaseHPXMLTimeseriesColsResilience
+                               BaseHPXMLTimeseriesColsResilience +
+                               BaseHPXMLTimeseriesColsVehicles
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)

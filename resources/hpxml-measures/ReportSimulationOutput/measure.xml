@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>report_simulation_output</name>
   <uid>df9d170c-c21a-4130-866d-0d46b06073fd</uid>
-  <version_id>443dae63-bc28-4988-8cb0-5fc10c452c68</version_id>
-  <version_modified>2024-10-13T19:48:30Z</version_modified>
+  <version_id>45020aa1-777a-42a7-a2c4-dc502713e6e2</version_id>
+  <version_modified>2024-12-11T00:56:32Z</version_modified>
   <xml_checksum>9BF1E6AC</xml_checksum>
   <class_name>ReportSimulationOutput</class_name>
   <display_name>HPXML Simulation Output Report</display_name>
@@ -324,6 +324,25 @@
       </choices>
     </argument>
     <argument>
+      <name>include_annual_vehicle_outputs</name>
+      <display_name>Generate Annual Output: Vehicles</display_name>
+      <description>Generates annual vehicle outputs.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>timeseries_frequency</name>
       <display_name>Timeseries Reporting Frequency</display_name>
       <description>The frequency at which to report timeseries output data. Using 'none' will disable timeseries outputs.</description>
@@ -624,6 +643,25 @@
       <name>include_timeseries_resilience</name>
       <display_name>Generate Timeseries Output: Resilience</display_name>
       <description>Generates timeseries resilience outputs.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_timeseries_vehicle_outputs</name>
+      <display_name>Generate Timeseries Output: Vehicles</display_name>
+      <description>Generates timeseries vehicle outputs.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -976,13 +1014,6 @@
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>end_use_electricity_electric_vehicle_charging_m_btu</name>
-      <display_name>end_use_electricity_electric_vehicle_charging_m_btu</display_name>
-      <short_name>end_use_electricity_electric_vehicle_charging_m_btu</short_name>
-      <type>Double</type>
-      <model_dependent>false</model_dependent>
-    </output>
-    <output>
       <name>end_use_electricity_well_pump_m_btu</name>
       <display_name>end_use_electricity_well_pump_m_btu</display_name>
       <short_name>end_use_electricity_well_pump_m_btu</short_name>
@@ -1035,6 +1066,13 @@
       <name>end_use_electricity_battery_m_btu</name>
       <display_name>end_use_electricity_battery_m_btu</display_name>
       <short_name>end_use_electricity_battery_m_btu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>end_use_electricity_electric_vehicle_charging_m_btu</name>
+      <display_name>end_use_electricity_electric_vehicle_charging_m_btu</display_name>
+      <short_name>end_use_electricity_electric_vehicle_charging_m_btu</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
@@ -1885,6 +1923,20 @@
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
+    <output>
+      <name>vehicle_electric_vehicle_discharging_m_btu</name>
+      <display_name>vehicle_electric_vehicle_discharging_m_btu</display_name>
+      <short_name>vehicle_electric_vehicle_discharging_m_btu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>vehicle_unmet_driving_hours_hr</name>
+      <display_name>vehicle_unmet_driving_hours_hr</display_name>
+      <short_name>vehicle_unmet_driving_hours_hr</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
   </outputs>
   <provenances />
   <tags>
@@ -1912,7 +1964,7 @@
       <filename>README.md</filename>
       <filetype>md</filetype>
       <usage_type>readme</usage_type>
-      <checksum>CDB2D617</checksum>
+      <checksum>E6589B00</checksum>
     </file>
     <file>
       <filename>README.md.erb</filename>
@@ -1929,13 +1981,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>45BFC7E3</checksum>
+      <checksum>9127BF3C</checksum>
     </file>
     <file>
       <filename>test_report_sim_output.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>8552F493</checksum>
+      <checksum>5E6DA2B4</checksum>
     </file>
   </files>
 </measure>

@@ -86,7 +86,7 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     schedule_constants = 11
-    schedule_rulesets = 19
+    schedule_rulesets = 21
     schedule_fixed_intervals = 1
     schedule_files = 0
 
@@ -110,6 +110,8 @@ class HPXMLtoOpenStudioSchedulesTest < Minitest::Test
     assert_in_epsilon(4244, get_annual_equivalent_full_load_hrs(model, Constants::ObjectTypeHotWaterRecircPump + ' schedule'), @tol)
     assert_in_epsilon(5000, get_annual_equivalent_full_load_hrs(model, Constants::ObjectTypeGeneralWaterUse + ' schedule'), @tol)
     assert_in_epsilon(8760, get_annual_equivalent_full_load_hrs(model, Constants::ObjectTypeMechanicalVentilationHouseFan + ' schedule'), @tol)
+    assert_in_epsilon(5110, get_annual_equivalent_full_load_hrs(model, 'ElectricVehicle1 charging schedule'), @tol)
+    assert_in_epsilon(638.75, get_annual_equivalent_full_load_hrs(model, 'ElectricVehicle1 discharging schedule'), @tol)
   end
 
   def test_simple_vacancy_schedules

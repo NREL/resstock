@@ -137,6 +137,12 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(true)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_annual_vehicle_outputs', false)
+    arg.setDisplayName('Generate Annual Output: Vehicles')
+    arg.setDescription('Generates annual vehicle outputs.')
+    arg.setDefaultValue(true)
+    args << arg
+
     timeseries_frequency_chs = OpenStudio::StringVector.new
     timeseries_frequency_chs << 'none'
     timeseries_frequency_chs << 'timestep'
@@ -239,6 +245,12 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_timeseries_vehicle_outputs', false)
+    arg.setDisplayName('Generate Timeseries Output: Vehicles')
+    arg.setDescription('Generates timeseries vehicle outputs.')
+    arg.setDefaultValue(false)
+    args << arg
+
     timestamp_chs = OpenStudio::StringVector.new
     timestamp_chs << 'start'
     timestamp_chs << 'end'
@@ -300,7 +312,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
      @peak_loads,
      @component_loads,
      @hot_water_uses,
-     @resilience].each do |outputs|
+     @resilience,
+     @vehicles].each do |outputs|
       outputs.values.each do |obj|
         output_name = OpenStudio::toUnderscoreCase("#{obj.name} #{obj.annual_units}")
         result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output_name.chomp('_'))
@@ -356,6 +369,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     total_loads_program = @model.getEnergyManagementSystemPrograms.find { |p| p.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants::ObjectTypeTotalLoadsProgram }
     comp_loads_program = @model.getEnergyManagementSystemPrograms.find { |p| p.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants::ObjectTypeComponentLoadsProgram }
     total_airflows_program = @model.getEnergyManagementSystemPrograms.find { |p| p.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants::ObjectTypeTotalAirflowsProgram }
+    unmet_driving_hrs_program = @model.getEnergyManagementSystemPrograms.find { |p| p.additionalProperties.getFeatureAsString('ObjectType').to_s == Constants::ObjectTypeBatteryElectricVehicle }
     heated_zones = eval(@model.getBuilding.additionalProperties.getFeatureAsString('heated_zones').get)
     cooled_zones = eval(@model.getBuilding.additionalProperties.getFeatureAsString('cooled_zones').get)
 
@@ -531,6 +545,26 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
 
+    # Vehicle outputs
+    @vehicles.values.each do |vehicle_data|
+      if (not vehicle_data.ems_variable.nil?) && (not unmet_driving_hrs_program.nil?)
+        if args[:include_annual_vehicle_outputs]
+          result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{vehicle_data.ems_variable}_annual_outvar,#{vehicle_data.ems_variable},Summed,ZoneTimestep,#{unmet_driving_hrs_program.name},hr;").get
+          result << OpenStudio::IdfObject.load("Output:Variable,*,#{vehicle_data.ems_variable}_annual_outvar,runperiod;").get
+        end
+        if args[:include_timeseries_vehicle_outputs]
+          result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{vehicle_data.ems_variable}_timeseries_outvar,#{vehicle_data.ems_variable},Summed,ZoneTimestep,#{unmet_driving_hrs_program.name},hr;").get
+          result << OpenStudio::IdfObject.load("Output:Variable,*,#{vehicle_data.ems_variable}_timeseries_outvar,#{args[:timeseries_frequency]};").get
+        end
+      end
+      vehicle_data.variables.each do |_sys_id, varkey, var|
+        result << OpenStudio::IdfObject.load("Output:Variable,#{varkey},#{var},runperiod;").get
+        if args[:include_timeseries_vehicle_outputs]
+          result << OpenStudio::IdfObject.load("Output:Variable,#{varkey},#{var},#{args[:timeseries_frequency]};").get
+        end
+      end
+    end
+
     # Optional output variables (timeseries only)
     @output_variables_requests.each do |output_variable_name, _output_variable|
       result << OpenStudio::IdfObject.load("Output:Variable,*,#{output_variable_name},#{args[:timeseries_frequency]};").get
@@ -657,13 +691,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
       # Convert from EnergyPlus default (end-of-timestep) to start-of-timestep convention
       if args[:timeseries_timestamp_convention] == 'start'
-        if args[:timeseries_frequency] == 'timestep'
+        case args[:timeseries_frequency]
+        when 'timestep'
           ts_offset = hpxml_header.timestep * 60 # seconds
-        elsif args[:timeseries_frequency] == 'hourly'
+        when 'hourly'
           ts_offset = 60 * 60 # seconds
-        elsif args[:timeseries_frequency] == 'daily'
+        when 'daily'
           ts_offset = 60 * 60 * 24 # seconds
-        elsif args[:timeseries_frequency] == 'monthly'
+        when 'monthly'
           ts_offset = Calendar.num_days_in_months(year)[month - 1] * 60 * 60 * 24 # seconds
         else
           fail "Unexpected timeseries_frequency: #{args[:timeseries_frequency]}."
@@ -751,6 +786,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       fuel.annual_output = get_report_meter_data_annual(fuel.meters)
       fuel.annual_output -= get_report_meter_data_annual(['ElectricStorage:ElectricityProduced']) if fuel_type == FT::Elec # We add Electric Storage onto the annual Electricity fuel meter
 
+      # Remove EV battery discharging
+      @model.getElectricLoadCenterStorageLiIonNMCBatterys.each do |elcs|
+        next unless elcs.additionalProperties.getFeatureAsBoolean('is_ev').get
+
+        fuel.annual_output += get_report_variable_data_annual([elcs.name.to_s.upcase], ['Electric Storage Discharge Energy']) if fuel_type == FT::Elec
+      end
+
       next unless args[:include_timeseries_fuel_consumptions]
 
       fuel.timeseries_output = get_report_meter_data_timeseries(fuel.meters, UnitConversions.convert(1.0, 'J', fuel.timeseries_units), 0, args[:timeseries_frequency])
@@ -760,6 +802,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       # We add Electric Storage onto the timeseries Electricity fuel meter
       elec_storage_timeseries_output = get_report_meter_data_timeseries(['ElectricStorage:ElectricityProduced'], UnitConversions.convert(1.0, 'J', fuel.timeseries_units), 0, args[:timeseries_frequency])
       fuel.timeseries_output = fuel.timeseries_output.zip(elec_storage_timeseries_output).map { |x, y| x - y }
+
+      # Remove timeseries EV battery discharging
+      @model.getElectricLoadCenterStorageLiIonNMCBatterys.each do |elcs|
+        next unless elcs.additionalProperties.getFeatureAsBoolean('is_ev').get
+
+        ev_discharge_timeseries_output = get_report_variable_data_timeseries([elcs.name.to_s.upcase], ['Electric Storage Discharge Energy'], UnitConversions.convert(1.0, 'J', fuel.timeseries_units), 0, args[:timeseries_frequency])
+        fuel.timeseries_output = fuel.timeseries_output.zip(ev_discharge_timeseries_output).map { |x, y| x + y }
+      end
     end
 
     # Peak Electricity Consumption
@@ -1356,6 +1406,26 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
 
+    # Vehicles
+    @vehicles.each do |_key, vehicle_data|
+      vehicle_data.variables.map { |v| v[0] }.uniq.each do |sys_id|
+        keys = vehicle_data.variables.select { |v| v[0] == sys_id }.map { |v| v[1] }
+        vars = vehicle_data.variables.select { |v| v[0] == sys_id }.map { |v| v[2] }
+        vehicle_data.annual_output = get_report_variable_data_annual(keys, vars)
+        if args[:include_timeseries_end_use_consumptions]
+          vehicle_data.timeseries_output = get_report_variable_data_timeseries(keys, vars, UnitConversions.convert(1.0, 'J', vehicle_data.timeseries_units), 0, args[:timeseries_frequency])
+        end
+      end
+      next unless !vehicle_data.ems_variable.nil?
+
+      if args[:include_annual_vehicle_outputs]
+        vehicle_data.annual_output = get_report_variable_data_annual(['EMS'], ["#{vehicle_data.ems_variable}_annual_outvar"], 1.0)
+      end
+      if args[:include_timeseries_end_use_consumptions]
+        vehicle_data.timeseries_output = get_report_variable_data_timeseries(['EMS'], ["#{vehicle_data.ems_variable}_timeseries_outvar"], 1.0, 0, args[:timeseries_frequency])
+      end
+    end
+
     return outputs
   end
 
@@ -1448,7 +1518,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       @fuels => 'Fuel',
       @emissions => 'Emissions',
       @loads => 'Load',
-      @component_loads => 'Component Load' }.each do |outputs, output_type|
+      @component_loads => 'Component Load',
+      @vehicles => 'Vehicles' }.each do |outputs, output_type|
       outputs.each do |key, obj|
         next if obj.timeseries_output.empty?
 
@@ -1626,6 +1697,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       results_out << [line_break]
     end
 
+    # Vehicles
+    if args[:include_annual_vehicle_outputs]
+      @vehicles.each do |_type, vehicles_data|
+        results_out << ["#{vehicles_data.name} (#{vehicles_data.annual_units})", vehicles_data.annual_output.to_f.round(n_digits)]
+      end
+      results_out << [line_break]
+    end
+
     # Sizing data
     if args[:include_annual_hvac_summary]
       results_out = Outputs.append_sizing_results(@hpxml_bldgs, results_out)
@@ -1797,6 +1876,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     else
       resilience_data = []
     end
+    if args[:include_timeseries_vehicle_outputs]
+      vehicles_data = @vehicles.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(n_digits) } }
+    else
+      vehicles_data = []
+    end
 
     # EnergyPlus output variables
     if not @output_variables.empty?
@@ -1807,7 +1891,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     return if (total_energy_data.size + fuel_data.size + end_use_data.size + system_use_data.size + emissions_data.size + emission_fuel_data.size +
                emission_end_use_data.size + hot_water_use_data.size + total_loads_data.size + comp_loads_data.size + unmet_hours_data.size +
-               zone_temps_data.size + airflows_data.size + weather_data.size + resilience_data.size + output_variables_data.size) == 0
+               zone_temps_data.size + airflows_data.size + weather_data.size + resilience_data.size + vehicles_data.size + output_variables_data.size) == 0
 
     fail 'Unable to obtain timestamps.' if @timestamps.empty?
 
@@ -1815,7 +1899,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       # Assemble data
       data = data.zip(*timestamps2, *timestamps3, *total_energy_data, *fuel_data, *end_use_data, *system_use_data, *emissions_data,
                       *emission_fuel_data, *emission_end_use_data, *hot_water_use_data, *total_loads_data, *comp_loads_data,
-                      *unmet_hours_data, *zone_temps_data, *airflows_data, *weather_data, *resilience_data, *output_variables_data)
+                      *unmet_hours_data, *zone_temps_data, *airflows_data, *weather_data, *resilience_data, *vehicles_data, *output_variables_data)
 
       # Error-check
       n_elements = []
@@ -1836,13 +1920,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         year = @hpxml_header.sim_calendar_year
         start_day = Calendar.get_day_num_from_month_day(year, @hpxml_header.sim_begin_month, @hpxml_header.sim_begin_day)
         start_hr = (start_day - 1) * 24
-        if args[:timeseries_frequency] == 'timestep'
+        case args[:timeseries_frequency]
+        when 'timestep'
           interval_hrs = @hpxml_header.timestep / 60.0
-        elsif args[:timeseries_frequency] == 'hourly'
+        when 'hourly'
           interval_hrs = 1.0
-        elsif args[:timeseries_frequency] == 'daily'
+        when 'daily'
           interval_hrs = 24.0
-        elsif args[:timeseries_frequency] == 'monthly'
+        when 'monthly'
           interval_hrs = Calendar.num_days_in_year(year) * 24.0 / 12
         end
         header_data = [['wxDVFileHeaderVer.1'],
@@ -2192,7 +2277,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @model.getModelObjects.sort.each do |object|
       next if object.to_AdditionalProperties.is_initialized
 
-      [EUT, HWT, LT, RT].each do |class_name|
+      [EUT, HWT, LT, RT, VT].each do |class_name|
         vars_by_key = get_object_outputs_by_key(@model, object, class_name)
         next if vars_by_key.size == 0
 
@@ -2416,6 +2501,19 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   end
 
   # TODO
+  class Vehicles < BaseOutput
+    # @param variables [TODO] TODO
+    def initialize(variables: [], ems_variable: nil, annual_units:, timeseries_units:)
+      super()
+      @variables = variables
+      @ems_variable = ems_variable
+      @annual_units = annual_units
+      @timeseries_units = timeseries_units
+    end
+    attr_accessor(:variables, :ems_variable)
+  end
+
+  # TODO
   class OutputVariable < BaseOutput
     def initialize
       super()
@@ -2472,7 +2570,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Elec, EUT::CeilingFan]] = EndUse.new(outputs: get_object_outputs(EUT, [FT::Elec, EUT::CeilingFan]))
     @end_uses[[FT::Elec, EUT::Television]] = EndUse.new(outputs: get_object_outputs(EUT, [FT::Elec, EUT::Television]))
     @end_uses[[FT::Elec, EUT::PlugLoads]] = EndUse.new(outputs: get_object_outputs(EUT, [FT::Elec, EUT::PlugLoads]))
-    @end_uses[[FT::Elec, EUT::Vehicle]] = EndUse.new(outputs: get_object_outputs(EUT, [FT::Elec, EUT::Vehicle]))
     @end_uses[[FT::Elec, EUT::WellPump]] = EndUse.new(outputs: get_object_outputs(EUT, [FT::Elec, EUT::WellPump]))
     @end_uses[[FT::Elec, EUT::PoolHeater]] = EndUse.new(outputs: get_object_outputs(EUT, [FT::Elec, EUT::PoolHeater]))
     @end_uses[[FT::Elec, EUT::PoolPump]] = EndUse.new(outputs: get_object_outputs(EUT, [FT::Elec, EUT::PoolPump]))
@@ -2483,6 +2580,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Elec, EUT::Generator]] = EndUse.new(outputs: get_object_outputs(EUT, [FT::Elec, EUT::Generator]),
                                                        is_negative: true)
     @end_uses[[FT::Elec, EUT::Battery]] = EndUse.new(outputs: get_object_outputs(EUT, [FT::Elec, EUT::Battery]),
+                                                     is_storage: true)
+    @end_uses[[FT::Elec, EUT::Vehicle]] = EndUse.new(outputs: get_object_outputs(EUT, [FT::Elec, EUT::Vehicle]),
                                                      is_storage: true)
     @end_uses[[FT::Gas, EUT::Heating]] = EndUse.new(outputs: get_object_outputs(EUT, [FT::Gas, EUT::Heating]))
     @end_uses[[FT::Gas, EUT::HeatingHeatPumpBackup]] = EndUse.new(outputs: get_object_outputs(EUT, [FT::Gas, EUT::HeatingHeatPumpBackup]))
@@ -2757,6 +2856,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       weather_data.name = "Weather: #{weather_type}"
     end
 
+    # Vehicles
+    @vehicles = {}
+    @vehicles[VT::VehicleDischarging] = Vehicles.new(variables: get_object_outputs(VT, VT::VehicleDischarging), annual_units: 'MBtu', timeseries_units: 'kWh')
+    @vehicles[VT::UnmetDrivingHours] = Vehicles.new(ems_variable: 'unmet_driving_hours', annual_units: 'hr', timeseries_units: 'hr')
+    @vehicles.each do |vehicles_type, vehicle_data|
+      vehicle_data.name = "Vehicle: #{vehicles_type}"
+    end
+
     # Output Variables
     @output_variables_requests = {}
     if not user_output_variables.nil?
@@ -2789,6 +2896,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
     if args[:include_timeseries_fuel_consumptions]
       args[:include_timeseries_end_use_consumptions] = true
+      args[:include_timeseries_vehicle_outputs] = true
     end
     if args[:include_timeseries_system_use_consumptions]
       args[:include_timeseries_end_use_consumptions] = true
@@ -2953,7 +3061,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                  [to_ft[fuel], EUT::Generator] => ["Generator #{fuel} HHV Basis Energy"] }
 
       elsif object.to_ElectricLoadCenterStorageLiIonNMCBattery.is_initialized
-        return { [FT::Elec, EUT::Battery] => ['Electric Storage Production Decrement Energy', 'Electric Storage Discharge Energy'] }
+        if object.additionalProperties.getFeatureAsBoolean('is_ev').get
+          return { [FT::Elec, EUT::Vehicle] => ['Electric Storage Production Decrement Energy'] }
+        else
+          return { [FT::Elec, EUT::Battery] => ['Electric Storage Production Decrement Energy', 'Electric Storage Discharge Energy'] }
+        end
 
       elsif object.to_ElectricEquipment.is_initialized
         object = object.to_ElectricEquipment.get
@@ -2979,7 +3091,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
           Constants::ObjectTypeMiscElectricVehicleCharging => EUT::Vehicle,
           Constants::ObjectTypeMiscWellPump => EUT::WellPump }.each do |obj_name, eut|
           next unless subcategory.start_with? obj_name
-          fail 'Unepected error: multiple matches.' unless end_use.nil?
+          fail 'Unexpected error: multiple matches.' unless end_use.nil?
 
           end_use = eut
         end
@@ -3012,8 +3124,9 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
           Constants::ObjectTypeWaterHeaterAdjustment => EUT::HotWater,
           Constants::ObjectTypeBatteryLossesAdjustment => EUT::Battery }.each do |obj_name, eut|
           next unless subcategory.start_with? obj_name
-          fail 'Unepected error: multiple matches.' unless end_use.nil?
+          fail 'Unexpected error: multiple matches.' unless end_use.nil?
 
+          ### FIXME: ensure loss program applies to the correct battery
           end_use = eut
         end
 
@@ -3113,6 +3226,17 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         end
 
       end
+
+    elsif class_name == VT
+
+      # Vehicles
+
+      if object.to_ElectricLoadCenterStorageLiIonNMCBattery.is_initialized
+        if object.additionalProperties.getFeatureAsBoolean('is_ev').get
+          return { VT::VehicleDischarging => ['Electric Storage Discharge Energy'] }
+        end
+      end
+
     end
 
     return {}
