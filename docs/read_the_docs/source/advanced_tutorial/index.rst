@@ -17,4 +17,4 @@ If your changes are intended to be merged into the ``develop`` branch of the `Re
    increasing_upgrade_options
    upgrade_scenario_config
    heat_pump_upgrades
-   openstudio_hpxmls
+   openstudio_hpxml
