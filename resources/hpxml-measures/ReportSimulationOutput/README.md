@@ -808,4 +808,6 @@ All possible measure outputs are listed below. Actual outputs depend on measure 
 
 - ``vehicle_electric_vehicle_discharging_m_btu``
 
+- ``vehicle_unmet_driving_hours_hr``
+
 

@@ -1032,7 +1032,6 @@ class SchedulesFile
     CeilingFan: Column.new('ceiling_fan', true, true, :frac),
     PlugLoadsOther: Column.new('plug_loads_other', true, true, :frac),
     PlugLoadsTV: Column.new('plug_loads_tv', true, true, :frac),
-    PlugLoadsVehicle: Column.new('plug_loads_vehicle', true, false, :frac),
     PlugLoadsWellPump: Column.new('plug_loads_well_pump', true, false, :frac),
     FuelLoadsGrill: Column.new('fuel_loads_grill', true, false, :frac),
     FuelLoadsLighting: Column.new('fuel_loads_lighting', true, false, :frac),
@@ -1466,17 +1465,19 @@ class SchedulesFile
       @tmp_schedules.keys.each do |schedule_name|
         next if column_names.include? schedule_name
 
-        schedule_name2 = schedule_name
-        if [SchedulesFile::Columns[:HotWaterDishwasher].name].include?(schedule_name)
+        case schedule_name
+        when SchedulesFile::Columns[:HotWaterDishwasher].name
           schedule_name2 = SchedulesFile::Columns[:Dishwasher].name
-        elsif [SchedulesFile::Columns[:HotWaterClothesWasher].name].include?(schedule_name)
+        when SchedulesFile::Columns[:HotWaterClothesWasher].name
           schedule_name2 = SchedulesFile::Columns[:ClothesWasher].name
-        elsif [SchedulesFile::Columns[:HeatingSetpoint].name].include?(schedule_name)
+        when SchedulesFile::Columns[:HeatingSetpoint].name
           schedule_name2 = SchedulesFile::Columns[:SpaceHeating].name
-        elsif [SchedulesFile::Columns[:CoolingSetpoint].name].include?(schedule_name)
+        when SchedulesFile::Columns[:CoolingSetpoint].name
           schedule_name2 = SchedulesFile::Columns[:SpaceCooling].name
-        elsif [SchedulesFile::Columns[:WaterHeaterSetpoint].name].include?(schedule_name)
+        when SchedulesFile::Columns[:WaterHeaterSetpoint].name
           schedule_name2 = SchedulesFile::Columns[:WaterHeater].name
+        else
+          schedule_name2 = schedule_name
         end
 
         # Skip those unaffected

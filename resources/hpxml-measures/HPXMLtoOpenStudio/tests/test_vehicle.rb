@@ -17,13 +17,24 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
     return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
   end
 
-  def get_battery(model, name)
+  def get_batteries(model, name)
+    batteries = []
     model.getElectricLoadCenterStorageLiIonNMCBatterys.each do |b|
       next unless b.name.to_s.start_with? "#{name} "
 
-      return b
+      batteries << b
     end
-    return
+    return batteries
+  end
+
+  def get_elcds(model, name)
+    elcds = []
+    model.getElectricLoadCenterDistributions.each do |elcd|
+      next unless elcd.name.to_s.start_with? "#{name} "
+
+      elcds << elcd
+    end
+    return elcds
   end
 
   def calc_nom_capacity(battery)
@@ -37,7 +48,11 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     hpxml_bldg.vehicles.each do |hpxml_ev|
-      ev_battery = get_battery(model, hpxml_ev.id)
+      ev_batteries = get_batteries(model, hpxml_ev.id)
+      assert_equal(1, ev_batteries.size)
+      ev_battery = ev_batteries[0]
+
+      # Check object
       assert_equal(0.0, ev_battery.radiativeFraction)
       assert_equal(0.925, ev_battery.dctoDCChargingEfficiency)
       assert_equal(HPXML::BatteryLifetimeModelNone, ev_battery.lifetimeModel)
@@ -48,14 +63,11 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
       assert_in_epsilon(4.87, ev_battery.batterySurfaceArea, 0.01)
       assert_in_epsilon(63364, calc_nom_capacity(ev_battery), 0.01)
 
-      ev_elcd = nil
-      model.getElectricLoadCenterDistributions.each do |elcd|
-        if elcd.name.to_s.include? hpxml_ev.id
-          ev_elcd = elcd
-          break
-        end
-      end
+      ev_elcds = get_elcds(model, hpxml_ev.id)
+      assert_equal(1, ev_elcds.size)
+      ev_elcd = ev_elcds[0]
 
+      # Check object
       assert_equal('AlternatingCurrentWithStorage', ev_elcd.electricalBussType)
       assert_equal(0.15, ev_elcd.minimumStorageStateofChargeFraction)
       assert_equal(0.95, ev_elcd.maximumStorageStateofChargeFraction)
@@ -76,13 +88,11 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
     hpxml_bldg.vehicles.each do |hpxml_ev|
       next unless hpxml_ev.vehicle_type == Constants::ObjectTypeBatteryElectricVehicle
 
-      ev_battery = get_battery(model, hpxml_ev.id)
-      assert_nil(ev_battery) # no charger means no EV is generated
+      ev_batteries = get_batteries(model, hpxml_ev.id)
+      assert_equal(0, ev_batteries.size) # no charger means no EV is generated
 
-      elcds = model.getElectricLoadCenterDistributions
-      elcds.each do |elcd|
-        assert(!elcd.name.to_s.include?(hpxml_ev.id))
-      end
+      ev_elcds = get_elcds(model, hpxml_ev.id)
+      assert_equal(0, ev_elcds.size)
     end
   end
 
@@ -93,8 +103,11 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     hpxml_bldg.vehicles.each do |hpxml_ev|
-      ev_battery = get_battery(model, hpxml_ev.id)
+      ev_batteries = get_batteries(model, hpxml_ev.id)
+      assert_equal(1, ev_batteries.size)
+      ev_battery = ev_batteries[0]
 
+      # Check object
       assert_equal(HPXML::LocationGarage, ev_battery.thermalZone.get.name.get)
       assert_equal(0.0, ev_battery.radiativeFraction)
       assert_equal(0.925, ev_battery.dctoDCChargingEfficiency)
@@ -106,13 +119,11 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
       assert_in_epsilon(6.59, ev_battery.batterySurfaceArea, 0.01)
       assert_in_epsilon(100000, calc_nom_capacity(ev_battery), 0.01)
 
-      ev_elcd = nil
-      model.getElectricLoadCenterDistributions.each do |elcd|
-        if elcd.name.to_s.include? hpxml_ev.id
-          ev_elcd = elcd
-          break
-        end
-      end
+      ev_elcds = get_elcds(model, hpxml_ev.id)
+      assert_equal(1, ev_elcds.size)
+      ev_elcd = ev_elcds[0]
+
+      # Check object
       assert_equal('AlternatingCurrentWithStorage', ev_elcd.electricalBussType)
       assert_equal(0.15, ev_elcd.minimumStorageStateofChargeFraction)
       assert_equal(0.95, ev_elcd.maximumStorageStateofChargeFraction)
@@ -132,7 +143,11 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
     model, _hpxml, hpxml_bldg = _test_measure(args_hash)
 
     hpxml_bldg.vehicles.each do |hpxml_ev|
-      ev_battery = get_battery(model, hpxml_ev.id)
+      ev_batteries = get_batteries(model, hpxml_ev.id)
+      assert_equal(1, ev_batteries.size)
+      ev_battery = ev_batteries[0]
+
+      # Check object
       assert_equal(HPXML::LocationGarage, ev_battery.thermalZone.get.name.get)
       assert_equal(0.0, ev_battery.radiativeFraction)
       assert_equal(0.925, ev_battery.dctoDCChargingEfficiency)
@@ -144,13 +159,11 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
       assert_in_epsilon(6.59, ev_battery.batterySurfaceArea, 0.01)
       assert_in_epsilon(100000, calc_nom_capacity(ev_battery), 0.01)
 
-      ev_elcd = nil
-      model.getElectricLoadCenterDistributions.each do |elcd|
-        if elcd.name.to_s.include? hpxml_ev.id
-          ev_elcd = elcd
-          break
-        end
-      end
+      ev_elcds = get_elcds(model, hpxml_ev.id)
+      assert_equal(1, ev_elcds.size)
+      ev_elcd = ev_elcds[0]
+
+      # Check object
       assert_equal('AlternatingCurrentWithStorage', ev_elcd.electricalBussType)
       assert_equal(0.15, ev_elcd.minimumStorageStateofChargeFraction)
       assert_equal(0.95, ev_elcd.maximumStorageStateofChargeFraction)
@@ -172,13 +185,11 @@ class HPXMLtoOpenStudioBatteryTest < Minitest::Test
     hpxml_bldg.vehicles.each do |hpxml_ev|
       next unless hpxml_ev.vehicle_type == Constants::ObjectTypeBatteryElectricVehicle
 
-      ev_battery = get_battery(model, hpxml_ev.id)
-      assert_nil(ev_battery) # plug load method take precendence to battery model
+      ev_batteries = get_batteries(model, hpxml_ev.id)
+      assert_equal(0, ev_batteries.size) # plug load method take precedence to battery model
 
-      elcds = model.getElectricLoadCenterDistributions
-      elcds.each do |elcd|
-        assert(!elcd.name.to_s.include?(hpxml_ev.id))
-      end
+      ev_elcds = get_elcds(model, hpxml_ev.id)
+      assert_equal(0, ev_elcds.size)
     end
   end
 

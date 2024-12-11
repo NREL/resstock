@@ -79,6 +79,7 @@ module Constants
   ObjectTypeTotalLoadsProgram = 'total loads program'
   ObjectTypeUnitHeater = 'unit heater'
   ObjectTypeUnmetHoursProgram = 'unmet hours program'
+  ObjectTypeUnmetDrivingHours = 'unmet driving hours'
   ObjectTypeWaterHeater = 'water heater'
   ObjectTypeWaterHeaterSetpoint = 'water heater setpoint'
   ObjectTypeWaterHeaterAdjustment = 'water heater energy adjustment'
@@ -287,7 +288,8 @@ module WT
   DirectSolar = 'Direct Solar Radiation'
 end
 
-# Vehicle Types
+# Vehicle Types (Constants for output reporting)
 module VT
   VehicleDischarging = 'Electric Vehicle Discharging'
+  UnmetDrivingHours = 'Unmet Driving Hours'
 end

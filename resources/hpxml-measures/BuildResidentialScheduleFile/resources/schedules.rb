@@ -178,7 +178,7 @@ class ScheduleGenerator
     plugload_tv_monthly_multiplier = Schedule.validate_values(schedules_csv_data[SchedulesFile::Columns[:PlugLoadsTV].name]['PlugLoadsTVMonthlyMultipliers'], 12, 'monthly') # American Time Use Survey
     ceiling_fan_weekday_sch = Schedule.validate_values(default_schedules_csv_data[SchedulesFile::Columns[:CeilingFan].name]['WeekdayScheduleFractions'], 24, 'weekday') # Table C.3(5) of ANSI/RESNET/ICC 301-2022 Addendum C
     ceiling_fan_weekend_sch = Schedule.validate_values(default_schedules_csv_data[SchedulesFile::Columns[:CeilingFan].name]['WeekendScheduleFractions'], 24, 'weekend') # Table C.3(5) of ANSI/RESNET/ICC 301-2022 Addendum C
-    ceiling_fan_monthly_multiplier = Schedule.validate_values(Defaults.get_ceiling_fan_months(weather).join(', '), 12, 'monthly') # based on monthly average outdoor temperatures per ANSI/RESNET/ICC 301-2019
+    ceiling_fan_monthly_multiplier = Schedule.validate_values(Defaults.get_ceiling_fan_months(weather).join(', '), 12, 'monthly') # based on monthly average outdoor temperatures per ANSI/RESNET/ICC 301
 
     sch = get_building_america_lighting_schedule(args[:time_zone_utc_offset], args[:latitude], args[:longitude], schedules_csv_data)
     interior_lighting_schedule = []
@@ -1123,6 +1123,11 @@ class ScheduleGenerator
     return lighting_sch
   end
 
+  # TODO
+  #
+  # @param away_schedule [TODO] TODO
+  # @param hours_driven_per_year [TODO] TODO
+  # @return [TODO] TODO
   def _get_ev_battery_schedule(away_schedule, hours_driven_per_year)
     total_driving_minutes_per_year = (hours_driven_per_year * 60).ceil
     expanded_away_schedule = away_schedule.flat_map { |status| [status] * 15 }
@@ -1167,6 +1172,10 @@ class ScheduleGenerator
     return charging_schedule, discharging_schedule
   end
 
+  # TODO
+  #
+  # @param markov_chain_simulation_result [TODO] TODO
+  # @return [TODO] TODO
   def fill_ev_battery_schedule(markov_chain_simulation_result)
     if @hpxml_bldg.vehicles.to_a.empty?
       return

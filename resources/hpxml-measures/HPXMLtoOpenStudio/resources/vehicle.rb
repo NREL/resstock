@@ -69,28 +69,60 @@ class Vehicle
       hrs_driven_year = vehicle.hours_per_week / 7 * UnitConversions.convert(1, 'yr', 'day') # hrs/year
       ev_annl_energy = vehicle.energy_efficiency * vehicle.miles_per_year # kWh/year
       eff_discharge_power = UnitConversions.convert(ev_annl_energy / hrs_driven_year, 'kw', 'w') # W
-
       eff_charge_power = ev_elcd.designStorageControlChargePower
+      min_soc = ev_elcd.minimumStorageStateofChargeFraction
       discharging_schedule = ev_elcd.storageDischargePowerFractionSchedule.get
       charging_schedule = ev_elcd.storageChargePowerFractionSchedule.get
 
-      discharge_power_act = OpenStudio::Model::EnergyManagementSystemActuator.new(ev_elcd, 'Electrical Storage', 'Power Draw Rate')
-      discharge_power_act.setName('battery_discharge_power_act')
-      charge_power_act = OpenStudio::Model::EnergyManagementSystemActuator.new(ev_elcd, 'Electrical Storage', 'Power Charge Rate')
-      charge_power_act.setName('battery_charge_power_act')
+      discharge_power_act = Model.add_ems_actuator(
+        name: 'battery_discharge_power_act',
+        model_object: ev_elcd,
+        comp_type_and_control: ['Electrical Storage', 'Power Draw Rate']
+      )
+      charge_power_act = Model.add_ems_actuator(
+        name: 'battery_charge_power_act',
+        model_object: ev_elcd,
+        comp_type_and_control: ['Electrical Storage', 'Power Charge Rate']
+      )
 
-      temp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Site Outdoor Air Drybulb Temperature')
-      temp_sensor.setName('site_temp')
-      temp_sensor.setKeyName('Environment')
-      discharge_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-      discharge_sch_sensor.setName('discharge_sch_sensor')
-      discharge_sch_sensor.setKeyName(discharging_schedule.name.to_s)
-      charge_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-      charge_sch_sensor.setName('charge_sch_sensor')
-      charge_sch_sensor.setKeyName(charging_schedule.name.to_s)
+      temp_sensor = Model.add_ems_sensor(
+        model,
+        name: 'site_temp',
+        output_var_or_meter_name: 'Site Outdoor Air Drybulb Temperature',
+        key_name: 'Environment'
+      )
+      discharge_sch_sensor = Model.add_ems_sensor(
+        model,
+        name: 'discharge_sch_sensor',
+        output_var_or_meter_name: 'Schedule Value',
+        key_name: discharging_schedule.name.to_s
+      )
+      charge_sch_sensor = Model.add_ems_sensor(
+        model,
+        name: 'charge_sch_sensor',
+        output_var_or_meter_name: 'Schedule Value',
+        key_name: charging_schedule.name.to_s
+      )
+      soc_sensor = Model.add_ems_sensor(
+        model,
+        name: 'soc_sensor',
+        output_var_or_meter_name: 'Electric Storage Charge Fraction',
+        key_name: elcs.name.to_s
+      )
 
-      ev_discharge_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-      ev_discharge_program.setName('ev_discharge')
+      ev_discharge_program = Model.add_ems_program(
+        model,
+        name: 'ev_discharge_program'
+      )
+      ev_discharge_program.additionalProperties.setFeature('ObjectType', Constants::ObjectTypeBatteryElectricVehicle)
+      unmet_hr_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, 'unmet_driving_hours')
+      unmet_hr_var.setName('unmet_driving_hours')
+      unmet_hr_var.setTypeOfDataInVariable('Summed')
+      unmet_hr_var.setUpdateFrequency('SystemTimestep')
+      unmet_hr_var.setEMSProgramOrSubroutineName(ev_discharge_program)
+      unmet_hr_var.setUnits('hr')
+      unmet_hr_var.additionalProperties.setFeature('HPXML_ID', vehicle.id) # Used by reporting measure
+      unmet_hr_var.additionalProperties.setFeature('ObjectType', Constants::ObjectTypeUnmetDrivingHours) # Used by reporting measure
 
       # Power adjustment vs ambient temperature curve; derived from most recent data for Figure 9 of https://www.nrel.gov/docs/fy23osti/83916.pdf
       coefs = [1.412768, -3.910397E-02, 9.408235E-04, 8.971560E-06, -7.699244E-07, 1.265614E-08]
@@ -106,22 +138,30 @@ class Vehicle
       ev_discharge_program.addLine("  ElseIf #{temp_sensor.name} > 37.609")
       ev_discharge_program.addLine('    Set site_temp_adj = 37.609')
       ev_discharge_program.addLine('  EndIf')
-
       ev_discharge_program.addLine("  If #{discharge_sch_sensor.name} > 0.0")
       ev_discharge_program.addLine("    Set #{discharge_power_act.name} = #{eff_discharge_power} * power_mult * #{discharge_sch_sensor.name}")
       ev_discharge_program.addLine("    Set #{charge_power_act.name} = 0")
+      ev_discharge_program.addLine("      If #{soc_sensor.name} <= #{min_soc}")
+      ev_discharge_program.addLine("        Set #{unmet_hr_var.name} = ZoneTimeStep")
+      ev_discharge_program.addLine('      Else')
+      ev_discharge_program.addLine("        Set #{unmet_hr_var.name} = 0")
+      ev_discharge_program.addLine('      EndIf')
       ev_discharge_program.addLine("  ElseIf #{charge_sch_sensor.name} > 0.0")
       ev_discharge_program.addLine("    Set #{charge_power_act.name} = #{eff_charge_power} * #{charge_sch_sensor.name}")
       ev_discharge_program.addLine("    Set #{discharge_power_act.name} = 0")
+      ev_discharge_program.addLine("    Set #{unmet_hr_var.name} = 0")
       ev_discharge_program.addLine('  Else')
       ev_discharge_program.addLine("    Set #{charge_power_act.name} = 0")
       ev_discharge_program.addLine("    Set #{discharge_power_act.name} = 0")
+      ev_discharge_program.addLine("    Set #{unmet_hr_var.name} = 0")
       ev_discharge_program.addLine('  EndIf')
 
-      ev_discharge_pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-      ev_discharge_pcm.setName('ev_discharge_pcm')
-      ev_discharge_pcm.setCallingPoint('BeginTimestepBeforePredictor')
-      ev_discharge_pcm.addProgram(ev_discharge_program)
+      Model.add_ems_program_calling_manager(
+        model,
+        name: 'ev_discharge_pcm',
+        calling_point: 'BeginTimestepBeforePredictor',
+        ems_programs: [ev_discharge_program]
+      )
     end
   end
 end
