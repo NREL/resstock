@@ -202,6 +202,7 @@ class ReportSimulationOutputTest < Minitest::Test
     "Hot Water: #{HWT::DistributionWaste} (gal)",
     'Resilience: Battery (hr)',
     "Vehicle: #{VT::VehicleDischarging} (MBtu)",
+    "Vehicle: #{VT::UnmetDrivingHours} (hr)",
     'HVAC Capacity: Cooling (Btu/h)',
     'HVAC Capacity: Heating (Btu/h)',
     'HVAC Capacity: Heat Pump Backup (Btu/h)',
@@ -292,7 +293,8 @@ class ReportSimulationOutputTest < Minitest::Test
   ]
 
   BaseHPXMLTimeseriesColsVehicles = [
-    "Vehicle: #{VT::VehicleDischarging}"
+    "Vehicle: #{VT::VehicleDischarging}",
+    # "Vehicle: #{VT::UnmetDrivingHours}", FIXME: Zero in all the tests below, so it doesn't end up in the timeseries outputs
   ]
 
   BaseHPXMLTimeseriesColsTotalLoads = [

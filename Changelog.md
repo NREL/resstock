@@ -4,6 +4,14 @@ __New Features__
 
 __Bugfixes__
 
+## OpenStudio-HPXML v1.9.1
+
+__New Features__
+- Now can be used to obtain ACCA Manual J approval; see the [OpenStudio-HPXML documentation](https://openstudio-hpxml.readthedocs.io/en/latest/intro.html#capabilities).
+
+__Bugfixes__
+- Fixes Manual J design load calculations for radiant floors.
+
 ## OpenStudio-HPXML v1.9.0
 
 __New Features__
