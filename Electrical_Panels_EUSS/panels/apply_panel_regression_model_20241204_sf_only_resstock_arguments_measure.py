@@ -393,6 +393,71 @@ def apply_special_mapping(dfi: pd.DataFrame, model_type: str) -> pd.DataFrame:
     return dfi
 
 
+def get_representative_value_for_bin(dummy_file):
+    def mode(df, *args, **kwargs):
+        return df.mode(*args, **kwargs)
+
+    df = pd.read_csv(dummy_file)
+    input_options = yield_input_options()
+    df = undummify_input_data(df, input_options)
+
+    df = df.rename(columns={
+        "panel_amp_pre_bin_7": "panel_bin",
+        "panel_amp_pre": "panel_value",
+        })
+    df.loc[df["panel_bin"] == "lt_100", "panel_bin"] = "<100"
+
+    # Get distribution of discrete values
+    dfi = df.groupby(["panel_bin", "panel_value"])["vintage"].count().rename("count").to_frame().reset_index()
+    dfi["fraction"] = dfi.groupby(["panel_bin"])["count"].transform(lambda x: x/x.sum())
+    dfi.to_csv(dummy_file.parent / "weighted_standardized_panel_bin_values.csv", index=False)
+
+    # Get agg values of bins by floor area
+    bins = [x for x in df["panel_bin"].unique() if "-" in x or "+" in x or "<" in x]
+    dfi2 = df.loc[df["panel_bin"].isin(bins)].groupby(
+        ["panel_bin", "geometry_unit_cfa_bin"])["panel_value"].agg(["mean", "median", mode, "count"])
+    print(f"\nFor {dummy_file.parent.stem}")
+    print(dfi2)
+    dfi2.to_csv(dummy_file.parent / "by_floor_area_panel_bin_values.csv", index=True)
+
+
+def undummify_input_data(df: pd.DataFrame, input_options: dict) -> pd.DataFrame:
+    # undummy categorical columns
+    cat_cols = [x for x in df.columns if x not in ["sqft", "dummy"] or "Unnamed" in x]
+    dfd = undummify(df[cat_cols])
+
+    # bin sqft
+    para = "geometry_unit_cfa_bin"
+    bins = input_options["geometry_unit_cfa_bin"]
+    bin_edges = [int(x.split("-")[0].split("+")[0]) for x in bins]
+    dfd.loc[df["sqft"] >= bin_edges[-1], para] = bins[-1]
+    for edge, label in zip(reversed(bin_edges[1:]), reversed(bins[:-1])):
+        dfd.loc[df["sqft"] < edge, para] = label
+
+    return dfd
+
+
+def undummify(df: pd.DataFrame, prefix_sep: str = "__") -> pd.DataFrame:
+    cols2collapse = {
+        item.split(prefix_sep)[0]: (prefix_sep in item) for item in df.columns
+    }
+    series_list = []
+    for col, needs_to_collapse in cols2collapse.items():
+        if needs_to_collapse:
+            undummified = (
+                df.filter(like=col)
+                .idxmax(axis=1)
+                .apply(lambda x: x.split(prefix_sep, maxsplit=1)[1])
+                .rename(col)
+            )
+            series_list.append(undummified)
+        else:
+            series_list.append(df[col])
+    undummified_df = pd.concat(series_list, axis=1)
+
+    return undummified_df
+
+
 def main():
     global local_dir, data_dir, output_filedir, output_mapping
 
@@ -425,6 +490,12 @@ def main():
     # Generate distributions
     create_distribution_electric_heating(model_e, dummy_file_e)
     create_distribution_nonelectric_heating(model_ne, dummy_file_ne)
+
+    # Calculate representative values
+    all_data_file_e = data_dir / "panel_capacity_elec_heat" / "all_data_with_continuous_panel_amp_730046.csv"
+    all_data_file_ne = data_dir / "panel_capacity_non_elec_heat" / "all_data_with_continuous_panel_amp_822198.csv"
+    get_representative_value_for_bin(all_data_file_e)
+    get_representative_value_for_bin(all_data_file_ne)
 
     print("Electrical panel rated capacity distributions generated.")
 
