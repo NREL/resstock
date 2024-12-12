@@ -37,8 +37,9 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
   end
 
   def test_get_peak_hour
-    assert_equal(18, @schedule_modifier_15._get_peak_hour(month: 6))
-    assert_equal(19, @schedule_modifier_15._get_peak_hour(month: 1))
+    assert_equal([18, 22], @schedule_modifier_15._get_peak_hour(month: 6))
+    assert_equal([18, 22], @schedule_modifier_15._get_peak_hour(month: 1))
+    assert_equal([16, 20], @schedule_modifier_15._get_peak_hour(month: 5))
   end
 
   def test_get_month
@@ -69,8 +70,8 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
 
     modified_setpoints_15 = @schedule_modifier_15.modify_setpoints(setpoints, flexibility_inputs)
 
-    winter_peak = 4 * @schedule_modifier_15._get_peak_hour(month: 1)
-    summer_peak = 4 * @schedule_modifier_15._get_peak_hour(month: 7)
+    winter_peak = 4 * @schedule_modifier_15._get_peak_hour(month: 1)[0]
+    summer_peak = 4 * @schedule_modifier_15._get_peak_hour(month: 7)[0]
 
     summer_midnight = 3 * 31 * 24 * 4 + 29 * 24 * 4 + 3 * 30 * 24 * 4 # index from Jan to Jun
 

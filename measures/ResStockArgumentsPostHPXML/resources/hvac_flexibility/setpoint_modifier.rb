@@ -26,8 +26,7 @@ class HVACScheduleModifier
     @steps_in_day = 24 * 60 / @minutes_per_step
     @num_timesteps_per_hour = 60 / @minutes_per_step
     current_dir = File.dirname(__FILE__)
-    @summer_peak_hours_dict = JSON.parse(File.read("#{current_dir}/state_summer_peak_hour_dict.json"))
-    @winter_peak_hours_dict = JSON.parse(File.read("#{current_dir}/state_winter_peak_hour_dict.json"))
+    @peak_hours_dict = JSON.parse(File.read("#{current_dir}/seasonal_peak_hours.json"))
   end
 
   def modify_setpoints(setpoints, flexibility_inputs)
@@ -61,13 +60,13 @@ class HVACScheduleModifier
 
   def _get_peak_times(index, flexibility_inputs)
     month = _get_month(index:)
-    peak_hour = _get_peak_hour(month:)
-    peak_index = peak_hour * @num_timesteps_per_hour
+    peak_hour_start, peak_hour_end = _get_peak_hour(month:)
     peak_times = DailyPeakIndices.new
-    peak_times.peak_start_index = peak_index + flexibility_inputs.random_shift_steps
-    peak_times.peak_end_index = peak_times.peak_start_index + flexibility_inputs.peak_duration_steps
+    random_shift_steps = flexibility_inputs.random_shift_steps
+    peak_times.peak_start_index = peak_hour_start * @num_timesteps_per_hour + random_shift_steps
+    peak_times.peak_end_index = peak_hour_end * @num_timesteps_per_hour + random_shift_steps
     peak_times.pre_peak_start_index = peak_times.peak_start_index - flexibility_inputs.pre_peak_duration_steps
-    peak_times
+    return peak_times
   end
 
   def _get_setpoint_offset(index, setpoint_type, offset_times, flexibility_inputs)
@@ -99,10 +98,13 @@ class HVACScheduleModifier
   end
 
   def _get_peak_hour(month:)
+    peak_hours = @peak_hours_dict[@state]
     if [6, 7, 8, 9].include?(month)
-      return @summer_peak_hours_dict[@state]
+      return peak_hours["summer_peak_start"][11..12].to_i, peak_hours["summer_peak_end"][11..12].to_i
+    elsif [1, 2, 3, 12].include?(month)
+      return peak_hours["winter_peak_start"][11..12].to_i, peak_hours["winter_peak_end"][11..12].to_i
     else
-      return @winter_peak_hours_dict[@state]
+      return peak_hours["intermediate_peak_start"][11..12].to_i, peak_hours["intermediate_peak_end"][11..12].to_i
     end
   end
 

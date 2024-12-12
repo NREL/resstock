@@ -33,13 +33,6 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative path of the HPXML file.')
     args << arg
 
-    # Add args for flexibility inputs. Use hours format for the duration and minutes for the random offset. Offsets are degree F.
-    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_peak_duration_hours', false)
-    arg.setDisplayName('Load Flexibility: Peak Duration (hours)')
-    arg.setDescription('Duration of the peak period in hours.')
-    arg.setDefaultValue(0)
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_peak_offset', false)
     arg.setDisplayName('Load Flexibility: Peak Offset (deg F)')
     arg.setDescription('Offset of the peak period in degrees Fahrenheit.')
@@ -123,7 +116,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   end
 
   def skip_load_flexibility?(args)
-    args[:loadflex_peak_duration_hours] == 0 && args[:loadflex_pre_peak_duration_hours] == 0
+    args[:loadflex_peak_offset] == 0 && args[:loadflex_pre_peak_duration_hours] == 0
   end
 
   def create_schedule(hpxml, hpxml_path, runner, building_index)
@@ -154,7 +147,6 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     max_random_shift_steps = (args[:loadflex_random_shift_minutes] / minutes_per_step).to_i
     random_shift_steps = rand(-max_random_shift_steps..max_random_shift_steps)
     FlexibilityInputs.new(
-      peak_duration_steps: args[:loadflex_peak_duration_hours] * 60 / minutes_per_step,
       peak_offset: args[:loadflex_peak_offset],
       pre_peak_duration_steps: args[:loadflex_pre_peak_duration_hours] * 60 / minutes_per_step,
       pre_peak_offset: args[:loadflex_pre_peak_offset],
