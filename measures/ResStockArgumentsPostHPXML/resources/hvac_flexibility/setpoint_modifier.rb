@@ -8,12 +8,12 @@ Dir["#{File.dirname(__FILE__)}/../../../../resources/hpxml-measures/HPXMLtoOpenS
   require resource_file
 end
 
-FlexibilityInputs = Struct.new(:peak_duration_steps, :peak_offset, :pre_peak_duration_steps, :pre_peak_offset, :random_shift_steps, keyword_init: true)
+FlexibilityInputs = Struct.new(:peak_offset, :pre_peak_duration_steps, :pre_peak_offset, :peak_time_path, :random_shift_steps, keyword_init: true)
 DailyPeakIndices = Struct.new(:pre_peak_start_index, :peak_start_index, :peak_end_index)
 
 
 class HVACScheduleModifier
-  def initialize(state:, sim_year:, weather:, epw_path:, minutes_per_step:, runner:)
+  def initialize(flexibility_inputs:, state:, sim_year:, weather:, epw_path:, minutes_per_step:, runner:)
     @state = state
     @minutes_per_step = minutes_per_step
     @runner = runner
@@ -26,7 +26,9 @@ class HVACScheduleModifier
     @steps_in_day = 24 * 60 / @minutes_per_step
     @num_timesteps_per_hour = 60 / @minutes_per_step
     current_dir = File.dirname(__FILE__)
-    @peak_hours_dict = JSON.parse(File.read("#{current_dir}/seasonal_peak_hours.json"))
+    peak_time_json_path = flexibility_inputs.peak_time_path
+    @peak_hours_dict = JSON.parse(File.read("#{current_dir}/#{peak_time_json_path}"))
+    #@peak_hours_dict = JSON.parse(File.read("#{current_dir}/seasonal_peak_hours.json"))
   end
 
   def modify_setpoints(setpoints, flexibility_inputs)
@@ -46,6 +48,7 @@ class HVACScheduleModifier
         if heating_setpoint[index] > cooling_setpoint[index]
           cooling_setpoint[index] = heating_setpoint[index]
         end
+        heating_setpoint[index] = _clip_setpoints(day_type, heating_setpoint[index])
       else
         cooling_setpoint[index] += _get_setpoint_offset(index, 'cooling', offset_times, flexibility_inputs)
         # If the offset causes the set points to be inverted, adjust the heating setpoint to correct it
@@ -53,9 +56,29 @@ class HVACScheduleModifier
         if heating_setpoint[index] > cooling_setpoint[index]
           heating_setpoint[index] = cooling_setpoint[index]
         end
+        cooling_setpoint[index] = _clip_setpoints(day_type, cooling_setpoint[index])
       end
     end
     { heating_setpoint: heating_setpoint, cooling_setpoint: cooling_setpoint }
+  end
+
+  def _clip_setpoints(day_type, setpoint)
+    if day_type == 'heating'
+      if setpoint > 80
+        setpoint = 80
+      elsif setpoint < 55
+        setpoint = 55
+      end
+      return setpoint
+    end
+    if day_type == 'cooling'
+      if setpoint > 80
+        setpoint = 80
+      elsif setpoint < 60
+        setpoint = 60
+      end
+      return setpoint
+    end
   end
 
   def _get_peak_times(index, flexibility_inputs)
@@ -139,7 +162,6 @@ class HVACScheduleModifier
   def log_inputs(inputs)
     return unless @runner
     @runner.registerInfo("Modifying setpoints ...")
-    @runner.registerInfo("peak_duration_steps=#{inputs.peak_duration_steps}")
     @runner.registerInfo("pre_peak_duration_steps=#{inputs.pre_peak_duration_steps}")
     @runner.registerInfo("random_shift_steps=#{inputs.random_shift_steps}")
     @runner.registerInfo("pre_peak_offset=#{inputs.pre_peak_offset}")

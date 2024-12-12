@@ -36,19 +36,25 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_peak_offset', false)
     arg.setDisplayName('Load Flexibility: Peak Offset (deg F)')
     arg.setDescription('Offset of the peak period in degrees Fahrenheit.')
-    arg.setDefaultValue(0)
+    arg.setDefaultValue(2)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_pre_peak_duration_hours', false)
     arg.setDisplayName('Load Flexibility: Pre-Peak Duration (hours)')
     arg.setDescription('Duration of the pre-peak period in hours.')
-    arg.setDefaultValue(0)
+    arg.setDefaultValue(2)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_pre_peak_offset', false)
     arg.setDisplayName('Load Flexibility: Pre-Peak Offset (deg F)')
     arg.setDescription('Offset of the pre-peak period in degrees Fahrenheit.')
-    arg.setDefaultValue(0)
+    arg.setDefaultValue(3)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_peak_time_path', false)
+    arg.setDisplayName('Load Flexibility: Peak time file path')
+    arg.setDescription('json file path of the peak time period.')
+    arg.setDefaultValue('seasonal_peak_hours.json')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_random_shift_minutes', false)
@@ -132,13 +138,14 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     sim_year = hpxml.header.sim_calendar_year
     epw_path = Location.get_epw_path(hpxml_bldg, args[:hpxml_path])
     weather = WeatherFile.new(epw_path: epw_path, runner: runner, hpxml: hpxml)
-    schedule_modifier = HVACScheduleModifier.new(state: state,
+    flexibility_inputs = get_flexibility_inputs(args, minutes_per_step, building_id)
+    schedule_modifier = HVACScheduleModifier.new(flexibility_inputs: flexibility_inputs,
+                                                state: state,
                                                 sim_year: sim_year,
                                                 weather: weather,
                                                 epw_path: epw_path,
                                                 minutes_per_step: minutes_per_step,
                                                 runner: runner)
-    flexibility_inputs = get_flexibility_inputs(args, minutes_per_step, building_id)
     schedule_modifier.modify_setpoints(schedule, flexibility_inputs)
   end
 
@@ -150,6 +157,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
       peak_offset: args[:loadflex_peak_offset],
       pre_peak_duration_steps: args[:loadflex_pre_peak_duration_hours] * 60 / minutes_per_step,
       pre_peak_offset: args[:loadflex_pre_peak_offset],
+      peak_time_path: args[:loadflex_peak_time_path],
       random_shift_steps: random_shift_steps
     )
   end

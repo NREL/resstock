@@ -15,25 +15,41 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
     parent_path = File.expand_path("../../../../", __FILE__)
     epw_path = File.join(parent_path, "resources/hpxml-measures/weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw")
     weather = WeatherFile.new(epw_path: epw_path, runner: nil)
-    @schedule_modifier_15 = HVACScheduleModifier.new(state:'CO',
+    flexibility_inputs = FlexibilityInputs.new(
+        random_shift_steps: 0,
+        pre_peak_duration_steps: 4 * 4,
+        pre_peak_offset:  3,
+        peak_offset: 4,
+        peak_time_path: "seasonal_peak_hours.json"
+    )
+    @schedule_modifier_15 = HVACScheduleModifier.new(flexibility_inputs: flexibility_inputs,
+                                                 state:'CO',
                                                  sim_year:2024,
                                                  weather: weather,
                                                  epw_path: epw_path,
                                                  minutes_per_step:15,
                                                  runner:@runner)
-
-    @schedule_modifier_60 = HVACScheduleModifier.new(state:'CO',
+    @non_leap_modifier = HVACScheduleModifier.new(flexibility_inputs: flexibility_inputs,
+                                                 state:'CO',
+                                                 sim_year:2023,
+                                                 weather: weather,
+                                                 epw_path: epw_path,
+                                                 minutes_per_step:15,
+                                                 runner:@runner)   
+    flexibility_inputs = FlexibilityInputs.new(
+        random_shift_steps: 0,
+        pre_peak_duration_steps: 4,
+        pre_peak_offset:  3,
+        peak_offset: 4,
+        peak_time_path: "seasonal_peak_hours.json"
+    )
+    @schedule_modifier_60 = HVACScheduleModifier.new(flexibility_inputs: flexibility_inputs,
+                                                 state:'CO',
                                                  sim_year:2024,
                                                  weather: weather,
                                                  epw_path: epw_path,
                                                  minutes_per_step:60,
                                                  runner:@runner)
-    @non_leap_modifier = HVACScheduleModifier.new(state:'CO',
-                                                 sim_year:2023,
-                                                 weather: weather,
-                                                 epw_path: epw_path,
-                                                 minutes_per_step:15,
-                                                 runner:@runner)    
   end
 
   def test_get_peak_hour
@@ -63,9 +79,9 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
     flexibility_inputs = FlexibilityInputs.new(
         random_shift_steps: 0,
         pre_peak_duration_steps: 4 * 4,
-        peak_duration_steps: 2 * 4,
         pre_peak_offset:  3,
-        peak_offset: 4
+        peak_offset: 4,
+        peak_time_path: "seasonal_peak_hours.json"
     )
 
     modified_setpoints_15 = @schedule_modifier_15.modify_setpoints(setpoints, flexibility_inputs)
@@ -84,7 +100,7 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
 
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight])
     assert_equal(78, modified_setpoints_15[:cooling_setpoint][summer_midnight])
-    assert_equal(78 + 4, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak])  # peak offset
+    assert_equal(80, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak])  # peak offset
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight + summer_peak])  # peak offset
     assert_equal(78 - 3, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak - 1])  # pre-peak offset
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight + summer_peak - 1])  # pre-peak offset
@@ -92,9 +108,9 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
     flexibility_inputs = FlexibilityInputs.new(
         random_shift_steps: 2,
         pre_peak_duration_steps: 4 * 4,
-        peak_duration_steps: 2 * 4,
         pre_peak_offset: 3,
-        peak_offset: 4
+        peak_offset: 4,
+        peak_time_path: "seasonal_peak_hours.json"
     )
     modified_setpoints_15 = @schedule_modifier_15.modify_setpoints(setpoints, flexibility_inputs)
     assert_equal(71, modified_setpoints_15[:heating_setpoint][0])
@@ -106,7 +122,7 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
 
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight])
     assert_equal(78, modified_setpoints_15[:cooling_setpoint][summer_midnight])
-    assert_equal(78 + 4, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak + 2])   # start of peak period
+    assert_equal(80, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak + 2])   # start of peak period
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight + summer_peak + 2 + 2 * 4 - 1])  # end of peak period
     assert_equal(78 - 0, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak + 2 - 4 * 4 - 1])  # before pre-peak period
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight + summer_peak + 2 + 2 * 4])  # after peak period
@@ -114,9 +130,9 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
     flexibility_inputs = FlexibilityInputs.new(
         random_shift_steps: -2,
         pre_peak_duration_steps: 0,
-        peak_duration_steps: 2 * 4,
         pre_peak_offset: 3,  # unused since pre_peak_duration_steps is 0
-        peak_offset: 2
+        peak_offset: 2,
+        peak_time_path: "seasonal_peak_hours.json"
     )
     modified_setpoints_15 = @schedule_modifier_15.modify_setpoints(setpoints, flexibility_inputs)
     assert_equal(71, modified_setpoints_15[:heating_setpoint][0])
@@ -132,6 +148,36 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight + summer_peak - 2])  # peak offset
     assert_equal(78 - 0, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak - 2 - 1])  # before peak period
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight + summer_peak - 2 - 1])  # before peak period
+  end
+
+  def test_clip_setpoints
+    assert_equal(80, @schedule_modifier_15._clip_setpoints('heating', 88))
+    assert_equal(55, @schedule_modifier_15._clip_setpoints('heating', 45))
+    assert_equal(65, @schedule_modifier_15._clip_setpoints('heating', 65))
+    assert_equal(80, @schedule_modifier_15._clip_setpoints('cooling', 88))
+    assert_equal(60, @schedule_modifier_15._clip_setpoints('cooling', 45))
+    assert_equal(65, @schedule_modifier_15._clip_setpoints('heating', 65))
+  end
+
+  def test_get_peak_times
+    flexibility_inputs = FlexibilityInputs.new(
+        random_shift_steps: 0,
+        pre_peak_duration_steps: 4 * 4,
+        pre_peak_offset:  3,
+        peak_offset: 4,
+        peak_time_path: "seasonal_shedding_peak_hours.json"
+    )
+
+    peak_times = @schedule_modifier_15._get_peak_times(1, flexibility_inputs) # peak time in Jan
+    assert_equal(18 * 4, peak_times.peak_start_index)
+    assert_equal(22 * 4, peak_times.peak_end_index)
+    assert_equal(14 * 4, peak_times.pre_peak_start_index)
+
+    peak_times = @schedule_modifier_15._get_peak_times((30 * 4 + 15 ) * 24 *4, flexibility_inputs) # peak time in May
+    assert_equal(16 * 4, peak_times.peak_start_index)
+    assert_equal(20 * 4, peak_times.peak_end_index)
+    assert_equal(12 * 4, peak_times.pre_peak_start_index)
+
   end
 
 end
