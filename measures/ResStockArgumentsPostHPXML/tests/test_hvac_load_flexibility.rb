@@ -21,19 +21,19 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
                                                  epw_path: epw_path,
                                                  minutes_per_step:15,
                                                  runner:@runner)
-    @non_leap_modifier = HVACScheduleModifier.new(state:'CO',
-                                                 sim_year:2023,
-                                                 weather: weather,
-                                                 epw_path: epw_path,
-                                                 minutes_per_step:15,
-                                                 runner:@runner)   
-    
+
     @schedule_modifier_60 = HVACScheduleModifier.new(state:'CO',
                                                  sim_year:2024,
                                                  weather: weather,
                                                  epw_path: epw_path,
                                                  minutes_per_step:60,
                                                  runner:@runner)
+    @non_leap_modifier = HVACScheduleModifier.new(state:'CO',
+                                                 sim_year:2023,
+                                                 weather: weather,
+                                                 epw_path: epw_path,
+                                                 minutes_per_step:15,
+                                                 runner:@runner)    
   end
 
   def test_get_peak_hour
