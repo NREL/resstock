@@ -51,12 +51,6 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(3)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_peak_time_path', false)
-    arg.setDisplayName('Load Flexibility: Peak time file path')
-    arg.setDescription('json file path of the peak time period.')
-    arg.setDefaultValue('seasonal_peak_hours.json')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('loadflex_random_shift_minutes', false)
     arg.setDisplayName('Load Flexibility: Random Shift (minutes)')
     arg.setDescription('Number of minutes to randomly shift the peak period. If minutes less than timestep, will be assumed to be 0.')
@@ -139,8 +133,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     epw_path = Location.get_epw_path(hpxml_bldg, args[:hpxml_path])
     weather = WeatherFile.new(epw_path: epw_path, runner: runner, hpxml: hpxml)
     flexibility_inputs = get_flexibility_inputs(args, minutes_per_step, building_id)
-    schedule_modifier = HVACScheduleModifier.new(flexibility_inputs: flexibility_inputs,
-                                                state: state,
+    schedule_modifier = HVACScheduleModifier.new(state: state,
                                                 sim_year: sim_year,
                                                 weather: weather,
                                                 epw_path: epw_path,
@@ -157,7 +150,6 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
       peak_offset: args[:loadflex_peak_offset],
       pre_peak_duration_steps: args[:loadflex_pre_peak_duration_hours] * 60 / minutes_per_step,
       pre_peak_offset: args[:loadflex_pre_peak_offset],
-      peak_time_path: args[:loadflex_peak_time_path],
       random_shift_steps: random_shift_steps
     )
   end

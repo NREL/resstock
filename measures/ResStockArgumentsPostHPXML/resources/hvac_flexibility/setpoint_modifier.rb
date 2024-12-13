@@ -8,12 +8,12 @@ Dir["#{File.dirname(__FILE__)}/../../../../resources/hpxml-measures/HPXMLtoOpenS
   require resource_file
 end
 
-FlexibilityInputs = Struct.new(:peak_offset, :pre_peak_duration_steps, :pre_peak_offset, :peak_time_path, :random_shift_steps, keyword_init: true)
+FlexibilityInputs = Struct.new(:peak_offset, :pre_peak_duration_steps, :pre_peak_offset, :random_shift_steps, keyword_init: true)
 DailyPeakIndices = Struct.new(:pre_peak_start_index, :peak_start_index, :peak_end_index)
 
 
 class HVACScheduleModifier
-  def initialize(flexibility_inputs:, state:, sim_year:, weather:, epw_path:, minutes_per_step:, runner:)
+  def initialize(state:, sim_year:, weather:, epw_path:, minutes_per_step:, runner:)
     @state = state
     @minutes_per_step = minutes_per_step
     @runner = runner
@@ -26,9 +26,8 @@ class HVACScheduleModifier
     @steps_in_day = 24 * 60 / @minutes_per_step
     @num_timesteps_per_hour = 60 / @minutes_per_step
     current_dir = File.dirname(__FILE__)
-    peak_time_json_path = flexibility_inputs.peak_time_path
-    @peak_hours_dict = JSON.parse(File.read("#{current_dir}/#{peak_time_json_path}"))
-    #@peak_hours_dict = JSON.parse(File.read("#{current_dir}/seasonal_peak_hours.json"))
+    @peak_hours_dict_shift = JSON.parse(File.read("#{current_dir}/seasonal_shifting_peak_hours.json"))
+    @peak_hours_dict_shed = JSON.parse(File.read("#{current_dir}/seasonal_shedding_peak_hours.json"))
   end
 
   def modify_setpoints(setpoints, flexibility_inputs)
@@ -83,7 +82,8 @@ class HVACScheduleModifier
 
   def _get_peak_times(index, flexibility_inputs)
     month = _get_month(index:)
-    peak_hour_start, peak_hour_end = _get_peak_hour(month:)
+    pre_peak_duration = flexibility_inputs.pre_peak_duration_steps
+    peak_hour_start, peak_hour_end = _get_peak_hour(pre_peak_duration, month:)
     peak_times = DailyPeakIndices.new
     random_shift_steps = flexibility_inputs.random_shift_steps
     peak_times.peak_start_index = peak_hour_start * @num_timesteps_per_hour + random_shift_steps
@@ -120,8 +120,12 @@ class HVACScheduleModifier
     index_date.month
   end
 
-  def _get_peak_hour(month:)
-    peak_hours = @peak_hours_dict[@state]
+  def _get_peak_hour(pre_peak_duration, month:)
+    if pre_peak_duration == 0
+      peak_hours = @peak_hours_dict_shed[@state]
+    else
+      peak_hours = @peak_hours_dict_shift[@state]
+    end
     if [6, 7, 8, 9].include?(month)
       return peak_hours["summer_peak_start"][11..12].to_i, peak_hours["summer_peak_end"][11..12].to_i
     elsif [1, 2, 3, 12].include?(month)
