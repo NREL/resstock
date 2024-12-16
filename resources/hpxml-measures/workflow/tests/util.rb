@@ -50,6 +50,9 @@ def _run_xml(xml, worker_num, apply_unit_multiplier = false, annual_results_1x =
         # FUTURE: Batteries currently don't work with whole SFA/MF buildings
         # https://github.com/NREL/OpenStudio-HPXML/issues/1499
         return
+      elsif hpxml_bldg.vehicles.size > 0
+        # Same as battery issue above
+        return
       elsif hpxml.header.hvac_onoff_thermostat_deadband
         # On off thermostat not supported with unit multiplier yet
       elsif hpxml.header.heat_pump_backup_heating_capacity_increment
@@ -224,9 +227,32 @@ def _verify_outputs(rundir, hpxml_path, results, hpxml, unit_multiplier)
     if hpxml_bldg.windows.empty?
       next if message.include? 'No windows specified, the model will not include window heat transfer.'
     end
-    if hpxml_bldg.pv_systems.empty? && !hpxml_bldg.batteries.empty? && hpxml_bldg.header.schedules_filepaths.empty?
+    check_battery_log = true
+    hpxml_bldg.batteries.each do |_battery|
+      next unless hpxml_bldg.pv_systems.empty? && hpxml_bldg.header.schedules_filepaths.empty?
       next if message.include? 'Battery without PV specified, and no charging/discharging schedule provided; battery is assumed to operate as backup and will not be modeled.'
+
+      check_battery_log = false
     end
+    # Battery with no schedule
+    hpxml_bldg.vehicles.each do |vehicle|
+      next unless vehicle.vehicle_type == Constants::ObjectTypeBatteryElectricVehicle
+      next unless hpxml_bldg.header.schedules_filepaths.empty?
+      next unless not vehicle.ev_charger_idref.nil?
+      next if message.include? 'Electric vehicle battery specified with no charging/discharging schedule provided; battery will not be modeled.'
+
+      check_battery_log = false
+    end
+    # Battery with no charger
+    hpxml_bldg.vehicles.each do |vehicle|
+      next unless vehicle.vehicle_type == Constants::ObjectTypeBatteryElectricVehicle
+      next unless vehicle.ev_charger_idref.nil?
+      next if message.include? 'Electric vehicle specified with no charger provided; battery will not be modeled.'
+
+      check_battery_log = false
+    end
+    next if check_battery_log
+
     if hpxml_path.include? 'base-location-capetown-zaf.xml'
       next if message.include? 'OS Message: Minutes field (60) on line 9 of EPW file'
       next if message.include? 'Could not find a marginal Electricity rate.'
@@ -1097,7 +1123,7 @@ def _check_unit_multiplier_results(xml, hpxml_bldg, annual_results_1x, annual_re
       # Check that airflow rate difference is less than 0.2 cfm or less than 1.0%
       abs_delta_tol = 0.2
       abs_frac_tol = 0.01
-    elsif key.include?('Unmet Hours:')
+    elsif key.include?('Unmet Hours:') || key.include?('Unmet Driving Hours')
       # Check that the unmet hours difference is less than 10 hrs
       abs_delta_tol = 10
       abs_frac_tol = nil
