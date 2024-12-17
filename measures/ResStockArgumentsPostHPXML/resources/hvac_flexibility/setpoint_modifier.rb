@@ -62,22 +62,11 @@ class HVACScheduleModifier
   end
 
   def _clip_setpoints(day_type, setpoint)
-    if day_type == 'heating'
-      if setpoint > 80
-        setpoint = 80
-      elsif setpoint < 55
-        setpoint = 55
-      end
-      return setpoint
-    end
-    if day_type == 'cooling'
-      if setpoint > 80
-        setpoint = 80
-      elsif setpoint < 60
-        setpoint = 60
-      end
-      return setpoint
-    end
+    return 80 if day_type == 'heating' && setpoint > 80
+    return 55 if day_type == 'heating' && setpoint < 55
+    return 80 if day_type == 'cooling' && setpoint > 80
+    return 60 if day_type == 'cooling' && setpoint < 60
+    setpoint
   end
 
   def _get_peak_times(index, flexibility_inputs)
