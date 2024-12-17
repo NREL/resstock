@@ -1275,17 +1275,17 @@ module HVACSizing
       zone = space.zone
 
       has_radiant_floor = get_has_radiant_floor(zone)
+      u_floor = 1.0 / floor.insulation_assembly_r_value
 
       if floor.is_exterior
         htd_adj = mj.htd
         htd_adj += 25.0 if has_radiant_floor # Table 4A: Radiant floor over open crawlspace: HTM = U-Value × (HTD + 25)
 
-        clg_htm = (1.0 / floor.insulation_assembly_r_value) * (mj.ctd - 5.0 + mj.daily_range_temp_adjust[mj.daily_range_num])
-        htg_htm = (1.0 / floor.insulation_assembly_r_value) * htd_adj
+        clg_htm = u_floor * (mj.ctd - 5.0 + mj.daily_range_temp_adjust[mj.daily_range_num])
+        htg_htm = u_floor * htd_adj
       else # Partition floor
         adjacent_space = floor.exterior_adjacent_to
-        if floor.is_floor && [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned].include?(adjacent_space)
-          u_floor = 1.0 / floor.insulation_assembly_r_value
+        if [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned].include?(adjacent_space)
 
           sum_ua_wall = 0.0
           sum_a_wall = 0.0
@@ -1317,7 +1317,7 @@ module HVACSizing
           u_wall = sum_ua_wall / sum_a_wall
 
           htd_adj = mj.htd
-          htd_adj += 25.0 if has_radiant_floor && HPXML::LocationCrawlspaceVented # Table 4A: Radiant floor over open crawlspace: HTM = U-Value × (HTD + 25)
+          htd_adj += 25.0 if has_radiant_floor # Manual J Figure A12-6 footnote 2)
 
           # Calculate partition temperature different cooling (PTDC) per Manual J Figure A12-17
           # Calculate partition temperature different heating (PTDH) per Manual J Figure A12-6
@@ -1331,19 +1331,21 @@ module HVACSizing
             ptdh_floor = u_wall * htd_adj / (4.0 * u_floor + u_wall)
           end
 
-          clg_htm = (1.0 / floor.insulation_assembly_r_value) * ptdc_floor
-          htg_htm = (1.0 / floor.insulation_assembly_r_value) * ptdh_floor
+          clg_htm = u_floor * ptdc_floor
+          htg_htm = u_floor * ptdh_floor
         else # E.g., floor over garage
-          clg_htm = (1.0 / floor.insulation_assembly_r_value) * (mj.cool_design_temps[adjacent_space] - mj.cool_setpoint)
-          htg_htm = (1.0 / floor.insulation_assembly_r_value) * (mj.heat_setpoint - mj.heat_design_temps[adjacent_space])
+          htd_adj = mj.heat_setpoint - mj.heat_design_temps[adjacent_space]
+          htd_adj += 25.0 if has_radiant_floor # Manual J Figure A12-6 footnote 2), and Table 4A: Radiant floor over garage: HTM = U-Value × (HTD + 25)
+          clg_htm = u_floor * (mj.cool_design_temps[adjacent_space] - mj.cool_setpoint)
+          htg_htm = u_floor * htd_adj
         end
       end
       clg_loads = clg_htm * floor.net_area
       htg_loads = htg_htm * floor.net_area
       all_zone_loads[zone].Cool_Floors += clg_loads
       all_zone_loads[zone].Heat_Floors += htg_loads
-      all_space_loads[space].Cool_Roofs += clg_loads
-      all_space_loads[space].Heat_Roofs += htg_loads
+      all_space_loads[space].Cool_Floors += clg_loads
+      all_space_loads[space].Heat_Floors += htg_loads
       detailed_output_values = DetailedOutputValues.new(area: floor.net_area,
                                                         heat_htm: htg_htm,
                                                         cool_htm: clg_htm,
@@ -1989,11 +1991,11 @@ module HVACSizing
     end
   end
 
-  # TODO
+  # Calculates the duct loads using Manual J Table 7 default duct tables.
   #
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param manualj_duct_load [HPXML::ManualJDuctLoad] Manual J duct load of interest
-  # @return [TODO] TODO
+  # @return [Array<Double, Double, Double>] Heating loss factor, Cooling sensible gain factor, Cooling latent gain Btuh
   def self.get_duct_table7_factors(hpxml_bldg, manualj_duct_load)
     # Gather values
     htg_oat = hpxml_bldg.header.manualj_heating_design_temp

@@ -353,6 +353,35 @@ module Model
     return fan
   end
 
+  # Adds a PlantLoop object to the OpenStudio model.
+  #
+  # @param model [OpenStudio::Model::Model] OpenStudio Model object
+  # @param name [String] Name for the OpenStudio object
+  # @param fluid_type [String] Fluid type (Eplus::FluidXXX)
+  # @param glycol_concentration [Integer] Percent glycol concentration, only used if fluid is propylene glycol
+  # @param volume [Double] Volume of the entire loop, both demand and supply side (m^3)
+  # @param min_temp [Double] Minimum loop temperature (C)
+  # @param max_temp [Double] Maximum loop temperature (C)
+  # @param max_flow_rate [Double] Maximum loop flow rate (m^3/s)
+  # @return [OpenStudio::Model::PlantLoop] The model object
+  def self.add_plant_loop(model, name:, fluid_type: EPlus::FluidWater, glycol_concentration: 50, volume: nil, min_temp: nil, max_temp: nil, max_flow_rate: nil)
+    plant_loop = OpenStudio::Model::PlantLoop.new(model)
+    plant_loop.setName(name)
+    plant_loop.setFluidType(fluid_type)
+    if fluid_type == EPlus::FluidPropyleneGlycol
+      plant_loop.setGlycolConcentration(glycol_concentration)
+    end
+    plant_loop.setMinimumLoopTemperature(min_temp) unless min_temp.nil?
+    plant_loop.setMaximumLoopTemperature(max_temp) unless max_temp.nil?
+    plant_loop.setMaximumLoopFlowRate(max_flow_rate) unless max_flow_rate.nil?
+    if not volume.nil?
+      plant_loop.setPlantLoopVolume(volume)
+    else
+      plant_loop.autocalculatePlantLoopVolume()
+    end
+    return plant_loop
+  end
+
   # Adds a PumpVariableSpeed object to the OpenStudio model.
   #
   # @param model [OpenStudio::Model::Model] OpenStudio Model object

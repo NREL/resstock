@@ -530,7 +530,7 @@ module Airflow
     neutral_level = 0.5
     hor_lk_frac = 0.0
     c_w, c_s = calc_wind_stack_coeffs(hpxml_bldg, hor_lk_frac, neutral_level, conditioned_space, infil_values[:height])
-    max_oa_hr = 0.0115 # From ANSI 301-2022
+    max_oa_hr = 0.0115 # From ANSI/RESNET/ICC 301-2022
 
     # Program
     vent_program = Model.add_ems_program(
@@ -1459,7 +1459,7 @@ module Airflow
     duct_subroutine.addLine('  Set SupLatLkToDZ = sup_lk_mfr*h_fg*(AH_Wout-DZ_W)') # W
     duct_subroutine.addLine('  Set SupSensLkToDZ = SupTotLkToDZ-SupLatLkToDZ') # W
 
-    # Handle duct leakage imbalance induced infiltration (ANSI 301-2022 Addendum C Table 4.2.2(1c)
+    # Handle duct leakage imbalance induced infiltration (ANSI/RESNET/ICC 301-2022 Addendum C Table 4.2.2(1c)
     leakage_supply = leakage_fracs[HPXML::DuctTypeSupply].to_f + leakage_cfm25s[HPXML::DuctTypeSupply].to_f
     leakage_return = leakage_fracs[HPXML::DuctTypeReturn].to_f + leakage_cfm25s[HPXML::DuctTypeReturn].to_f
     if leakage_supply == leakage_return
@@ -2007,7 +2007,7 @@ module Airflow
         # Calculate outdoor air ventilation
         infil_program.addLine('Set QWHV_cfis_sup = QWHV_cfis_sup + (oa_cfm_ah * f_operation)')
 
-        # Calculate fraction of the timestep with ventilation only mode runtime per ANSI 301-2022 Addendum E
+        # Calculate fraction of the timestep with ventilation only mode runtime per ANSI/RESNET/ICC 301-2022 Addendum E
         infil_program.addLine("Set #{f_vent_only_mode_var.name} = f_operation * (1 - fan_rtf_hvac)")
 
         # Calculate additional fan energy

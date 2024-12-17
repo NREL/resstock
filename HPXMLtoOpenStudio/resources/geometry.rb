@@ -1124,7 +1124,7 @@ module Geometry
   # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @return [Double] Number of occupants in the dwelling unit
   def self.get_occupancy_default_num(nbeds:)
-    return Float(nbeds) # Per ANSI 301 for an asset calculation
+    return Float(nbeds) # Per ANSI/RESNET/ICC 301 for an asset calculation
   end
 
   # Creates a space and zone based on contents of spaces and value of location.
@@ -1325,7 +1325,6 @@ module Geometry
   end
 
   # Set calculated zone volumes for all HPXML locations on OpenStudio Thermal Zone and Space objects.
-  # TODO why? for reporting?
   #
   # @param spaces [Hash] Map of HPXML locations => OpenStudio Space objects
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
