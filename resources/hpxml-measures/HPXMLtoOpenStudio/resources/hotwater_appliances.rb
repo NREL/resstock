@@ -700,21 +700,23 @@ module HotWaterAndAppliances
     return annual_kwh, frac_sens, frac_lat, gpd
   end
 
-  # Converts dishwasher rated annual use (kWh) to energy factor (EF).
+  # Calculates dishwasher rated energy factor (EF) from annual use (kWh).
+  #
+  # Source: ANSI/RESNET/ICC 301
   #
   # @param annual_kwh [Double] Rated annual kWh
   # @return [Double] Energy factor
   def self.calc_dishwasher_ef_from_annual_kwh(annual_kwh)
-    # Per ANSI/RESNET/ICC 301
     return 215.0 / annual_kwh
   end
 
-  # Converts dishwasher energy factor (EF) to rated annual use (kWh).
+  # Calculates dishwasher annual use (kWh) from rated energy factor (EF).
+  #
+  # Source: ANSI/RESNET/ICC 301
   #
   # @param ef [Double] Energy factor
   # @return [Double] Rated annual use (kWh)
   def self.calc_dishwasher_annual_kwh_from_ef(ef)
-    # Per ANSI/RESNET/ICC 301
     return 215.0 / ef
   end
 
@@ -796,15 +798,23 @@ module HotWaterAndAppliances
     return annual_kwh, annual_therm, frac_sens, frac_lat
   end
 
-  # Converts clothes dryer energy factor (EF) to combined energy factor (CEF).
+  # Calculates clothes dryer combined energy factor (CEF) from energy factor (EF).
+  #
+  # Source: RESNET's Interpretation on Clothes Dryer CEF
+  # https://www.resnet.us/wp-content/uploads/No.-301-2014-10-Section-4.2.2.5.2.8-Clothes-Dryer-CEF-Rating.pdf
+  # Note that this is a regression based on products on the market, not a conversion.
   #
   # @param ef [Double] Energy factor
   # @return [Double] Combined energy factor
   def self.calc_clothes_dryer_cef_from_ef(ef)
-    return ef / 1.15 # Interpretation on ANSI/RESNET/ICC 301-2014 Clothes Dryer CEF
+    return ef / 1.15
   end
 
-  # Converts clothes dryer combined energy factor (CEF) to energy factor (EF).
+  # Calculates clothes dryer energy factor (EF) from combined energy factor (CEF).
+  #
+  # Source: RESNET's Interpretation on Clothes Dryer CEF
+  # https://www.resnet.us/wp-content/uploads/No.-301-2014-10-Section-4.2.2.5.2.8-Clothes-Dryer-CEF-Rating.pdf
+  # Note that this is a regression based on products on the market, not a conversion.
   #
   # @param cef [Double] Combined energy factor
   # @return [Double] Energy factor
@@ -869,20 +879,28 @@ module HotWaterAndAppliances
     return annual_kwh, frac_sens, frac_lat, gpd
   end
 
-  # Converts clothes washer modified energy factor (MEF) to integrated modified energy factor (IMEF).
+  # Calculates clothes washer integrated modified energy factor (IMEF) from modified energy factor (MEF).
+  #
+  # Source: RESNET's Interpretation on Clothes Washer IMEF
+  # https://www.resnet.us/wp-content/uploads/No.-301-2014-08-sECTION-4.2.2.5.2.8-Clothes-Washers-Eq-4.2-6.pdf
+  # Note that this is a regression based on products on the market, not a conversion.
   #
   # @param mef [Double] Modified energy factor
   # @return [Double] Integrated modified energy factor
   def self.calc_clothes_washer_imef_from_mef(mef)
-    return (mef - 0.503) / 0.95 # Interpretation on ANSI/RESNET 301-2014 Clothes Washer IMEF
+    return (mef - 0.503) / 0.95
   end
 
-  # Converts clothes washer integrated modified energy factor (IMEF) to modified energy factor (MEF).
+  # Calculates clothes washer modified energy factor (MEF) from integrated modified energy factor (IMEF).
   #
-  # @param mef [Double] Modified energy factor
-  # @return [Double] Integrated modified energy factor
+  # Source: RESNET's Interpretation on Clothes Washer IMEF
+  # https://www.resnet.us/wp-content/uploads/No.-301-2014-08-sECTION-4.2.2.5.2.8-Clothes-Washers-Eq-4.2-6.pdf
+  # Note that this is a regression based on products on the market, not a conversion.
+  #
+  # @param imef [Double] Integrated modified energy factor
+  # @return [Double] Modified energy factor
   def self.calc_clothes_washer_mef_from_imef(imef)
-    return 0.503 + 0.95 * imef # Interpretation on ANSI/RESNET 301-2014 Clothes Washer IMEF
+    return 0.503 + 0.95 * imef # Interpretation on ANSI/RESNET/ICC 301-2014 Clothes Washer IMEF
   end
 
   # Calculates refrigerator annual energy use.
@@ -995,20 +1013,20 @@ module HotWaterAndAppliances
     return schedule
   end
 
-  # Calculates Drain Water Heat Recovery (DWHR) factors per ANSI/RESNET/ICC 301.
+  # Calculates Drain Water Heat Recovery (DWHR) factors.
+  #
+  # Source: ANSI/RESNET/ICC 301
   #
   # @param nbeds_eq [Integer] Number of bedrooms (or equivalent bedrooms, as adjusted by the number of occupants) in the dwelling unit
   # @param hot_water_distribution [HPXML::HotWaterDistribution] The HPXML hot water distribution system of interest
   # @param frac_low_flow_fixtures [Double] The fraction of fixtures considered low-flow
   # @return [Array<Double, Double, Double, Double, Double>] Effectiveness (frac), fraction of water impacted by DWHR, piping loss coefficient, location factor, fixture factor
   def self.get_dwhr_factors(nbeds_eq, hot_water_distribution, frac_low_flow_fixtures)
-    # ANSI/RESNET 301-2014 Addendum A-2015
-    # Amendment on Domestic Hot Water (DHW) Systems
-    # Eq. 4.2-14
+    # ANSI/RESNET/ICC 301-2022 Eq. 4.2-42
 
     eff_adj = 1.0 + 0.082 * frac_low_flow_fixtures
 
-    iFrac = 0.56 + 0.015 * nbeds_eq - 0.0004 * nbeds_eq**2 # fraction of hot water use impacted by DWHR
+    i_frac = 0.56 + 0.015 * nbeds_eq - 0.0004 * nbeds_eq**2 # fraction of hot water use impacted by DWHR
 
     if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
       pLength = hot_water_distribution.recirculation_branch_piping_length
@@ -1019,19 +1037,19 @@ module HotWaterAndAppliances
 
     # Location factors for DWHR placement
     if hot_water_distribution.dwhr_equal_flow
-      locF = 1.000
+      loc_f = 1.000
     else
-      locF = 0.777
+      loc_f = 0.777
     end
 
     # Fixture Factor
     if hot_water_distribution.dwhr_facilities_connected == HPXML::DWHRFacilitiesConnectedAll
-      fixF = 1.0
+      fix_f = 1.0
     elsif hot_water_distribution.dwhr_facilities_connected == HPXML::DWHRFacilitiesConnectedOne
-      fixF = 0.5
+      fix_f = 0.5
     end
 
-    return eff_adj, iFrac, plc, locF, fixF
+    return eff_adj, i_frac, plc, loc_f, fix_f
   end
 
   # Calculates daily water heater inlet temperatures, which includes an adjustment if
@@ -1093,14 +1111,14 @@ module HotWaterAndAppliances
     # Annual electricity consumption factor for hot water recirculation system pumps
     # Assume the fixtures_usage_multiplier only applies for Sensor/Manual control type.
     if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
-      if [HPXML::DHWRecircControlTypeNone,
-          HPXML::DHWRecircControlTypeTimer].include? hot_water_distribution.recirculation_control_type
+      case hot_water_distribution.recirculation_control_type
+      when HPXML::DHWRecircControlTypeNone, HPXML::DHWRecircControlTypeTimer
         dist_pump_annual_kwh += (8.76 * hot_water_distribution.recirculation_pump_power)
-      elsif [HPXML::DHWRecircControlTypeTemperature].include? hot_water_distribution.recirculation_control_type
+      when HPXML::DHWRecircControlTypeTemperature
         dist_pump_annual_kwh += (1.46 * hot_water_distribution.recirculation_pump_power)
-      elsif [HPXML::DHWRecircControlTypeSensor].include? hot_water_distribution.recirculation_control_type
+      when HPXML::DHWRecircControlTypeSensor
         dist_pump_annual_kwh += (0.15 * hot_water_distribution.recirculation_pump_power * fixtures_usage_multiplier)
-      elsif [HPXML::DHWRecircControlTypeManual].include? hot_water_distribution.recirculation_control_type
+      when HPXML::DHWRecircControlTypeManual
         dist_pump_annual_kwh += (0.10 * hot_water_distribution.recirculation_pump_power * fixtures_usage_multiplier)
       else
         fail "Unexpected hot water distribution system recirculation type: '#{hot_water_distribution.recirculation_control_type}'."
@@ -1115,12 +1133,10 @@ module HotWaterAndAppliances
     # Assume the fixtures_usage_multiplier only applies for Sensor/Manual control type.
     if hot_water_distribution.has_shared_recirculation
       n_bdeq = hot_water_distribution.shared_recirculation_number_of_bedrooms_served
-      if [HPXML::DHWRecircControlTypeNone,
-          HPXML::DHWRecircControlTypeTimer,
-          HPXML::DHWRecircControlTypeTemperature].include? hot_water_distribution.shared_recirculation_control_type
+      case hot_water_distribution.shared_recirculation_control_type
+      when HPXML::DHWRecircControlTypeNone, HPXML::DHWRecircControlTypeTimer, HPXML::DHWRecircControlTypeTemperature
         op_hrs = 8760.0
-      elsif [HPXML::DHWRecircControlTypeSensor,
-             HPXML::DHWRecircControlTypeManual].include? hot_water_distribution.shared_recirculation_control_type
+      when HPXML::DHWRecircControlTypeSensor, HPXML::DHWRecircControlTypeManual
         op_hrs = 730.0 * fixtures_usage_multiplier
       else
         fail "Unexpected hot water distribution system shared recirculation type: '#{hot_water_distribution.shared_recirculation_control_type}'."
@@ -1153,10 +1169,8 @@ module HotWaterAndAppliances
   # @return [Double] Mixed water use (gal/day)
   def self.get_fixtures_gpd(eri_version, nbeds, frac_low_flow_fixtures, daily_mw_fractions, fixtures_usage_multiplier = 1.0, n_occ = nil)
     if Constants::ERIVersions.index(eri_version) >= Constants::ERIVersions.index('2014A')
-      # ANSI/RESNET 301-2014 Addendum A-2015
-      # Amendment on Domestic Hot Water (DHW) Systems
       if n_occ.nil? # Asset calculation
-        ref_f_gpd = 14.6 + 10.0 * nbeds # Eq. 4.2-2 (refFgpd)
+        ref_f_gpd = 14.6 + 10.0 * nbeds # ANSI/RESNET/ICC 301-2022 Eq. 4.2-29 (refFgpd)
       else # Operational calculation
         ref_f_gpd = [-4.84 + 18.6 * n_occ, 0.0].max # Eq. 14 from http://www.fsec.ucf.edu/en/publications/pdf/fsec-pf-464-15.pdf
       end
@@ -1171,6 +1185,8 @@ module HotWaterAndAppliances
   end
 
   # Calculates the equivalent daily mixed (not hot) water use associated with the distribution system.
+  #
+  # Source: ANSI/RESNET/ICC 301
   #
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @param nbeds [Integer] Number of bedrooms in the dwelling unit
@@ -1189,33 +1205,37 @@ module HotWaterAndAppliances
       return 0.0
     end
 
-    # ANSI/RESNET 301-2014 Addendum A-2015
-    # Amendment on Domestic Hot Water (DHW) Systems
-    # 4.2.2.5.2.11 Service Hot Water Use
+    # ANSI/RESNET/ICC 301-2022 Section 4.2.2.7.1.4
 
-    # Table 4.2.2.5.2.11(2) Hot Water Distribution System Insulation Factors
+    # Table 4.2.2.7.2.11(2) Hot Water Distribution System Insulation Factors
     sys_factor = nil
-    if (hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc) && (hot_water_distribution.pipe_r_value < 3.0)
-      sys_factor = 1.11
-    elsif (hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc) && (hot_water_distribution.pipe_r_value >= 3.0)
-      sys_factor = 1.0
-    elsif (hot_water_distribution.system_type == HPXML::DHWDistTypeStandard) && (hot_water_distribution.pipe_r_value >= 3.0)
-      sys_factor = 0.90
-    elsif (hot_water_distribution.system_type == HPXML::DHWDistTypeStandard) && (hot_water_distribution.pipe_r_value < 3.0)
-      sys_factor = 1.0
+    case hot_water_distribution.system_type
+    when HPXML::DHWDistTypeRecirc
+      if hot_water_distribution.pipe_r_value < 3.0
+        sys_factor = 1.11
+      elsif hot_water_distribution.pipe_r_value >= 3.0
+        sys_factor = 1.0
+      end
+    when HPXML::DHWDistTypeStandard
+      if hot_water_distribution.pipe_r_value >= 3.0
+        sys_factor = 0.90
+      elsif hot_water_distribution.pipe_r_value < 3.0
+        sys_factor = 1.0
+      end
     end
 
     if n_occ.nil? # Asset calculation
-      ref_w_gpd = 9.8 * (nbeds**0.43) # Eq. 4.2-2 (refWgpd)
+      ref_w_gpd = 9.8 * (nbeds**0.43) # ANSI/RESNET/ICC 301-2022 Eq. 4.2-29 (refWgpd)
     else # Operational calculation
       ref_w_gpd = 7.16 * (n_occ**0.7) # Eq. 14 from http://www.fsec.ucf.edu/en/publications/pdf/fsec-pf-464-15.pdf
     end
     o_frac = 0.25
     o_cd_eff = 0.0
 
-    if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
+    case hot_water_distribution.system_type
+    when HPXML::DHWDistTypeRecirc
       p_ratio = hot_water_distribution.recirculation_branch_piping_length / 10.0
-    elsif hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
+    when HPXML::DHWDistTypeStandard
       ref_pipe_l = Defaults.get_std_pipe_length(has_uncond_bsmnt, has_cond_bsmnt, cfa, ncfl)
       p_ratio = hot_water_distribution.standard_piping_length / ref_pipe_l
     end
@@ -1224,9 +1244,10 @@ module HotWaterAndAppliances
     s_w_gpd = (ref_w_gpd - ref_w_gpd * o_frac) * p_ratio * sys_factor # Eq. 4.2-13
 
     # Table 4.2.2.5.2.11(3) Distribution system water use effectiveness
-    if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
+    case hot_water_distribution.system_type
+    when HPXML::DHWDistTypeRecirc
       wd_eff = 0.1
-    elsif hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
+    when HPXML::DHWDistTypeStandard
       wd_eff = 1.0
     end
 
