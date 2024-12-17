@@ -24,7 +24,7 @@ module Defaults
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
-  # @param convert_shared_systems [Boolean] Whether to convert shared systems to equivalent in-unit systems per ANSI 301
+  # @param convert_shared_systems [Boolean] Whether to convert shared systems to equivalent in-unit systems per ANSI/RESNET/ICC 301
   # @return [Array<Hash, Hash>] Maps of HPXML::Zones => DesignLoadValues object, HPXML::Spaces => DesignLoadValues object
   def self.apply(runner, hpxml, hpxml_bldg, weather, schedules_file: nil, convert_shared_systems: true)
     eri_version = hpxml.header.eri_calculation_version
@@ -831,7 +831,7 @@ module Defaults
   def self.apply_building_occupancy(hpxml_bldg, schedules_file)
     if not hpxml_bldg.building_occupancy.number_of_residents.nil?
       # Set equivalent number of bedrooms for operational calculation; this is an adjustment on
-      # ANSI 301 or Building America equations, which are based on number of bedrooms.
+      # ANSI/RESNET/ICC 301 or Building America equations, which are based on number of bedrooms.
       hpxml_bldg.building_construction.additional_properties.equivalent_number_of_bedrooms = get_equivalent_nbeds_for_operational_calculation(hpxml_bldg)
     else
       hpxml_bldg.building_construction.additional_properties.equivalent_number_of_bedrooms = hpxml_bldg.building_construction.number_of_bedrooms
@@ -1828,7 +1828,7 @@ module Defaults
   # @param runner [OpenStudio::Measure::OSRunner] Object typically used to display warnings
   # @param hpxml_bldg [HPXML::Building] HPXML Building object representing an individual dwelling unit
   # @param weather [WeatherFile] Weather object containing EPW information
-  # @param convert_shared_systems [Boolean] Whether to convert shared systems to equivalent in-unit systems per ANSI 301
+  # @param convert_shared_systems [Boolean] Whether to convert shared systems to equivalent in-unit systems per ANSI/RESNET/ICC 301
   # @param unit_num [Integer] Dwelling unit number
   # @return [nil]
   def self.apply_hvac(runner, hpxml_bldg, weather, convert_shared_systems, unit_num)
@@ -4108,7 +4108,7 @@ module Defaults
   end
 
   # Gets the equivalent number of bedrooms for an operational calculation (i.e., when number
-  # of occupants are provided in the HPXML); this is an adjustment to the ANSI 301 or Building
+  # of occupants are provided in the HPXML); this is an adjustment to the ANSI/RESNET/ICC 301 or Building
   # America equations, which are based on number of bedrooms.
   #
   # This is used to adjust occupancy-driven end uses from asset calculations (based on number
@@ -4582,10 +4582,12 @@ module Defaults
 
   # Gets the default piping length for a standard hot water distribution system.
   #
-  # Per ANSI 301-2022, the length of hot water piping from the hot water heater to the farthest
+  # The length of hot water piping from the hot water heater to the farthest
   # hot water fixture, measured longitudinally from plans, assuming the hot water piping does
   # not run diagonally, plus 10 feet of piping for each floor level, plus 5 feet of piping for
   # unconditioned basements (if any).
+  #
+  # Source: ANSI/RESNET/ICC 301-2022
   #
   # @param has_uncond_bsmnt [Boolean] Whether the dwelling unit has an unconditioned basement
   # @param has_cond_bsmnt [Boolean] Whether the dwelling unit has a conditioned basement
@@ -4598,15 +4600,17 @@ module Defaults
       bsmnt = 1
     end
 
-    return 2.0 * (cfa / ncfl)**0.5 + 10.0 * ncfl + 5.0 * bsmnt # PipeL in ANSI 301
+    return 2.0 * (cfa / ncfl)**0.5 + 10.0 * ncfl + 5.0 * bsmnt # PipeL in ANSI/RESNET/ICC 301
   end
 
   # Gets the default loop piping length for a recirculation hot water distribution system.
   #
-  # Per ANSI 301-2022, the recirculation loop length including both supply and return sides,
+  # The recirculation loop length including both supply and return sides,
   # measured longitudinally from plans, assuming the hot water piping does not run diagonally,
   # plus 20 feet of piping for each floor level greater than one plus 10 feet of piping for
   # unconditioned basements.
+  #
+  # Source: ANSI/RESNET/ICC 301-2022
   #
   # @param has_uncond_bsmnt [Boolean] Whether the dwelling unit has an unconditioned basement
   # @param has_cond_bsmnt [Boolean] Whether the dwelling unit has a conditioned basement
@@ -4615,32 +4619,34 @@ module Defaults
   # @return [Double] Piping length (ft)
   def self.get_recirc_loop_length(has_uncond_bsmnt, has_cond_bsmnt, cfa, ncfl)
     std_pipe_length = get_std_pipe_length(has_uncond_bsmnt, has_cond_bsmnt, cfa, ncfl)
-    return 2.0 * std_pipe_length - 20.0 # refLoopL in ANSI 301
+    return 2.0 * std_pipe_length - 20.0 # refLoopL in ANSI/RESNET/ICC 301
   end
 
   # Gets the default branch piping length for a recirculation hot water distribution system.
   #
-  # Per ANSI 301-2022, the length of the branch hot water piping from the recirculation loop
+  # The length of the branch hot water piping from the recirculation loop
   # to the farthest hot water fixture from the recirculation loop, measured longitudinally
   # from plans, assuming the branch hot water piping does not run diagonally.
   #
+  # Source: ANSI/RESNET/ICC 301-2022
+  #
   # @return [Double] Piping length (ft)
   def self.get_recirc_branch_length()
-    return 10.0 # See pRatio in ANSI 301
+    return 10.0 # See pRatio in ANSI/RESNET/ICC 301
   end
 
   # Gets the default pump power for a recirculation system.
   #
   # @return [Double] Pump power (W)
   def self.get_recirc_pump_power()
-    return 50.0 # See pumpW in ANSI 301
+    return 50.0 # See pumpW in ANSI/RESNET/ICC 301
   end
 
   # Gets the default pump power for a shared recirculation system.
   #
   # @return [Double] Pump power (W)
   def self.get_shared_recirc_pump_power()
-    # From ANSI/RESNET/ICC 301-2019 Equation 4.2-15b
+    # From ANSI/RESNET/ICC 301-2022 Eq. 4.2-43b
     pump_horsepower = 0.25
     motor_efficiency = 0.85
     pump_kw = pump_horsepower * 0.746 / motor_efficiency
@@ -4674,9 +4680,11 @@ module Defaults
   # Window represents multiple windows, the value is calculated as the total window area
   # for any operable windows divided by the total window area.
   #
+  # Source: ANSI/RESNET/ICC 301-2025
+  #
   # @return [Double] Operable fraction (frac)
   def self.get_fraction_of_windows_operable()
-    return 0.67 # 67% per ANSI 301-2025
+    return 0.67 # 67%
   end
 
   # Gets the default specific leakage area (SLA) for a vented attic.
@@ -4684,7 +4692,7 @@ module Defaults
   #
   # @return [Double] Specific leakage area (frac)
   def self.get_vented_attic_sla()
-    return (1.0 / 300.0).round(6) # ANSI 301, Table 4.2.2(1) - Attics
+    return (1.0 / 300.0).round(6) # ANSI/RESNET/ICC 301, Table 4.2.2(1) - Attics
   end
 
   # Gets the default specific leakage area (SLA) for a vented crawlspace.
@@ -4692,7 +4700,7 @@ module Defaults
   #
   # @return [Double] Specific leakage area (frac)
   def self.get_vented_crawl_sla()
-    return (1.0 / 150.0).round(6) # ANSI 301, Table 4.2.2(1) - Crawlspaces
+    return (1.0 / 150.0).round(6) # ANSI/RESNET/ICC 301, Table 4.2.2(1) - Crawlspaces
   end
 
   # Gets the default whole-home mechanical ventilation fan flow rate required to
@@ -4707,7 +4715,7 @@ module Defaults
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @return [Double] Fan flow rate (cfm)
   def self.get_mech_vent_flow_rate_for_vent_fan(hpxml_bldg, vent_fan, weather, eri_version)
-    # Calculates Qfan cfm requirement per ASHRAE 62.2 / ANSI 301
+    # Calculates Qfan cfm requirement per ASHRAE 62.2 / ANSI/RESNET/ICC 301
     cfa = hpxml_bldg.building_construction.conditioned_floor_area
     nbeds = hpxml_bldg.building_construction.number_of_bedrooms
     infil_values = Airflow.get_values_from_air_infiltration_measurements(hpxml_bldg, weather)
@@ -4727,10 +4735,11 @@ module Defaults
 
   # Gets the default whole-home mechanical ventilation fan efficiency.
   #
+  # Source: ANSI/RESNET/ICC 301
+  #
   # @param vent_fan [HPXML::VentilationFan] The HPXML ventilation fan of interest
   # @return [Double] Fan efficiency (W/cfm)
   def self.get_mech_vent_fan_efficiency(vent_fan)
-    # Returns fan power in W/cfm, based on ANSI 301
     if vent_fan.is_shared_system
       return 1.00 # Table 4.2.2(1) Note (n)
     end
@@ -4880,7 +4889,7 @@ module Defaults
   # @param f_rect [Double] The fraction of duct length that is rectangular (not round)
   # @return [Double] Duct effective R-value (hr-ft2-F/Btu)
   def self.get_duct_effective_r_value(r_nominal, side, buried_level, f_rect)
-    # This methodology has been proposed by NREL for ANSI 301-2025.
+    # This methodology has been proposed by NREL for ANSI/RESNET/ICC 301-2025.
     if buried_level == HPXML::DuctBuriedInsulationNone
       if r_nominal <= 0
         # Uninsulated ducts are set to R-1.7 based on ASHRAE HOF and the above paper.
@@ -4984,9 +4993,9 @@ module Defaults
   def self.get_water_heater_performance_adjustment(water_heating_system)
     return unless water_heating_system.water_heater_type == HPXML::WaterHeaterTypeTankless
     if not water_heating_system.energy_factor.nil?
-      return 0.92 # Applies to EF, ANSI 301-2019
+      return 0.92 # Applies to EF, ANSI/RESNET/ICC 301-2022
     elsif not water_heating_system.uniform_energy_factor.nil?
-      return 0.94 # Applies to UEF, ANSI 301-2019
+      return 0.94 # Applies to UEF, ANSI/RESNET/ICC 301-2022
     end
   end
 
@@ -5344,18 +5353,20 @@ module Defaults
 
   # Gets the default fan power for a ceiling fan.
   #
+  # Source: ANSI/RESNET/ICC 301
+  #
   # @return [Double] Fan power (W)
   def self.get_ceiling_fan_power()
-    # Per ANSI/RESNET/ICC 301
     return 42.6
   end
 
   # Gets the default quantity of ceiling fans.
   #
+  # Source: ANSI/RESNET/ICC 301
+  #
   # @param nbeds [Integer] Number of bedrooms in the dwelling unit
   # @return [Integer] Number of ceiling fans
   def self.get_ceiling_fan_quantity(nbeds)
-    # Per ANSI/RESNET/ICC 301
     return nbeds + 1
   end
 
@@ -5495,8 +5506,9 @@ module Defaults
     end
   end
 
-  # Gets the default interior/garage/exterior lighting fractions per ANSI/RESNET/ICC 301.
-  # Used by OS-ERI, OS-HEScore, etc.
+  # Gets the default interior/garage/exterior lighting fractions. Used by OS-ERI, OS-HEScore, etc.
+  #
+  # Source: ANSI/RESNET/ICC 301
   #
   # @return [Hash] Map of [HPXML::LocationXXX, HPXML::LightingTypeXXX] => lighting fraction
   def self.get_lighting_fractions()
@@ -5513,13 +5525,14 @@ module Defaults
     return ltg_fracs
   end
 
-  # Gets the default heating setpoints per ANSI/RESNET/ICC 301.
+  # Gets the default heating setpoints.
+  #
+  # Source: ANSI/RESNET/ICC 301
   #
   # @param control_type [String] Thermostat control type (HPXML::HVACControlTypeXXX)
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @return [Array<String, String>] 24 hourly comma-separated weekday and weekend setpoints
   def self.get_heating_setpoint(control_type, eri_version)
-    # Per ANSI/RESNET/ICC 301
     htg_wd_setpoints = '68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68'
     htg_we_setpoints = '68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68, 68'
     if control_type == HPXML::HVACControlTypeProgrammable
@@ -5536,13 +5549,14 @@ module Defaults
     return htg_wd_setpoints, htg_we_setpoints
   end
 
-  # Gets the default cooling setpoints per ANSI/RESNET/ICC 301.
+  # Gets the default cooling setpoints.
+  #
+  # Source: ANSI/RESNET/ICC 301
   #
   # @param control_type [String] Thermostat control type (HPXML::HVACControlTypeXXX)
   # @param eri_version [String] Version of the ANSI/RESNET/ICC 301 Standard to use for equations/assumptions
   # @return [Array<String, String>] 24 hourly comma-separated weekday and weekend setpoints
   def self.get_cooling_setpoint(control_type, eri_version)
-    # Per ANSI/RESNET/ICC 301
     clg_wd_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78'
     clg_we_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78'
     if control_type == HPXML::HVACControlTypeProgrammable
@@ -5576,15 +5590,16 @@ module Defaults
     return retention_temp, retention_fraction
   end
 
-  # Gets a 12-element array of 1s and 0s that reflects months for which the ceiling fan operates
-  # (i.e., when the average drybulb temperature is greater than 63F, per ANSI/RESNET/ICC 301).
+  # Gets the monthly ceiling fan operation schedule.
+  #
+  # Source: ANSI/RESNET/ICC 301
   #
   # @param weather [WeatherFile] Weather object containing EPW information
   # @return [Array<Integer>] monthly array of 1s and 0s
   def self.get_ceiling_fan_months(weather)
     months = [0] * 12
     weather.data.MonthlyAvgDrybulbs.each_with_index do |val, m|
-      next unless val > 63.0 # F
+      next unless val > 63.0 # Ceiling fan operates when average drybulb temperature is greater than 63F
 
       months[m] = 1
     end
