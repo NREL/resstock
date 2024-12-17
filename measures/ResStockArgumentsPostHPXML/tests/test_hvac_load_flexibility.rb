@@ -37,8 +37,12 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
   end
 
   def test_get_peak_hour
-    assert_equal(18, @schedule_modifier_15._get_peak_hour(month: 6))
-    assert_equal(19, @schedule_modifier_15._get_peak_hour(month: 1))
+    assert_equal([18, 22], @schedule_modifier_15._get_peak_hour(0, month: 6)) #shed summer
+    assert_equal([18, 22], @schedule_modifier_15._get_peak_hour(0, month: 1)) #shed winter
+    assert_equal([16, 20], @schedule_modifier_15._get_peak_hour(0, month: 5)) #shed intermediate
+    assert_equal([16, 20], @schedule_modifier_15._get_peak_hour(4, month: 6)) #shift summer
+    assert_equal([17, 21], @schedule_modifier_15._get_peak_hour(4, month: 1)) #shift winter
+    assert_equal([16, 20], @schedule_modifier_15._get_peak_hour(4, month: 5)) #shift intermediate
   end
 
   def test_get_month
@@ -62,15 +66,14 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
     flexibility_inputs = FlexibilityInputs.new(
         random_shift_steps: 0,
         pre_peak_duration_steps: 4 * 4,
-        peak_duration_steps: 2 * 4,
         pre_peak_offset:  3,
         peak_offset: 4
     )
 
     modified_setpoints_15 = @schedule_modifier_15.modify_setpoints(setpoints, flexibility_inputs)
 
-    winter_peak = 4 * @schedule_modifier_15._get_peak_hour(month: 1)
-    summer_peak = 4 * @schedule_modifier_15._get_peak_hour(month: 7)
+    winter_peak = 4 * @schedule_modifier_15._get_peak_hour(flexibility_inputs.pre_peak_duration_steps, month: 1)[0]
+    summer_peak = 4 * @schedule_modifier_15._get_peak_hour(flexibility_inputs.pre_peak_duration_steps, month: 7)[0]
 
     summer_midnight = 3 * 31 * 24 * 4 + 29 * 24 * 4 + 3 * 30 * 24 * 4 # index from Jan to Jun
 
@@ -83,7 +86,7 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
 
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight])
     assert_equal(78, modified_setpoints_15[:cooling_setpoint][summer_midnight])
-    assert_equal(78 + 4, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak])  # peak offset
+    assert_equal(80, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak])  # peak offset
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight + summer_peak])  # peak offset
     assert_equal(78 - 3, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak - 1])  # pre-peak offset
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight + summer_peak - 1])  # pre-peak offset
@@ -91,7 +94,6 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
     flexibility_inputs = FlexibilityInputs.new(
         random_shift_steps: 2,
         pre_peak_duration_steps: 4 * 4,
-        peak_duration_steps: 2 * 4,
         pre_peak_offset: 3,
         peak_offset: 4
     )
@@ -105,7 +107,7 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
 
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight])
     assert_equal(78, modified_setpoints_15[:cooling_setpoint][summer_midnight])
-    assert_equal(78 + 4, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak + 2])   # start of peak period
+    assert_equal(80, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak + 2])   # start of peak period
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight + summer_peak + 2 + 2 * 4 - 1])  # end of peak period
     assert_equal(78 - 0, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak + 2 - 4 * 4 - 1])  # before pre-peak period
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight + summer_peak + 2 + 2 * 4])  # after peak period
@@ -113,10 +115,13 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
     flexibility_inputs = FlexibilityInputs.new(
         random_shift_steps: -2,
         pre_peak_duration_steps: 0,
-        peak_duration_steps: 2 * 4,
         pre_peak_offset: 3,  # unused since pre_peak_duration_steps is 0
         peak_offset: 2
     )
+
+    winter_peak = 4 * @schedule_modifier_15._get_peak_hour(flexibility_inputs.pre_peak_duration_steps, month: 1)[0]
+    summer_peak = 4 * @schedule_modifier_15._get_peak_hour(flexibility_inputs.pre_peak_duration_steps, month: 7)[0]
+
     modified_setpoints_15 = @schedule_modifier_15.modify_setpoints(setpoints, flexibility_inputs)
     assert_equal(71, modified_setpoints_15[:heating_setpoint][0])
     assert_equal(78, modified_setpoints_15[:cooling_setpoint][0])
@@ -131,6 +136,35 @@ class ResStockArgumentsPostHPXMLTest < Minitest::Test
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight + summer_peak - 2])  # peak offset
     assert_equal(78 - 0, modified_setpoints_15[:cooling_setpoint][summer_midnight + summer_peak - 2 - 1])  # before peak period
     assert_equal(71, modified_setpoints_15[:heating_setpoint][summer_midnight + summer_peak - 2 - 1])  # before peak period
+  end
+
+  def test_clip_setpoints
+    assert_equal(80, @schedule_modifier_15._clip_setpoints('heating', 88))
+    assert_equal(55, @schedule_modifier_15._clip_setpoints('heating', 45))
+    assert_equal(65, @schedule_modifier_15._clip_setpoints('heating', 65))
+    assert_equal(80, @schedule_modifier_15._clip_setpoints('cooling', 88))
+    assert_equal(60, @schedule_modifier_15._clip_setpoints('cooling', 45))
+    assert_equal(65, @schedule_modifier_15._clip_setpoints('heating', 65))
+  end
+
+  def test_get_peak_times
+    flexibility_inputs = FlexibilityInputs.new(
+        random_shift_steps: 0,
+        pre_peak_duration_steps: 4 * 4,
+        pre_peak_offset:  3,
+        peak_offset: 4
+    )
+
+    peak_times = @schedule_modifier_15._get_peak_times(1, flexibility_inputs) # peak time in Jan
+    assert_equal(17 * 4, peak_times.peak_start_index)
+    assert_equal(21 * 4, peak_times.peak_end_index)
+    assert_equal(13 * 4, peak_times.pre_peak_start_index)
+
+    peak_times = @schedule_modifier_15._get_peak_times((30 * 4 + 15 ) * 24 *4, flexibility_inputs) # peak time in May
+    assert_equal(16 * 4, peak_times.peak_start_index)
+    assert_equal(20 * 4, peak_times.peak_end_index)
+    assert_equal(12 * 4, peak_times.pre_peak_start_index)
+
   end
 
 end
