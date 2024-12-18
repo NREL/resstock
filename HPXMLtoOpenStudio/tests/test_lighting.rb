@@ -133,6 +133,21 @@ class HPXMLtoOpenStudioLightingTest < Minitest::Test
     assert_in_delta(200, get_kwh_per_year(model, Constants::ObjectTypeCeilingFan), 1.0)
   end
 
+  def test_operational_0_occupants
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-0.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+
+    # Check interior lighting
+    assert_equal(0.0, get_kwh_per_year(model, Constants::ObjectTypeLightingInterior))
+
+    # Check garage lighting
+    assert_equal(0.0, get_kwh_per_year(model, Constants::ObjectTypeLightingGarage))
+
+    # Check exterior lighting
+    assert_equal(0.0, get_kwh_per_year(model, Constants::ObjectTypeLightingExterior))
+  end
+
   def _test_measure(args_hash)
     # create an instance of the measure
     measure = HPXMLtoOpenStudio.new

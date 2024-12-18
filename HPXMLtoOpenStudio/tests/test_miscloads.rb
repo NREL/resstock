@@ -195,7 +195,68 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
     assert_in_delta(55, therm_yr, 1.0)
   end
 
-  def test_operational_defaults
+  def test_operational_0_occupants
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-0.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+
+    # Check misc plug loads
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscPlugLoads)
+    assert_equal(0, kwh_yr)
+    assert_equal(0, therm_yr)
+
+    # Check television
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscTelevision)
+    assert_equal(0, kwh_yr)
+    assert_equal(0, therm_yr)
+
+    # Check vehicle
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscElectricVehicleCharging)
+    assert_equal(0, kwh_yr)
+    assert_equal(0, therm_yr)
+
+    # Check well pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscWellPump)
+    assert_equal(0, kwh_yr)
+    assert_equal(0, therm_yr)
+
+    # Check pool pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscPoolPump)
+    assert_equal(0, kwh_yr)
+    assert_equal(0, therm_yr)
+
+    # Check pool heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscPoolHeater)
+    assert_equal(0, kwh_yr)
+    assert_equal(0, therm_yr)
+
+    # Check permanent spa pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscPermanentSpaPump)
+    assert_equal(0, kwh_yr)
+    assert_equal(0, therm_yr)
+
+    # Check permanent spa heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscPermanentSpaHeater)
+    assert_equal(0, kwh_yr)
+    assert_equal(0, therm_yr)
+
+    # Check grill
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscGrill)
+    assert_equal(0, kwh_yr)
+    assert_equal(0, therm_yr)
+
+    # Check lighting
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscLighting)
+    assert_equal(0, kwh_yr)
+    assert_equal(0, therm_yr)
+
+    # Check fireplace
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscFireplace)
+    assert_equal(0, kwh_yr)
+    assert_equal(0, therm_yr)
+  end
+
+  def test_operational_5_5_occupants
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-5-5.xml'))
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
