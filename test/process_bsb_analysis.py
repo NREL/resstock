@@ -259,20 +259,25 @@ if __name__ == '__main__':
 
     df_nationals = []
     index_col = ['time']
-    drops = ['timedst', 'timeutc']
+    drops = ['building_id,', 'timedst', 'timeutc']
 
-    groups = sorted(os.listdir('project_national/national_baseline/parquet/timeseries/upgrade=0'))
-    for group in groups:
-        for i in range(1, national_num_scenarios):
-            if not os.path.exists('project_national/sdr_upgrades_tmy3/parquet/timeseries/upgrade={}/{}'.format(i, group)):
-                continue
+    dataframes = []
+    directory = "project_national/sdr_upgrades_tmy3/parquet/timeseries"
+    # Walk through the directory and its subdirectories
+    for root, _, files in os.walk(directory):
+        for file in files:
+            # Check if the file has a .parquet extension
+            if file.endswith(".parquet"):
+                file_path = os.path.join(root, file)
+                try:
+                    # Load the Parquet file into a Pandas DataFrame
+                    df = pd.read_parquet(file_path)
+                    dataframes.append(df)
+                except Exception as e:
+                    print(f"Error loading file {file_path}: {e}")
 
-            df_national = pd.read_parquet('project_national/sdr_upgrades_tmy3/parquet/timeseries/upgrade={}/{}'.format(i, group)).reset_index()
-            df_national = df_national.drop(drops, axis=1)
-            df_nationals.append(df_national)
-
-    df_national = pd.DataFrame(df_nationals).sort_values(['building_id', 'time'])
-    df_national = df_national.drop(['building_id'], axis=1)
+    df_national = pd.concat(dataframes).sort_values(['building_id', 'time']).reset_index()
+    df_national.drop(columns=drops,inplace=True)
     df_national = df_national.groupby(index_col).sum().round(1)
     df_national['PROJECT'] = 'project_national'
 
