@@ -117,6 +117,11 @@ module MiscLoads
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
   def self.apply_fuel_loads(runner, model, spaces, hpxml_bldg, hpxml_header, schedules_file)
+    if hpxml_bldg.building_occupancy.number_of_residents == 0
+      # Operational calculation w/ zero occupants, zero out energy use
+      return
+    end
+
     hpxml_bldg.fuel_loads.each do |fuel_load|
       case fuel_load.fuel_load_type
       when HPXML::FuelLoadTypeGrill
@@ -206,6 +211,11 @@ module MiscLoads
   # @param schedules_file [SchedulesFile] SchedulesFile wrapper class instance of detailed schedule files
   # @return [nil]
   def self.apply_pools_and_permanent_spas(runner, model, spaces, hpxml_bldg, hpxml_header, schedules_file)
+    if hpxml_bldg.building_occupancy.number_of_residents == 0
+      # Operational calculation w/ zero occupants, zero out energy use
+      return
+    end
+
     (hpxml_bldg.pools + hpxml_bldg.permanent_spas).each do |pool_or_spa|
       next if pool_or_spa.type == HPXML::TypeNone
 

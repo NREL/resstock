@@ -8,13 +8,16 @@ require_relative '../measure.rb'
 require_relative '../resources/util.rb'
 
 class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
-  def teardown
-    File.delete(File.join(File.dirname(__FILE__), 'results_annual.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_annual.csv')
-    File.delete(File.join(File.dirname(__FILE__), 'results_design_load_details.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_design_load_details.csv')
+  def setup
+    @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
+    @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')
+    @tmp_hpxml_path = File.join(@sample_files_path, 'tmp.xml')
   end
 
-  def sample_files_dir
-    return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
+  def teardown
+    File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
+    File.delete(File.join(File.dirname(__FILE__), 'results_annual.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_annual.csv')
+    File.delete(File.join(File.dirname(__FILE__), 'results_design_load_details.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_design_load_details.csv')
   end
 
   def get_kwh_therm_per_year(model, name)
@@ -43,7 +46,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
   def test_misc_loads
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base.xml'))
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
@@ -75,7 +78,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
   def test_large_uncommon_loads
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-misc-loads-large-uncommon.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-misc-loads-large-uncommon.xml'))
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
@@ -136,7 +139,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
   def test_large_uncommon_loads2
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-misc-loads-large-uncommon2.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-misc-loads-large-uncommon2.xml'))
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
@@ -197,7 +200,35 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
   def test_operational_0_occupants
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-0.xml'))
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    hpxml, hpxml_bldg = _create_hpxml('base-residents-0.xml')
+    [HPXML::PlugLoadTypeElectricVehicleCharging,
+     HPXML::PlugLoadTypeWellPump].each do |plug_load_type|
+      hpxml_bldg.plug_loads.add(id: "PlugLoad#{hpxml_bldg.plug_loads.size + 1}",
+                                plug_load_type: plug_load_type)
+    end
+    [HPXML::FuelLoadTypeFireplace,
+     HPXML::FuelLoadTypeGrill,
+     HPXML::FuelLoadTypeLighting].each do |fuel_load_type|
+      hpxml_bldg.fuel_loads.add(id: "FuelLoad#{hpxml_bldg.fuel_loads.size + 1}",
+                                fuel_type: HPXML::FuelTypeNaturalGas,
+                                fuel_load_type: fuel_load_type,
+                                therm_per_year: 100)
+    end
+    hpxml_bldg.pools.add(id: "Pool#{hpxml_bldg.pools.size + 1}",
+                         type: HPXML::TypeUnknown,
+                         pump_type: HPXML::TypeUnknown,
+                         heater_type: HPXML::HeaterTypeGas,
+                         heater_load_units: HPXML::UnitsThermPerYear)
+    hpxml_bldg.permanent_spas.add(id: "PermanentSpa#{hpxml_bldg.permanent_spas.size + 1}",
+                                  type: HPXML::TypeUnknown,
+                                  pump_type: HPXML::TypeUnknown,
+                                  pump_kwh_per_year: 100,
+                                  heater_type: HPXML::HeaterTypeElectricResistance,
+                                  heater_load_units: HPXML::UnitsKwhPerYear,
+                                  heater_load_value: 100)
+
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
@@ -258,7 +289,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
   def test_operational_5_5_occupants
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-5-5.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-residents-5-5.xml'))
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
@@ -319,7 +350,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
   def test_operational_large_uncommon_loads
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-1-misc-loads-large-uncommon.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-residents-1-misc-loads-large-uncommon.xml'))
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
@@ -380,7 +411,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
   def test_operational_large_uncommon_loads2
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-1-misc-loads-large-uncommon2.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-residents-1-misc-loads-large-uncommon2.xml'))
     model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
 
     # Check misc plug loads
@@ -475,5 +506,10 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
     File.delete(File.join(File.dirname(__FILE__), 'in.xml'))
 
     return model, hpxml, hpxml.buildings[0]
+  end
+
+  def _create_hpxml(hpxml_name)
+    hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, hpxml_name))
+    return hpxml, hpxml.buildings[0]
   end
 end
