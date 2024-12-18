@@ -952,6 +952,28 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < Minitest::Test
     assert_in_epsilon(1.0, get_oe_fractions(model, Constants::ObjectTypeGeneralWaterUseLatent)[1], 0.001)
   end
 
+  def test_operational_0_occupants
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-0.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+
+    # water use equipment hot water gal/day
+    assert_equal(0, get_wu_gpd(model, Constants::ObjectTypeClothesWasher))
+    assert_equal(0, get_wu_gpd(model, Constants::ObjectTypeDishwasher))
+    assert_equal(0, get_wu_gpd(model, Constants::ObjectTypeFixtures))
+    assert_equal(0, get_wu_gpd(model, Constants::ObjectTypeDistributionWaste))
+
+    # electric equipment
+    assert_equal(0, get_ee_kwh_per_year(model, Constants::ObjectTypeClothesWasher))
+    assert_equal(0, get_ee_kwh_per_year(model, Constants::ObjectTypeDishwasher))
+    assert_equal(0, get_ee_kwh_per_year(model, Constants::ObjectTypeClothesDryer))
+    assert_equal(0, get_ee_kwh_per_year(model, Constants::ObjectTypeCookingRange))
+
+    # other equipment
+    assert_equal(0, get_oe_kwh(model, Constants::ObjectTypeGeneralWaterUseSensible))
+    assert_equal(0, get_oe_kwh(model, Constants::ObjectTypeGeneralWaterUseLatent))
+  end
+
   def test_operational_1_occupant
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-residents-1.xml'))

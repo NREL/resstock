@@ -928,6 +928,26 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     end
   end
 
+  def test_operational_0_occupants
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-residents-0.xml'))
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+
+    # Check no natural ventilation or whole house fan
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants::ObjectTypeNaturalVentilation} program")
+    assert_equal(0, UnitConversions.convert(program_values['NVArea'].sum, 'cm^2', 'ft^2'))
+    assert_equal(0, UnitConversions.convert(program_values['WHF_Flow'].sum, 'm^3/s', 'cfm'))
+
+    # Check no clothes dryer venting
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants::ObjectTypeInfiltration} program")
+    assert_equal(0, UnitConversions.convert(program_values['Qdryer'].sum, 'm^3/s', 'cfm'))
+
+    # Check no kitchen/bath local ventilation
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants::ObjectTypeInfiltration} program")
+    assert_equal(0, UnitConversions.convert(program_values['Qrange'].sum, 'm^3/s', 'cfm'))
+    assert_equal(0, UnitConversions.convert(program_values['Qbath'].sum, 'm^3/s', 'cfm'))
+  end
+
   def _test_measure(args_hash)
     # create an instance of the measure
     measure = HPXMLtoOpenStudio.new
