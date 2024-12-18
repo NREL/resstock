@@ -38,10 +38,8 @@ module Airflow
       elsif f.used_for_seasonal_cooling_load_reduction
         vent_fans[:whf] << f
       elsif f.used_for_local_ventilation
-        if hpxml_bldg.building_occupancy.number_of_residents == 0
-          # Operational calculation w/ zero occupants, zero out energy use
-          continue
-        end
+        next if hpxml_bldg.building_occupancy.number_of_residents == 0 # Operational calculation w/ zero occupants, zero out energy use
+
         if f.fan_location == HPXML::LocationKitchen
           vent_fans[:kitchen] << f
         elsif f.fan_location == HPXML::LocationBath

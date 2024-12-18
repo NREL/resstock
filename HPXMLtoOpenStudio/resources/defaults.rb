@@ -5763,7 +5763,7 @@ module Defaults
       load_units = HPXML::UnitsKwhPerYear
       if n_occ == 0
         # Operational calculation w/ zero occupants, zero out energy use
-        return load_type, 0.0
+        return load_units, 0.0
       end
 
       load_value = 8.3 / 0.004 * (0.5 + 0.25 * nbeds_eq / 3.0 + 0.25 * cfa / 1920.0) # kWh/yr
@@ -5774,7 +5774,7 @@ module Defaults
       load_units = HPXML::UnitsThermPerYear
       if n_occ == 0
         # Operational calculation w/ zero occupants, zero out energy use
-        return load_type, 0.0
+        return load_units, 0.0
       end
 
       load_value = 3.0 / 0.014 * (0.5 + 0.25 * nbeds_eq / 3.0 + 0.25 * cfa / 1920.0) # therm/yr
@@ -5817,7 +5817,7 @@ module Defaults
       load_units = HPXML::UnitsKwhPerYear
       if n_occ == 0
         # Operational calculation w/ zero occupants, zero out energy use
-        return load_type, 0.0
+        return load_units, 0.0
       end
 
       load_value = 49.0 / 0.048 * (0.5 + 0.25 * nbeds_eq / 3.0 + 0.25 * cfa / 1920.0) # kWh/yr
@@ -5828,7 +5828,7 @@ module Defaults
       load_units = HPXML::UnitsThermPerYear
       if n_occ == 0
         # Operational calculation w/ zero occupants, zero out energy use
-        return load_type, 0.0
+        return load_units, 0.0
       end
 
       load_value = 0.87 / 0.011 * (0.5 + 0.25 * nbeds_eq / 3.0 + 0.25 * cfa / 1920.0) # therm/yr
