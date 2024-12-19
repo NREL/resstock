@@ -928,6 +928,34 @@ class HPXMLtoOpenStudioAirflowTest < Minitest::Test
     end
   end
 
+  def test_operational_0_occupants
+    args_hash = {}
+    args_hash['hpxml_path'] = @tmp_hpxml_path
+    hpxml, hpxml_bldg = _create_hpxml('base-residents-0.xml')
+    hpxml_bldg.ventilation_fans.add(id: "VentilationFan#{hpxml_bldg.ventilation_fans.size + 1}",
+                                    fan_location: HPXML::LocationBath,
+                                    used_for_local_ventilation: true)
+    hpxml_bldg.ventilation_fans.add(id: "VentilationFan#{hpxml_bldg.ventilation_fans.size + 1}",
+                                    fan_location: HPXML::LocationKitchen,
+                                    used_for_local_ventilation: true)
+    XMLHelper.write_file(hpxml.to_doc, @tmp_hpxml_path)
+    model, _hpxml, _hpxml_bldg = _test_measure(args_hash)
+
+    # Check no natural ventilation or whole house fan
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants::ObjectTypeNaturalVentilation} program")
+    assert_equal(0, UnitConversions.convert(program_values['NVArea'].sum, 'cm^2', 'ft^2'))
+    assert_equal(0, UnitConversions.convert(program_values['WHF_Flow'].sum, 'm^3/s', 'cfm'))
+
+    # Check no clothes dryer venting
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants::ObjectTypeInfiltration} program")
+    assert_equal(0, UnitConversions.convert(program_values['Qdryer'].sum, 'm^3/s', 'cfm'))
+
+    # Check no kitchen/bath local ventilation
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants::ObjectTypeInfiltration} program")
+    assert_equal(0, UnitConversions.convert(program_values['Qrange'].sum, 'm^3/s', 'cfm'))
+    assert_equal(0, UnitConversions.convert(program_values['Qbath'].sum, 'm^3/s', 'cfm'))
+  end
+
   def _test_measure(args_hash)
     # create an instance of the measure
     measure = HPXMLtoOpenStudio.new
