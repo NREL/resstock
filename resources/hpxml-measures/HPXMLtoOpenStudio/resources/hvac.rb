@@ -1550,7 +1550,7 @@ module HVAC
     end
 
     # Apply cooling setpoint offset due to ceiling fan?
-    if has_ceiling_fan && hpxml_bldg.building_occupancy.number_of_residents != 0 # If operational calculation w/ zero occupants, exclude ceiling fan setpoint adjustment
+    if has_ceiling_fan # && hpxml_bldg.building_occupancy.number_of_residents != 0 # If operational calculation w/ zero occupants, exclude ceiling fan setpoint adjustment
       clg_ceiling_fan_offset = hvac_control.ceiling_fan_cooling_setpoint_temp_offset
       if not clg_ceiling_fan_offset.nil?
         months = Defaults.get_ceiling_fan_months(weather)
