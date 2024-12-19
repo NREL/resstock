@@ -16,6 +16,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
   def teardown
     File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
+    File.delete(File.join(File.dirname(__FILE__), 'in.schedules.csv')) if File.exist? File.join(File.dirname(__FILE__), 'in.schedules.csv')
     File.delete(File.join(File.dirname(__FILE__), 'results_annual.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_annual.csv')
     File.delete(File.join(File.dirname(__FILE__), 'results_design_load_details.csv')) if File.exist? File.join(File.dirname(__FILE__), 'results_design_load_details.csv')
   end
@@ -263,13 +264,13 @@ class HPXMLtoOpenStudioMiscLoadsTest < Minitest::Test
 
     # Check permanent spa pump
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscPermanentSpaPump)
-    assert_equal(0, kwh_yr)
-    assert_equal(0, therm_yr)
+    refute_equal(0, kwh_yr)
+    refute_equal(0, therm_yr)
 
     # Check permanent spa heater
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscPermanentSpaHeater)
-    assert_equal(0, kwh_yr)
-    assert_equal(0, therm_yr)
+    refute_equal(0, kwh_yr)
+    refute_equal(0, therm_yr)
 
     # Check grill
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants::ObjectTypeMiscGrill)
