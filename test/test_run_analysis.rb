@@ -133,7 +133,7 @@ class TestRunAnalysis < Minitest::Test
   end
 
   def test_errors_invalid_upgrade_name
-    yml = ' -y test/tests_yml_files/yml_valid/sdr_upgrades_tmy3.yml'
+    yml = ' -y test/tests_yml_files/yml_valid/testing_upgrades.yml'
     @command += yml
     @command += ' -u "Fuondation Type" -u Walls'
 
