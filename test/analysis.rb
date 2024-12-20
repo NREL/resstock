@@ -34,8 +34,8 @@ end
 
 def expected_upgrade_nonnull_columns
   return [
-    'upgrade_costs.option_01_name',
-    'upgrade_costs.option_01_cost_usd',
+    'apply_upgrade.upgrade_name',
+    'upgrade_costs.door_area_ft_2',
     'upgrade_costs.upgrade_cost_usd'
   ]
 end
