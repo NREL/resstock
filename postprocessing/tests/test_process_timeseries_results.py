@@ -7,6 +7,7 @@ string assertions and optionally sqlglot for syntax validation.
 """
 
 import re
+import sys
 from unittest.mock import MagicMock, patch
 from types import SimpleNamespace
 
@@ -26,6 +27,7 @@ from postprocessing.resstockpostproc.create_athena_views_from_results import (
     create_query_oedi_timeseries,
     create_query_oedi_baseline_from_pub_annual,
     create_materialized_hourly_timeseries_table,
+    create_materialized_final_timeseries_table,
     _get_county_utc_offset,
     _read_options_lookup,
     options_lookup_file,
@@ -224,6 +226,138 @@ def test_materialized_hourly_table_fans_out_all_upgrades(
 
     query = bsq.execute.call_args_list[1].args[0]
     assert 'SELECT DISTINCT "state", "upgrade"' in query
+
+
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.check_view_oedi_timeseries"
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.create_view_oedi_timeseries"
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.create_materialized_final_timeseries_table",
+    return_value="test_run_ts_by_state",
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.ensure_eiaid_weights_table"
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.initialize_buildstock_query"
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.list_tables_boto3",
+    return_value=[],
+)
+def test_main_materialize_final_creates_table_and_checks_table(
+    mock_list_tables,
+    mock_init_bsq,
+    mock_ensure_eiaid,
+    mock_create_final,
+    mock_create_view,
+    mock_check_view,
+):
+    bsq = MagicMock()
+    bsq.db_name = "test_database"
+    bsq.workgroup = "test_workgroup"
+    bsq.run_params.region_name = "us-west-2"
+    bsq.table_name = "test_run"
+    bsq.ts_table.columns = [
+        _make_col("building_id"),
+        _make_col("upgrade", partition=True),
+        _make_col("state", partition=True),
+        _make_col("time"),
+        _make_col("end_use__electricity__heating__kwh"),
+    ]
+    mock_init_bsq.return_value = bsq
+
+    with patch.object(sys, "argv", [
+        "create_athena_views_from_results.py",
+        "-d",
+        "test_database",
+        "-t",
+        "test_run",
+        "-w",
+        "test_workgroup",
+        "--check",
+        "-m",
+        "s3://bucket/final-output/",
+    ]):
+        from postprocessing.resstockpostproc.create_athena_views_from_results import main
+        main()
+
+    mock_create_final.assert_called_once()
+    mock_create_view.assert_not_called()
+    mock_check_view.assert_called_once_with(
+        bsq,
+        view_name="test_run_ts_by_state",
+        simple_workflow=False,
+    )
+
+
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.boto3.client"
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.list_tables_boto3",
+    return_value=[],
+)
+def test_materialized_final_table_uses_partitioned_ctas_and_workgroup_default(
+    mock_list_tables, mock_boto3_client
+):
+    bsq = MagicMock()
+    bsq.table_name = "test_run"
+    bsq.db_name = "test_database"
+    bsq.workgroup = "test_workgroup"
+    bsq.run_params.region_name = "us-west-2"
+    bsq.ts_table.columns = [
+        _make_col("building_id"),
+        _make_col("upgrade", partition=True),
+        _make_col("state", partition=True),
+        _make_col("time"),
+        _make_col("end_use__electricity__heating__kwh"),
+    ]
+
+    def mock_execute(query):
+        if 'SELECT DISTINCT "upgrade", "state"' in query:
+            return pd.DataFrame({"upgrade": ["0", "0"], "state": ["CO", "NY"]})
+        if 'SELECT DISTINCT "time" FROM test_run_timeseries' in query:
+            return pd.DataFrame(
+                {"time": pd.to_datetime(["2018-01-01 00:00:00", "2018-01-01 01:00:00"]) }
+            )
+        return pd.DataFrame()
+
+    bsq.execute.side_effect = mock_execute
+    bsq._aws_athena.start_query_execution.return_value = {"QueryExecutionId": "query-id"}
+    bsq._aws_athena.get_query_execution.return_value = {
+        "QueryExecution": {"Status": {"State": "SUCCEEDED"}}
+    }
+    bsq._aws_athena.get_work_group.return_value = {
+        "WorkGroup": {
+            "Configuration": {
+                "ResultConfiguration": {
+                    "OutputLocation": "s3://bucket/workgroup-default/"
+                }
+            }
+        }
+    }
+    mock_boto3_client.return_value.get_table.return_value = {
+        "Table": {
+            "StorageDescriptor": {"Location": "s3://bucket/workgroup-default/tables/test_run_ts_by_state/"}
+        }
+    }
+
+    create_materialized_final_timeseries_table(
+        bsq,
+        s3_output_location="s3://bucket/requested-destination/",
+        upgrade_filter="0",
+    )
+
+    ctas_sql = bsq._aws_athena.start_query_execution.call_args_list[0].kwargs["QueryString"]
+    assert "partitioned_by = ARRAY['upgrade', 'state']" in ctas_sql
+    assert "WHERE \"upgrade\" = '0'" in ctas_sql
+    assert "AND \"state\" = 'CO'" in ctas_sql or "AND \"state\" = 'NY'" in ctas_sql
+    assert "external_location = 's3://bucket/requested-destination/" not in ctas_sql
+    assert "external_location = 's3://bucket/workgroup-default/" in ctas_sql
 
 
 @pytest.fixture

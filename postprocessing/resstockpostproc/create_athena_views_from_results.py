@@ -43,12 +43,16 @@ Usage
     # [3] Pre-aggregate raw timeseries to hourly and build view on top of it:
     # useful for large sample datasets
     python create_athena_views_from_results.py -d my_database -t my_table \\
-        -m s3://bucket/path/to/my_table_timeseries_hourly/
+        --materialize-intermediate s3://bucket/path/to/my_table_timeseries_hourly/
+
+    # [4] Materialize the final transformed OEDI timeseries output to a previewable Athena table:
+    python create_athena_views_from_results.py -d my_database -t my_table \\
+        --materialize-final s3://bucket/path/to/my_table_ts_by_state/
 
     # Note: run above code with a --check-materialized flag to validate
     # the hourly materialized table before creating the view:
     python create_athena_views_from_results.py -d my_database -t my_table \\
-        -m s3://bucket/path/to/my_table_timeseries_hourly/ --check-materialized
+        --materialize-intermediate s3://bucket/path/to/my_table_timeseries_hourly/ --check-materialized
 
 
 Flags
@@ -64,7 +68,7 @@ Flags
   -r, --reduced-workflow        Use reduced column mapping (pass-through unmapped columns, skip intensity calculations).
   -s, --skip-period-adjustment  Skip the EST/period-beginning timestamp adjustment and keep source timestamps as-is.
   -b, --baseline-view           Create only the baseline view from <table>_pub_annual or <table>_baseline.
-  -m, --materialize-intermediate S3_LOCATION
+  --materialize-intermediate S3_LOCATION
                                 Arg for timeseries view creation only.
                                 Pre-aggregate the raw timeseries to hourly via Athena CTAS,
                                 writing Parquet to S3_LOCATION and registering a Glue table
@@ -76,6 +80,11 @@ Flags
                                 Run validation checks on the materialized table after creation.
                                 If existing materialized table is invalid, it will be dropped. Rerun code to rebuild it.
                                 If the materialized table does not exist, it will be created and validated before creating the view.
+  -m, --materialize-final S3_LOCATION
+                                Arg for timeseries view creation only.
+                                Materialize the final transformed OEDI timeseries query into a partitioned
+                                Athena table named <table>_ts_by_state for previewability. If omitted,
+                                the workgroup default output location is used.
   -u, --upgrade-filter <FILTER> Arg for timeseries view creation only.
                                 Apply an upgrade filter to the materialized table, if needed.
                                 Default to all, meaning no filter is applied.
@@ -97,6 +106,9 @@ Optional steps for handling large datasets:
 
 - Pre-aggregate the raw timeseries to hourly via Athena CTAS, writing Parquet 
   to S3 and registering a Glue table.
+
+- Materialize the final transformed OEDI timeseries result to a previewable Athena
+  table via --materialize-final when a final materialized output is desired.
 
 - Run validation checks on the materialized table after creation or if table exists 
   to ensure data integrity. Table is dropped if validation fails. User can rerun the script to 
@@ -1195,6 +1207,54 @@ def create_query_oedi_timeseries(
     return select_sql_expr, output_columns
 
 
+def _resolve_materialization_location(
+    bsq: BuildStockQuery,
+    requested_location: Optional[str],
+    table_name: str,
+    materialization_kind: str,
+) -> Optional[str]:
+    """Normalize a requested output location and avoid silent workgroup overrides.
+
+    Athena workgroups can enforce a centralized ResultConfiguration.OutputLocation.
+    When that setting differs from a caller-supplied external_location, Athena
+    ignores the request and writes to the workgroup location instead. To avoid
+    that silent override, prefer the workgroup default whenever it conflicts with
+    the requested path.
+    """
+    normalized = (
+        (requested_location if requested_location.endswith("/") else requested_location + "/")
+        if requested_location
+        else None
+    )
+    if normalized is None:
+        return None
+
+    try:
+        workgroup_info = bsq._aws_athena.get_work_group(WorkGroup=bsq.workgroup)
+        default_location = workgroup_info["WorkGroup"]["Configuration"][
+            "ResultConfiguration"
+        ].get("OutputLocation")
+        if default_location and default_location.rstrip("/") != normalized.rstrip("/"):
+            logger.warning(
+                "Workgroup '%s' is configured with output location '%s'; it will override the requested %s location '%s'. "
+                "Using the workgroup location instead to avoid a silent override.",
+                bsq.workgroup,
+                default_location,
+                materialization_kind,
+                normalized,
+            )
+            return None
+    except (KeyError, ClientError) as exc:
+        logger.warning(
+            "Could not determine workgroup output location for %s materialization '%s'; using the requested location when possible: %s",
+            materialization_kind,
+            table_name,
+            exc,
+        )
+
+    return normalized
+
+
 def create_materialized_hourly_timeseries_table(
     bsq: BuildStockQuery,
     s3_output_location: Optional[str] = None,
@@ -1306,10 +1366,11 @@ def create_materialized_hourly_timeseries_table(
         else:
             select_exprs.append(f'"{partition_col}"')
 
-    s3_loc = (
-        (s3_output_location if s3_output_location.endswith("/") else s3_output_location + "/")
-        if s3_output_location
-        else None
+    s3_loc = _resolve_materialization_location(
+        bsq,
+        s3_output_location,
+        hourly_table,
+        "hourly",
     )
     if s3_loc is None:
         try:
@@ -1460,6 +1521,191 @@ def create_materialized_hourly_timeseries_table(
             hourly_table, actual_location,
         )
     return hourly_table
+
+
+def create_materialized_final_timeseries_table(
+    bsq: BuildStockQuery,
+    s3_output_location: Optional[str] = None,
+    upgrade_filter: Optional[str] = None,
+    hourly_table: Optional[str] = None,
+    simple_workflow: bool = False,
+    skip_period_adjustment: bool = False,
+) -> str:
+    """Materialize the final transformed timeseries SQL as a partitioned table.
+
+    This creates a preview-friendly Athena table named
+    ``<table>_ts_by_state`` from the final OEDI transform. It works whether
+    the input is the raw timeseries table or a previously materialized hourly
+    table, and it can be restricted to a single upgrade value using
+    ``upgrade_filter``.
+    """
+    table_name = bsq.table_name
+    final_table = f"{table_name}_ts_by_state"
+
+    existing = list_tables_boto3(
+        bsq.db_name, bsq.workgroup, region_name=bsq.run_params.region_name
+    )
+    if final_table in existing:
+        logger.info(
+            "Materialized final table '%s' already exists — skipping CTAS. Delete it to regenerate.",
+            final_table,
+        )
+        return final_table
+
+    columns = [c.name for c in bsq.ts_table.columns]
+    has_upgrade = "upgrade" in columns
+    partition_cols = _get_partition_columns(bsq)
+    materialized_partition_cols = [
+        col for col in partition_cols if col not in {"building_id", "time", "timeutc"}
+    ]
+    if has_upgrade and "upgrade" not in materialized_partition_cols:
+        materialized_partition_cols.append("upgrade")
+
+    source_table = hourly_table if hourly_table is not None else f"{table_name}_timeseries"
+    final_select_sql, output_columns = create_query_oedi_timeseries(
+        bsq,
+        simple_workflow=simple_workflow,
+        hourly_table=hourly_table,
+        skip_period_adjustment=skip_period_adjustment,
+    )
+    final_output_cols = [col["name"] for col in output_columns]
+    partition_cols_set = set(materialized_partition_cols)
+    ordered_final_cols = [
+        name for name in final_output_cols if name not in partition_cols_set
+    ] + [name for name in final_output_cols if name in partition_cols_set]
+
+    def _sql_literal(value: object) -> str:
+        return "'" + str(value).replace("'", "''") + "'"
+
+    if materialized_partition_cols:
+        partition_select = ", ".join(f'"{col}"' for col in materialized_partition_cols)
+        filters = []
+        if has_upgrade and upgrade_filter is not None and str(upgrade_filter).lower() != "all":
+            upgrade_literal = _sql_literal(upgrade_filter)
+            filters.append(f'"upgrade" = {upgrade_literal}')
+        where_sql = f" WHERE {' AND '.join(filters)}" if filters else ""
+        partition_values = list(
+            bsq.execute(
+                f"SELECT DISTINCT {partition_select} FROM {source_table}{where_sql}"
+            ).itertuples(index=False, name=None)
+        )
+    else:
+        partition_values = [()]
+
+    if not partition_values:
+        partition_values = [()]
+
+    def _select_for_partition(partition_values_tuple: tuple[object, ...]) -> str:
+        ordered_cols_sql = ", ".join(f'"{col}"' for col in ordered_final_cols)
+        sql = (
+            f"SELECT {ordered_cols_sql} FROM ({final_select_sql}) AS final_data"
+        )
+        where_filters = []
+        for col, value in zip(materialized_partition_cols, partition_values_tuple):
+            where_filters.append(f'"{col}" = {_sql_literal(value)}')
+        if where_filters:
+            sql += f" WHERE {' AND '.join(where_filters)}"
+        return sql
+
+    s3_loc = _resolve_materialization_location(
+        bsq,
+        s3_output_location,
+        final_table,
+        "final",
+    )
+    if s3_loc is None:
+        try:
+            workgroup_info = bsq._aws_athena.get_work_group(WorkGroup=bsq.workgroup)
+            default_location = workgroup_info["WorkGroup"]["Configuration"]["ResultConfiguration"].get("OutputLocation")
+            if default_location:
+                s3_loc = default_location.rstrip("/") + "/tables/" + final_table + "/"
+                logger.info(
+                    "Using workgroup default output location for final materialized table: '%s'.",
+                    s3_loc,
+                )
+        except (KeyError, ClientError) as exc:
+            logger.warning(
+                "Could not determine workgroup default output location for final materialized table; using Athena-managed location: %s",
+                exc,
+            )
+
+    def _run_query(query_string: str, label: str) -> None:
+        exe_id = bsq._aws_athena.start_query_execution(
+            QueryString=query_string,
+            QueryExecutionContext={"Database": bsq.db_name},
+            WorkGroup=bsq.workgroup,
+        )["QueryExecutionId"]
+        while True:
+            stat = bsq._aws_athena.get_query_execution(QueryExecutionId=exe_id)
+            state = stat["QueryExecution"]["Status"]["State"]
+            if state in ("SUCCEEDED", "FAILED", "CANCELLED"):
+                break
+            time.sleep(5)
+        if state != "SUCCEEDED":
+            reason = stat["QueryExecution"]["Status"].get("StateChangeReason", "")
+            msg = f"{label} {state}: {reason}"
+            raise RuntimeError(msg)
+
+    partitioned_by = ", ".join(f"'{col}'" for col in materialized_partition_cols)
+    with_loc = (
+        f"format = 'PARQUET',\n        external_location = '{s3_loc}',\n        partitioned_by = ARRAY[{partitioned_by}]"
+        if s3_loc
+        else f"format = 'PARQUET',\n        partitioned_by = ARRAY[{partitioned_by}]"
+    )
+    ctas_sql = (
+        f"CREATE TABLE {bsq.db_name}.{final_table}\n"
+        f"    WITH (\n        {with_loc}\n    )\n"
+        f"    AS\n    {_select_for_partition(partition_values[0])}"
+    )
+    logger.info(
+        "CTAS final materialization [1/%d] upgrade=%s%s",
+        len(partition_values),
+        upgrade_filter if upgrade_filter is not None else "all",
+        f" at '{s3_loc}'" if s3_loc else " (workgroup default output location)",
+    )
+    try:
+        _run_query(ctas_sql, "CTAS final materialization")
+    except ClientError as e:
+        if (
+            e.response["Error"]["Code"] == "InvalidRequestException"
+            and "external_location" in e.response["Error"]["Message"]
+            and s3_loc is not None
+        ):
+            logger.warning(
+                "Workgroup '%s' enforces a centralized output location — retrying final CTAS without 'external_location'.",
+                bsq.workgroup,
+            )
+            ctas_sql_no_loc = (
+                f"CREATE TABLE {bsq.db_name}.{final_table}\n"
+                f"    WITH (\n        format = 'PARQUET',\n        partitioned_by = ARRAY[{partitioned_by}]\n    )\n"
+                f"    AS\n    {_select_for_partition(partition_values[0])}"
+            )
+            _run_query(ctas_sql_no_loc, "CTAS final materialization")
+        else:
+            raise
+
+    for index, values in enumerate(partition_values[1:], start=2):
+        insert_sql = (
+            f"INSERT INTO {bsq.db_name}.{final_table}\n"
+            f"    {_select_for_partition(values)}"
+        )
+        logger.info(
+            "INSERT final materialization [%d/%d] upgrade=%s",
+            index,
+            len(partition_values),
+            upgrade_filter or "all",
+        )
+        _run_query(insert_sql, "INSERT final materialization")
+
+    glue = boto3.client("glue", region_name=bsq.run_params.region_name)
+    table_info = glue.get_table(DatabaseName=bsq.db_name, Name=final_table)
+    actual_location = table_info["Table"]["StorageDescriptor"]["Location"]
+    logger.info(
+        "Materialized final table '%s' created successfully at '%s'.",
+        final_table,
+        actual_location,
+    )
+    return final_table
 
 
 def _drop_materialized_hourly_table(bsq: BuildStockQuery, hourly_table: str) -> None:
@@ -2541,7 +2787,6 @@ def main() -> None:
         help="Create only the baseline view (SELECT * FROM <table>_pub_annual).",
     )
     parser.add_argument(
-        "-m",
         "--materialize-intermediate",
         nargs="?",
         const=True,
@@ -2557,6 +2802,20 @@ def main() -> None:
             "default output path is used. All upgrades are materialized by default; use "
             "--upgrade-filter 0 to select only upgrade 0. Delete an existing hourly "
             "table to regenerate it."
+        ),
+    )
+    parser.add_argument(
+        "-m",
+        "--materialize-final",
+        nargs="?",
+        const=True,
+        metavar="S3_LOCATION",
+        default=None,
+        help=(
+            "Materialize the final transformed OEDI timeseries query as a partitioned "
+            "Athena table named <table>_ts_by_state. This provides a previewable "
+            "final table even when the final view is too expensive to scan repeatedly. "
+            "When omitted, the workgroup default output location is used."
         ),
     )
     parser.add_argument(
@@ -2594,6 +2853,7 @@ def main() -> None:
     logger.info(f"  skip-period-adjustment: {args.skip_period_adjustment}")
     logger.info(f"  baseline-view: {args.baseline_view}")
     logger.info(f"  materialize-intermediate: {args.materialize_intermediate}")
+    logger.info(f"  materialize-final: {args.materialize_final}")
     logger.info(f"  check-materialized: {args.check_materialized}")
     logger.info("=" * 60)
     
@@ -2603,6 +2863,7 @@ def main() -> None:
     logger.info(f"  reduced_workflow={args.reduced_workflow}, baseline_view={args.baseline_view}, skip_period_adjustment={args.skip_period_adjustment}")
     logger.info(f"  force={args.force}, check={args.check}")
     logger.info(f"  materialize_intermediate={args.materialize_intermediate}")
+    logger.info(f"  materialize_final={args.materialize_final}")
     logger.info(f"  check_materialized={args.check_materialized}")
     logger.info(f"  upgrade_filter={args.upgrade_filter}")
 
@@ -2668,8 +2929,9 @@ def main() -> None:
         region_name=args.region,
     )
 
+    ts_output_type = "table" if args.materialize_final else "view"
     logger.debug("-" * 60)
-    logger.info("Creating view from raw result tables...")
+    logger.info(f"Creating {ts_output_type} from raw result tables...")
     logger.debug("-" * 60)
 
     if args.baseline_view:
@@ -2679,11 +2941,11 @@ def main() -> None:
         logger.info(f"Successfully created baseline view: {bl_view_name}")
         if args.check:
             check_view_oedi_baseline(bsq, view_name=bl_view_name)
-        logger.info("Baseline-only mode enabled; skipping timeseries view creation.")
+        logger.info(f"Baseline-only mode enabled; skipping timeseries {ts_output_type} creation.")
         return
 
     ts_view_name = f"{args.table}{TS_VIEW_SUFFIX}"
-    logger.info(f"Creating timeseries view: {ts_view_name}")
+    logger.info(f"Creating timeseries {ts_output_type}: {ts_view_name}")
 
     hourly_table = None
     if args.materialize_intermediate is not None or args.check_materialized:
@@ -2744,20 +3006,53 @@ def main() -> None:
                 raise RuntimeError(msg) from None
         logger.info("Intermediate table ready: '%s'", hourly_table)
 
-    create_view_oedi_timeseries(
-        bsq,
-        view_name=ts_view_name,
-        simple_workflow=args.reduced_workflow,
-        force=args.force,
-        hourly_table=hourly_table,
-        skip_period_adjustment=args.skip_period_adjustment,
-    )
-    logger.info(f"Successfully created timeseries view: {ts_view_name}")
-    
-    if args.check:
-        logger.info(f"Running validation checks on view: {ts_view_name}")
-        check_view_oedi_timeseries(bsq, view_name=ts_view_name, simple_workflow=args.reduced_workflow)
-        logger.info(f"Validation checks completed for view: {ts_view_name}")
+    if args.materialize_final is not None:
+        final_s3_loc = (
+            args.materialize_final
+            if isinstance(args.materialize_final, str)
+            else None
+        )
+        final_table = create_materialized_final_timeseries_table(
+            bsq,
+            s3_output_location=final_s3_loc,
+            upgrade_filter=(
+                None
+                if args.upgrade_filter is None or args.upgrade_filter.lower() == "all"
+                else args.upgrade_filter
+            ),
+            hourly_table=hourly_table,
+            simple_workflow=args.reduced_workflow,
+            skip_period_adjustment=args.skip_period_adjustment,
+        )
+        logger.info("Final materialized table ready: '%s'", final_table)
+
+        if args.check:
+            logger.info("Running validation checks on materialized final table: %s", final_table)
+            check_view_oedi_timeseries(
+                bsq,
+                view_name=final_table,
+                simple_workflow=args.reduced_workflow,
+            )
+            logger.info("Validation checks completed for materialized final table: %s", final_table)
+    else:
+        create_view_oedi_timeseries(
+            bsq,
+            view_name=ts_view_name,
+            simple_workflow=args.reduced_workflow,
+            force=args.force,
+            hourly_table=hourly_table,
+            skip_period_adjustment=args.skip_period_adjustment,
+        )
+        logger.info(f"Successfully created timeseries view: {ts_view_name}")
+
+        if args.check:
+            logger.info(f"Running validation checks on view: {ts_view_name}")
+            check_view_oedi_timeseries(
+                bsq,
+                view_name=ts_view_name,
+                simple_workflow=args.reduced_workflow,
+            )
+            logger.info(f"Validation checks completed for view: {ts_view_name}")
     
     logger.info("create_athena_views_from_results script completed successfully")
     logger.info("=" * 60)
