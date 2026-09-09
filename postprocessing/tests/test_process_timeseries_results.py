@@ -229,6 +229,68 @@ def test_materialized_hourly_table_fans_out_all_upgrades(
 
 
 @patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.boto3.client"
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.list_tables_boto3",
+    return_value=["test_run_timeseries_hourly"],
+)
+def test_materialized_hourly_table_force_resumes_missing_partitions(
+    mock_list_tables, mock_boto3_client
+):
+    bsq = MagicMock()
+    bsq.table_name = "test_run"
+    bsq.db_name = "test_database"
+    bsq.workgroup = "test_workgroup"
+    bsq.run_params.region_name = "us-west-2"
+    bsq.ts_table.columns = [
+        _make_col("building_id"),
+        _make_col("upgrade", partition=True),
+        _make_col("state", partition=True),
+        _make_col("time"),
+        _make_col("end_use__natural_gas__heating__therm"),
+    ]
+
+    def mock_execute(query):
+        if 'SELECT DISTINCT "time" FROM test_run_timeseries' in query:
+            return pd.DataFrame(
+                {"time": pd.to_datetime(["2018-01-01 00:00:00", "2018-01-01 01:00:00"])}
+            )
+        if 'SELECT DISTINCT "state" FROM test_run_timeseries_hourly' in query:
+            return pd.DataFrame({"state": ["CO"]})
+        if 'SELECT DISTINCT "state" FROM test_run_timeseries' in query:
+            return pd.DataFrame({"state": ["CO", "NY"]})
+        return pd.DataFrame()
+
+    bsq.execute.side_effect = mock_execute
+    bsq._aws_athena.start_query_execution.return_value = {"QueryExecutionId": "query-id"}
+    bsq._aws_athena.get_query_execution.return_value = {
+        "QueryExecution": {"Status": {"State": "SUCCEEDED"}}
+    }
+    mock_boto3_client.return_value.get_table.return_value = {
+        "Table": {
+            "StorageDescriptor": {"Location": "s3://bucket/workgroup-default/tables/test_run_timeseries_hourly/"}
+        }
+    }
+
+    create_materialized_hourly_timeseries_table(
+        bsq,
+        upgrade_filter="0",
+        force=True,
+    )
+
+    queries = [
+        call.kwargs["QueryString"]
+        for call in bsq._aws_athena.start_query_execution.call_args_list
+    ]
+    assert len(queries) == 1
+    assert queries[0].startswith("INSERT INTO test_database.test_run_timeseries_hourly")
+    assert "CREATE TABLE" not in queries[0]
+    assert "AND \"state\" = 'NY'" in queries[0]
+    assert "AND \"state\" = 'CO'" not in queries[0]
+
+
+@patch(
     "postprocessing.resstockpostproc.create_athena_views_from_results.check_view_oedi_timeseries"
 )
 @patch(
@@ -358,6 +420,68 @@ def test_materialized_final_table_uses_partitioned_ctas_and_workgroup_default(
     assert "AND \"state\" = 'CO'" in ctas_sql or "AND \"state\" = 'NY'" in ctas_sql
     assert "external_location = 's3://bucket/requested-destination/" not in ctas_sql
     assert "external_location = 's3://bucket/workgroup-default/" in ctas_sql
+
+
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.boto3.client"
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.list_tables_boto3",
+    return_value=["test_run_ts_by_state"],
+)
+def test_materialized_final_table_force_resumes_missing_partitions(
+    mock_list_tables, mock_boto3_client
+):
+    bsq = MagicMock()
+    bsq.table_name = "test_run"
+    bsq.db_name = "test_database"
+    bsq.workgroup = "test_workgroup"
+    bsq.run_params.region_name = "us-west-2"
+    bsq.ts_table.columns = [
+        _make_col("building_id"),
+        _make_col("upgrade", partition=True),
+        _make_col("state", partition=True),
+        _make_col("time"),
+        _make_col("end_use__electricity__heating__kwh"),
+    ]
+
+    def mock_execute(query):
+        if 'SELECT DISTINCT "upgrade", "state" FROM test_run_timeseries' in query:
+            return pd.DataFrame({"upgrade": ["0", "0"], "state": ["CO", "NY"]})
+        if 'SELECT DISTINCT "upgrade", "state" FROM test_run_ts_by_state' in query:
+            return pd.DataFrame({"upgrade": ["0"], "state": ["CO"]})
+        if 'SELECT DISTINCT "time" FROM test_run_timeseries' in query:
+            return pd.DataFrame(
+                {"time": pd.to_datetime(["2018-01-01 00:00:00", "2018-01-01 01:00:00"])}
+            )
+        return pd.DataFrame()
+
+    bsq.execute.side_effect = mock_execute
+    bsq._aws_athena.start_query_execution.return_value = {"QueryExecutionId": "query-id"}
+    bsq._aws_athena.get_query_execution.return_value = {
+        "QueryExecution": {"Status": {"State": "SUCCEEDED"}}
+    }
+    mock_boto3_client.return_value.get_table.return_value = {
+        "Table": {
+            "StorageDescriptor": {"Location": "s3://bucket/workgroup-default/tables/test_run_ts_by_state/"}
+        }
+    }
+
+    create_materialized_final_timeseries_table(
+        bsq,
+        upgrade_filter="0",
+        force=True,
+    )
+
+    queries = [
+        call.kwargs["QueryString"]
+        for call in bsq._aws_athena.start_query_execution.call_args_list
+    ]
+    assert len(queries) == 1
+    assert queries[0].startswith("INSERT INTO test_database.test_run_ts_by_state")
+    assert "CREATE TABLE" not in queries[0]
+    assert "AND \"state\" = 'NY'" in queries[0]
+    assert "AND \"state\" = 'CO'" not in queries[0]
 
 
 @pytest.fixture

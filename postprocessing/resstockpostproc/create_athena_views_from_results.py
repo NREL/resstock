@@ -49,10 +49,10 @@ Usage
     python create_athena_views_from_results.py -d my_database -t my_table \\
         --materialize-final s3://bucket/path/to/my_table_ts_by_state/
 
-    # Note: run above code with a --check-materialized flag to validate
+    # Note: run above code with a --check-intermediate flag to validate
     # the hourly materialized table before creating the view:
     python create_athena_views_from_results.py -d my_database -t my_table \\
-        --materialize-intermediate s3://bucket/path/to/my_table_timeseries_hourly/ --check-materialized
+        --materialize-intermediate s3://bucket/path/to/my_table_timeseries_hourly/ --check-intermediate
 
 
 Flags
@@ -63,7 +63,7 @@ Flags
   -l, --s3-location             S3 path to raw data (for creating Athena/external tables).
   --region                     AWS region (default: us-west-2).
   -i, --input-format            Source data format (default: PARQUET).
-  -f, --force                   Overwrite existing views.
+    -f, --force                   Overwrite existing views; resume missing partitions for existing materialized tables.
   -c, --check                   Run validation checks on the timeseries view after creation.
   -r, --reduced-workflow        Use reduced column mapping (pass-through unmapped columns, skip intensity calculations).
   -s, --skip-period-adjustment  Skip the EST/period-beginning timestamp adjustment and keep source timestamps as-is.
@@ -76,7 +76,7 @@ Flags
                                 this materialized table instead of the raw timeseries, so the
                                 expensive GROUP BY runs once rather than at every query.
                                 Existing materialized tables are reused; delete one to rebuild it.
-  --check-materialized          Arg for timeseries view creation only.
+  --check-intermediate          Arg for timeseries view creation only.
                                 Run validation checks on the materialized table after creation.
                                 If existing materialized table is invalid, it will be dropped. Rerun code to rebuild it.
                                 If the materialized table does not exist, it will be created and validated before creating the view.
@@ -146,9 +146,10 @@ No validation checks.
 ===================================================================================
 OCHRE-defrost project cmd for reference:
 
-uv run resstockpostproc/create_athena_views_from_results.py -w resstock-panels -d resstock_panels \\
-    -t sdr2025_r1_full_nodefco_15min_aug8 --reduced-workflow -s -f --check \\
-        -m s3://resstock-panels/ochre_runs/sdr2025_r1_full_nodefco_15min_aug8/timeseries_hourly/ --check-materialized
+uv run resstockpostproc/create_athena_views_from_results.py -w resstock-panels -d resstock_panels \
+    -t sdr2025_r1_full_nodefco_15min_aug8 --reduced-workflow -f --check \
+        --materialize-intermediate s3://resstock-panels/ochre_runs/sdr2025_r1_full_nodefco_15min_aug8/timeseries_hourly/ --check-intermediate \
+            -m s3://resstock-panels/ochre_runs/sdr2025_r1_full_nodefco_15min_aug8/timeseries_oedi/
 
 ===================================================================================
 
@@ -1259,6 +1260,7 @@ def create_materialized_hourly_timeseries_table(
     bsq: BuildStockQuery,
     s3_output_location: Optional[str] = None,
     upgrade_filter: Optional[str] = None,
+    force: bool = False,
 ) -> str:
     """Pre-aggregate the raw timeseries to hourly resolution via Athena CTAS.
 
@@ -1284,6 +1286,9 @@ def create_materialized_hourly_timeseries_table(
     str
         Name of the newly created (or pre-existing) Glue table.
 
+    When ``force`` is True and the target table already exists, the workflow
+    resumes by inserting only unfinished partitions.
+
     Raises
     ------
     RuntimeError
@@ -1292,12 +1297,12 @@ def create_materialized_hourly_timeseries_table(
     table_name = bsq.table_name
     hourly_table = f"{table_name}_timeseries_hourly"
 
-    existing = list_tables_boto3(
+    table_exists = hourly_table in list_tables_boto3(
         bsq.db_name, bsq.workgroup, region_name=bsq.run_params.region_name
     )
-    if hourly_table in existing:
+    if table_exists and not force:
         logger.info(
-            "Materialized table '%s' already exists — skipping CTAS. Delete it to regenerate.",
+            "Materialized table '%s' already exists — skipping CTAS. Use -f to resume missing partitions.",
             hourly_table,
         )
         return hourly_table
@@ -1440,6 +1445,41 @@ def create_materialized_hourly_timeseries_table(
     else:
         partition_values = [()]
 
+    if table_exists:
+        if split_partition_cols:
+            existing_partition_values = list(
+                bsq.execute(
+                    f"SELECT DISTINCT {partition_select} FROM {hourly_table}"
+                ).itertuples(index=False, name=None)
+            )
+            existing_partition_keys = {
+                tuple(str(value) for value in values)
+                for values in existing_partition_values
+            }
+            missing_partition_values = [
+                values
+                for values in partition_values
+                if tuple(str(value) for value in values) not in existing_partition_keys
+            ]
+            logger.info(
+                "Resuming materialized hourly table '%s': %d finished partition(s), %d unfinished partition(s).",
+                hourly_table,
+                len(existing_partition_values),
+                len(missing_partition_values),
+            )
+        else:
+            missing_partition_values = [()]
+            logger.info(
+                "Resuming unpartitioned materialized hourly table '%s' with INSERT INTO.",
+                hourly_table,
+            )
+
+        if not missing_partition_values:
+            logger.info("Materialized hourly table '%s' already has all expected partitions.", hourly_table)
+            return hourly_table
+    else:
+        missing_partition_values = partition_values
+
     def _run_query(query_string: str, label: str) -> None:
         """Submit an Athena query, wait for completion, raise on failure."""
         exe_id = bsq._aws_athena.start_query_execution(
@@ -1464,45 +1504,47 @@ def create_materialized_hourly_timeseries_table(
         if s3_loc
         else f"format = 'PARQUET',\n        partitioned_by = ARRAY[{partitioned_by}]"
     )
-    ctas_sql = (
-        f"CREATE TABLE {bsq.db_name}.{hourly_table}\n"
-        f"    WITH (\n        {with_loc}\n    )\n"
-        f"    AS\n    {_select_for_partition(partition_values[0])}"
-    )
-    logger.info(
-        "CTAS [1/%d] upgrade=%s%s",
-        len(partition_values),
-        upgrade_filter if upgrade_filter is not None else "all",
-        f" at '{s3_loc}'" if s3_loc else " (workgroup default output location)",
-    )
-    try:
-        _run_query(ctas_sql, "CTAS materialization")
-    except ClientError as e:
-        if (
-            e.response["Error"]["Code"] == "InvalidRequestException"
-            and "external_location" in e.response["Error"]["Message"]
-            and s3_loc is not None
-        ):
-            logger.warning(
-                "Workgroup '%s' enforces a centralized output location — "
-                "retrying CTAS without 'external_location'.",
-                bsq.workgroup,
-            )
-            ctas_sql_no_loc = (
-                f"CREATE TABLE {bsq.db_name}.{hourly_table}\n"
-                f"    WITH (\n        format = 'PARQUET',\n        partitioned_by = ARRAY[{partitioned_by}]\n    )\n"
-                f"    AS\n    {_select_for_partition(partition_values[0])}"
-            )
-            _run_query(ctas_sql_no_loc, "CTAS materialization")
-        else:
-            raise
+    if not table_exists:
+        ctas_sql = (
+            f"CREATE TABLE {bsq.db_name}.{hourly_table}\n"
+            f"    WITH (\n        {with_loc}\n    )\n"
+            f"    AS\n    {_select_for_partition(missing_partition_values[0])}"
+        )
+        logger.info(
+            "CTAS [1/%d] upgrade=%s%s",
+            len(missing_partition_values),
+            upgrade_filter if upgrade_filter is not None else "all",
+            f" at '{s3_loc}'" if s3_loc else " (workgroup default output location)",
+        )
+        try:
+            _run_query(ctas_sql, "CTAS materialization")
+        except ClientError as e:
+            if (
+                e.response["Error"]["Code"] == "InvalidRequestException"
+                and "external_location" in e.response["Error"]["Message"]
+                and s3_loc is not None
+            ):
+                logger.warning(
+                    "Workgroup '%s' enforces a centralized output location — "
+                    "retrying CTAS without 'external_location'.",
+                    bsq.workgroup,
+                )
+                ctas_sql_no_loc = (
+                    f"CREATE TABLE {bsq.db_name}.{hourly_table}\n"
+                    f"    WITH (\n        format = 'PARQUET',\n        partitioned_by = ARRAY[{partitioned_by}]\n    )\n"
+                    f"    AS\n    {_select_for_partition(missing_partition_values[0])}"
+                )
+                _run_query(ctas_sql_no_loc, "CTAS materialization")
+            else:
+                raise
 
-    for index, values in enumerate(partition_values[1:], start=2):
+    insert_values = missing_partition_values if table_exists else missing_partition_values[1:]
+    for index, values in enumerate(insert_values, start=1 if table_exists else 2):
         insert_sql = (
             f"INSERT INTO {bsq.db_name}.{hourly_table}\n"
             f"    {_select_for_partition(values)}"
         )
-        logger.info("INSERT [%d/%d] upgrade=%s", index, len(partition_values), upgrade_filter or "all")
+        logger.info("INSERT [%d/%d] upgrade=%s", index, len(missing_partition_values), upgrade_filter or "all")
         _run_query(insert_sql, "INSERT materialization")
 
     # Resolve and log the actual S3 location from Glue.
@@ -1530,6 +1572,7 @@ def create_materialized_final_timeseries_table(
     hourly_table: Optional[str] = None,
     simple_workflow: bool = False,
     skip_period_adjustment: bool = False,
+    force: bool = False,
 ) -> str:
     """Materialize the final transformed timeseries SQL as a partitioned table.
 
@@ -1537,17 +1580,18 @@ def create_materialized_final_timeseries_table(
     ``<table>_ts_by_state`` from the final OEDI transform. It works whether
     the input is the raw timeseries table or a previously materialized hourly
     table, and it can be restricted to a single upgrade value using
-    ``upgrade_filter``.
+    ``upgrade_filter``. When ``force`` is True and the target table already
+    exists, the workflow resumes by inserting only unfinished partitions.
     """
     table_name = bsq.table_name
     final_table = f"{table_name}_ts_by_state"
 
-    existing = list_tables_boto3(
+    table_exists = final_table in list_tables_boto3(
         bsq.db_name, bsq.workgroup, region_name=bsq.run_params.region_name
     )
-    if final_table in existing:
+    if table_exists and not force:
         logger.info(
-            "Materialized final table '%s' already exists — skipping CTAS. Delete it to regenerate.",
+            "Materialized final table '%s' already exists — skipping CTAS. Use -f to resume missing partitions.",
             final_table,
         )
         return final_table
@@ -1594,6 +1638,41 @@ def create_materialized_final_timeseries_table(
 
     if not partition_values:
         partition_values = [()]
+
+    if table_exists:
+        if materialized_partition_cols:
+            existing_partition_values = list(
+                bsq.execute(
+                    f"SELECT DISTINCT {partition_select} FROM {final_table}"
+                ).itertuples(index=False, name=None)
+            )
+            existing_partition_keys = {
+                tuple(str(value) for value in values)
+                for values in existing_partition_values
+            }
+            missing_partition_values = [
+                values
+                for values in partition_values
+                if tuple(str(value) for value in values) not in existing_partition_keys
+            ]
+            logger.info(
+                "Resuming materialized final table '%s': %d finished partition(s), %d unfinished partition(s).",
+                final_table,
+                len(existing_partition_values),
+                len(missing_partition_values),
+            )
+        else:
+            missing_partition_values = [()]
+            logger.info(
+                "Resuming unpartitioned materialized final table '%s' with INSERT INTO.",
+                final_table,
+            )
+
+        if not missing_partition_values:
+            logger.info("Materialized final table '%s' already has all expected partitions.", final_table)
+            return final_table
+    else:
+        missing_partition_values = partition_values
 
     def _select_for_partition(partition_values_tuple: tuple[object, ...]) -> str:
         ordered_cols_sql = ", ".join(f'"{col}"' for col in ordered_final_cols)
@@ -1652,39 +1731,41 @@ def create_materialized_final_timeseries_table(
         if s3_loc
         else f"format = 'PARQUET',\n        partitioned_by = ARRAY[{partitioned_by}]"
     )
-    ctas_sql = (
-        f"CREATE TABLE {bsq.db_name}.{final_table}\n"
-        f"    WITH (\n        {with_loc}\n    )\n"
-        f"    AS\n    {_select_for_partition(partition_values[0])}"
-    )
-    logger.info(
-        "CTAS final materialization [1/%d] upgrade=%s%s",
-        len(partition_values),
-        upgrade_filter if upgrade_filter is not None else "all",
-        f" at '{s3_loc}'" if s3_loc else " (workgroup default output location)",
-    )
-    try:
-        _run_query(ctas_sql, "CTAS final materialization")
-    except ClientError as e:
-        if (
-            e.response["Error"]["Code"] == "InvalidRequestException"
-            and "external_location" in e.response["Error"]["Message"]
-            and s3_loc is not None
-        ):
-            logger.warning(
-                "Workgroup '%s' enforces a centralized output location — retrying final CTAS without 'external_location'.",
-                bsq.workgroup,
-            )
-            ctas_sql_no_loc = (
-                f"CREATE TABLE {bsq.db_name}.{final_table}\n"
-                f"    WITH (\n        format = 'PARQUET',\n        partitioned_by = ARRAY[{partitioned_by}]\n    )\n"
-                f"    AS\n    {_select_for_partition(partition_values[0])}"
-            )
-            _run_query(ctas_sql_no_loc, "CTAS final materialization")
-        else:
-            raise
+    if not table_exists:
+        ctas_sql = (
+            f"CREATE TABLE {bsq.db_name}.{final_table}\n"
+            f"    WITH (\n        {with_loc}\n    )\n"
+            f"    AS\n    {_select_for_partition(missing_partition_values[0])}"
+        )
+        logger.info(
+            "CTAS final materialization [1/%d] upgrade=%s%s",
+            len(missing_partition_values),
+            upgrade_filter if upgrade_filter is not None else "all",
+            f" at '{s3_loc}'" if s3_loc else " (workgroup default output location)",
+        )
+        try:
+            _run_query(ctas_sql, "CTAS final materialization")
+        except ClientError as e:
+            if (
+                e.response["Error"]["Code"] == "InvalidRequestException"
+                and "external_location" in e.response["Error"]["Message"]
+                and s3_loc is not None
+            ):
+                logger.warning(
+                    "Workgroup '%s' enforces a centralized output location — retrying final CTAS without 'external_location'.",
+                    bsq.workgroup,
+                )
+                ctas_sql_no_loc = (
+                    f"CREATE TABLE {bsq.db_name}.{final_table}\n"
+                    f"    WITH (\n        format = 'PARQUET',\n        partitioned_by = ARRAY[{partitioned_by}]\n    )\n"
+                    f"    AS\n    {_select_for_partition(missing_partition_values[0])}"
+                )
+                _run_query(ctas_sql_no_loc, "CTAS final materialization")
+            else:
+                raise
 
-    for index, values in enumerate(partition_values[1:], start=2):
+    insert_values = missing_partition_values if table_exists else missing_partition_values[1:]
+    for index, values in enumerate(insert_values, start=1 if table_exists else 2):
         insert_sql = (
             f"INSERT INTO {bsq.db_name}.{final_table}\n"
             f"    {_select_for_partition(values)}"
@@ -1692,7 +1773,7 @@ def create_materialized_final_timeseries_table(
         logger.info(
             "INSERT final materialization [%d/%d] upgrade=%s",
             index,
-            len(partition_values),
+            len(missing_partition_values),
             upgrade_filter or "all",
         )
         _run_query(insert_sql, "INSERT final materialization")
@@ -1727,7 +1808,7 @@ def _drop_materialized_hourly_table(bsq: BuildStockQuery, hourly_table: str) -> 
         raise RuntimeError(msg)
 
 
-def check_materialized_hourly_table(
+def check_intermediate_hourly_table(
     bsq: BuildStockQuery,
     hourly_table: str,
     expected_upgrade: Optional[str] = "0",
@@ -2760,7 +2841,10 @@ def main() -> None:
         "-f",
         "--force",
         action="store_true",
-        help="Overwrite existing view if it already exists.",
+        help=(
+            "Overwrite existing views. For --materialize-final, resume an existing "
+            "table by inserting only missing partitions."
+        ),
     )
     parser.add_argument(
         "-c",
@@ -2800,8 +2884,8 @@ def main() -> None:
             "GROUP BY aggregation at every query and making the view instantly "
             "previewable.  S3_LOCATION is optional: when omitted the workgroup's "
             "default output path is used. All upgrades are materialized by default; use "
-            "--upgrade-filter 0 to select only upgrade 0. Delete an existing hourly "
-            "table to regenerate it."
+            "--upgrade-filter 0 to select only upgrade 0. Use -f to resume missing "
+            "partitions in an existing hourly table."
         ),
     )
     parser.add_argument(
@@ -2815,11 +2899,12 @@ def main() -> None:
             "Materialize the final transformed OEDI timeseries query as a partitioned "
             "Athena table named <table>_ts_by_state. This provides a previewable "
             "final table even when the final view is too expensive to scan repeatedly. "
-            "When omitted, the workgroup default output location is used."
+            "When omitted, the workgroup default output location is used. Use -f to "
+            "resume missing partitions in an existing final table."
         ),
     )
     parser.add_argument(
-        "--check-materialized",
+        "--check-intermediate",
         action="store_true",
         help=(
             "Validate an existing or newly created materialized hourly table "
@@ -2854,7 +2939,7 @@ def main() -> None:
     logger.info(f"  baseline-view: {args.baseline_view}")
     logger.info(f"  materialize-intermediate: {args.materialize_intermediate}")
     logger.info(f"  materialize-final: {args.materialize_final}")
-    logger.info(f"  check-materialized: {args.check_materialized}")
+    logger.info(f"  check-intermediate: {args.check_intermediate}")
     logger.info("=" * 60)
     
     # Log execution parameters
@@ -2864,7 +2949,7 @@ def main() -> None:
     logger.info(f"  force={args.force}, check={args.check}")
     logger.info(f"  materialize_intermediate={args.materialize_intermediate}")
     logger.info(f"  materialize_final={args.materialize_final}")
-    logger.info(f"  check_materialized={args.check_materialized}")
+    logger.info(f"  check_intermediate={args.check_intermediate}")
     logger.info(f"  upgrade_filter={args.upgrade_filter}")
 
     # --- Try BuildStockQuery path first; fall back to boto3 if table missing ---
@@ -2948,7 +3033,7 @@ def main() -> None:
     logger.info(f"Creating timeseries {ts_output_type}: {ts_view_name}")
 
     hourly_table = None
-    if args.materialize_intermediate is not None or args.check_materialized:
+    if args.materialize_intermediate is not None or args.check_intermediate:
         # args.materialize_intermediate is either a string (S3 path supplied) or
         # True (flag given without a value — let the workgroup decide output path).
         s3_loc_arg = (
@@ -2974,15 +3059,16 @@ def main() -> None:
                 if args.upgrade_filter is None or args.upgrade_filter.lower() == "all"
                 else args.upgrade_filter
             ),
+            force=args.force,
         )
-        if args.check_materialized:
+        if args.check_intermediate:
             try:
                 expected_upgrade = (
                     None
                     if args.upgrade_filter is None or args.upgrade_filter.lower() == "all"
                     else args.upgrade_filter
                 )
-                check_materialized_hourly_table(
+                check_intermediate_hourly_table(
                     bsq,
                     hourly_table,
                     expected_upgrade=expected_upgrade,
@@ -3023,6 +3109,7 @@ def main() -> None:
             hourly_table=hourly_table,
             simple_workflow=args.reduced_workflow,
             skip_period_adjustment=args.skip_period_adjustment,
+            force=args.force,
         )
         logger.info("Final materialized table ready: '%s'", final_table)
 
