@@ -41,12 +41,21 @@ Usage
     python create_athena_views_from_results.py -d my_database -t my_table -s
 
     # [3] Pre-aggregate raw timeseries to hourly and build view on top of it:
-    # useful for large sample datasets
+    # useful for large sample datasets. Without -f, an existing hourly table is reused.
     python create_athena_views_from_results.py -d my_database -t my_table \\
         --materialize-intermediate s3://bucket/path/to/my_table_timeseries_hourly/
 
     # [4] Materialize the final transformed OEDI timeseries output to a previewable Athena table:
+    # without -f, an existing final table is reused and no missing partitions are added.
     python create_athena_views_from_results.py -d my_database -t my_table \\
+        --materialize-final s3://bucket/path/to/my_table_ts_by_state/
+
+    # Resume an interrupted materialized workflow:
+    # use -f with --materialize-intermediate and/or --materialize-final. The flag does
+    # not drop existing materialized tables; it compares target partition values to
+    # expected source partitions, preserves finished partitions, and appends only
+    # unfinished partitions with INSERT INTO. For views, -f still means overwrite.
+    python create_athena_views_from_results.py -d my_database -t my_table -f \
         --materialize-final s3://bucket/path/to/my_table_ts_by_state/
 
     # Note: run above code with a --check-intermediate flag to validate
@@ -63,7 +72,11 @@ Flags
   -l, --s3-location             S3 path to raw data (for creating Athena/external tables).
   --region                     AWS region (default: us-west-2).
   -i, --input-format            Source data format (default: PARQUET).
-    -f, --force                   Overwrite existing views; resume missing partitions for existing materialized tables.
+    -f, --force                   Overwrite existing views. With --materialize-intermediate
+                                                                and/or --materialize-final, resume existing materialized
+                                                                tables by preserving finished partitions and appending only
+                                                                missing partitions. Without -f, existing materialized tables
+                                                                are reused as-is and no partition backfill is attempted.
   -c, --check                   Run validation checks on the timeseries view after creation.
   -r, --reduced-workflow        Use reduced column mapping (pass-through unmapped columns, skip intensity calculations).
   -s, --skip-period-adjustment  Skip the EST/period-beginning timestamp adjustment and keep source timestamps as-is.
@@ -75,7 +88,9 @@ Flags
                                 <table>_timeseries_hourly.  The view is then built on top of
                                 this materialized table instead of the raw timeseries, so the
                                 expensive GROUP BY runs once rather than at every query.
-                                Existing materialized tables are reused; delete one to rebuild it.
+                                Without -f, an existing hourly table is reused as-is. With -f,
+                                finished hourly partitions are preserved and only missing
+                                hourly partitions are appended.
   --check-intermediate          Arg for timeseries view creation only.
                                 Run validation checks on the materialized table after creation.
                                 If existing materialized table is invalid, it will be dropped. Rerun code to rebuild it.
@@ -84,7 +99,9 @@ Flags
                                 Arg for timeseries view creation only.
                                 Materialize the final transformed OEDI timeseries query into a partitioned
                                 Athena table named <table>_ts_by_state for previewability. If omitted,
-                                the workgroup default output location is used.
+                                the workgroup default output location is used. Without -f, an
+                                existing final table is reused as-is. With -f, finished final
+                                partitions are preserved and only missing final partitions are appended.
   -u, --upgrade-filter <FILTER> Arg for timeseries view creation only.
                                 Apply an upgrade filter to the materialized table, if needed.
                                 Default to all, meaning no filter is applied.
@@ -105,14 +122,20 @@ Optional steps for handling large datasets:
   for baseline only), if needed, to reduce the amount of data processed.
 
 - Pre-aggregate the raw timeseries to hourly via Athena CTAS, writing Parquet 
-  to S3 and registering a Glue table.
+    to S3 and registering a Glue table. If the hourly table exists and -f is not
+    supplied, the table is reused as-is.
 
 - Materialize the final transformed OEDI timeseries result to a previewable Athena
-  table via --materialize-final when a final materialized output is desired.
+    table via --materialize-final when a final materialized output is desired. If
+    the final table exists and -f is not supplied, the table is reused as-is.
+
+- Resume interrupted hourly or final materialization with -f. The script checks
+    expected source partitions against partitions already present in the target
+    materialized table and appends only unfinished partitions with INSERT INTO.
 
 - Run validation checks on the materialized table after creation or if table exists 
-  to ensure data integrity. Table is dropped if validation fails. User can rerun the script to 
-  rebuild it.
+    to ensure data integrity. Intermediate hourly tables are dropped if validation
+    fails. User can rerun the script with -f to resume unfinished partitions.
 
 
 Main steps for timeseries view creation:
@@ -2810,7 +2833,10 @@ def main() -> None:
     )
     logger.info("Starting create_athena_views_from_results script")
     parser = argparse.ArgumentParser(
-        description="Create an Athena view from raw timeseries results."
+        description=(
+            "Create OEDI Athena views or partitioned materialized timeseries tables. "
+            "Use -f with materialized tables to resume missing partitions."
+        )
     )
     parser.add_argument(
         "-d", "--database", required=True, help="Athena/Glue database name."
@@ -2842,8 +2868,10 @@ def main() -> None:
         "--force",
         action="store_true",
         help=(
-            "Overwrite existing views. For --materialize-final, resume an existing "
-            "table by inserting only missing partitions."
+            "Overwrite existing views. With --materialize-intermediate or "
+            "--materialize-final, resume an existing materialized table by "
+            "preserving finished partitions and inserting only missing partitions. "
+            "Without -f, existing materialized tables are reused as-is."
         ),
     )
     parser.add_argument(
@@ -2884,8 +2912,9 @@ def main() -> None:
             "GROUP BY aggregation at every query and making the view instantly "
             "previewable.  S3_LOCATION is optional: when omitted the workgroup's "
             "default output path is used. All upgrades are materialized by default; use "
-            "--upgrade-filter 0 to select only upgrade 0. Use -f to resume missing "
-            "partitions in an existing hourly table."
+            "--upgrade-filter 0 to select only upgrade 0. Without -f, an existing "
+            "hourly table is reused as-is. Use -f to resume missing partitions in "
+            "an existing hourly table."
         ),
     )
     parser.add_argument(
@@ -2899,8 +2928,9 @@ def main() -> None:
             "Materialize the final transformed OEDI timeseries query as a partitioned "
             "Athena table named <table>_ts_by_state. This provides a previewable "
             "final table even when the final view is too expensive to scan repeatedly. "
-            "When omitted, the workgroup default output location is used. Use -f to "
-            "resume missing partitions in an existing final table."
+            "When omitted, the workgroup default output location is used. Without -f, "
+            "an existing final table is reused as-is. Use -f to resume missing "
+            "partitions in an existing final table."
         ),
     )
     parser.add_argument(
@@ -2908,7 +2938,9 @@ def main() -> None:
         action="store_true",
         help=(
             "Validate an existing or newly created materialized hourly table "
-            "before creating the timeseries view; delete it automatically if validation fails."
+            "before creating the timeseries view or final table; delete it "
+            "automatically if validation fails. Combine with -f to resume missing "
+            "hourly partitions before validation."
         ),
     )
     parser.add_argument(
