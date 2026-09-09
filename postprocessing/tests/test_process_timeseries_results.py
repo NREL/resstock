@@ -22,8 +22,10 @@ from postprocessing.resstockpostproc.create_athena_views_from_results import (
     _build_wrap_time_to_sim_year_sql_expr,
     _get_column_mapping_config,
     _reformat_raw_column,
-    _UNIT_CONVERSIONS,
+    UNIT_CONVERSIONS as _UNIT_CONVERSIONS,
     create_query_oedi_timeseries,
+    create_query_oedi_baseline_from_pub_annual,
+    create_materialized_hourly_timeseries_table,
     _get_county_utc_offset,
     _read_options_lookup,
     options_lookup_file,
@@ -39,6 +41,189 @@ def _make_col(name, partition=False):
     ns = SimpleNamespace(name=name)
     ns.dialect_options = {"awsathena": {"partition": partition}} if partition else {}
     return ns
+
+
+@patch("postprocessing.resstockpostproc.create_athena_views_from_results.boto3.client")
+def test_baseline_query_skips_list_typed_columns(mock_boto3_client):
+    bsq = MagicMock()
+    bsq.table_name = "test_run"
+    bsq.db_name = "test_database"
+    bsq.run_params.region_name = "us-west-2"
+    mock_boto3_client.return_value.get_table.return_value = {
+        "Table": {
+            "StorageDescriptor": {
+                "Columns": [
+                    {"Name": "building_id", "Type": "bigint"},
+                    {"Name": "in.representative_income", "Type": "type:[float]"},
+                    {"Name": "in.sqft", "Type": "double"},
+                ]
+            }
+        }
+    }
+
+    query = create_query_oedi_baseline_from_pub_annual(bsq)
+
+    assert '"building_id"' in query
+    assert '"in.sqft"' in query
+    assert '"in.representative_income"' not in query
+
+
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.boto3.client"
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.list_tables_boto3",
+    return_value=[],
+)
+def test_materialized_hourly_table_adds_upgrade_when_missing(
+    mock_list_tables, mock_boto3_client
+):
+    bsq = MagicMock()
+    bsq.table_name = "test_run"
+    bsq.db_name = "test_database"
+    bsq.workgroup = "test_workgroup"
+    bsq.run_params.region_name = "us-west-2"
+    bsq.ts_table.columns = [
+        _make_col("building_id"),
+        _make_col("time"),
+        _make_col("end_use__electricity__heating__kwh"),
+        _make_col("end_use__natural_gas__heating__therm"),
+    ]
+    bsq.execute.return_value = pd.DataFrame(
+        {"time": pd.to_datetime(["2018-01-01 00:00:00", "2018-01-01 00:15:00"])}
+    )
+    bsq._aws_athena.start_query_execution.return_value = {"QueryExecutionId": "query-id"}
+    bsq._aws_athena.get_query_execution.return_value = {
+        "QueryExecution": {"Status": {"State": "SUCCEEDED"}}
+    }
+    bsq._aws_athena.get_work_group.return_value = {
+        "WorkGroup": {
+            "Configuration": {
+                "ResultConfiguration": {
+                    "OutputLocation": "s3://bucket/query-results/"
+                }
+            }
+        }
+    }
+    mock_boto3_client.return_value.get_table.return_value = {
+        "Table": {"StorageDescriptor": {"Location": "s3://bucket/test_run_timeseries_hourly/"}}
+    }
+
+    create_materialized_hourly_timeseries_table(bsq)
+
+    ctas_sql = bsq._aws_athena.start_query_execution.call_args_list[0].kwargs[
+        "QueryString"
+    ]
+    assert 'CAST(0 AS INTEGER) AS "upgrade"' in ctas_sql
+    assert 'partitioned_by = ARRAY[\'upgrade\']' in ctas_sql
+    assert 'WHERE "upgrade"' not in ctas_sql
+    assert 'GROUP BY "building_id", DATE_TRUNC(\'hour\', "time")' in ctas_sql
+    assert 'SUM("end_use__natural_gas__heating__therm")' in ctas_sql
+    assert "external_location = 's3://bucket/query-results/tables/test_run_timeseries_hourly/'" in ctas_sql
+    assert bsq.execute.call_args.args[0] == (
+        'SELECT DISTINCT "time" FROM test_run_timeseries ORDER BY 1 LIMIT 2'
+    )
+
+
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.boto3.client"
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.list_tables_boto3",
+    return_value=[],
+)
+def test_materialized_hourly_table_projects_hourly_source_by_partition(
+    mock_list_tables, mock_boto3_client
+):
+    bsq = MagicMock()
+    bsq.table_name = "test_run"
+    bsq.db_name = "test_database"
+    bsq.workgroup = "test_workgroup"
+    bsq.run_params.region_name = "us-west-2"
+    bsq.ts_table.columns = [
+        _make_col("building_id"),
+        _make_col("upgrade", partition=True),
+        _make_col("state", partition=True),
+        _make_col("time"),
+        _make_col("end_use__natural_gas__heating__therm"),
+    ]
+    bsq.execute.side_effect = [
+        pd.DataFrame(
+            {"time": pd.to_datetime(["2018-01-01 00:00:00", "2018-01-01 01:00:00"])}
+        ),
+        pd.DataFrame({"state": ["CO", "NY"]}),
+    ]
+    bsq._aws_athena.start_query_execution.return_value = {"QueryExecutionId": "query-id"}
+    bsq._aws_athena.get_query_execution.return_value = {
+        "QueryExecution": {"Status": {"State": "SUCCEEDED"}}
+    }
+    mock_boto3_client.return_value.get_table.return_value = {
+        "Table": {"StorageDescriptor": {"Location": "s3://bucket/test_run_timeseries_hourly/"}}
+    }
+
+    create_materialized_hourly_timeseries_table(
+        bsq,
+        "s3://bucket/test_run_timeseries_hourly",
+        upgrade_filter="0",
+    )
+
+    queries = [
+        call.kwargs["QueryString"]
+        for call in bsq._aws_athena.start_query_execution.call_args_list
+    ]
+    ctas_sql, insert_sql = queries
+    assert 'WHERE "upgrade" = \'0\'' in ctas_sql
+    assert 'AND "state" = \'CO\'' in ctas_sql
+    assert "partitioned_by = ARRAY['upgrade', 'state']" in ctas_sql
+    assert '"upgrade", "state"' in ctas_sql
+    assert 'DATE_TRUNC' not in ctas_sql
+    assert 'GROUP BY' not in ctas_sql
+    assert 'SUM(' not in ctas_sql
+    assert 'AVG(' not in ctas_sql
+    assert 'INSERT INTO test_database.test_run_timeseries_hourly' in insert_sql
+    assert 'AND "state" = \'NY\'' in insert_sql
+    assert bsq._aws_athena.start_query_execution.call_count == 2
+
+
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.boto3.client"
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.list_tables_boto3",
+    return_value=[],
+)
+def test_materialized_hourly_table_fans_out_all_upgrades(
+    mock_list_tables, mock_boto3_client
+):
+    bsq = MagicMock()
+    bsq.table_name = "test_run"
+    bsq.db_name = "test_database"
+    bsq.workgroup = "test_workgroup"
+    bsq.run_params.region_name = "us-west-2"
+    bsq.ts_table.columns = [
+        _make_col("building_id"),
+        _make_col("upgrade"),
+        _make_col("state", partition=True),
+        _make_col("time"),
+    ]
+    bsq.execute.side_effect = [
+        pd.DataFrame(
+            {"time": pd.to_datetime(["2018-01-01 00:00:00", "2018-01-01 01:00:00"])}
+        ),
+        pd.DataFrame({"upgrade": ["0", "1"], "state": ["CO", "CO"]}),
+    ]
+    bsq._aws_athena.start_query_execution.return_value = {"QueryExecutionId": "query-id"}
+    bsq._aws_athena.get_query_execution.return_value = {
+        "QueryExecution": {"Status": {"State": "SUCCEEDED"}}
+    }
+    mock_boto3_client.return_value.get_table.return_value = {
+        "Table": {"StorageDescriptor": {"Location": "s3://bucket/test_run_timeseries_hourly/"}}
+    }
+
+    create_materialized_hourly_timeseries_table(bsq)
+
+    query = bsq.execute.call_args_list[1].args[0]
+    assert 'SELECT DISTINCT "state", "upgrade"' in query
 
 
 @pytest.fixture
@@ -214,7 +399,9 @@ class TestWrapTimeToSimYear:
 
 
 class TestCountyUtcOffset:
-    @patch("resstockpostproc.process_timeseries_results._get_county_utc_offset")
+    @patch(
+        "postprocessing.resstockpostproc.create_athena_views_from_results._get_county_utc_offset"
+    )
     def test_case_statement_structure(self, mock_offsets):
         mock_offsets.return_value = {
             "NY, Albany County": -5,
@@ -234,7 +421,9 @@ class TestCountyUtcOffset:
         line_with_la = [l for l in sql.split("\n") if "Los Angeles" in l][0]
         assert "King County" in line_with_la
 
-    @patch("resstockpostproc.process_timeseries_results._get_county_utc_offset")
+    @patch(
+        "postprocessing.resstockpostproc.create_athena_views_from_results._get_county_utc_offset"
+    )
     def test_single_county(self, mock_offsets):
         mock_offsets.return_value = {"NY, Albany County": -5}
         sql = _build_county_utc_offset_case_sql_expr()
@@ -260,8 +449,22 @@ class TestEstTime:
         # end convention with 1-hour timestep: delta_minutes = -5*60 - 60 = -360
         assert "-360" in sql
 
+    def test_skip_period_adjustment_keeps_raw_timestamp(self, mock_bsq_with_timeutc):
+        sql, sim_year = _build_est_time_sql_expr(
+            mock_bsq_with_timeutc,
+            "timestamp",
+            has_timeutc=True,
+            skip_period_adjustment=True,
+        )
+
+        assert sim_year == 2018
+        assert "timeutc" in sql
+        assert 'AS "timestamp"' in sql
+        assert "DATE_ADD" not in sql
+        assert "-360" not in sql
+
     @patch(
-        "resstockpostproc.process_timeseries_results._build_county_utc_offset_case_sql_expr"
+        "postprocessing.resstockpostproc.create_athena_views_from_results._build_county_utc_offset_case_sql_expr"
     )
     def test_without_timeutc_begin_convention(
         self, mock_county_sql, mock_bsq_without_timeutc
@@ -337,7 +540,7 @@ class TestCreateQueryOediTimeseries:
         assert "_intensity" in sql
 
     @patch(
-        "resstockpostproc.process_timeseries_results._build_county_utc_offset_case_sql_expr"
+        "postprocessing.resstockpostproc.create_athena_views_from_results._build_county_utc_offset_case_sql_expr"
     )
     def test_without_timeutc_includes_county(
         self, mock_county_sql, mock_bsq_without_timeutc

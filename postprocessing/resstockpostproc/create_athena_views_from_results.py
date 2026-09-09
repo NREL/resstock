@@ -2,57 +2,108 @@
 This script will create Athena views from raw ResStock results following
 the OEDI format (with db_schema: resstock_oedi_new).
 
-For OCHRE workflow, use the --simple-workflow (-s) flag to pass through unmapped columns and skip intensity calculations.
+For OCHRE workflow, use the --reduced-workflow (-r) flag to pass through unmapped columns and skip intensity calculations for timeseries views.
 
 Views created:
-  - Timeseries view: <table>_ts_by_state (always created)
+  - Timeseries view: <table>_ts_by_state (default, omitted when --baseline-view flag is used)
   - Baseline view:   <table>_md_national_parquet (only with --baseline-view flag)
 
 ===================================================================================
 
 Usage
 -----
-  # Create timeseries view only:
-  python create_athena_views_from_results.py -d my_database -t my_table
+    # Create timeseries view only:
+    python create_athena_views_from_results.py -d my_database -t my_table
 
-  # Create both baseline and timeseries views:
-  python create_athena_views_from_results.py -d my_database -t my_table -b
+    # Create the baseline view only:
+    python create_athena_views_from_results.py -d my_database -t my_table -b
 
-  # Force overwrite existing views:
-  python create_athena_views_from_results.py -d my_database -t my_table -b --force
+    # Create both timeseries and baseline views:
+    run both commands above separately.
 
-  # Create views and run validation checks:
-  python create_athena_views_from_results.py -d my_database -t my_table -b --check
+    # Force overwrite an existing view:
+    python create_athena_views_from_results.py -d my_database -t my_table --force
 
-  # Use simple workflow (pass-through unmapped columns, skip intensity):
-  python create_athena_views_from_results.py -d my_database -t my_table --simple-workflow
+    # Create view and run validation check:
+    # Note: Validation check on timeseries views can be slow.
+    python create_athena_views_from_results.py -d my_database -t my_table --check
 
-  # Create external tables from S3 data first:
-  python create_athena_views_from_results.py -d my_database -t my_table \\
+    # Create external Athena tables from S3 data first:
+    python create_athena_views_from_results.py -d my_database -t my_table \\
       --s3-location s3://bucket/path/to/data/ --workgroup my_workgroup
+
+      
+    ## Useful for large dataset processing
+    # [1] Use reduced workflow (pass-through unmapped columns, skip intensity in timeseries views):
+    python create_athena_views_from_results.py -d my_database -t my_table --reduced-workflow
+
+    # [2] Skip the EST/period-beginning timestamp adjustment and keep the source timestamps as-is:
+    python create_athena_views_from_results.py -d my_database -t my_table -s
+
+    # [3] Pre-aggregate raw timeseries to hourly and build view on top of it:
+    # useful for large sample datasets
+    python create_athena_views_from_results.py -d my_database -t my_table \\
+        -m s3://bucket/path/to/my_table_timeseries_hourly/
+
+    # Note: run above code with a --check-materialized flag to validate
+    # the hourly materialized table before creating the view:
+    python create_athena_views_from_results.py -d my_database -t my_table \\
+        -m s3://bucket/path/to/my_table_timeseries_hourly/ --check-materialized
+
 
 Flags
 -----
-  -d, --database        Athena/Glue database name (required).
-  -t, --table           Source table name (required).
-  -w, --workgroup       Athena workgroup (default: primary).
-  -l, --s3-location     S3 path to raw data (for creating external tables).
-  -r, --region          AWS region (default: us-west-2).
-  -i, --input-format    Source data format (default: PARQUET).
-  -f, --force           Overwrite existing views.
-  -c, --check           Run validation checks on the timeseries view after creation.
-  -s, --simple-workflow   Use simple column mapping (pass-through unmapped columns, skip intensity calculations).
-  -b, --baseline-view   Also create the baseline view from <table>_pub_annual or <table>_baseline.
+  -d, --database                Athena/Glue database name (required).
+  -t, --table                   Source table name (required).
+  -w, --workgroup               Athena workgroup (default: primary).
+  -l, --s3-location             S3 path to raw data (for creating Athena/external tables).
+  --region                     AWS region (default: us-west-2).
+  -i, --input-format            Source data format (default: PARQUET).
+  -f, --force                   Overwrite existing views.
+  -c, --check                   Run validation checks on the timeseries view after creation.
+  -r, --reduced-workflow        Use reduced column mapping (pass-through unmapped columns, skip intensity calculations).
+  -s, --skip-period-adjustment  Skip the EST/period-beginning timestamp adjustment and keep source timestamps as-is.
+  -b, --baseline-view           Create only the baseline view from <table>_pub_annual or <table>_baseline.
+  -m, --materialize-intermediate S3_LOCATION
+                                Arg for timeseries view creation only.
+                                Pre-aggregate the raw timeseries to hourly via Athena CTAS,
+                                writing Parquet to S3_LOCATION and registering a Glue table
+                                <table>_timeseries_hourly.  The view is then built on top of
+                                this materialized table instead of the raw timeseries, so the
+                                expensive GROUP BY runs once rather than at every query.
+                                Existing materialized tables are reused; delete one to rebuild it.
+  --check-materialized          Arg for timeseries view creation only.
+                                Run validation checks on the materialized table after creation.
+                                If existing materialized table is invalid, it will be dropped. Rerun code to rebuild it.
+                                If the materialized table does not exist, it will be created and validated before creating the view.
+  -u, --upgrade-filter <FILTER> Arg for timeseries view creation only.
+                                Apply an upgrade filter to the materialized table, if needed.
+                                Default to all, meaning no filter is applied.
+                                To preserve only the baseline (upgrade=0), use --upgrade-filter 0.
 
 ===================================================================================
 
 Data Processing
 -----------------
-If the input table does not yet exist in the database, rerun the script by adding an S3
+If the input table does not yet exist in Athena database, rerun the script by adding an S3
 path to create an external table pointing to the raw data on S3 using boto3. The
 script will create the view on top of that.
 
 [1] The timeseries view definition will perform the following transformations:
+
+Optional steps for handling large datasets:
+- Apply an upgrade filter to the materialized table (e.g., --upgrade-filter 0 
+  for baseline only), if needed, to reduce the amount of data processed.
+
+- Pre-aggregate the raw timeseries to hourly via Athena CTAS, writing Parquet 
+  to S3 and registering a Glue table.
+
+- Run validation checks on the materialized table after creation or if table exists 
+  to ensure data integrity. Table is dropped if validation fails. User can rerun the script to 
+  rebuild it.
+
+
+Main steps for timeseries view creation:
 
 - Select relevant columns from the baseline and timeseries tables, including
   building_id, county (if needed for time conversion), conditioned sqft, and all
@@ -60,7 +111,8 @@ script will create the view on top of that.
   consumption.
 
 - Adjust the time column to be in Eastern Standard Time (EST) and follow a
-  period-beginning convention. This involves:
+  period-beginning convention, unless --skip-period-adjustment is set to keep the
+  source timestamps unchanged. This involves:
     - For results that do not contain a timeutc column, convert time to timeutc
       using the county-based UTC offset from options_lookup.tsv.
     - Applying the appropriate time shift to convert from UTC to EST.
@@ -78,6 +130,15 @@ script will create the view on top of that.
 
 [2] The baseline view is a simple passthrough (SELECT *) from <table>_pub_annual.
 No validation checks.
+
+===================================================================================
+OCHRE-defrost project cmd for reference:
+
+uv run resstockpostproc/create_athena_views_from_results.py -w resstock-panels -d resstock_panels \\
+    -t sdr2025_r1_full_nodefco_15min_aug8 --reduced-workflow -s -f --check \\
+        -m s3://resstock-panels/ochre_runs/sdr2025_r1_full_nodefco_15min_aug8/timeseries_hourly/ --check-materialized
+
+===================================================================================
 
 """
 
@@ -450,12 +511,17 @@ def _build_est_time_sql_expr(
     time_col: str,
     has_timeutc: bool,
     time_table: Optional[str] = None,
+    skip_period_adjustment: bool = False,
 ) -> tuple[str, int]:
-    """Build a SQL expression to convert timestamps to EST period-beginning.
+    """Build a SQL expression for the output timestamp column.
+
+    By default, this converts timestamps to EST period-beginning alignment.
+    If ``skip_period_adjustment`` is True, it leaves the source timestamps
+    unchanged and simply returns the raw ``time`` or ``timeutc`` column.
 
     Queries the baseline table to determine the timestamp convention (begin/end)
     and the simulation year. Returns a DATE_ADD expression that shifts the raw
-    time column to UTC-5 (EST) with period-beginning alignment.
+    time column to UTC-5 (EST) with period-beginning alignment when enabled.
 
     Does **not** wrap time to the simulation year (see
     ``_build_wrap_time_to_sim_year_sql_expr``).
@@ -879,7 +945,10 @@ def _get_column_mapping_config(simple_workflow: bool) -> tuple[bool, bool]:
 
 
 def create_query_oedi_timeseries(
-    bsq: BuildStockQuery, simple_workflow: bool = False
+    bsq: BuildStockQuery,
+    simple_workflow: bool = False,
+    hourly_table: Optional[str] = None,
+    skip_period_adjustment: bool = False,
 ) -> tuple[str, list[dict]]:
     """
     Create the SQL body for a view that transforms raw timeseries results into OEDI format.
@@ -890,6 +959,11 @@ def create_query_oedi_timeseries(
         An initialized BuildStockQuery instance.
     simple_workflow : bool
         If True, generate OEDI timeseries columns for simple workflow.
+    hourly_table : str or None
+        If provided, the view's ``ts_table`` CTE is a plain passthrough
+        ``SELECT * FROM <hourly_table>`` rather than a GROUP BY aggregation
+        over the raw timeseries.  Use this when the hourly aggregation has
+        already been materialised via ``create_materialized_hourly_timeseries_table``.
 
     Returns
     -------
@@ -917,35 +991,92 @@ def create_query_oedi_timeseries(
     sqft_col = "in.sqft"
     must_have_cols = [bldg_id_col, upgrade_col, time_col]
 
-    # CTE 1: resample timeseries to hourly
+    # CTE 1: ts_table — either a passthrough from a pre-materialised table or an
+    # inline aggregation to hourly resolution from the raw timeseries.
     ts_group_cols = ["building_id", "upgrade"] + [
         c for c in partition_cols if c not in {"building_id", "upgrade", "time", "timeutc"}
     ]
     ts_group_exprs = [f'"{c}"' for c in ts_group_cols]
     ts_select_exprs = [f'"{c}"' for c in ts_group_cols]
 
-    # omit timeutc even if it exists since DATE_TRUNC may not align between two time cols
-    ts_select_exprs.append('DATE_TRUNC(\'hour\', "time") AS "time"')
-    ts_group_exprs.append('DATE_TRUNC(\'hour\', "time")')
-
     # Skip all time-prefixed columns: they are timestamps and avg() rejects them.
     # "time" and "timeutc" are already in ts_group_cols / the explicit set;
     # "timedst" (and any future timestamp column whose name starts with "time")
     # must also be excluded to avoid FUNCTION_NOT_FOUND errors in Athena.
     ts_agg_skip_cols = set(ts_group_cols) | {c for c in columns if c.lower().startswith("time")}
-    for col in columns:
-        if col in ts_agg_skip_cols:
-            continue
-        if col.endswith("_kwh") or col.endswith("_kbtu"):
-            ts_select_exprs.append(f'SUM("{col}") AS "{col}"')
-        else:
-            ts_select_exprs.append(f'AVG("{col}") AS "{col}"')
 
-    cte_sql_expr = f"""
+    if hourly_table is not None:
+        # The hourly materializer retains only mapped metrics. Mirror that
+        # reduced schema here so the view does not request dropped columns.
+        _, mapped_columns = _build_renamed_columns(columns, skip_cols=ts_agg_skip_cols)
+        mapped_column_names = {col for col, _ in mapped_columns}
+        columns = [
+            col for col in columns
+            if col in ts_agg_skip_cols or col in mapped_column_names
+        ]
+        # Pre-materialised hourly table: simple passthrough, no aggregation.
+        # The GROUP BY was already paid for by create_materialized_hourly_timeseries_table;
+        # the view is a lightweight rename/join with no full-table scan at query time.
+        need_resample = False
+        ts_select_exprs.append('"time"')
+        for col in columns:
+            if col in ts_agg_skip_cols:
+                continue
+            ts_select_exprs.append(f'"{col}"')
+        cte_sql_expr = f"""
+    WITH ts_table AS (
+        SELECT {", ".join(ts_select_exprs)}
+        FROM {hourly_table}
+    ),
+    """
+        logger.info("Using pre-materialised hourly table '%s' as ts_table source.", hourly_table)
+    else:
+        # No pre-materialised table: probe the raw timeseries to decide whether
+        # a GROUP BY resampling is needed.  This lightweight LIMIT 2 query runs
+        # once at view-creation time and is not part of the view definition.
+        df_ts_probe = bsq.execute(
+            f'SELECT DISTINCT "time" FROM {table_name}_timeseries ORDER BY 1 LIMIT 2'
+        )
+        timestep_minutes = int(
+            (df_ts_probe["time"].iloc[1] - df_ts_probe["time"].iloc[0]).total_seconds() / 60
+        )
+        need_resample = timestep_minutes != 60
+        logger.info(
+            "Timeseries timestep: %d min — %s",
+            timestep_minutes,
+            "will resample to hourly via GROUP BY" if need_resample else "data is already hourly, skipping GROUP BY aggregation",
+        )
+
+        if need_resample:
+            # omit timeutc even if it exists since DATE_TRUNC may not align between two time cols
+            ts_select_exprs.append('DATE_TRUNC(\'hour\', "time") AS "time"')
+            ts_group_exprs.append('DATE_TRUNC(\'hour\', "time")')
+            for col in columns:
+                if col in ts_agg_skip_cols:
+                    continue
+                if col.endswith("_kwh") or col.endswith("_kbtu"):
+                    ts_select_exprs.append(f'SUM("{col}") AS "{col}"')
+                else:
+                    ts_select_exprs.append(f'AVG("{col}") AS "{col}"')
+            cte_sql_expr = f"""
     WITH ts_table AS (
         SELECT {", ".join(ts_select_exprs)}
         FROM {table_name}_timeseries
         GROUP BY {", ".join(ts_group_exprs)}
+    ),
+    """
+        else:
+            # Data is already hourly: plain passthrough, no aggregation.
+            # Athena can push LIMIT through a simple SELECT, so previews are fast.
+            ts_select_exprs.append('"time"')
+            for col in columns:
+                if col in ts_agg_skip_cols:
+                    continue
+                ts_select_exprs.append(f'"{col}"')
+            cte_sql_expr = f"""
+    WITH ts_table AS (
+        SELECT {", ".join(ts_select_exprs)}
+        FROM {table_name}_timeseries
     ),
     """
 
@@ -972,17 +1103,24 @@ def create_query_oedi_timeseries(
     if compute_intensity_cols:
         id_cols.append(f'"{sqft_col}"')
     partition_exprs = [f'"{pc}"' for pc in partition_cols if pc not in must_have_cols]
-    resampled_time_table = f"""
-    (
-        SELECT DATE_TRUNC('hour', "time") AS "time"
-        FROM {table_name}_timeseries
-    )
-    """
+    # Choose the time_table argument for _build_est_time_sql_expr:
+    # - Materialised table: query it directly (already hourly).
+    # - Sub-hourly raw data: wrap with DATE_TRUNC so the function sees 60-min steps.
+    # - Already-hourly raw data: pass None to use the default raw timeseries.
+    if hourly_table is not None:
+        resampled_time_table = hourly_table
+    elif need_resample:
+        resampled_time_table = (
+            f"(SELECT DATE_TRUNC('hour', \"time\") AS \"time\" FROM {table_name}_timeseries)"
+        )
+    else:
+        resampled_time_table = None
     time_sql_expr, sim_year = _build_est_time_sql_expr(
         bsq,
         time_col,
         has_timeutc,
         time_table=resampled_time_table,
+        skip_period_adjustment=skip_period_adjustment,
     )
     # skip_cols must be a superset of ts_agg_skip_cols: any column excluded from
     # the ts_table CTE (e.g. time-prefixed timestamp columns like "timedst") must
@@ -1057,11 +1195,342 @@ def create_query_oedi_timeseries(
     return select_sql_expr, output_columns
 
 
+def create_materialized_hourly_timeseries_table(
+    bsq: BuildStockQuery,
+    s3_output_location: Optional[str] = None,
+    upgrade_filter: Optional[str] = None,
+) -> str:
+    """Pre-aggregate the raw timeseries to hourly resolution via Athena CTAS.
+
+    Runs a one-time ``CREATE TABLE AS SELECT`` that writes the hourly-aggregated
+    timeseries to ``s3_output_location`` as Parquet and registers a Glue table
+    named ``<table>_timeseries_hourly``.  Downstream views built on top of this
+    table avoid the expensive ``GROUP BY`` aggregation at query time, making
+    them trivially previewable even on very large datasets.
+
+    By default, all upgrades are materialized. Set ``upgrade_filter`` to a value
+    such as ``"0"`` to materialize only that upgrade. Energy columns (``*_kwh``, ``*_kbtu``)
+    are summed; all other mapped numeric columns are averaged.
+
+    Parameters
+    ----------
+    bsq : BuildStockQuery
+        An initialized BuildStockQuery instance.
+    s3_output_location : str
+        S3 path where materialized Parquet files will be written.
+        e.g. ``"s3://bucket/path/<table>_timeseries_hourly/"``
+    Returns
+    -------
+    str
+        Name of the newly created (or pre-existing) Glue table.
+
+    Raises
+    ------
+    RuntimeError
+        If the Athena CTAS query fails or is cancelled.
+    """
+    table_name = bsq.table_name
+    hourly_table = f"{table_name}_timeseries_hourly"
+
+    existing = list_tables_boto3(
+        bsq.db_name, bsq.workgroup, region_name=bsq.run_params.region_name
+    )
+    if hourly_table in existing:
+        logger.info(
+            "Materialized table '%s' already exists — skipping CTAS. Delete it to regenerate.",
+            hourly_table,
+        )
+        return hourly_table
+
+    columns = [c.name for c in bsq.ts_table.columns]
+    has_upgrade = "upgrade" in columns
+    partition_cols = _get_partition_columns(bsq)
+    materialized_partition_cols = [
+        col for col in partition_cols if col not in {"building_id", "time", "timeutc"}
+    ]
+    if "upgrade" not in materialized_partition_cols:
+        materialized_partition_cols.append("upgrade")
+    split_partition_cols = [
+        col
+        for col in materialized_partition_cols
+        if has_upgrade and upgrade_filter is None or col != "upgrade"
+    ]
+    ts_group_cols = ["building_id"] + (["upgrade"] if has_upgrade else []) + [
+        c for c in partition_cols if c not in {"building_id", "upgrade", "time", "timeutc"}
+    ]
+    ts_agg_skip = set(ts_group_cols) | {c for c in columns if c.lower().startswith("time")}
+    _, mapped_columns = _build_renamed_columns(columns, skip_cols=ts_agg_skip)
+    mapped_column_names = {col for col, _ in mapped_columns}
+
+    # Athena CTAS requires partition keys to be the last columns in the SELECT
+    # list (HIVE_COLUMN_ORDER_MISMATCH otherwise).
+    select_exprs = ['"building_id"']
+    time_df = bsq.execute(
+        f'SELECT DISTINCT "time" FROM {table_name}_timeseries ORDER BY 1 LIMIT 2'
+    )
+    timestep_minutes = int(
+        (time_df["time"].iloc[1] - time_df["time"].iloc[0]).total_seconds() / 60
+    )
+    needs_resample = timestep_minutes != 60
+    if needs_resample:
+        select_exprs.append('DATE_TRUNC(\'hour\', "time") AS "time"')
+        group_exprs = [f'"{c}"' for c in ts_group_cols] + [
+            'DATE_TRUNC(\'hour\', "time")'
+        ]
+    else:
+        select_exprs.append('"time"')
+        group_exprs = []
+    logger.info(
+        "Timeseries timestep: %d min - %s for hourly materialization.",
+        timestep_minutes,
+        "resampling" if needs_resample else "using projection-only CTAS",
+    )
+
+    for col in columns:
+        if col not in mapped_column_names:
+            continue
+        if not needs_resample:
+            select_exprs.append(f'"{col}"')
+            continue
+        _, raw_unit, _ = _reformat_raw_column(col)
+        if raw_unit in {"kwh", "kbtu", "therm", "mbtu"}:
+            select_exprs.append(f'SUM("{col}") AS "{col}"')
+        else:
+            select_exprs.append(f'AVG("{col}") AS "{col}"')
+
+    # Partition keys last — required by Hive/Athena. Older datasets do not have
+    # an upgrade column, so give their single baseline partition an integer 0.
+    for partition_col in materialized_partition_cols:
+        if partition_col == "upgrade" and not has_upgrade:
+            select_exprs.append('CAST(0 AS INTEGER) AS "upgrade"')
+        else:
+            select_exprs.append(f'"{partition_col}"')
+
+    s3_loc = (
+        (s3_output_location if s3_output_location.endswith("/") else s3_output_location + "/")
+        if s3_output_location
+        else None
+    )
+    if s3_loc is None:
+        try:
+            workgroup_info = bsq._aws_athena.get_work_group(
+                WorkGroup=bsq.workgroup
+            )
+            default_location = workgroup_info["WorkGroup"]["Configuration"][
+                "ResultConfiguration"
+            ].get("OutputLocation")
+            if default_location:
+                s3_loc = (
+                    default_location.rstrip("/")
+                    + "/tables/"
+                    + hourly_table
+                    + "/"
+                )
+                logger.info(
+                    "Using workgroup default output location for materialized table: '%s'.",
+                    s3_loc,
+                )
+        except (KeyError, ClientError) as exc:
+            logger.warning(
+                "Could not determine workgroup default output location; "
+                "using Athena workgroup-managed output: %s",
+                exc,
+            )
+
+    def _sql_literal(value: object) -> str:
+        """Return an Athena SQL string literal."""
+        return "'" + str(value).replace("'", "''") + "'"
+
+    def _select_for_partition(partition_values: tuple[object, ...]) -> str:
+        """Return the SELECT fragment for upgrade 0 and one source partition."""
+        sql = (
+            f'SELECT {", ".join(select_exprs)}\n'
+            f'    FROM {table_name}_timeseries\n'
+        )
+        filters = []
+        if has_upgrade and upgrade_filter is not None and "upgrade" not in split_partition_cols:
+            filters.append(f'"upgrade" = {_sql_literal(upgrade_filter)}')
+        filters.extend(
+            f'"{col}" = {_sql_literal(value)}'
+            for col, value in zip(split_partition_cols, partition_values)
+        )
+        if filters:
+            sql += f"    WHERE {' AND '.join(filters)}\n"
+        if group_exprs:
+            sql += f'    GROUP BY {", ".join(group_exprs)}'
+        return sql
+
+    if split_partition_cols:
+        partition_select = ", ".join(f'"{col}"' for col in split_partition_cols)
+        upgrade_predicate = (
+            f' WHERE "upgrade" = {_sql_literal(upgrade_filter)}'
+            if has_upgrade and upgrade_filter is not None and "upgrade" not in split_partition_cols
+            else ""
+        )
+        partitions_df = bsq.execute(
+            f"SELECT DISTINCT {partition_select} FROM {table_name}_timeseries{upgrade_predicate}"
+        )
+        partition_values = list(partitions_df.itertuples(index=False, name=None))
+        logger.info(
+            "Materializing %d source partition(s): %s",
+            len(partition_values),
+            split_partition_cols,
+        )
+    else:
+        partition_values = [()]
+
+    def _run_query(query_string: str, label: str) -> None:
+        """Submit an Athena query, wait for completion, raise on failure."""
+        exe_id = bsq._aws_athena.start_query_execution(
+            QueryString=query_string,
+            QueryExecutionContext={"Database": bsq.db_name},
+            WorkGroup=bsq.workgroup,
+        )["QueryExecutionId"]
+        while True:
+            stat  = bsq._aws_athena.get_query_execution(QueryExecutionId=exe_id)
+            state = stat["QueryExecution"]["Status"]["State"]
+            if state in ("SUCCEEDED", "FAILED", "CANCELLED"):
+                break
+            time.sleep(5)
+        if state != "SUCCEEDED":
+            reason = stat["QueryExecution"]["Status"].get("StateChangeReason", "")
+            msg = f"{label} {state}: {reason}"
+            raise RuntimeError(msg)
+
+    partitioned_by = ", ".join(f"'{col}'" for col in materialized_partition_cols)
+    with_loc = (
+        f"format = 'PARQUET',\n        external_location = '{s3_loc}',\n        partitioned_by = ARRAY[{partitioned_by}]"
+        if s3_loc
+        else f"format = 'PARQUET',\n        partitioned_by = ARRAY[{partitioned_by}]"
+    )
+    ctas_sql = (
+        f"CREATE TABLE {bsq.db_name}.{hourly_table}\n"
+        f"    WITH (\n        {with_loc}\n    )\n"
+        f"    AS\n    {_select_for_partition(partition_values[0])}"
+    )
+    logger.info(
+        "CTAS [1/%d] upgrade=%s%s",
+        len(partition_values),
+        upgrade_filter if upgrade_filter is not None else "all",
+        f" at '{s3_loc}'" if s3_loc else " (workgroup default output location)",
+    )
+    try:
+        _run_query(ctas_sql, "CTAS materialization")
+    except ClientError as e:
+        if (
+            e.response["Error"]["Code"] == "InvalidRequestException"
+            and "external_location" in e.response["Error"]["Message"]
+            and s3_loc is not None
+        ):
+            logger.warning(
+                "Workgroup '%s' enforces a centralized output location — "
+                "retrying CTAS without 'external_location'.",
+                bsq.workgroup,
+            )
+            ctas_sql_no_loc = (
+                f"CREATE TABLE {bsq.db_name}.{hourly_table}\n"
+                f"    WITH (\n        format = 'PARQUET',\n        partitioned_by = ARRAY[{partitioned_by}]\n    )\n"
+                f"    AS\n    {_select_for_partition(partition_values[0])}"
+            )
+            _run_query(ctas_sql_no_loc, "CTAS materialization")
+        else:
+            raise
+
+    for index, values in enumerate(partition_values[1:], start=2):
+        insert_sql = (
+            f"INSERT INTO {bsq.db_name}.{hourly_table}\n"
+            f"    {_select_for_partition(values)}"
+        )
+        logger.info("INSERT [%d/%d] upgrade=%s", index, len(partition_values), upgrade_filter or "all")
+        _run_query(insert_sql, "INSERT materialization")
+
+    # Resolve and log the actual S3 location from Glue.
+    glue = boto3.client("glue", region_name=bsq.run_params.region_name)
+    table_info = glue.get_table(DatabaseName=bsq.db_name, Name=hourly_table)
+    actual_location = table_info["Table"]["StorageDescriptor"]["Location"]
+    if s3_loc and actual_location.rstrip("/") != s3_loc.rstrip("/"):
+        logger.warning(
+            "Materialized table '%s' was written to '%s' (workgroup overrode the "
+            "requested location '%s').",
+            hourly_table, actual_location, s3_loc,
+        )
+    else:
+        logger.info(
+            "Materialized table '%s' created successfully at '%s'.",
+            hourly_table, actual_location,
+        )
+    return hourly_table
+
+
+def _drop_materialized_hourly_table(bsq: BuildStockQuery, hourly_table: str) -> None:
+    """Drop a materialized hourly table after validation failure."""
+    query_id = bsq._aws_athena.start_query_execution(
+        QueryString=f"DROP TABLE IF EXISTS {bsq.db_name}.{hourly_table}",
+        QueryExecutionContext={"Database": bsq.db_name},
+        WorkGroup=bsq.workgroup,
+    )["QueryExecutionId"]
+    while True:
+        stat = bsq._aws_athena.get_query_execution(QueryExecutionId=query_id)
+        state = stat["QueryExecution"]["Status"]["State"]
+        if state in ("SUCCEEDED", "FAILED", "CANCELLED"):
+            break
+        time.sleep(2)
+    if state != "SUCCEEDED":
+        reason = stat["QueryExecution"]["Status"].get("StateChangeReason", "")
+        msg = f"Failed to delete materialized table '{hourly_table}': {reason}"
+        raise RuntimeError(msg)
+
+
+def check_materialized_hourly_table(
+    bsq: BuildStockQuery,
+    hourly_table: str,
+    expected_upgrade: Optional[str] = "0",
+    limit_rows: int = 10,
+) -> None:
+    """Validate the schema and baseline hourly data in a materialized table."""
+    logger.info("Checking materialized hourly table '%s'...", hourly_table)
+    sample = bsq.execute(f"SELECT * FROM {hourly_table} LIMIT {limit_rows}")
+    required = {"building_id", "time", "upgrade"}
+    missing = required.difference(sample.columns)
+    if missing:
+        msg = f"Materialized table '{hourly_table}' is missing columns: {sorted(missing)}"
+        raise ValueError(msg)
+    if sample.empty:
+        msg = f"Materialized table '{hourly_table}' returned no rows."
+        raise ValueError(msg)
+
+    upgrade_values = sample["upgrade"].dropna().astype(str).unique().tolist()
+    if expected_upgrade is not None:
+        expected_numeric = float(expected_upgrade)
+        actual_numeric = [float(value) for value in upgrade_values]
+        valid_upgrade_scope = actual_numeric == [expected_numeric]
+    else:
+        valid_upgrade_scope = bool(upgrade_values)
+    if not valid_upgrade_scope:
+        msg = (
+            f"Materialized table '{hourly_table}' contains unexpected upgrade values: "
+            f"{upgrade_values}"
+        )
+        raise ValueError(msg)
+
+    timestamps = bsq.execute(
+        f'SELECT DISTINCT "time" FROM {hourly_table} ORDER BY 1 LIMIT 3'
+    )
+    if len(timestamps) >= 2:
+        intervals = timestamps["time"].diff().dropna().dt.total_seconds() / 60
+        if not (intervals == 60).all():
+            msg = f"Materialized table '{hourly_table}' is not hourly: {intervals.tolist()}"
+            raise ValueError(msg)
+    logger.info("Materialized hourly table '%s' passed validation.", hourly_table)
+
+
 def create_view_oedi_timeseries(
     bsq: BuildStockQuery,
     view_name: str,
     simple_workflow: bool = False,
     force: bool = False,
+    hourly_table: Optional[str] = None,
+    skip_period_adjustment: bool = False,
 ) -> None:
     """Create an Athena view with OEDI timeseries schema.
 
@@ -1079,8 +1548,17 @@ def create_view_oedi_timeseries(
         columns, skip intensity columns).
     force : bool
         If True, overwrite an existing view with the same name.
+    hourly_table : str or None
+        If provided, the view is built on top of this pre-materialised
+        hourly table rather than aggregating the raw timeseries inline.
+        See ``create_materialized_hourly_timeseries_table``.
     """
-    select_sql, output_columns = create_query_oedi_timeseries(bsq, simple_workflow=simple_workflow)
+    select_sql, output_columns = create_query_oedi_timeseries(
+        bsq,
+        simple_workflow=simple_workflow,
+        hourly_table=hourly_table,
+        skip_period_adjustment=skip_period_adjustment,
+    )
     # logger.info("=" * 60)
     # logger.info("GENERATED SQL:")
     # logger.info("=" * 60)
@@ -1126,6 +1604,32 @@ def _reformat_baseline_column_pub_annual_schema(col: str) -> Optional[str]:
     return col[:last_dot] + "." + col[last_dot:]
 
 
+def _get_supported_baseline_columns(bsq: BuildStockQuery, source_table: str) -> list[str]:
+    """Return baseline columns whose Glue types Athena views can represent."""
+    glue = boto3.client("glue", region_name=bsq.run_params.region_name)
+    table_info = glue.get_table(DatabaseName=bsq.db_name, Name=source_table)
+    supported = []
+    skipped = []
+    for column in table_info["Table"]["StorageDescriptor"]["Columns"]:
+        column_name = column["Name"]
+        col_type = str(column["Type"]).lower()
+        if (
+            column_name == "in.representative_income"
+            or col_type.startswith(("array", "map", "struct", "list", "type:"))
+            or "[" in col_type
+        ):
+            skipped.append((column_name, col_type))
+            continue
+        supported.append(column_name)
+    if skipped:
+        logger.warning(
+            "Skipping unsupported baseline columns from '%s': %s",
+            source_table,
+            skipped,
+        )
+    return supported
+
+
 def create_query_oedi_baseline_from_pub_annual(bsq: BuildStockQuery) -> str:
     """Build a SELECT statement that renames baseline columns in _pub_annual table to OEDI convention.
 
@@ -1148,8 +1652,7 @@ def create_query_oedi_baseline_from_pub_annual(bsq: BuildStockQuery) -> str:
     # Use Glue to get column names — bsq.execute() wraps with UNLOAD which
     # produces a 0-row Parquet that loses all schema information.
     glue = boto3.client("glue", region_name=bsq.run_params.region_name)
-    table_info = glue.get_table(DatabaseName=bsq.db_name, Name=source_table)
-    columns = [col["Name"] for col in table_info["Table"]["StorageDescriptor"]["Columns"]]
+    columns = _get_supported_baseline_columns(bsq, source_table)
 
     col_exprs = []
     for col in columns:
@@ -1222,8 +1725,7 @@ def create_query_oedi_baseline_from_baseline(bsq: BuildStockQuery) -> str:
     # Use Glue to get column names — bsq.execute() wraps with UNLOAD which
     # produces a 0-row Parquet that loses all schema information.
     glue = boto3.client("glue", region_name=bsq.run_params.region_name)
-    table_info = glue.get_table(DatabaseName=bsq.db_name, Name=source_table)
-    columns = [col["Name"] for col in table_info["Table"]["StorageDescriptor"]["Columns"]]
+    columns = _get_supported_baseline_columns(bsq, source_table)
 
     baseline_to_pub = _load_baseline_to_pub_annual_mapping()
 
@@ -1370,6 +1872,7 @@ def check_view_oedi_timeseries(
 
     # 2. Check timestamps are in simulation-year and has expected number of unique timestamps
     df2 = bsq.execute(f"""SELECT DISTINCT timestamp FROM {view_name} ORDER BY 1""")
+    df2["timestamp"] = pd.to_datetime(df2["timestamp"])
     assert (
         df2["timestamp"].dt.year.nunique() == 1
     ), "Timestamps are not all in the same year."
@@ -1389,6 +1892,28 @@ def check_view_oedi_timeseries(
     
     logger.info(f"View '{view_name}' passed basic checks on column names and timestamps.")
     logger.info(f"check_view_result completed in {time.time() - t0:.1f}s")
+
+
+def check_view_oedi_baseline(
+    bsq: BuildStockQuery,
+    view_name: str,
+    limit_rows: int = 10,
+) -> None:
+    """Run a basic validation query against the national baseline view."""
+    logger.info("Checking baseline view '%s'...", view_name)
+    df = bsq.execute(f"SELECT * FROM {view_name} LIMIT {limit_rows}")
+    if not df.columns.tolist():
+        msg = f"Baseline view '{view_name}' returned no columns."
+        raise ValueError(msg)
+    if df.empty:
+        msg = f"Baseline view '{view_name}' returned no rows."
+        raise ValueError(msg)
+    logger.info(
+        "Baseline view '%s' passed validation with %d columns and %d sampled rows.",
+        view_name,
+        len(df.columns),
+        len(df),
+    )
 
 
 # =============================================================================
@@ -1977,7 +2502,7 @@ def main() -> None:
         help="S3 path to raw data (for creating external table).",
     )
     parser.add_argument(
-        "-r", "--region", default="us-west-2", help="AWS region (default: us-west-2)."
+        "--region", default="us-west-2", help="AWS region (default: us-west-2)."
     )
     parser.add_argument(
         "-i",
@@ -1998,16 +2523,59 @@ def main() -> None:
         help="Run check_view_result after creating the view.",
     )
     parser.add_argument(
-        "-s",
-        "--simple-workflow",
+        "-r",
+        "--reduced-workflow",
         action="store_true",
-        help="Use simple column mapping (pass-through unmapped columns, skip intensity columns).",
+        help="Use reduced column mapping (pass-through unmapped columns, skip intensity columns).",
+    )
+    parser.add_argument(
+        "-s",
+        "--skip-period-adjustment",
+        action="store_true",
+        help="Skip the EST/period-beginning timestamp adjustment and keep source timestamps as-is.",
     )
     parser.add_argument(
         "-b",
         "--baseline-view",
         action="store_true",
-        help="Also create the baseline view (SELECT * FROM <table>_pub_annual).",
+        help="Create only the baseline view (SELECT * FROM <table>_pub_annual).",
+    )
+    parser.add_argument(
+        "-m",
+        "--materialize-intermediate",
+        nargs="?",
+        const=True,
+        metavar="S3_LOCATION",
+        default=None,
+        help=(
+            "Before creating the view, pre-aggregate the raw timeseries to hourly "
+            "resolution via Athena CTAS and register a Glue table "
+            "<table>_timeseries_hourly.  The view is then built on top of this "
+            "materialized table instead of the raw timeseries, eliminating the "
+            "GROUP BY aggregation at every query and making the view instantly "
+            "previewable.  S3_LOCATION is optional: when omitted the workgroup's "
+            "default output path is used. All upgrades are materialized by default; use "
+            "--upgrade-filter 0 to select only upgrade 0. Delete an existing hourly "
+            "table to regenerate it."
+        ),
+    )
+    parser.add_argument(
+        "--check-materialized",
+        action="store_true",
+        help=(
+            "Validate an existing or newly created materialized hourly table "
+            "before creating the timeseries view; delete it automatically if validation fails."
+        ),
+    )
+    parser.add_argument(
+        "-u",
+        "--upgrade-filter",
+        default=None,
+        metavar="UPGRADE",
+        help=(
+            "Upgrade value to materialize (default: all upgrades). Use '0' to "
+            "materialize only upgrade 0."
+        ),
     )
     args = parser.parse_args()
 
@@ -2022,15 +2590,21 @@ def main() -> None:
     logger.info(f"  input-format:  {args.input_format}")
     logger.info(f"  force:         {args.force}")
     logger.info(f"  check:         {args.check}")
-    logger.info(f"  simple-workflow: {args.simple_workflow}")
+    logger.info(f"  reduced-workflow: {args.reduced_workflow}")
+    logger.info(f"  skip-period-adjustment: {args.skip_period_adjustment}")
     logger.info(f"  baseline-view: {args.baseline_view}")
+    logger.info(f"  materialize-intermediate: {args.materialize_intermediate}")
+    logger.info(f"  check-materialized: {args.check_materialized}")
     logger.info("=" * 60)
     
     # Log execution parameters
     logger.info("Processing parameters:")
     logger.info(f"  database={args.database}, table={args.table}, workgroup={args.workgroup}")
-    logger.info(f"  simple_workflow={args.simple_workflow}, baseline_view={args.baseline_view}")
+    logger.info(f"  reduced_workflow={args.reduced_workflow}, baseline_view={args.baseline_view}, skip_period_adjustment={args.skip_period_adjustment}")
     logger.info(f"  force={args.force}, check={args.check}")
+    logger.info(f"  materialize_intermediate={args.materialize_intermediate}")
+    logger.info(f"  check_materialized={args.check_materialized}")
+    logger.info(f"  upgrade_filter={args.upgrade_filter}")
 
     # --- Try BuildStockQuery path first; fall back to boto3 if table missing ---
     try:
@@ -2095,7 +2669,7 @@ def main() -> None:
     )
 
     logger.debug("-" * 60)
-    logger.info("Creating view from raw timeseries results...")
+    logger.info("Creating view from raw result tables...")
     logger.debug("-" * 60)
 
     if args.baseline_view:
@@ -2103,20 +2677,86 @@ def main() -> None:
         logger.info(f"Creating baseline view: {bl_view_name}")
         create_view_oedi_baseline(bsq, view_name=bl_view_name, force=args.force)
         logger.info(f"Successfully created baseline view: {bl_view_name}")
+        if args.check:
+            check_view_oedi_baseline(bsq, view_name=bl_view_name)
+        logger.info("Baseline-only mode enabled; skipping timeseries view creation.")
+        return
 
     ts_view_name = f"{args.table}{TS_VIEW_SUFFIX}"
     logger.info(f"Creating timeseries view: {ts_view_name}")
+
+    hourly_table = None
+    if args.materialize_intermediate is not None or args.check_materialized:
+        # args.materialize_intermediate is either a string (S3 path supplied) or
+        # True (flag given without a value — let the workgroup decide output path).
+        s3_loc_arg = (
+            args.materialize_intermediate
+            if isinstance(args.materialize_intermediate, str)
+            else None
+        )
+        logger.info(
+            "Materializing intermediate hourly table%s…",
+            f" at '{s3_loc_arg}'" if s3_loc_arg else " (workgroup default output location)",
+        )
+        hourly_table_name = f"{args.table}_timeseries_hourly"
+        existing_hourly = hourly_table_name in list_tables_boto3(
+            bsq.db_name,
+            bsq.workgroup,
+            region_name=bsq.run_params.region_name,
+        )
+        hourly_table = create_materialized_hourly_timeseries_table(
+            bsq,
+            s3_output_location=s3_loc_arg,
+            upgrade_filter=(
+                None
+                if args.upgrade_filter is None or args.upgrade_filter.lower() == "all"
+                else args.upgrade_filter
+            ),
+        )
+        if args.check_materialized:
+            try:
+                expected_upgrade = (
+                    None
+                    if args.upgrade_filter is None or args.upgrade_filter.lower() == "all"
+                    else args.upgrade_filter
+                )
+                check_materialized_hourly_table(
+                    bsq,
+                    hourly_table,
+                    expected_upgrade=expected_upgrade,
+                )
+            except Exception:
+                logger.exception(
+                    "Materialized hourly table '%s' failed validation; deleting it.",
+                    hourly_table,
+                )
+                _drop_materialized_hourly_table(bsq, hourly_table)
+                if existing_hourly:
+                    msg = (
+                        f"Existing materialized table '{hourly_table}' failed validation "
+                        "and was deleted."
+                    )
+                else:
+                    msg = (
+                        f"New materialized table '{hourly_table}' failed validation "
+                        "and was deleted."
+                    )
+                raise RuntimeError(msg) from None
+        logger.info("Intermediate table ready: '%s'", hourly_table)
+
     create_view_oedi_timeseries(
         bsq,
         view_name=ts_view_name,
-        simple_workflow=args.simple_workflow,
+        simple_workflow=args.reduced_workflow,
         force=args.force,
+        hourly_table=hourly_table,
+        skip_period_adjustment=args.skip_period_adjustment,
     )
     logger.info(f"Successfully created timeseries view: {ts_view_name}")
     
     if args.check:
         logger.info(f"Running validation checks on view: {ts_view_name}")
-        check_view_oedi_timeseries(bsq, view_name=ts_view_name, simple_workflow=args.simple_workflow)
+        check_view_oedi_timeseries(bsq, view_name=ts_view_name, simple_workflow=args.reduced_workflow)
         logger.info(f"Validation checks completed for view: {ts_view_name}")
     
     logger.info("create_athena_views_from_results script completed successfully")
