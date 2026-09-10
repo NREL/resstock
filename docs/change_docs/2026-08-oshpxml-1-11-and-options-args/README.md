@@ -1173,10 +1173,266 @@ exposed families at a fraction of the cost.
 
 ## 4.9 External Validation
 
-TBD. The results changes, need to run the `baseline_validation` tool in `resstockpostproc`, which compares a
-ResStock baseline run against EIA 861, EIA 176, RECS 2020 and LRD and generates a comparison
-dashboard (added in PR #1529). It takes the new run's results directly and is the intended instrument
-for this section.
+Two independent references were compared, using the comparison dashboards that the
+`baseline_validation` tool in `resstockpostproc` generated for this change: **RECS 2020** (the EIA
+Residential Energy Consumption Survey — occupied units, end-use disaggregation, 95% confidence
+intervals from replicate weights) and **EIA 2018** (EIA-861 electricity sales and EIA-176 natural gas
+deliveries to the residential sector — all units, by state). In those dashboards the baseline run is
+labelled "ResStock 2025" and the new run "option_based_resstock"; this section uses the document's
+own names. Every unfiltered panel — national, and grouped by state, census division, building type,
+vintage, Building America climate zone and heating fuel, 985 plots in all — was read and compared.
+The per-state filtered panels repeat the grouped data and were not used.
+
+**Scope.** Annual quantities only. The dashboards' monthly panels were excluded: the new run's
+monthly bars are built from 33,310 models, against 549,971 for the baseline and 549,986 for the new
+run's own annual bars (the dashboards' "Number of Models" hover text), so they reflect a partial
+timeseries load rather than the run — January electricity reads 10.8 TWh against a 179.3 TWh
+baseline. Seasonal shape therefore remains unvalidated and is carried under F10. Utility load
+research data was not part of the dashboards provided.
+
+Error is `e = (ResStock − reference) / reference`, in percent of the reference. "Closer" means
+`|e_new| < |e_baseline|`. A movement of less than 0.5 points of the reference is reported as
+unchanged.
+
+### 4.9.1 National totals
+
+| Validation source | Metric | Observed (external) | Baseline | New | e_base | e_new | Closer or further? |
+|---|---|---|---|---|---|---|---|
+| EIA 2018 | Dwelling units | 133.9 M | 139.6 M | 139.6 M | +4.3% | +4.3% | unchanged |
+| EIA 2018 | Electricity sales | 1,469.1 TWh | 1,641.5 | 1,630.9 | +11.7% | +11.0% | closer |
+| EIA 2018 | Natural gas deliveries | 1,523.4 TWh | 1,479.1 | 1,416.0 | −2.9% | −7.1% | **further** |
+| EIA 2018 | Share of units using gas | 52.1% | 60.5% | 60.5% | +16.1% | +16.2% | unchanged |
+| RECS 2020 | Occupied dwelling units | 123.5 M | 122.7 M | 122.7 M | −0.7% | −0.7% | unchanged |
+| RECS 2020 | Electricity | 1,305.2 TWh | 1,571.0 | 1,560.1 | +20.4% | +19.5% | closer |
+| RECS 2020 | Natural gas | 1,242.8 TWh | 1,429.0 | 1,368.6 | +15.0% | +10.1% | closer |
+| RECS 2020 | Fuel oil | 116.0 TWh | 168.3 | 164.0 | +45.2% | +41.4% | closer |
+| RECS 2020 | Propane | 114.7 TWh | 144.2 | 137.7 | +25.7% | +20.0% | closer |
+
+**Source:** national ("U.S. Total") panels of the two dashboards named under **Sources** at the end
+of this section; total annual consumption, all dwelling units for EIA, all occupied dwelling units
+for RECS. Weighting is the dashboards': ResStock by `weight`, RECS by its survey weights.
+
+**Interpretation.** Observation — stock counts do not move against either reference, consistent
+with §4.2. Electricity moves 0.7–0.8 points closer to both. Natural gas is the one quantity on which
+the two references disagree with each other: EIA-176 residential deliveries (1,523 TWh, all units)
+sit 280 TWh above RECS 2020 (1,243 TWh, occupied units, survey-based), and both ResStock runs sit
+between them. The change's −4.3% on gas is therefore 4.9 points *closer* to RECS and 4.1 points
+*further* from EIA at the same time. Fuel oil and propane, which only RECS covers, move 3.7 and 5.7
+points closer while remaining 41% and 20% over. Inference — neither reference adjudicates F15. Both
+say ResStock over-predicts fossil heating before and after; the question §4.6.4 leaves open is which
+duct split ResStock means, and a 4-point movement inside a 15–30-point disagreement between the two
+references does not settle it.
+
+### 4.9.2 End uses against RECS 2020
+
+![4.9a error against RECS 2020 by end use, baseline to new](images/fig_4_9_a_recs_national.png)
+
+*Each arrow runs from the baseline error (grey) to the new error; blue where the new run is nearer
+RECS, orange where it is further. The grey band is the RECS 95% confidence interval. Rows are
+ordered by how far they moved. The 12 end uses that moved less than 0.5 points are omitted from the
+figure and listed after the table.*
+
+| End use | RECS 2020 (TWh) | ±95% CI | Baseline | New | e_base | e_new | Δ\|e\| (pp) | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| Ceiling fans | 20.2 | ±2.1% | 6.8 | 27.2 | −66.3% | +34.5% | −31.8 | overshoots, net closer |
+| Clothes washer | 7.1 | ±1.3% | 3.0 | 8.4 | −57.8% | +18.1% | −39.7 | overshoots, net closer |
+| Clothes dryer, propane | 0.7 | ±19.6% | 1.0 | 0.5 | +42.2% | −21.3% | −20.9 | overshoots, net closer |
+| Clothes dryer, natural gas | 11.2 | ±5.0% | 14.7 | 8.2 | +31.9% | −26.9% | −4.9 | overshoots, net closer |
+| Clothes dryer, electricity | 55.9 | ±1.9% | 56.1 | 31.0 | **+0.5%** | −44.5% | +44.0 | **overshoots, net further** |
+| Heating fans & pumps | 23.5 | ±1.8% | 34.7 | 42.9 | +47.8% | +82.6% | +34.8 | **further** |
+| Cooling fans & pumps | 38.0 | ±1.8% | 59.1 | 63.7 | +55.6% | +67.9% | +12.3 | **further** |
+| Dishwasher | 9.6 | ±1.8% | 9.1 | 7.9 | −5.5% | −17.4% | +11.9 | **further** |
+| Space heating, electricity | 161.1 | ±2.8% | 265.9 | 253.8 | +65.1% | +57.6% | −7.5 | closer |
+| Space heating, propane | 80.3 | ±9.2% | 121.1 | 116.0 | +50.8% | +44.5% | −6.3 | closer |
+| Space cooling | 253.8 | ±1.3% | 353.9 | 338.5 | +39.4% | +33.4% | −6.0 | closer |
+| Water heating, fuel oil | 15.7 | ±10.7% | 13.6 | 12.7 | −13.5% | −19.1% | +5.7 | **further** |
+| Water heating, propane | 20.3 | ±9.8% | 17.5 | 16.4 | −14.2% | −19.1% | +4.9 | **further** |
+| Space heating, natural gas | 846.0 | ±2.0% | 1,116.9 | 1,077.3 | +32.0% | +27.3% | −4.7 | closer |
+| Water heating, natural gas | 316.9 | ±1.8% | 237.6 | 223.4 | −25.0% | −29.5% | +4.5 | **further** |
+| Space heating, fuel oil | 92.4 | ±6.9% | 154.8 | 151.3 | +67.5% | +63.8% | −3.7 | closer |
+| Water heating, electricity | 156.2 | ±2.3% | 131.6 | 135.0 | −15.7% | −13.6% | −2.2 | closer |
+
+Unchanged (moved < 0.5 points of RECS, baseline error in parentheses): lighting (+45%),
+refrigerator (−28%), freezer (+87%), cooking electricity (+49%), cooking gas (+38%), cooking propane
+(+37%), plug loads (+12%), television (+16%), pool pumps (−6%), pool heater electricity (−76%), pool
+heater gas (−47%), EV charging (−4%). Of the 33 end uses, the baseline was inside the RECS 95%
+confidence interval on three (electric clothes dryer, EV charging, pool pumps); the new run is inside
+on two — it left on the dryer.
+
+**Source:** RECS dashboard, national panels, total annual consumption, all occupied dwelling units,
+one panel per end use; the CI is the dashboard's error bar on the RECS bar (replicate weights,
+log-normal method). Δ|e| = |e_new| − |e_base|, so negative is closer. Fuel totals (electricity,
+natural gas, fuel oil, propane) appear in §4.9.1 and are omitted here.
+
+**Interpretation.** The 21 end uses that moved fall into six groups, which map one-to-one onto the
+mechanisms in §2.3 and the segment tests in §4.6.
+
+1. **Heating and cooling loads moved closer, on every fuel.** Space heating by 4–8 points on gas,
+   electricity, propane and fuel oil; cooling by 6. All remain 27–64% above RECS. This is the duct
+   split (§4.6.4) and interior shading (H8) applied to an over-prediction: a downward shift on an
+   over-predicted quantity reads as improvement. §4.9.3 shows what the same shift does where the
+   errors have both signs.
+
+2. **Fan energy moved further, sharply.** Heating fans and pumps go from +48% to +83% over RECS,
+   cooling fans and pumps from +56% to +68%. The blower W/cfm change (H6, §4.6.3) raised fan energy
+   where ResStock already exceeded RECS by half. By heating fuel, electrically heated homes read
+   45 kWh per unit in RECS, 159 in the baseline and 235 in the new run (+305% → +500%); gas-heated
+   homes read 277 / 362 / 427. RECS end-use fan estimates are modelled by EIA rather than metered, so
+   the level carries more uncertainty than the ±1.8% interval expresses; the direction is not in
+   doubt. Feeds F5.
+
+3. **The electric clothes dryer is the largest deterioration in the run.** It was the only energy
+   end use the baseline placed inside the RECS 95% interval (+0.5%, CI ±1.9%); the new run is −44.5%.
+   The shift is uniform — −33% to −52% in every census division, −30% to −48% in every building type,
+   and identical across dryer fuels (§4.6.6). Gas and propane dryers, which the baseline over-predicted
+   by 32% and 42%, now under-predict by 27% and 21%. The clothes washer, driven by the same input,
+   goes from −58% to +18%; the dishwasher from −5% to −17%. Inference — the H2/H3 mechanism is
+   confirmed at the code level (§2.3, §4.6.6), but the external evidence says the baseline dryer
+   energy was right and the new one is not. The washer overshoot and the dryer undershoot are the two
+   ends of one input: the EnergyGuide-label-derived remaining moisture content of 0.377 is likely too
+   low for the stock, or the dryer usage model does not scale with it the way the label implies. The
+   gas and propane dryers, which now sit 21–27% under after sitting 32–42% over, suggest the answer
+   lies between the two values. Raised as F18.
+
+4. **Ceiling fans: the national number improves, the geography does not.** −66% becomes +35%, a
+   net improvement of 32 points. But Figure 4.9d shows where the new energy landed. RECS per-unit
+   ceiling fan energy spans 56 kWh (New England) to 320 kWh (West South Central), a 5.7× range that
+   follows cooling climate. The baseline was flat at 36–71 kWh everywhere — the fixed fan count. The
+   new run is 149–287 kWh, a 1.9× range: within ±15% of RECS in the three hottest divisions (West
+   South Central −10%, East South Central −10%, South Atlantic +15%), 40–70% over in the central
+   divisions, and 140–180% over in the Pacific, Middle Atlantic and New England. Inference — the
+   bedrooms+1 count (H1, §4.6.2) sets how many fans exist, and RECS says the resulting national energy
+   is of the right order; what it does not set is how much they run, and RECS shows run hours vary
+   with climate roughly three times more than the model does. F4 is therefore two decisions, not one:
+   the count, and what drives the hours.
+
+5. **Water heating splits by fuel, as H4/H5 predicted, and only the electric side helps.** Electric
+   water heating moves from −16% to −14%; gas from −25% to −30%, propane −14% to −19%, fuel oil −13%
+   to −19%. ResStock under-predicts fossil water heating against RECS in every segment (84 of 88
+   categories move further), so the lower UEF-derived tank UA moves the wrong way against this
+   reference.
+
+6. **The 12 unchanged end uses are the negative control.** Lighting, refrigerators, freezers,
+   cooking on three fuels, plug loads, television, pool pumps and heaters, and EV charging moved by
+   0.4 points or less — the same set as H9 and §4.6.1, now confirmed against an external reference
+   rather than against the baseline. Their baseline errors are large (freezer +87%, lighting +45%,
+   cooking +38–49%, refrigerator −28%) and are untouched by this change.
+
+![4.9d per-unit ceiling fan and heating fan energy against RECS by census division and heating fuel](images/fig_4_9_d_fans_regional.png)
+
+*Left: ceiling fans. RECS falls 5.7× from the Gulf states to New England; the baseline is flat; the
+new run is high everywhere and about right only in the South. Right: heating fans and pumps by
+heating fuel. The new run exceeds RECS on every fuel, most on electrically heated homes.*
+
+**Source:** RECS dashboard, "Average Annual Consumption per Occupied Dwelling Unit" panels grouped
+by census division (ceiling fans) and by heating fuel (heating fans and pumps); the "None" and
+"Other Fuel" heating-fuel categories are omitted from the right panel.
+
+### 4.9.3 States against EIA 2018
+
+![4.9b state-level error against EIA 2018 sales, gas and electricity](images/fig_4_9_b_eia_state.png)
+
+*Each row is a state, sorted by baseline error, labelled with its EIA 2018 sales in TWh. Grey is the
+baseline; the coloured dot is the new run — blue closer, orange further, light grey unchanged.*
+
+| Fuel | States closer | States further | Unchanged | EIA sales in closer states | in further states | Sales-weighted mean \|e\| |
+|---|---|---|---|---|---|---|
+| Natural gas | 23 | 28 | 0 | 594 TWh | 929 TWh | 17.1% → 17.4% |
+| Electricity | 23 | 16 | 12 | 858 TWh | 312 TWh | 11.9% → 11.4% |
+
+The ten largest gas states:
+
+| State | EIA 2018 TWh | e_base | e_new | Δ\|e\| |
+|---|---|---|---|---|
+| NY | 146.9 | −12.1% | −15.0% | +2.9 |
+| IL | 132.4 | −2.0% | −6.2% | +4.2 |
+| CA | 128.4 | −31.2% | −35.7% | +4.5 |
+| MI | 100.4 | +13.8% | +10.1% | −3.8 |
+| OH | 94.0 | +13.5% | +8.8% | −4.7 |
+| PA | 76.9 | +4.0% | −0.2% | −3.8 |
+| NJ | 75.4 | −6.7% | −9.2% | +2.5 |
+| TX | 68.3 | −29.1% | −33.4% | +4.3 |
+| IN | 44.1 | +20.7% | +14.2% | −6.6 |
+| WI | 44.0 | +25.5% | +20.8% | −4.6 |
+
+**Source:** EIA dashboard, "by State" grouped panels, total annual consumption, all dwelling units;
+50 states plus the District of Columbia. The sales-weighted mean is Σ(|e| × EIA TWh) / Σ(EIA TWh).
+
+**Interpretation.** Observation — the gas change is a nearly uniform downward shift: 44 of 51
+states move between −2 and −8 points of EIA (median −4.5). The baseline errors it lands on have
+both signs and a strong regional pattern — over-prediction in the upper Midwest and northern Plains
+(ND +60%, SD +53%, MT +49%, NE +41%, IA +39%, MN +39%), under-prediction across the South and the
+West Coast (GA −42%, NV −42%, CA −31%, SC −30%, TX −29%). A uniform shift moves the first group
+closer and the second further, and the three largest gas states (NY, IL, CA, 408 TWh between them)
+all move further. The sales-weighted mean error is unchanged at 17%. Electricity: 49 of 51 states
+were over-predicted in the baseline, so the small downward shift (median −0.6 points) reads as
+23 closer, 16 further and 12 unchanged, with the weighted mean improving half a point. Inference —
+the regional gas pattern predates this change and is not something a national duct-split or blower
+assumption can move in one direction; the change neither creates nor resolves it. It is also the
+reason the national gas number in §4.9.1 is a poor summary: −2.9% nationally was the net of +60%
+and −42% state errors.
+
+### 4.9.4 Segments against RECS 2020
+
+![4.9c change in error against RECS 2020 by segment for the key end uses](images/fig_4_9_c_recs_segments.png)
+
+*Each cell is Δ|e| in points of RECS for that end use in that segment: blue closer, orange further.
+A row of one colour is a change that acted the same way everywhere.*
+
+| End use | Categories | Closer | Further | Unchanged | RECS-weighted mean \|e\|, base → new |
+|---|---|---|---|---|---|
+| Space heating, natural gas | 87 | 60 | 22 | 5 | 35.3% → 31.6% |
+| Space heating, electricity | 88 | 69 | 12 | 7 | 70.4% → 63.2% |
+| Space cooling | 89 | 75 | 9 | 5 | 41.5% → 35.7% |
+| Water heating, natural gas | 88 | 2 | 84 | 2 | 25.1% → 29.5% |
+| Water heating, electricity | 89 | 60 | 26 | 3 | 17.6% → 16.2% |
+| Heating fans & pumps | 88 | 5 | 83 | 0 | 49.3% → 83.1% |
+| Cooling fans & pumps | 88 | 9 | 74 | 5 | 57.8% → 69.6% |
+| Clothes dryer, electricity | 89 | 4 | 85 | 0 | 8.7% → 44.5% |
+| Clothes washer | 89 | 87 | 2 | 0 | 57.8% → 20.0% |
+| Ceiling fans | 89 | 54 | 34 | 1 | 66.4% → 40.0% |
+| Dishwasher | 89 | 10 | 78 | 1 | 11.2% → 18.2% |
+
+**Source:** RECS dashboard, every grouped panel (by state, census division, building type, vintage,
+Building America climate zone and heating fuel), total annual consumption, all occupied dwelling
+units. "Categories" is the union of those groupings, so a state and a census division each count
+once; categories with zero RECS energy are excluded. The mean weights each category by its RECS TWh.
+
+**Interpretation.** Observation — in every row but two, the movement has the same sign in every
+segment: heating, cooling, electric water heating and the washer closer everywhere; fossil water
+heating, both fan categories, the electric dryer and the dishwasher further everywhere. The
+exceptions are ceiling fans (regional, item 4 above) and the dishwasher by building type (mobile
+homes and 2–4-unit buildings closer, the other three further). Inference — movement that is uniform
+across geography, vintage and building type is the signature of an assumption or physics change, not
+a compositional one. That corroborates §4.6.10's composition control from an independent direction:
+if the deltas were a different draw of buildings, they would not move every segment the same way.
+
+### 4.9.5 What this section changes
+
+Closer to the references: heating on all fuels and cooling (RECS), total gas (RECS), total
+electricity (both), electric water heating, the clothes washer and ceiling fans in net national
+terms. Further: heating and cooling fan energy, the electric clothes dryer, the dishwasher, fossil
+water heating, and total gas against EIA. Unchanged: stock counts, gas penetration, and the twelve
+end uses this change does not touch.
+
+Two of the "further" results are new information for the verdict. The electric dryer left the only
+RECS confidence interval the baseline was inside (F18). And the ceiling fan result, which §4.6.2
+confirmed as the intended mechanism, is shown by RECS to have the right national magnitude and the
+wrong regional shape, which sharpens F4 from "is bedrooms+1 intended" to "what should govern fan
+count *and* hours". Neither reference bears on F15 beyond confirming that fossil heating is
+over-predicted before and after.
+
+**Sources.** The two static dashboards generated by `resstockpostproc/baseline_validation` for this
+change: `https://pages.github.nrel.gov/lliu2/htmls/public/resstock_baseline/option_based_refactor/comparison_dashboard_recs_static.html`
+and `.../comparison_dashboard_eia_static.html`, read on 2026-09-03. Each dashboard is an index of
+Plotly HTML panels; the 985 panels with no state or building-type filter (24 EIA, 961 RECS) were
+downloaded and the three series read from each panel's embedded data — reference, "ResStock 2025"
+(baseline) and "option_based_resstock" (new). The dashboards' own totals were used throughout;
+nothing in this section is recomputed from the run parquets, and the baseline electricity total
+(1,641.5 TWh) matches §4.5 to the tenth of a TWh, which ties the two sources together. Error,
+"closer", Δ|e| and the sales-weighted mean are defined above; the RECS confidence intervals are the
+dashboard's error bars. Every comparison is weighted: ResStock by `weight`, RECS by its survey
+weights, EIA as published.
 
 ## 4.10 Unexpected Results
 
@@ -1198,7 +1454,7 @@ full text is readable without horizontal scrolling.
 
 **Explanation.** Both follow from one input change. The new EnergyGuide label attributes 115.9 kWh/yr to the washer appliance versus 50.2 kWh/yr before, and the residual — which is the washer's hot water draw — falls ~22%. The dryer is sized from the washer's remaining moisture content, which falls from 0.606 to 0.377.
 
-**Evidence.** §2.3 mechanism 2; `hotwater_appliances.rb:820` and `:702`; arithmetic reproduces −51.6% for the Standard×Standard pair against −44.7% observed across the option mix
+**Evidence.** §2.3 mechanism 2; `hotwater_appliances.rb:820` and `:702`; arithmetic reproduces −51.6% for the Standard×Standard pair against −44.7% observed across the option mix. **§4.9.2 item 3:** the baseline electric dryer was inside the RECS 2020 95% interval (+0.5%); the new run is −44.5%, uniformly across every segment. Mechanism confirmed, value now in question — F18
 
 ### U3 — Natural gas heating fell 3.60% while heating fan electricity rose 23.6%
 
@@ -1222,7 +1478,7 @@ full text is readable without horizontal scrolling.
 
 **Explanation.** ResStock's explicit count override was removed; OS-HPXML defaults to bedrooms+1, ~3.9 fans at national mean bedrooms.
 
-**Evidence.** §2.3 mechanism 1; `defaults.rb:6511-6513`
+**Evidence.** §2.3 mechanism 1; `defaults.rb:6511-6513`. **§4.9.2 item 4:** against RECS 2020 the national total improves from −66% to +35%, but the regional shape is wrong — within ±15% in the Gulf states, +140–180% in New England, the Middle Atlantic and the Pacific
 
 Note on completeness: this table lists results that were surprising **given the code diff**. §4.2 and
 §4.6 have since been performed, and §4.6's negative control panel covers all 45 shared end uses, so
@@ -1279,7 +1535,7 @@ specific code change with the mechanism identified. §4.2 rules out resampling a
 unchanged, and the national −2.47% site energy result is a modelling result, not a sampling artifact.
 §4.6 also closed the last unexplained result (U1) and passed a 45-end-use negative control panel.
 
-What holds the verdict at `REVIEW NEEDED` is one substantive finding and one remaining gap.
+What holds the verdict at `REVIEW NEEDED` is two substantive findings and one remaining gap.
 
 The finding: **§4.6.4 re-attributes the largest single component of this change, and traces it to a
 specific input.** The fossil heating reduction is not blower waste heat, as §4.10 U3 originally read
@@ -1295,6 +1551,8 @@ A −42 TWh gas heating result now rests on an assumption ResStock did not choos
 migrating to option names, because the catalogue's percent rows carry no supply fraction. Restoring
 67/33 is a one-column data edit. Someone has to decide which value ResStock means (§4.6.13).
 
+The second finding: **§4.9 shows that two of the confirmed mechanisms move ResStock away from RECS 2020.** The electric clothes dryer was the only energy end use the baseline placed inside the RECS 95% interval (+0.5%); the new run is −44.5%, uniformly in every census division, building type and vintage (F18). Heating fan energy goes from +48% to +83% over RECS (F5). Both mechanisms were confirmed in §4.6 as doing what the code says; the external reference says the values the code now produces are further from measurement than the ones it replaced. On the other side of the ledger, heating and cooling on every fuel move 4–8 points closer to RECS, total gas moves closer to RECS and further from EIA-176 at the same time (the two references disagree by 280 TWh), and ceiling fans reach the right national magnitude with the wrong regional shape, which sharpens F4. The twelve untouched end uses did not move against RECS either, closing the negative control externally.
+
 The gap: no individual model verification with negative controls (§4.3, F2), and 1,594 commits still
 separate the two runs. Upgrade impacts were checked through the CI upgrade suite rather than a paired
 national run (§4.8), which confirms the upgrades still apply and still save but does not resolve
@@ -1308,15 +1566,16 @@ document was drafted.
 | # | Item | Owner | Issue | Blocking? |
 |---|---|---|---|---|
 | F2 | Individual model verification with negative controls, using matched cohorts rather than matched `building_id` (§4.3) | TBD | TBD | yes |
-| F4 | Decide explicitly whether ceiling fan count = bedrooms+1 is ResStock's intended national assumption, rather than inheriting it. 20 TWh national swing | TBD | TBD | yes |
-| F5 | Confirm the BPM→PSC blower inference against field data on furnace blower motor populations | TBD | TBD | no |
-| F8 | External validation via `baseline_validation` against RECS 2020 / EIA / LRD (§4.9) | TBD | TBD | yes — before publication |
+| F4 | Decide explicitly whether ceiling fan count = bedrooms+1 is ResStock's intended national assumption, rather than inheriting it. 20 TWh national swing. **§4.9.2 item 4 adds a second decision:** RECS 2020 puts the new national total at the right order (+35%) but the new run is 140–180% over in New England, the Middle Atlantic and the Pacific and about right only in the Gulf states — the count is now plausible, the hours do not vary with climate | TBD | TBD | yes |
+| F5 | Confirm the BPM→PSC blower inference against field data on furnace blower motor populations. **§4.9.2 item 2:** heating fan energy was already +48% over RECS 2020 and is now +83%; +305% → +500% in electrically heated homes. RECS fan estimates are modelled, not metered, but the direction is unambiguous | TBD | TBD | no |
+| F8 | External validation via `baseline_validation` (§4.9). **Done for annual RECS 2020 and EIA 2018.** Not done: monthly (the new run's timeseries in the dashboards covers 33,310 of 549,986 models — a full timeseries load is needed first, then F10) and LRD | Done (annual) | — | no — monthly and LRD carried under F10 |
 | F9 | National-scale upgrade applicability and savings comparison (§4.8). Minimal impact was verified by the implementers via the ResStock CI upgrade suite (34 upgrades, 41 buildings); a paired national run was not done on time and simulation-allocation grounds. Listed so the coverage limit is visible | Decision taken | — | no |
 | F10 | Timeseries and peak comparison (§4.7) | TBD | TBD | no |
 | F12 | Add a Technical Reference Guide section on which values ResStock inherits from OS-HPXML defaults rather than asserting (§3.9) | TBD | TBD | no |
 | F14 | Explain `in.air_leakage_to_outside_ach50` (§4.2) — the one input whose value set moved without a confirmed cause | TBD | TBD | no |
 | F15 | (§4.6.4): the OS-HPXML option catalogue leaves `Supply Leakage Fraction` blank, so ResStock's explicit 67/33 split became OS-HPXML's 50/50 default, which zeroes the duct-leakage-imbalance infiltration term. What remains is a **decision, not an investigation**: confirm whether 50/50 is ResStock's intended national assumption, or restore 67/33 by populating that column in `hvac_ducts.tsv` (a data change, not a code change — the `Detailed Example` rows already use it). −42 TWh of gas heating turns on this | TBD | TBD | **yes** |
 | F16 | Explain why mobile homes move opposite to every other building type — gas heating +1.20% and cooling +0.71% — despite taking the largest blower increase of any type (+34.4%) (§4.6.7) | TBD | TBD | no |
+| F18 | (§4.9.2 item 3): the electric clothes dryer left the RECS 2020 95% interval — baseline +0.5%, new −44.5%, uniform across every segment; gas and propane dryers swung from +32/+42% over to −27/−21% under. The washer-to-dryer coupling (§4.6.6) is doing what the code says, so this is a **value decision** on the label-derived remaining moisture content (0.606 → 0.377) and the dryer usage it implies, not an investigation. −32 TWh nationally turns on it | TBD | TBD | **yes** |
 
 ## 5.4 Review Record
 
@@ -1354,8 +1613,8 @@ The three derived quantities used repeatedly:
 | Total variation distance (§4.2) | `½ · Σ \|p_new − p_baseline\|` over an option's weighted dwelling-unit fractions; 0 identical, 1 disjoint |
 | Composition-controlled delta (§4.6.10) | direct standardisation: the new run's within-cell means applied to the baseline run's cell weights, so the residual against the raw delta is what is attributable to which buildings were drawn |
 
-**Figures.** The thirteen PNGs under `images/` were generated programmatically from the two parquets
-above, not drawn by hand. The analysis scripts that produce them, and their captured console output,
+**Figures.** The sixteen PNGs under `images/` were generated programmatically from the two parquets (§4.2, §4.5, §4.6) and from the comparison dashboards below (§4.9)
+, not drawn by hand. The analysis scripts that produce them, and their captured console output,
 are retained with the working files for this change rather than committed alongside this document;
 the tables here can be reproduced from the definitions above without them.
 
@@ -1365,6 +1624,7 @@ the tables here can be reproduced from the definitions above without them.
 - Kestrel worktree: `/kfs2/projects/enduse/repos/resstock_aparker_sampling_regions_new_sampling_test_0_amy2018_2`
 - Kestrel YML: `/kfs2/projects/enduse/ymls/new_sampling/new_sampling_test_0_amy2018_2.yml` (sampler `residential_quota`, `n_datapoints=550000`, `n_jobs=100`, no upgrades)
 - New run S3: `s3://resstock-core/new_sampling/new_sampling_test_0_amy2018_2/`
+- External validation dashboards (§4.9), generated by `resstockpostproc/baseline_validation`: `https://pages.github.nrel.gov/lliu2/htmls/public/resstock_baseline/option_based_refactor/comparison_dashboard_recs_static.html` and `.../comparison_dashboard_eia_static.html`. Series labels there: "ResStock 2025" = baseline, "option_based_resstock" = new run. The 985 unfiltered Plotly panels they index were read directly; the new run's monthly panels are built from 33,310 models and were not used
 - Baseline results: `s3://oedi-data-lake/nrel-pds-building-stock/end-use-load-profiles-for-us-building-stock/2025/resstock_amy2018_release_1/metadata_and_annual_results/national/full/parquet/upgrade0.parquet`
 - New results: `C:/Scratch/ResStock/efforts/new_sampling/new_sampling_test_0_amy2018_2_output/metadata_and_annual_results_aggregates/national/full/parquet/upgrade0_agg.parquet`
 - Exploratory notebook and analysis scripts: retained in the working folder for this change,
