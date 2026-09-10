@@ -54,7 +54,11 @@ Usage
     # use -f with --materialize-intermediate and/or --materialize-final. The flag does
     # not drop existing materialized tables; it compares target partition values to
     # expected source partitions, preserves finished partitions, and appends only
-    # unfinished partitions with INSERT INTO. For views, -f still means overwrite.
+    # unfinished partitions with INSERT INTO. If the Glue table was dropped but the
+    # requested S3 output folder still has Parquet files, the script attempts to
+    # recreate the table over those files and repair partitions before resuming.
+    # If that recovery fails, manually delete the S3 output folder before retrying.
+    # For views, -f still means overwrite.
     python create_athena_views_from_results.py -d my_database -t my_table -f \
         --materialize-final s3://bucket/path/to/my_table_ts_by_state/
 
@@ -75,8 +79,12 @@ Flags
     -f, --force                   Overwrite existing views. With --materialize-intermediate
                                                                 and/or --materialize-final, resume existing materialized
                                                                 tables by preserving finished partitions and appending only
-                                                                missing partitions. Without -f, existing materialized tables
-                                                                are reused as-is and no partition backfill is attempted.
+                                    missing partitions. If the table metadata is gone but the
+                                    requested S3 output contains Parquet files, recreate the table
+                                    over those files and repair partitions before resuming. If
+                                    recovery fails, manually delete the S3 output folder before
+                                    retrying. Without -f, existing materialized tables are reused
+                                    as-is and no partition backfill is attempted.
   -c, --check                   Run validation checks on the timeseries view after creation.
   -r, --reduced-workflow        Use reduced column mapping (pass-through unmapped columns, skip intensity calculations).
   -s, --skip-period-adjustment  Skip the EST/period-beginning timestamp adjustment and keep source timestamps as-is.
@@ -90,7 +98,8 @@ Flags
                                 expensive GROUP BY runs once rather than at every query.
                                 Without -f, an existing hourly table is reused as-is. With -f,
                                 finished hourly partitions are preserved and only missing
-                                hourly partitions are appended.
+                                hourly partitions are appended; if only S3 files remain, the
+                                table is recreated over those files before resuming.
   --check-intermediate          Arg for timeseries view creation only.
                                 Run validation checks on the materialized table after creation.
                                 If existing materialized table is invalid, it will be dropped. Rerun code to rebuild it.
@@ -101,7 +110,9 @@ Flags
                                 Athena table named <table>_ts_by_state for previewability. If omitted,
                                 the workgroup default output location is used. Without -f, an
                                 existing final table is reused as-is. With -f, finished final
-                                partitions are preserved and only missing final partitions are appended.
+                                partitions are preserved and only missing final partitions are
+                                appended; if only S3 files remain, the table is recreated over
+                                those files before resuming.
   -u, --upgrade-filter <FILTER> Arg for timeseries view creation only.
                                 Apply an upgrade filter to the materialized table, if needed.
                                 Default to all, meaning no filter is applied.
@@ -132,6 +143,10 @@ Optional steps for handling large datasets:
 - Resume interrupted hourly or final materialization with -f. The script checks
     expected source partitions against partitions already present in the target
     materialized table and appends only unfinished partitions with INSERT INTO.
+    If the target table was dropped but the requested S3 output folder still has
+    Parquet files, the script attempts to recreate the table from those files,
+    repair partitions, and then resume. If that recovery fails, manually delete
+    the S3 output folder before retrying.
 
 - Run validation checks on the materialized table after creation or if table exists 
     to ensure data integrity. Intermediate hourly tables are dropped if validation
@@ -1237,13 +1252,12 @@ def _resolve_materialization_location(
     table_name: str,
     materialization_kind: str,
 ) -> Optional[str]:
-    """Normalize a requested output location and avoid silent workgroup overrides.
+    """Normalize a requested materialization location.
 
-    Athena workgroups can enforce a centralized ResultConfiguration.OutputLocation.
-    When that setting differs from a caller-supplied external_location, Athena
-    ignores the request and writes to the workgroup location instead. To avoid
-    that silent override, prefer the workgroup default whenever it conflicts with
-    the requested path.
+    A caller-supplied materialization location is used as the CTAS
+    ``external_location`` even when it differs from the workgroup query-results
+    location. The workgroup output setting controls Athena query result files;
+    this helper keeps the requested materialized table destination authoritative.
     """
     normalized = (
         (requested_location if requested_location.endswith("/") else requested_location + "/")
@@ -1259,15 +1273,13 @@ def _resolve_materialization_location(
             "ResultConfiguration"
         ].get("OutputLocation")
         if default_location and default_location.rstrip("/") != normalized.rstrip("/"):
-            logger.warning(
-                "Workgroup '%s' is configured with output location '%s'; it will override the requested %s location '%s'. "
-                "Using the workgroup location instead to avoid a silent override.",
+            logger.info(
+                "Workgroup '%s' is configured with query-results location '%s'; using requested %s materialization location '%s'.",
                 bsq.workgroup,
                 default_location,
                 materialization_kind,
                 normalized,
             )
-            return None
     except (KeyError, ClientError) as exc:
         logger.warning(
             "Could not determine workgroup output location for %s materialization '%s'; using the requested location when possible: %s",
@@ -1277,6 +1289,108 @@ def _resolve_materialization_location(
         )
 
     return normalized
+
+
+def _run_athena_query_and_wait(
+    bsq: BuildStockQuery,
+    query_string: str,
+    label: str,
+    poll_seconds: int = 5,
+) -> None:
+    exe_id = bsq._aws_athena.start_query_execution(
+        QueryString=query_string,
+        QueryExecutionContext={"Database": bsq.db_name},
+        WorkGroup=bsq.workgroup,
+    )["QueryExecutionId"]
+    while True:
+        stat = bsq._aws_athena.get_query_execution(QueryExecutionId=exe_id)
+        state = stat["QueryExecution"]["Status"]["State"]
+        if state in ("SUCCEEDED", "FAILED", "CANCELLED"):
+            break
+        time.sleep(poll_seconds)
+    if state != "SUCCEEDED":
+        reason = stat["QueryExecution"]["Status"].get("StateChangeReason", "")
+        msg = f"{label} {state}: {reason}"
+        raise RuntimeError(msg)
+
+
+def _register_materialized_table_from_s3(
+    bsq: BuildStockQuery,
+    table_name: str,
+    s3_location: Optional[str],
+    partition_columns: list[str],
+    output_columns: Optional[list[dict]] = None,
+) -> bool:
+    """Register a dropped materialized table over reusable CTAS output files."""
+    if s3_location is None:
+        return False
+
+    try:
+        inferred_columns = _infer_parquet_schema_from_s3(
+            s3_location,
+            region_name=bsq.run_params.region_name,
+        )
+    except FileNotFoundError:
+        return False
+
+    try:
+        source_columns = output_columns if output_columns is not None else inferred_columns
+        partition_names = set(partition_columns)
+        table_columns = []
+        for column in source_columns:
+            name = column.get("name", column.get("Name"))
+            col_type = column.get("type", column.get("Type"))
+            if name in partition_names:
+                continue
+            table_columns.append({"Name": name, "Type": col_type})
+
+        glue = boto3.client("glue", region_name=bsq.run_params.region_name)
+        table_input = {
+            "Name": table_name,
+            "TableType": "EXTERNAL_TABLE",
+            "Parameters": {"classification": "parquet", "EXTERNAL": "TRUE"},
+            "StorageDescriptor": {
+                "Columns": table_columns,
+                "Location": s3_location,
+                "InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+                "OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+                "SerdeInfo": {
+                    "SerializationLibrary": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
+                },
+            },
+            "PartitionKeys": [
+                {"Name": column, "Type": "string"} for column in partition_columns
+            ],
+        }
+        logger.info(
+            "Recreating materialized table '%s' from existing S3 output at '%s'.",
+            table_name,
+            s3_location,
+        )
+        try:
+            glue.create_table(DatabaseName=bsq.db_name, TableInput=table_input)
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] != "AlreadyExistsException":
+                raise
+        _run_athena_query_and_wait(
+            bsq,
+            f"MSCK REPAIR TABLE {bsq.db_name}.{table_name}",
+            "MSCK REPAIR TABLE for existing materialized output",
+        )
+    except Exception as exc:
+        msg = (
+            f"Existing materialized output files were found at '{s3_location}', "
+            f"but table '{table_name}' could not be recreated from them: {exc}. "
+            "Manually delete the S3 output folder before retrying if these files "
+            "are incomplete or cannot be reused."
+        )
+        raise RuntimeError(msg) from exc
+
+    logger.info(
+        "Materialized table '%s' was recreated from existing S3 files; resuming missing partitions.",
+        table_name,
+    )
+    return True
 
 
 def create_materialized_hourly_timeseries_table(
@@ -1468,6 +1582,14 @@ def create_materialized_hourly_timeseries_table(
     else:
         partition_values = [()]
 
+    if not table_exists and force:
+        table_exists = _register_materialized_table_from_s3(
+            bsq,
+            hourly_table,
+            s3_loc,
+            materialized_partition_cols,
+        )
+
     if table_exists:
         if split_partition_cols:
             existing_partition_values = list(
@@ -1547,17 +1669,12 @@ def create_materialized_hourly_timeseries_table(
                 and "external_location" in e.response["Error"]["Message"]
                 and s3_loc is not None
             ):
-                logger.warning(
-                    "Workgroup '%s' enforces a centralized output location — "
-                    "retrying CTAS without 'external_location'.",
-                    bsq.workgroup,
+                msg = (
+                    f"Athena rejected requested hourly materialization location '{s3_loc}': "
+                    f"{e.response['Error']['Message']}. The requested destination takes precedence; "
+                    "delete or fix that S3 output folder before retrying."
                 )
-                ctas_sql_no_loc = (
-                    f"CREATE TABLE {bsq.db_name}.{hourly_table}\n"
-                    f"    WITH (\n        format = 'PARQUET',\n        partitioned_by = ARRAY[{partitioned_by}]\n    )\n"
-                    f"    AS\n    {_select_for_partition(missing_partition_values[0])}"
-                )
-                _run_query(ctas_sql_no_loc, "CTAS materialization")
+                raise RuntimeError(msg) from e
             else:
                 raise
 
@@ -1576,8 +1693,7 @@ def create_materialized_hourly_timeseries_table(
     actual_location = table_info["Table"]["StorageDescriptor"]["Location"]
     if s3_loc and actual_location.rstrip("/") != s3_loc.rstrip("/"):
         logger.warning(
-            "Materialized table '%s' was written to '%s' (workgroup overrode the "
-            "requested location '%s').",
+            "Materialized table '%s' location is '%s', which differs from the requested location '%s'.",
             hourly_table, actual_location, s3_loc,
         )
     else:
@@ -1662,6 +1778,37 @@ def create_materialized_final_timeseries_table(
     if not partition_values:
         partition_values = [()]
 
+    s3_loc = _resolve_materialization_location(
+        bsq,
+        s3_output_location,
+        final_table,
+        "final",
+    )
+    if s3_loc is None:
+        try:
+            workgroup_info = bsq._aws_athena.get_work_group(WorkGroup=bsq.workgroup)
+            default_location = workgroup_info["WorkGroup"]["Configuration"]["ResultConfiguration"].get("OutputLocation")
+            if default_location:
+                s3_loc = default_location.rstrip("/") + "/tables/" + final_table + "/"
+                logger.info(
+                    "Using workgroup default output location for final materialized table: '%s'.",
+                    s3_loc,
+                )
+        except (KeyError, ClientError) as exc:
+            logger.warning(
+                "Could not determine workgroup default output location for final materialized table; using Athena-managed location: %s",
+                exc,
+            )
+
+    if not table_exists and force:
+        table_exists = _register_materialized_table_from_s3(
+            bsq,
+            final_table,
+            s3_loc,
+            materialized_partition_cols,
+            output_columns=output_columns,
+        )
+
     if table_exists:
         if materialized_partition_cols:
             existing_partition_values = list(
@@ -1709,28 +1856,6 @@ def create_materialized_final_timeseries_table(
             sql += f" WHERE {' AND '.join(where_filters)}"
         return sql
 
-    s3_loc = _resolve_materialization_location(
-        bsq,
-        s3_output_location,
-        final_table,
-        "final",
-    )
-    if s3_loc is None:
-        try:
-            workgroup_info = bsq._aws_athena.get_work_group(WorkGroup=bsq.workgroup)
-            default_location = workgroup_info["WorkGroup"]["Configuration"]["ResultConfiguration"].get("OutputLocation")
-            if default_location:
-                s3_loc = default_location.rstrip("/") + "/tables/" + final_table + "/"
-                logger.info(
-                    "Using workgroup default output location for final materialized table: '%s'.",
-                    s3_loc,
-                )
-        except (KeyError, ClientError) as exc:
-            logger.warning(
-                "Could not determine workgroup default output location for final materialized table; using Athena-managed location: %s",
-                exc,
-            )
-
     def _run_query(query_string: str, label: str) -> None:
         exe_id = bsq._aws_athena.start_query_execution(
             QueryString=query_string,
@@ -1774,16 +1899,12 @@ def create_materialized_final_timeseries_table(
                 and "external_location" in e.response["Error"]["Message"]
                 and s3_loc is not None
             ):
-                logger.warning(
-                    "Workgroup '%s' enforces a centralized output location — retrying final CTAS without 'external_location'.",
-                    bsq.workgroup,
+                msg = (
+                    f"Athena rejected requested final materialization location '{s3_loc}': "
+                    f"{e.response['Error']['Message']}. The requested destination takes precedence; "
+                    "delete or fix that S3 output folder before retrying."
                 )
-                ctas_sql_no_loc = (
-                    f"CREATE TABLE {bsq.db_name}.{final_table}\n"
-                    f"    WITH (\n        format = 'PARQUET',\n        partitioned_by = ARRAY[{partitioned_by}]\n    )\n"
-                    f"    AS\n    {_select_for_partition(missing_partition_values[0])}"
-                )
-                _run_query(ctas_sql_no_loc, "CTAS final materialization")
+                raise RuntimeError(msg) from e
             else:
                 raise
 
@@ -2413,16 +2534,16 @@ def _infer_parquet_schema_from_s3(
     if prefix and not prefix.endswith("/"):
         prefix += "/"
 
-    # Find first .parquet file (prefer smaller files for faster schema read)
-    response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix, MaxKeys=100)
     parquet_key = None
     parquet_size = float("inf")
-    for obj in response.get("Contents", []):
-        key = obj["Key"]
-        if key.endswith(".parquet") or key.endswith(".snappy.parquet"):
-            if obj["Size"] < parquet_size:
-                parquet_key = key
-                parquet_size = obj["Size"]
+    paginator = s3.get_paginator("list_objects_v2")
+    for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
+        for obj in page.get("Contents", []):
+            key = obj["Key"]
+            if key.endswith(".parquet") or key.endswith(".snappy.parquet"):
+                if obj["Size"] < parquet_size:
+                    parquet_key = key
+                    parquet_size = obj["Size"]
 
     if not parquet_key:
         raise FileNotFoundError(f"No Parquet files found at s3://{bucket}/{prefix}")
@@ -2835,7 +2956,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
             "Create OEDI Athena views or partitioned materialized timeseries tables. "
-            "Use -f with materialized tables to resume missing partitions."
+            "Use -f with materialized tables to resume missing partitions or reuse "
+            "existing S3 output files."
         )
     )
     parser.add_argument(
@@ -2871,6 +2993,8 @@ def main() -> None:
             "Overwrite existing views. With --materialize-intermediate or "
             "--materialize-final, resume an existing materialized table by "
             "preserving finished partitions and inserting only missing partitions. "
+            "If table metadata was dropped but S3 output files remain, recreate "
+            "the table over those files and repair partitions before resuming. "
             "Without -f, existing materialized tables are reused as-is."
         ),
     )
@@ -2914,7 +3038,8 @@ def main() -> None:
             "default output path is used. All upgrades are materialized by default; use "
             "--upgrade-filter 0 to select only upgrade 0. Without -f, an existing "
             "hourly table is reused as-is. Use -f to resume missing partitions in "
-            "an existing hourly table."
+            "an existing hourly table, or to recreate the table from existing S3 "
+            "output files if only the files remain."
         ),
     )
     parser.add_argument(
@@ -2930,7 +3055,8 @@ def main() -> None:
             "final table even when the final view is too expensive to scan repeatedly. "
             "When omitted, the workgroup default output location is used. Without -f, "
             "an existing final table is reused as-is. Use -f to resume missing "
-            "partitions in an existing final table."
+            "partitions in an existing final table, or to recreate the table from "
+            "existing S3 output files if only the files remain."
         ),
     )
     parser.add_argument(

@@ -232,6 +232,146 @@ def test_materialized_hourly_table_fans_out_all_upgrades(
     "postprocessing.resstockpostproc.create_athena_views_from_results.boto3.client"
 )
 @patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results._infer_parquet_schema_from_s3",
+    return_value=[
+        {"Name": "building_id", "Type": "bigint"},
+        {"Name": "time", "Type": "timestamp"},
+        {"Name": "end_use__natural_gas__heating__therm", "Type": "double"},
+    ],
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.list_tables_boto3",
+    return_value=[],
+)
+def test_materialized_hourly_table_force_recovers_dropped_table_from_s3(
+    mock_list_tables, mock_infer_schema, mock_boto3_client
+):
+    bsq = MagicMock()
+    bsq.table_name = "test_run"
+    bsq.db_name = "test_database"
+    bsq.workgroup = "test_workgroup"
+    bsq.run_params.region_name = "us-west-2"
+    bsq.ts_table.columns = [
+        _make_col("building_id"),
+        _make_col("upgrade", partition=True),
+        _make_col("state", partition=True),
+        _make_col("time"),
+        _make_col("end_use__natural_gas__heating__therm"),
+    ]
+    bsq._aws_athena.get_work_group.return_value = {
+        "WorkGroup": {
+            "Configuration": {
+                "ResultConfiguration": {
+                    "OutputLocation": "s3://bucket/test_run_timeseries_hourly/"
+                }
+            }
+        }
+    }
+
+    def mock_execute(query):
+        if 'SELECT DISTINCT "time" FROM test_run_timeseries' in query:
+            return pd.DataFrame(
+                {"time": pd.to_datetime(["2018-01-01 00:00:00", "2018-01-01 01:00:00"])}
+            )
+        if 'SELECT DISTINCT "state" FROM test_run_timeseries_hourly' in query:
+            return pd.DataFrame({"state": ["CO"]})
+        if 'SELECT DISTINCT "state" FROM test_run_timeseries' in query:
+            return pd.DataFrame({"state": ["CO", "NY"]})
+        return pd.DataFrame()
+
+    bsq.execute.side_effect = mock_execute
+    bsq._aws_athena.start_query_execution.return_value = {"QueryExecutionId": "query-id"}
+    bsq._aws_athena.get_query_execution.return_value = {
+        "QueryExecution": {"Status": {"State": "SUCCEEDED"}}
+    }
+    mock_boto3_client.return_value.get_table.return_value = {
+        "Table": {
+            "StorageDescriptor": {"Location": "s3://bucket/test_run_timeseries_hourly/"}
+        }
+    }
+
+    create_materialized_hourly_timeseries_table(
+        bsq,
+        s3_output_location="s3://bucket/test_run_timeseries_hourly/",
+        upgrade_filter="0",
+        force=True,
+    )
+
+    mock_boto3_client.return_value.create_table.assert_called_once()
+    table_input = mock_boto3_client.return_value.create_table.call_args.kwargs["TableInput"]
+    assert table_input["Name"] == "test_run_timeseries_hourly"
+    assert table_input["StorageDescriptor"]["Location"] == "s3://bucket/test_run_timeseries_hourly/"
+    assert table_input["PartitionKeys"] == [
+        {"Name": "upgrade", "Type": "string"},
+        {"Name": "state", "Type": "string"},
+    ]
+
+    queries = [
+        call.kwargs["QueryString"]
+        for call in bsq._aws_athena.start_query_execution.call_args_list
+    ]
+    assert queries[0] == "MSCK REPAIR TABLE test_database.test_run_timeseries_hourly"
+    assert queries[1].startswith("INSERT INTO test_database.test_run_timeseries_hourly")
+    assert "CREATE TABLE" not in "\n".join(queries)
+    assert "AND \"state\" = 'NY'" in queries[1]
+    assert "AND \"state\" = 'CO'" not in queries[1]
+
+
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.boto3.client"
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results._infer_parquet_schema_from_s3",
+    return_value=[{"Name": "building_id", "Type": "bigint"}],
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.list_tables_boto3",
+    return_value=[],
+)
+def test_materialized_hourly_table_prompts_delete_s3_when_recovery_fails(
+    mock_list_tables, mock_infer_schema, mock_boto3_client
+):
+    bsq = MagicMock()
+    bsq.table_name = "test_run"
+    bsq.db_name = "test_database"
+    bsq.workgroup = "test_workgroup"
+    bsq.run_params.region_name = "us-west-2"
+    bsq.ts_table.columns = [
+        _make_col("building_id"),
+        _make_col("upgrade", partition=True),
+        _make_col("state", partition=True),
+        _make_col("time"),
+    ]
+    bsq._aws_athena.get_work_group.return_value = {
+        "WorkGroup": {
+            "Configuration": {
+                "ResultConfiguration": {
+                    "OutputLocation": "s3://bucket/test_run_timeseries_hourly/"
+                }
+            }
+        }
+    }
+    bsq.execute.side_effect = [
+        pd.DataFrame(
+            {"time": pd.to_datetime(["2018-01-01 00:00:00", "2018-01-01 01:00:00"])}
+        ),
+        pd.DataFrame({"state": ["CO", "NY"]}),
+    ]
+    mock_boto3_client.return_value.create_table.side_effect = RuntimeError("cannot create table")
+
+    with pytest.raises(RuntimeError, match="Manually delete the S3 output folder"):
+        create_materialized_hourly_timeseries_table(
+            bsq,
+            s3_output_location="s3://bucket/test_run_timeseries_hourly/",
+            upgrade_filter="0",
+            force=True,
+        )
+
+
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.boto3.client"
+)
+@patch(
     "postprocessing.resstockpostproc.create_athena_views_from_results.list_tables_boto3",
     return_value=["test_run_timeseries_hourly"],
 )
@@ -363,7 +503,7 @@ def test_main_materialize_final_creates_table_and_checks_table(
     "postprocessing.resstockpostproc.create_athena_views_from_results.list_tables_boto3",
     return_value=[],
 )
-def test_materialized_final_table_uses_partitioned_ctas_and_workgroup_default(
+def test_materialized_final_table_uses_requested_external_location(
     mock_list_tables, mock_boto3_client
 ):
     bsq = MagicMock()
@@ -404,7 +544,7 @@ def test_materialized_final_table_uses_partitioned_ctas_and_workgroup_default(
     }
     mock_boto3_client.return_value.get_table.return_value = {
         "Table": {
-            "StorageDescriptor": {"Location": "s3://bucket/workgroup-default/tables/test_run_ts_by_state/"}
+            "StorageDescriptor": {"Location": "s3://bucket/requested-destination/"}
         }
     }
 
@@ -418,8 +558,8 @@ def test_materialized_final_table_uses_partitioned_ctas_and_workgroup_default(
     assert "partitioned_by = ARRAY['upgrade', 'state']" in ctas_sql
     assert "WHERE \"upgrade\" = '0'" in ctas_sql
     assert "AND \"state\" = 'CO'" in ctas_sql or "AND \"state\" = 'NY'" in ctas_sql
-    assert "external_location = 's3://bucket/requested-destination/" not in ctas_sql
-    assert "external_location = 's3://bucket/workgroup-default/" in ctas_sql
+    assert "external_location = 's3://bucket/requested-destination/" in ctas_sql
+    assert "external_location = 's3://bucket/workgroup-default/" not in ctas_sql
 
 
 @patch(
@@ -482,6 +622,95 @@ def test_materialized_final_table_force_resumes_missing_partitions(
     assert "CREATE TABLE" not in queries[0]
     assert "AND \"state\" = 'NY'" in queries[0]
     assert "AND \"state\" = 'CO'" not in queries[0]
+
+
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.boto3.client"
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results._infer_parquet_schema_from_s3",
+    return_value=[{"Name": "bldg_id", "Type": "bigint"}],
+)
+@patch(
+    "postprocessing.resstockpostproc.create_athena_views_from_results.list_tables_boto3",
+    return_value=[],
+)
+def test_materialized_final_table_force_recovers_dropped_table_from_s3(
+    mock_list_tables, mock_infer_schema, mock_boto3_client
+):
+    bsq = MagicMock()
+    bsq.table_name = "test_run"
+    bsq.db_name = "test_database"
+    bsq.workgroup = "test_workgroup"
+    bsq.run_params.region_name = "us-west-2"
+    bsq.ts_table.columns = [
+        _make_col("building_id"),
+        _make_col("upgrade", partition=True),
+        _make_col("state", partition=True),
+        _make_col("time"),
+        _make_col("end_use__electricity__heating__kwh"),
+    ]
+    bsq._aws_athena.get_work_group.return_value = {
+        "WorkGroup": {
+            "Configuration": {
+                "ResultConfiguration": {
+                    "OutputLocation": "s3://bucket/test_run_ts_by_state/"
+                }
+            }
+        }
+    }
+
+    def mock_execute(query):
+        if 'SELECT DISTINCT "upgrade", "state" FROM test_run_ts_by_state' in query:
+            return pd.DataFrame({"upgrade": ["0"], "state": ["CO"]})
+        if 'SELECT DISTINCT "upgrade", "state" FROM test_run_timeseries' in query:
+            return pd.DataFrame({"upgrade": ["0", "0"], "state": ["CO", "NY"]})
+        if 'SELECT DISTINCT "time" FROM test_run_timeseries' in query:
+            return pd.DataFrame(
+                {"time": pd.to_datetime(["2018-01-01 00:00:00", "2018-01-01 01:00:00"])}
+            )
+        return pd.DataFrame()
+
+    bsq.execute.side_effect = mock_execute
+    bsq._aws_athena.start_query_execution.return_value = {"QueryExecutionId": "query-id"}
+    bsq._aws_athena.get_query_execution.return_value = {
+        "QueryExecution": {"Status": {"State": "SUCCEEDED"}}
+    }
+    mock_boto3_client.return_value.get_table.return_value = {
+        "Table": {
+            "StorageDescriptor": {"Location": "s3://bucket/test_run_ts_by_state/"}
+        }
+    }
+
+    create_materialized_final_timeseries_table(
+        bsq,
+        s3_output_location="s3://bucket/test_run_ts_by_state/",
+        upgrade_filter="0",
+        force=True,
+    )
+
+    mock_boto3_client.return_value.create_table.assert_called_once()
+    table_input = mock_boto3_client.return_value.create_table.call_args.kwargs["TableInput"]
+    column_names = [column["Name"] for column in table_input["StorageDescriptor"]["Columns"]]
+    assert table_input["Name"] == "test_run_ts_by_state"
+    assert table_input["StorageDescriptor"]["Location"] == "s3://bucket/test_run_ts_by_state/"
+    assert table_input["PartitionKeys"] == [
+        {"Name": "upgrade", "Type": "string"},
+        {"Name": "state", "Type": "string"},
+    ]
+    assert "timestamp" in column_names
+    assert "upgrade" not in column_names
+    assert "state" not in column_names
+
+    queries = [
+        call.kwargs["QueryString"]
+        for call in bsq._aws_athena.start_query_execution.call_args_list
+    ]
+    assert queries[0] == "MSCK REPAIR TABLE test_database.test_run_ts_by_state"
+    assert queries[1].startswith("INSERT INTO test_database.test_run_ts_by_state")
+    assert "CREATE TABLE" not in "\n".join(queries)
+    assert "AND \"state\" = 'NY'" in queries[1]
+    assert "AND \"state\" = 'CO'" not in queries[1]
 
 
 @pytest.fixture
