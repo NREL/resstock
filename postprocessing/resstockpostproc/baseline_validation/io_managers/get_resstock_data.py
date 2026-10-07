@@ -11,7 +11,7 @@ from buildstock_query import BuildStockQuery, MappedColumn
 from resstockpostproc.baseline_validation.io_managers.utils import apply_aggregation
 from resstockpostproc.baseline_validation.io_managers.stats import ANNUAL_QUANTILES, weighted_quantiles
 from resstockpostproc.baseline_validation.plot_helpers.resstock_raw import (
-    UnavailableDimension,
+    UnavailableDimensionError,
     resolve_existing_char_column,
     resstock_group_expr,
     resstock_quantity_expr,
@@ -505,7 +505,7 @@ def _require_char_column(col_name: str, by: str, bsq: BuildStockQuery) -> str:
     """
     if col_name in bsq.bs_table.c:
         return col_name
-    raise UnavailableDimension(
+    raise UnavailableDimensionError(
         f"Cannot group by {by!r}: the run's metadata has no column {col_name!r}. If an "
         f"'in.as_simulated_*' column of a similar name exists, it is not a substitute - it "
         f"gives the building's simulated location rather than the location of the dwelling "
@@ -521,10 +521,13 @@ def _get_by_col(by: str, bsq: BuildStockQuery):
         # allocated geography only down to the state can still be grouped by division with
         # nothing lost. This is the one such derivation; anything finer needs the allocated
         # geography itself and `_require_char_column` refuses it.
-        state_col = _require_char_column(
-            RECS_CHARS_MAPPING[DataCol.STATE]["ResStock"]["column_name"], by, bsq)
-        return MappedColumn(bsq=bsq, name=by, mapping_dict=dict(STATE2CENSUS_DIVISION_RECS),
-                            key=bsq._get_column(state_col, annual_only=True))
+        state_col = _require_char_column(RECS_CHARS_MAPPING[DataCol.STATE]["ResStock"]["column_name"], by, bsq)
+        return MappedColumn(
+            bsq=bsq,
+            name=by,
+            mapping_dict=dict(STATE2CENSUS_DIVISION_RECS),
+            key=bsq._get_column(state_col, annual_only=True),
+        )
     col_map = spec["mapping"]
     col_name = _require_char_column(spec["column_name"], by, bsq)
     if not col_map:  # if empty, just return original by col

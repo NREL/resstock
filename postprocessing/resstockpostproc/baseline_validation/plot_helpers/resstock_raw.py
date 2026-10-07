@@ -28,7 +28,7 @@ def resstock_group_expr(col: str, available_cols: set[str]) -> pl.Expr:
     return pl.col(raw_col).replace_strict(mapping, default=None).cast(pl.String).alias(col)
 
 
-class UnavailableDimension(ValueError):
+class UnavailableDimensionError(ValueError):
     """A characteristic the run's data cannot supply at all.
 
     Distinct from a failure to plot: there is nothing wrong with the request, the
@@ -46,7 +46,8 @@ def _census_division_from_state(available_cols: set[str]) -> pl.Expr:
     climate zone, utility -- genuinely needs the allocated geography and is refused instead.
     """
     state_col = resolve_existing_char_column(
-        RECS_CHARS_MAPPING[DataCol.STATE]["ResStock"]["column_name"], available_cols)
+        RECS_CHARS_MAPPING[DataCol.STATE]["ResStock"]["column_name"], available_cols
+    )
     return pl.col(state_col).replace_strict(STATE2CENSUS_DIVISION_RECS, default=None).cast(pl.String)
 
 
@@ -59,7 +60,7 @@ def resolve_existing_char_column(col: str, available_cols: set[str]) -> str:
     for candidate in tried:
         if candidate in available_cols:
             return candidate
-    raise UnavailableDimension(
+    raise UnavailableDimensionError(
         f"Missing required characteristic column {col!r} in raw histogram parquet. "
         f"Tried variants: {tried}. Sample of available cols (first 10): "
         f"{sorted(available_cols)[:10]} (of {len(available_cols)} total)."

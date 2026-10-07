@@ -28,7 +28,7 @@ from resstockpostproc.baseline_validation.schema.plot_definitions import (
     _make_spec,
 )
 from resstockpostproc.baseline_validation.data_processing.gather_data import get_base_data
-from resstockpostproc.baseline_validation.plot_helpers.resstock_raw import UnavailableDimension
+from resstockpostproc.baseline_validation.plot_helpers.resstock_raw import UnavailableDimensionError
 from resstockpostproc.baseline_validation.generation.index_rows import (
     apply_lrd_sidebar_semantics,
     build_output_row,
@@ -146,7 +146,7 @@ def expand_templates(
         """
         try:
             return get_base_data(data_key)
-        except UnavailableDimension as exc:
+        except UnavailableDimensionError as exc:
             skipped[str(exc)] += 1
             return None
 

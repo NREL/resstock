@@ -465,7 +465,7 @@ def _lrd_templates() -> Iterator[PlotTemplate]:
 
 def generate_all_templates() -> list[PlotTemplate]:
     """Return the ordered list of plot templates for the workflow's comparison datasets."""
-    from resstockpostproc.baseline_validation.schema.workflow_schema import workflow
+    from resstockpostproc.baseline_validation.schema.workflow_schema import workflow  # noqa: PLC0415 — lazy: importing it loads the workflow config
 
     wanted = set(workflow.comparison_datasets)
     generators = {
