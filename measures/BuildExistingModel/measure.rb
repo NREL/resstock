@@ -107,7 +107,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_folders', false)
     arg.setDisplayName('Emissions: Electricity Folders')
-    arg.setDescription('Relative paths of electricity emissions factor schedule files with hourly values. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. File names must contain GEA region names.')
+    arg.setDescription('Relative paths of electricity emissions factor schedule files with hourly values. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. CSV basenames (without the .csv extension) must exactly match GEA region names.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_values', false)

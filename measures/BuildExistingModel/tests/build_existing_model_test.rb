@@ -78,7 +78,8 @@ class BuildExistingModelTest < Minitest::Test
       create_emissions_resources(resources_dir)
       create_sampling_region_characteristics(characteristics_dir)
       create_gea_region_characteristics(characteristics_dir)
-      FileUtils.rm(File.join(resources_dir, 'data', 'lrmer', 'MISO South.csv'))
+      File.rename(File.join(resources_dir, 'data', 'lrmer', 'MISO South.csv'),
+                  File.join(resources_dir, 'data', 'lrmer', 'hourly_MISO South.csv'))
 
       args = {
         emissions_scenario_names: 'Fixed - Sampling Region,Schedule - Sampling Region,Zero',
