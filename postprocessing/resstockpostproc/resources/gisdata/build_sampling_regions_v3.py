@@ -319,12 +319,12 @@ def relabel_tsv(v3, offset):
         cells[pos[new]] = val
         out_rows.append([r[i] for i in dep_idx] + cells + [r[i] for i in tail_idx])
 
+    # v1 puts the header on line 1 and its four `#` comment lines at the END of the file, with
+    # no trailing newline. ResStock reads line 1 as the header, so comments at the top make it
+    # parse a comment as the header and fail on the first data row. Reproduce v1 exactly.
+    body = [TAB.join(out_head)] + [TAB.join(r) for r in out_rows] + comments
     with open(os.path.join(HERE, "Sampling Region v3.tsv"), "w", newline="") as f:
-        for c in comments:
-            f.write(c + NL)
-        f.write(TAB.join(out_head) + NL)
-        for r in out_rows:
-            f.write(TAB.join(r) + NL)
+        f.write(NL.join(body))
 
     nd = len(dep_idx)
     say()
