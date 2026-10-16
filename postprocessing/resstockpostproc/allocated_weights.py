@@ -314,8 +314,11 @@ def load_sampling_regions(output_dir: FsspecOutputDir, sampling_region_version: 
     with output_dir["fs"].open(sample_regions_local_path, "r") as f:
         sampling_regions_dict = json.load(f)
 
-    # Manually add in Oglala Lakota County, SD which used to be Shannon county (G4601130)
-    sampling_regions_dict["G4601020"] = 34
+    # Manually add in Oglala Lakota County, SD which used to be Shannon county (G4601130).
+    # v1 predates the rename and carries only the retired code, so the county has to be added.
+    # Later versions carry it themselves under ids of their own, and region 34 is not valid in
+    # them, so only fill the gap rather than overwriting what the file says.
+    sampling_regions_dict.setdefault("G4601020", 34)
 
     # Convert dictionary to DataFrame
     sampling_regions_df = pl.DataFrame(
