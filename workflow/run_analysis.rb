@@ -40,6 +40,10 @@ def run_workflow(yml, in_threads, measures_only, debug_arg, overwrite, building_
   # catalogue in postprocessing, so n_buildings_represented would be silently ignored there
   n_buildings_represented = (cfg['baseline'] || {})['n_buildings_represented']
   if cfg['sampler']['type'] == 'residential_stratified'
+    if Gem::Version.new(cfg['schema_version'].to_s) < Gem::Version.new('0.7')
+      puts "Error: The residential_stratified sampler requires schema_version 0.7 or later (got #{cfg['schema_version']})."
+      return false
+    end
     if !n_buildings_represented.nil?
       puts "Error: 'baseline: n_buildings_represented' is not used with the residential_stratified sampler; the ACS housing unit catalogue sets the size of the stock. Remove it from the yml."
       return false

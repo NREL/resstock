@@ -122,6 +122,16 @@ class TestRunAnalysis < Minitest::Test
     assert(!File.exist?(@testing_baseline))
   end
 
+  def test_errors_stratified_old_schema
+    yml = ' -y test/tests_yml_files/yml_stratified_old_schema/testing_baseline.yml'
+    @command += yml
+
+    stdout_str, _stderr_str, _status = Open3.capture3(@command, unsetenv_others: true)
+
+    _assert_and_puts([stdout_str], 'Error: The residential_stratified sampler requires schema_version 0.7 or later (got 0.6).')
+    assert(!File.exist?(@testing_baseline))
+  end
+
   def test_errors_precomputed_outdated_missing_parameter
     yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_missing.yml'
     @command += yml
