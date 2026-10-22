@@ -436,6 +436,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
                                            cooling_system.compressor_type)
       end
       hpxml_bldg.heat_pumps.each do |heat_pump|
+        heat_pump.heating_capacity_fraction_17F = args[:hvac_heat_pump_heating_capacity_fraction_17_f] unless args[:hvac_heat_pump_heating_capacity_fraction_17_f].nil?
         heat_pump.heating_autosizing_factor = args[:heat_pump_heating_autosizing_factor] unless args[:heat_pump_heating_autosizing_factor].nil?
         heat_pump.cooling_autosizing_factor = args[:heat_pump_cooling_autosizing_factor] unless args[:heat_pump_cooling_autosizing_factor].nil?
         heat_pump.backup_heating_autosizing_factor = args[:heat_pump_backup_heating_autosizing_factor] unless args[:heat_pump_backup_heating_autosizing_factor].nil?

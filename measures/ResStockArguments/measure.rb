@@ -331,6 +331,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The type and efficiency of the existing heat pump.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_heat_pump_heating_capacity_fraction_17_f', false)
+    arg.setDisplayName('HVAC: Heat Pump Heating Capacity Fraction 17F')
+    arg.setDescription('Heating output capacity at 17F.')
+    arg.setUnits('frac')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_heating_autosizing_factor', false)
     arg.setDisplayName('HVAC: Heat Pump Heating Autosizing Factor')
     arg.setDescription('The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.')

@@ -2082,6 +2082,19 @@ The type and efficiency of the existing heat pump.
 
 <br/>
 
+**HVAC: Heat Pump Heating Capacity Fraction 17F**
+
+Heating output capacity at 17F.
+
+- **Name:** ``hvac_heat_pump_heating_capacity_fraction_17_f``
+- **Type:** ``Double``
+
+- **Units:** ``frac``
+
+- **Required:** ``false``
+
+<br/>
+
 **HVAC: Heat Pump Heating Autosizing Factor**
 
 The capacity scaling factor applied to the auto-sizing methodology. If not provided, 1.0 is used.
